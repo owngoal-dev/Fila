@@ -1,0 +1,7 @@
+{
+  "name": "Ghostty / glslang",
+  "url": "https://deps.files.ghostty.org/glslang-12201278a1a05c0ce0b6eb6026c65cd3e9247aa041b1c260324bf29cee559dd23ba1.tar.gz",
+  "source": "https://deps.files.ghostty.org/glslang-12201278a1a05c0ce0b6eb6026c65cd3e9247aa041b1c260324bf29cee559dd23ba1.tar.gz",
+  "sha256": "17a11ca160c68a403054c0172becca46a2acb8559d5429eec098a41d3bfe9cb9",
+  "version": "14.2.0"
+}

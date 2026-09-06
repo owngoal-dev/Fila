@@ -1,0 +1,7 @@
+{
+  "name": "Ghostty / nerd_fonts_symbols_only",
+  "url": "https://deps.files.ghostty.org/NerdFontsSymbolsOnly-3.4.0.tar.gz",
+  "source": "https://deps.files.ghostty.org/NerdFontsSymbolsOnly-3.4.0.tar.gz",
+  "sha256": "09f626bb1f8c384becfca89b5257bf92b4b0b6a8773d8799a0d560e1c7c8fd12",
+  "additional_source": "https://github.com/ghostty-org/ghostty/blob/c4e16970a803b170e352432424f44192cb59f3ac/vendor/nerd-fonts/LICENSE"
+}

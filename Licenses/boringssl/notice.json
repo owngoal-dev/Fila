@@ -1,0 +1,7 @@
+{
+  "name": "BoringSSL",
+  "url": "https://github.com/google/boringssl/tree/0226f30467f540a3f62ef48d453f93927da199b6",
+  "source": "https://raw.githubusercontent.com/google/boringssl/0226f30467f540a3f62ef48d453f93927da199b6/LICENSE",
+  "sha256": "827c8d8fc207c2392794eef9e00fe246f9f61fdcc132556c275be3dd8c3cd97f",
+  "version": "0226f30467f540a3f62ef48d453f93927da199b6"
+}

@@ -1,0 +1,11 @@
+// The File Provider extension's own floor.
+//
+// The app targets iOS 15 (Base.xcconfig), but the replicated File Provider
+// API — NSFileProviderReplicatedExtension and the enumeration this extension
+// is built on — is iOS 16. The extension raises only its own deployment
+// target, so its built Info.plist carries MinimumOSVersion 16.0 and a 15
+// device never loads it, which is exactly what the supplement Info.plist
+// documents. Setting this in the target's build settings would trip
+// `make check`, which keeps every deployment target in an xcconfig — so it
+// lives here, layered over the project's Base config for this target alone.
+IPHONEOS_DEPLOYMENT_TARGET = 16.0

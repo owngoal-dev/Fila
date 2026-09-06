@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-elixir",
+  "url": "https://github.com/elixir-lang/tree-sitter-elixir",
+  "source": "https://raw.githubusercontent.com/elixir-lang/tree-sitter-elixir/HEAD/LICENSE",
+  "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+}

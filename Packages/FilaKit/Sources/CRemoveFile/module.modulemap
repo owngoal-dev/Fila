@@ -1,0 +1,10 @@
+// `removefile(3)` reaches Swift through the Darwin module on some SDKs and not
+// on others: Xcode 27 exports it, Xcode 26.6 — what the release runner has —
+// does not, and the whole API (`removefile`, its state, flags and callback
+// answers) simply is not in scope there. The header ships in every Apple SDK,
+// so this names it as a module of our own. Nothing is declared here; the SDK
+// header is the only content.
+module CRemoveFile [system] {
+    header "shim.h"
+    export *
+}

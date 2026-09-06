@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-bash",
+  "url": "https://github.com/tree-sitter/tree-sitter-bash",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-bash/HEAD/LICENSE",
+  "sha256": "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559"
+}

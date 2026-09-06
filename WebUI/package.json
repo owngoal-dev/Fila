@@ -1,0 +1,28 @@
+{
+  "name": "fila-webui",
+  "private": true,
+  "description": "Static browser frontend for FilaRemote's WebDAV server. `npm run build` writes dist/, which the app's Build Web UI phase copies into Fila.app/WebUI.",
+  "scripts": {
+    "sync": "node scripts/sync-assets.js",
+    "prebuild": "npm run sync",
+    "build": "webpack --mode production",
+    "prewatch": "npm run sync",
+    "watch": "webpack --mode development --watch"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.8",
+    "mini-css-extract-plugin": "^2.9.0",
+    "terser-webpack-plugin": "^5.3.0",
+    "ts-loader": "^9.6.2",
+    "typescript": "^5.6.0",
+    "webpack": "^5.110.3",
+    "webpack-cli": "^6.0.0"
+  }
+}

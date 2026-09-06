@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-rust",
+  "url": "https://github.com/tree-sitter/tree-sitter-rust",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-rust/HEAD/LICENSE",
+  "sha256": "31d5b6f4243d5c7c6e1c4ebbbb9f6407bd1457a08bcc4f706521710341acba36"
+}

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+	`com.apple.security.iokit-user-client-class` is the terminal's, and only
+	the terminal's. Every other screen in this app draws through UIKit, which
+	renders out of process and needs nothing here; libghostty draws with Metal
+	inside the app, and a bootstrap withholds the GPU from an ad-hoc signed
+	binary until this entitlement names the classes.
+
+	The failure it fixes is silent and looks like anything but an entitlement:
+	the surface never reports a viewport and the terminal is a blank rectangle,
+	while the daemon, the pty and the shell are all working — the shell writes
+	its prompt into the master and nothing ever draws it. The kernel says what
+	to do in as many words, in a log line the device has no `log` binary to
+	show you: `deny(1) iokit-open-user-client AGXDeviceUserClient … This must
+	be in your com.apple.security.iokit-user-client-class entitlement`.
+
+	`AppleParavirtDeviceUserClient` is the one that matters on a VM, which is
+	where this project is developed: vphone's paravirtual GPU reports the same
+	denial under its own class name. The AGX entries are the physical-device
+	equivalents, and the rest is the render path only — IOSurface, the
+	framebuffer, JPEG decode, and the HID clients UIKit opens for input.
+
+	Measured and documented first in iGhostVT, whose entitlements file carries
+	the full findings; this is the same list for the same reason.
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array><string>$(APP_GROUP_IDENTIFIER)</string></array>
+	<key>application-identifier</key>
+	<string>wiki.qaq.fila</string>
+	<key>com.apple.security.iokit-user-client-class</key>
+	<array>
+		<string>AGXCommandQueue</string>
+		<string>AGXDevice</string>
+		<string>AGXDeviceUserClient</string>
+		<string>AGXSharedUserClient</string>
+		<string>AGXGLContext</string>
+		<string>AppleParavirtDeviceUserClient</string>
+		<string>IOAccelContext</string>
+		<string>IOAccelContext2</string>
+		<string>IOAccelDevice</string>
+		<string>IOAccelDevice2</string>
+		<string>IOAccelSharedUserClient</string>
+		<string>IOAccelSharedUserClient2</string>
+		<string>IOAccelSubmitter2</string>
+		<string>IOSurfaceRootUserClient</string>
+		<string>IOSurfaceAcceleratorClient</string>
+		<string>IOMobileFramebufferUserClient</string>
+		<string>AppleJPEGDriverUserClient</string>
+		<string>IOHIDLibUserClient</string>
+		<string>IOHIDEventServiceFastPathUserClient</string>
+	</array>
+	<key>com.apple.security.exception.mach-lookup.global-name</key>
+	<array>
+		<string>wiki.qaq.fila.service</string>
+		<!-- IconServices rendering and cache lookup, used by application icons. -->
+		<string>com.apple.iconservices</string>
+		<string>com.apple.iconservices.store</string>
+	</array>
+	<key>com.apple.private.security.no-sandbox</key>
+	<true/>
+	<!--
+		installcoordinationd refuses every connection from a process without
+		this one ("missing … entitlement so rejecting connection attempt"), and
+		on iOS 16+ it is the only install/uninstall path — LSApplicationWorkspace's
+		installer is a stub there. It lets Fila *talk* to the installer; it does
+		not make installd trust an unsigned package. See Roadmap → IPA installation.
+	-->
+	<key>com.apple.private.InstallCoordination.allowed</key>
+	<true/>
+	<!--
+		Uninstall is gated separately, and by name: without this the daemon
+		answers IXErrorDomain 25 "Client … is missing entitlement
+		com.apple.private.InstallCoordination.uninstall … to uninstall
+		applications". It is also what removes the placeholder installd leaves
+		behind when it refuses a package, so an install attempt without it
+		cannot clean up after itself.
+	-->
+	<key>com.apple.private.InstallCoordination.uninstall</key>
+	<true/>
+	<!--
+		The breadcrumb names the root after the device. Since iOS 16
+		`UIDevice.name` answers with the model ("iPad") unless this is held;
+		with it, the name the user gave the device.
+	-->
+	<key>com.apple.developer.device-information.user-assigned-device-name</key>
+	<true/>
+	<key>com.apple.private.security.storage.AppBundles</key>
+	<true/>
+	<key>com.apple.private.security.storage.AppDataContainers</key>
+	<true/>
+	<key>platform-application</key>
+	<true/>
+	<key>wiki.qaq.fila.client</key>
+	<true/>
+</dict>
+</plist>

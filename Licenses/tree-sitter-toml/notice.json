@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-toml",
+  "url": "https://github.com/ikatyang/tree-sitter-toml",
+  "source": "https://raw.githubusercontent.com/ikatyang/tree-sitter-toml/HEAD/LICENSE",
+  "sha256": "b727eee929bee836e8102cecf749a795b199f291b58c885bcd81cae727ac5a46"
+}

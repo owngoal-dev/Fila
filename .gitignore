@@ -1,0 +1,43 @@
+.DS_Store
+**/.DS_Store
+
+# Xcode / local build
+DerivedData/
+build/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Web UI toolchain; the built index.html is checked in under FilaRemote
+WebUI/node_modules/
+WebUI/dist/
+WebUI/src/generated/
+
+# Per-developer signing and local overrides
+Configuration/Developer*.xcconfig
+!Configuration/Developer.xcconfig.example
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Editor / agent local state
+.claude/
+.cursor/
+.vscode/
+*.swp
+*~
+
+# Local work tracking — do not commit
+TODO.md

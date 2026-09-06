@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-ocaml",
+  "url": "https://github.com/tree-sitter/tree-sitter-ocaml",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-ocaml/HEAD/LICENSE",
+  "sha256": "f977a20805dd6e275f14bc090a5f8e638401dad4df366841c1060f12c75b74ae"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-python",
+  "url": "https://github.com/tree-sitter/tree-sitter-python",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-python/HEAD/LICENSE",
+  "sha256": "d724405ce238a22c0d35769c5a36b386ad5958192efe8bbb304fb2896254575f"
+}

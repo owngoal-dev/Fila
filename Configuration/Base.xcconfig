@@ -1,0 +1,22 @@
+#include "Version.xcconfig"
+
+// Single source of truth for the minimum OS across every product target.
+// `make check` fails if either lands in project.pbxproj instead.
+IPHONEOS_DEPLOYMENT_TARGET = 15.0
+MACOSX_DEPLOYMENT_TARGET = 13.0
+
+// The asset catalogue's icon set, named here rather than in the pbxproj for the
+// same reason as everything above it. Without this the catalogue still compiles
+// and the app still builds — it just ships with no icon key in its Info.plist,
+// which is exactly the kind of silent loss `Scripts/verify-deb.sh` now fails on.
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+
+// Optional DEVELOPMENT_TEAM / CODE_SIGN_STYLE live in the git-ignored
+// Developer*.xcconfig overlays. See Developer.xcconfig.example.
+//
+// Device packages from `make deb` override signing on the xcodebuild command
+// line; Scripts/package-deb.sh ad-hoc signs with ldid.
+
+// Shared documents exported by the app and its File Provider extension.
+// Override in Developer*.xcconfig when provisioning a different App Group.
+APP_GROUP_IDENTIFIER = group.wiki.qaq.fila

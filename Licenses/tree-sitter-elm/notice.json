@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-elm",
+  "url": "https://github.com/elm-tooling/tree-sitter-elm",
+  "source": "https://raw.githubusercontent.com/elm-tooling/tree-sitter-elm/HEAD/LICENSE.md",
+  "sha256": "26f7bf09693dd895ea64777316bad0133b131a8478a660b4785d4b9d1322f9a1"
+}

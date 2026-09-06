@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-jsdoc",
+  "url": "https://github.com/tree-sitter/tree-sitter-jsdoc",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-jsdoc/HEAD/LICENSE",
+  "sha256": "ffaefecad68467134f8c701120a2410a2384ffff7a605b63638cf0b51e7d16cc"
+}

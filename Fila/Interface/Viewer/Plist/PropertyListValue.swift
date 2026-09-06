@@ -1,0 +1,328 @@
+import Foundation
+
+/// A property list as something Swift can edit.
+///
+/// `PropertyListSerialization` hands back `Any` — `NSDictionary`, `NSNumber`,
+/// and a `Bool` that is an `NSNumber` wearing a different `CFTypeID`. Editing
+/// that tree in place means casting at every node and guessing at every leaf
+/// whether a `1` is a number or a `true`, and guessing wrong writes a launchd
+/// job that launchd then ignores. So it is converted once, on the way in, and
+/// converted back once, on the way out.
+///
+/// A dictionary keeps its pairs in an array rather than a `[String: …]` because
+/// the editor shows them in a stable order and a Swift dictionary has none.
+indirect enum PropertyListValue {
+    case dictionary([(key: String, value: PropertyListValue)])
+    case array([PropertyListValue])
+    case string(String)
+    case integer(Int64)
+    case real(Double)
+    case boolean(Bool)
+    case date(Date)
+    case data(Data)
+    case readOnly(String)
+
+    var supportsEditing: Bool {
+        switch self {
+        case let .dictionary(pairs): return pairs.allSatisfy { $0.value.supportsEditing }
+        case let .array(items): return items.allSatisfy(\.supportsEditing)
+        case .readOnly: return false
+        default: return true
+        }
+    }
+
+    var isContainer: Bool {
+        switch self {
+        case .dictionary, .array: return true
+        default: return false
+        }
+    }
+
+    var childCount: Int {
+        switch self {
+        case let .dictionary(pairs): return pairs.count
+        case let .array(items): return items.count
+        default: return 0
+        }
+    }
+
+    /// What the row shows to the right of the key.
+    var summary: String {
+        switch self {
+        case let .dictionary(pairs):
+            return String(format: String(localized: "%lld items"), Int64(pairs.count))
+        case let .array(items):
+            return String(format: String(localized: "%lld items"), Int64(items.count))
+        case let .string(text):
+            return text
+        case let .integer(number):
+            return String(number)
+        case let .real(number):
+            return String(number)
+        case let .boolean(flag):
+            return flag ? "true" : "false"
+        case let .date(date):
+            return ISO8601DateFormatter().string(from: date)
+        case let .data(bytes):
+            return ByteCountFormatter.string(fromByteCount: Int64(bytes.count), countStyle: .binary)
+        case let .readOnly(summary):
+            return summary
+        }
+    }
+
+    var typeName: String {
+        switch self {
+        case .dictionary: return String(localized: "Dictionary")
+        case .array: return String(localized: "Array")
+        case .string: return String(localized: "String")
+        case .integer: return String(localized: "Number")
+        case .real: return String(localized: "Number")
+        case .boolean: return String(localized: "Boolean")
+        case .date: return String(localized: "Date")
+        case .data: return String(localized: "Data")
+        case .readOnly: return String(localized: "Read-Only Value")
+        }
+    }
+
+    /// The value a leaf edit starts from, and the only thing a text field can
+    /// round-trip. Containers and data have no text form and are not edited this
+    /// way.
+    var editableText: String? {
+        switch self {
+        case .string, .integer, .real: return summary
+        default: return nil
+        }
+    }
+}
+
+/// Where a node lives. `.key` into a dictionary, `.index` into an array; the two
+/// cannot be interchanged and keeping them as separate cases is what stops an
+/// array index being applied to a dictionary at three in the morning.
+enum PropertyListStep: Hashable {
+    case key(String)
+    case index(Int)
+}
+
+extension PropertyListValue {
+    /// Preserve the position of values the editor cannot round-trip. Binary
+    /// plists can contain archive UIDs even when no objects are unarchived.
+    init(_ object: Any) {
+        switch object {
+        // The `Bool` check has to come first and has to be this one:
+        // `NSNumber(true)` casts to `Int64` perfectly happily, and a boolean
+        // that saves back as the integer 1 is how an entitlement stops working.
+        case let value as NSNumber where CFGetTypeID(value) == CFBooleanGetTypeID():
+            self = .boolean(value.boolValue)
+        case let value as NSNumber:
+            if CFNumberIsFloatType(value) {
+                self = .real(value.doubleValue)
+            } else {
+                let number = value.int64Value
+                self = NSNumber(value: number) == value ? .integer(number) : .readOnly(value.stringValue)
+            }
+        case let value as String:
+            self = .string(value)
+        case let value as Date:
+            self = .date(value)
+        case let value as Data:
+            self = .data(value)
+        case let value as [Any]:
+            self = .array(value.map(PropertyListValue.init))
+        case let value as [String: Any]:
+            self = .dictionary(value.sorted { $0.key < $1.key }.map { (key: $0.key, value: PropertyListValue($0.value)) })
+        default:
+            self = .readOnly(Self.readOnlySummary(object))
+        }
+    }
+
+    /// Foundation's public XML output represents a UID as CF$UID plus an
+    /// integer. Read that display value only; never instantiate archived objects
+    /// or turn this presentation form into a writable replacement value.
+    private static func readOnlySummary(_ object: Any) -> String {
+        guard let data = try? PropertyListSerialization.data(fromPropertyList: ["value": object], format: .xml, options: 0),
+              let xml = String(data: data, encoding: .utf8),
+              let key = xml.range(of: "<key>CF$UID</key>"),
+              let start = xml.range(of: "<integer>", range: key.upperBound ..< xml.endIndex),
+              let end = xml.range(of: "</integer>", range: start.upperBound ..< xml.endIndex),
+              let number = UInt64(xml[start.upperBound ..< end.lowerBound]) else {
+            return String(localized: "Unsupported Value")
+        }
+        return "UID \(number)"
+    }
+
+    var foundationObject: Any {
+        get throws {
+            switch self {
+            case let .dictionary(pairs):
+                var result: [String: Any] = [:]
+                for pair in pairs { result[pair.key] = try pair.value.foundationObject }
+                return result
+            case let .array(items):
+                return try items.map { try $0.foundationObject }
+            case let .string(text): return text
+            case let .integer(number): return NSNumber(value: number)
+            case let .real(number): return NSNumber(value: number)
+            case let .boolean(flag): return NSNumber(value: flag)
+            case let .date(date): return date
+            case let .data(bytes): return bytes
+            case .readOnly: throw CocoaError(.propertyListWriteInvalid)
+            }
+        }
+    }
+
+    subscript(step: PropertyListStep) -> PropertyListValue? {
+        switch (self, step) {
+        case let (.dictionary(pairs), .key(name)):
+            return pairs.first { $0.key == name }?.value
+        case let (.array(items), .index(index)):
+            return items.indices.contains(index) ? items[index] : nil
+        default:
+            return nil
+        }
+    }
+
+    func value(at path: [PropertyListStep]) -> PropertyListValue? {
+        path.reduce(self as PropertyListValue?) { $0?[$1] }
+    }
+
+    /// Replace what is at `path`, or remove it when `replacement` is nil.
+    ///
+    /// Recursive rather than iterative because an enum with associated values
+    /// has no in-place mutation through a path; the copy is the price of the
+    /// tree being a value, and a property list is small enough for that to cost
+    /// nothing that matters.
+    func replacing(_ path: [PropertyListStep], with replacement: PropertyListValue?) -> PropertyListValue {
+        guard let step = path.first else { return replacement ?? self }
+        let rest = Array(path.dropFirst())
+
+        switch (self, step) {
+        case (.dictionary(var pairs), let .key(name)):
+            guard let position = pairs.firstIndex(where: { $0.key == name }) else { return self }
+            if rest.isEmpty {
+                if let replacement {
+                    pairs[position].value = replacement
+                } else {
+                    pairs.remove(at: position)
+                }
+            } else {
+                pairs[position].value = pairs[position].value.replacing(rest, with: replacement)
+            }
+            return .dictionary(pairs)
+
+        case (.array(var items), let .index(index)):
+            guard items.indices.contains(index) else { return self }
+            if rest.isEmpty {
+                if let replacement {
+                    items[index] = replacement
+                } else {
+                    items.remove(at: index)
+                }
+            } else {
+                items[index] = items[index].replacing(rest, with: replacement)
+            }
+            return .array(items)
+
+        default:
+            return self
+        }
+    }
+
+    /// Rename a dictionary key, keeping the value. A remove-then-insert would
+    /// also move the row, and losing your place after a typo fix is the kind of
+    /// small thing that makes an editor annoying to use.
+    func renaming(_ path: [PropertyListStep], to newKey: String) -> PropertyListValue {
+        guard let step = path.first else { return self }
+        let rest = Array(path.dropFirst())
+
+        switch (self, step) {
+        case (.dictionary(var pairs), let .key(name)):
+            guard let position = pairs.firstIndex(where: { $0.key == name }) else { return self }
+            if rest.isEmpty {
+                guard !pairs.contains(where: { $0.key == newKey }) else { return self }
+                pairs[position].key = newKey
+                pairs.sort { $0.key < $1.key }
+            } else {
+                pairs[position].value = pairs[position].value.renaming(rest, to: newKey)
+            }
+            return .dictionary(pairs)
+
+        case (.array(var items), let .index(index)):
+            guard items.indices.contains(index), !rest.isEmpty else { return self }
+            items[index] = items[index].renaming(rest, to: newKey)
+            return .array(items)
+
+        default:
+            return self
+        }
+    }
+
+    /// Append into the container at `path`. The key is ignored for an array and
+    /// required for a dictionary.
+    func inserting(_ child: PropertyListValue, key: String, into path: [PropertyListStep]) -> PropertyListValue {
+        guard let step = path.first else {
+            switch self {
+            case var .dictionary(pairs):
+                guard !pairs.contains(where: { $0.key == key }) else { return self }
+                pairs.append((key: key, value: child))
+                pairs.sort { $0.key < $1.key }
+                return .dictionary(pairs)
+            case var .array(items):
+                items.append(child)
+                return .array(items)
+            default:
+                return self
+            }
+        }
+        let rest = Array(path.dropFirst())
+
+        switch (self, step) {
+        case (.dictionary(var pairs), let .key(name)):
+            guard let position = pairs.firstIndex(where: { $0.key == name }) else { return self }
+            pairs[position].value = pairs[position].value.inserting(child, key: key, into: rest)
+            return .dictionary(pairs)
+        case (.array(var items), let .index(index)):
+            guard items.indices.contains(index) else { return self }
+            items[index] = items[index].inserting(child, key: key, into: rest)
+            return .array(items)
+        default:
+            return self
+        }
+    }
+}
+
+#if DEBUG
+extension PropertyListValue {
+    static func runSelfCheck() {
+        // Synthetic binary plist: {name: "kept", objects: [UID(7),
+        // {bytes: Data("abc"), enabled: true, number: 42}]}. No user data.
+        let fixture = Data(base64Encoded: "YnBsaXN0MDDSAQIDBFRuYW1lV29iamVjdHNUa2VwdKIFBoAH0wcICQoLDFVieXRlc1dlbmFibGVkVm51bWJlckNhYmMJECoIDRIaHyIkKzE5QERFAAAAAAAAAQEAAAAAAAAADQAAAAAAAAAAAAAAAAAAAEc=")!
+        do {
+            let object = try PropertyListSerialization.propertyList(from: fixture, options: [], format: nil)
+            let value = PropertyListValue(object)
+            assert(value.childCount == 2)
+            assert(value.value(at: [.key("name")])?.summary == "kept")
+            assert(value.value(at: [.key("objects")])?.childCount == 2)
+            assert(value.value(at: [.key("objects"), .index(0)])?.summary == "UID 7")
+            assert(value.value(at: [.key("objects"), .index(1)])?.childCount == 3)
+            assert(value.value(at: [.key("objects"), .index(1), .key("enabled")])?.summary == "true")
+            assert(!value.supportsEditing)
+            do {
+                _ = try value.foundationObject
+                assertionFailure("A read-only plist value must never be serialized")
+            } catch {
+                let failure = error as NSError
+                assert(failure.domain == NSCocoaErrorDomain && failure.code == CocoaError.propertyListWriteInvalid.rawValue)
+            }
+
+            let supported = value.replacing([.key("objects"), .index(0)], with: .integer(7))
+            assert(supported.supportsEditing)
+            let encoded = try PropertyListSerialization.data(fromPropertyList: supported.foundationObject, format: .binary, options: 0)
+            let decoded = try PropertyListSerialization.propertyList(from: encoded, options: [], format: nil)
+            assert(PropertyListValue(decoded).value(at: [.key("objects"), .index(1), .key("number")])?.summary == "42")
+            assert(!PropertyListValue(NSNumber(value: UInt64.max)).supportsEditing)
+        } catch {
+            assertionFailure("Property-list compatibility check failed: \(error)")
+        }
+    }
+}
+#endif

@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-haskell",
+  "url": "https://github.com/tree-sitter/tree-sitter-haskell",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-haskell/HEAD/LICENSE",
+  "sha256": "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1"
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "file": "01-Ascending.m4a",
+    "sha256": "bbd0125c64f4964de82e97520255e960b75d3c6769bcd2392c604c1a4a25afec",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "sample_rate": "44100",
+          "channels": 1,
+          "duration": "6.000000"
+        }
+      ],
+      "format": {
+        "duration": "6.000000",
+        "tags": {
+          "major_brand": "M4A ",
+          "minor_version": "512",
+          "compatible_brands": "M4A isomiso2",
+          "title": "Fila 测试曲一 · 上行",
+          "artist": "Fila Fixture Artist",
+          "album_artist": "Fila Fixture Artist",
+          "composer": "Fila Fixtures",
+          "album": "Fila 音乐编辑测试 · 原创音频",
+          "date": "2026",
+          "encoder": "Lavf63.1.101",
+          "comment": "Original synthesized fixture 1. Safe import sample; not a Music database.",
+          "genre": "Test",
+          "track": "1/3",
+          "disc": "1/1"
+        }
+      }
+    }
+  },
+  {
+    "file": "02-Alternating.m4a",
+    "sha256": "75091f853aa24c659cb90fc272ae3e27cc00e28d82c6468dd0530d4741e0950d",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "sample_rate": "44100",
+          "channels": 1,
+          "duration": "8.000000"
+        }
+      ],
+      "format": {
+        "duration": "8.000000",
+        "tags": {
+          "major_brand": "M4A ",
+          "minor_version": "512",
+          "compatible_brands": "M4A isomiso2",
+          "title": "Fila 测试曲二 · 交替",
+          "artist": "Fila Fixture Artist",
+          "album_artist": "Fila Fixture Artist",
+          "composer": "Fila Fixtures",
+          "album": "Fila 音乐编辑测试 · 原创音频",
+          "date": "2026",
+          "encoder": "Lavf63.1.101",
+          "comment": "Original synthesized fixture 2. Safe import sample; not a Music database.",
+          "genre": "Test",
+          "track": "2/3",
+          "disc": "1/1"
+        }
+      }
+    }
+  },
+  {
+    "file": "03-Slow-Pulse.m4a",
+    "sha256": "cad6c2f9d67b666ffc59760ad22346c92e196ea6403059947bd321edf23e9686",
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "aac",
+          "profile": "LC",
+          "sample_rate": "44100",
+          "channels": 1,
+          "duration": "10.000000"
+        }
+      ],
+      "format": {
+        "duration": "10.000000",
+        "tags": {
+          "major_brand": "M4A ",
+          "minor_version": "512",
+          "compatible_brands": "M4A isomiso2",
+          "title": "Fila 测试曲三 · 慢拍",
+          "artist": "Fila Fixture Artist",
+          "album_artist": "Fila Fixture Artist",
+          "composer": "Fila Fixtures",
+          "album": "Fila 音乐编辑测试 · 原创音频",
+          "date": "2026",
+          "encoder": "Lavf63.1.101",
+          "comment": "Original synthesized fixture 3. Safe import sample; not a Music database.",
+          "genre": "Test",
+          "track": "3/3",
+          "disc": "1/1"
+        }
+      }
+    }
+  }
+]

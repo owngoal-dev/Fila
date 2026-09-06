@@ -1,0 +1,198 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fila"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fila"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSAppleMusicUsageDescription" : {
+      "comment" : "Privacy - Media Library Usage Description",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم Fila مكتبة الموسيقى لعرض الأغاني وحفظ التغييرات التي تطلبها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila verwendet deine Musikmediathek, um Titel anzuzeigen und die von dir bestätigten Änderungen zu sichern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila uses your music library to show songs and save the changes you request."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila usa tu biblioteca de música para mostrar canciones y guardar los cambios que solicites."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila utilise votre bibliothèque musicale pour afficher les morceaux et enregistrer les modifications que vous demandez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila usa la tua libreria musicale per mostrare i brani e salvare le modifiche che richiedi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila はミュージックライブラリを使って曲を表示し、あなたが確認した変更を保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila는 음악 보관함을 사용해 노래를 표시하고 요청한 변경 사항을 저장합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Fila usa sua biblioteca de música para exibir músicas e salvar as alterações que você solicitar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila использует медиатеку, чтобы показывать песни и сохранять изменения, которые вы подтвердите."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila dùng thư viện nhạc của bạn để hiển thị bài hát và lưu các thay đổi bạn yêu cầu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 使用音乐资料库来显示歌曲，并保存你确认的修改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 使用音樂資料庫來顯示歌曲，並儲存你確認的修改。"
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "comment" : "Privacy - Local Network Usage Description",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحتاج Fila إلى الشبكة المحلية لمشاركة ملفات هذا الجهاز. المشاركة متوقفة حتى تشغّلها من الإعدادات."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila benötigt das lokale Netzwerk, um die Dateien dieses Geräts zu teilen. Die Freigabe ist aus, bis du sie in den Einstellungen aktivierst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila needs the local network to share this device’s files. Sharing is off until you turn it on in Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila necesita la red local para compartir los archivos de este dispositivo. La compartición está desactivada hasta que la actives en Ajustes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila a besoin du réseau local pour partager les fichiers de cet appareil. Le partage reste désactivé tant que vous ne l’activez pas dans Réglages."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila ha bisogno della rete locale per condividere i file di questo dispositivo. La condivisione è disattivata finché non la attivi in Impostazioni."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila はこのデバイスのファイルを共有するためにローカルネットワークを使用します。共有は「設定」でオンにするまで無効です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila는 이 기기의 파일을 공유하는 데 로컬 네트워크가 필요합니다. 공유는 설정에서 켜기 전까지 꺼져 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Fila precisa da rede local para compartilhar os arquivos deste dispositivo. O compartilhamento fica desativado até você ativá-lo nos Ajustes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila нужна локальная сеть, чтобы делиться файлами этого устройства. Общий доступ выключен, пока вы не включите его в Настройках."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila cần mạng nội bộ để chia sẻ tệp trên thiết bị này. Chia sẻ luôn tắt cho đến khi bạn bật trong Cài đặt."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 需要本地网络，才能共享这台设备上的文件。共享默认关闭，请在“设置”中开启。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 需要區域網路，才能分享這台裝置上的檔案。分享預設關閉，請在「設定」中開啟。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.3"
+}

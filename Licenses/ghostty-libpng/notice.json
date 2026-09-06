@@ -1,0 +1,7 @@
+{
+  "name": "Ghostty / libpng",
+  "url": "https://deps.files.ghostty.org/libpng-1220aa013f0c83da3fb64ea6d327f9173fa008d10e28bc9349eac3463457723b1c66.tar.gz",
+  "source": "https://deps.files.ghostty.org/libpng-1220aa013f0c83da3fb64ea6d327f9173fa008d10e28bc9349eac3463457723b1c66.tar.gz",
+  "sha256": "0214cc6cfeb361daa785b20b0da13e9ddb3a75a8fd96138f01af1ba339242a88",
+  "version": "1.6.43"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-latex",
+  "url": "https://github.com/latex-lsp/tree-sitter-latex",
+  "source": "https://raw.githubusercontent.com/latex-lsp/tree-sitter-latex/HEAD/LICENSE",
+  "sha256": "7174d0c27fa92745f89c7e64bdf3cdc94eacac77915cad97790d993cdc24a010"
+}

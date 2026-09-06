@@ -1,0 +1,9 @@
+// Single source of truth for the app, the daemon, and the Debian package
+// version. Update with `make set-version VERSION=1.2.3 [BUILD=n]`.
+//
+// A target-level MARKETING_VERSION / CURRENT_PROJECT_VERSION in project.pbxproj
+// silently shadows these and ships the wrong build number — `make check`
+// rejects that, keep it that way.
+
+MARKETING_VERSION = 0.1.2
+CURRENT_PROJECT_VERSION = 1

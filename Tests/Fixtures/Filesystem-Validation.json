@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "seed": 20260906,
+  "progress_mib": 64,
+  "files": {
+    "CrossVolumeFixture.txt": {
+      "bytes": 82,
+      "sha256": "72e2bcd5d2e51f106ba2c33cf4705b1c83006ede6c327800d4bdd7e502f4dd99"
+    },
+    "ProgressFixture.bin": {
+      "bytes": 67108864,
+      "sha256": "976f2d4aa142ec7645fcfa7b76ac5f035edc2950d5f15f87e5e542e7fa19b3e0"
+    },
+    "TrashFixture.txt": {
+      "bytes": 64,
+      "sha256": "6b6112e3936bc62daa18c39c1a97fab81c95b5c46f13cab65bd2dd7ec7795108"
+    },
+    "control.tar.gz": {
+      "bytes": 319,
+      "sha256": "8f5128cb5a111239240c0f10e8b41841b3c5764ff87267bc0d476b52de1c66aa"
+    }
+  }
+}

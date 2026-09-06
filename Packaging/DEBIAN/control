@@ -1,0 +1,18 @@
+Package: @PACKAGE_ID@
+Name: Fila
+Version: @VERSION@
+Architecture: @ARCHITECTURE@
+Description: Root file manager for @FLAVOR@ jailbreaks
+ Browse and edit every file on your device, not just the ones an app is allowed
+ to see. Copy, move and rename with progress you can cancel, create and unpack
+ zip, 7z, rar and tar archives, edit text with syntax highlighting, read plists,
+ preview images and video, open a terminal, and share a folder to your computer
+ over WebDAV. Deleted files go to a trash you can restore from, and the files
+ your device needs in order to boot cannot be deleted by mistake.
+Icon: https://owngoal-dev.github.io/Fila/icon.png
+Maintainer: OwnGoal Studio <not-gonna-reply@owngoal.dev>
+Author: OwnGoal Studio <not-gonna-reply@owngoal.dev>
+Section: Utilities
+Priority: optional
+Depends: firmware (>= 15.0), uikittools, launchctl
+Installed-Size: @INSTALLED_SIZE@

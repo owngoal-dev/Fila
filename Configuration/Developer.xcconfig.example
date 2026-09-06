@@ -1,0 +1,9 @@
+// Copy to Developer.xcconfig (git-ignored) for local Xcode signing.
+// Device packages from `make deb` are ad-hoc signed with ldid and do not need this.
+
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
+
+// Set to an App Group provisioned for both app and extension when signing
+// for stock iOS. Simulator and jailbreak workflows use the default in Base.
+// APP_GROUP_IDENTIFIER = group.your-team.fila

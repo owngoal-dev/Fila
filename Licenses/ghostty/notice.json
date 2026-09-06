@@ -1,0 +1,7 @@
+{
+  "name": "Ghostty",
+  "url": "https://github.com/ghostty-org/ghostty",
+  "version_file": "libghostty-spm/Ghostty.ref",
+  "source": "https://raw.githubusercontent.com/ghostty-org/ghostty/c4e16970a803b170e352432424f44192cb59f3ac/LICENSE",
+  "sha256": "386211873e5b7a02f663ae4d7adf96285999f91608f8f9f31fecfd0f4095e6f1"
+}

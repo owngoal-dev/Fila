@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-r",
+  "url": "https://github.com/r-lib/tree-sitter-r",
+  "source": "https://raw.githubusercontent.com/r-lib/tree-sitter-r/HEAD/LICENSE",
+  "sha256": "de2e49529f03d573bc3fa229dc83acfe22c63a5ad1766b289563edfd45b72dea"
+}

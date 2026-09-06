@@ -1,0 +1,7 @@
+{
+  "name": "Ghostty / spirv-cross",
+  "url": "https://deps.files.ghostty.org/spirv_cross-1220fb3b5586e8be67bc3feb34cbe749cf42a60d628d2953632c2f8141302748c8da.tar.gz",
+  "source": "https://deps.files.ghostty.org/spirv_cross-1220fb3b5586e8be67bc3feb34cbe749cf42a60d628d2953632c2f8141302748c8da.tar.gz",
+  "sha256": "8d22f5c093b54efed9cd0cf89152cce30ccad903c3dd2988778b4de441199c44",
+  "version": "13.1.1"
+}

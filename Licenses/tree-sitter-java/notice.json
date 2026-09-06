@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-java",
+  "url": "https://github.com/tree-sitter/tree-sitter-java",
+  "source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-java/HEAD/LICENSE",
+  "sha256": "52ed137b039cd9c46409bc22e89938af911c95b157feae2d040b51e6084369a7"
+}

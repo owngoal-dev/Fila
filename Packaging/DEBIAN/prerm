@@ -1,0 +1,24 @@
+#!/bin/sh
+# Scripts/package-deb.sh substitutes the install prefix below: empty for
+# roothide, /var/jb for rootless.
+
+find_tool() {
+    for candidate in "@PREFIX@/usr/bin/$1" "/usr/bin/$1" "/bin/$1"; do
+        if [ -x "$candidate" ]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+if [ "${1:-}" = remove ] || [ "${1:-}" = deconfigure ]; then
+    if launchctl="$(find_tool launchctl)"; then
+        "$launchctl" bootout system/wiki.qaq.filad 2>/dev/null || true
+    fi
+    if uicache="$(find_tool uicache)"; then
+        "$uicache" -u wiki.qaq.fila || true
+    fi
+fi
+
+exit 0

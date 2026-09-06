@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags: ["v[0-9]*.[0-9]*.[0-9]*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  packages:
+    runs-on: macos-26
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+      - name: Install packaging tools
+        run: brew install ldid dpkg
+      - name: Apply tag version
+        if: github.ref_type == 'tag'
+        run: make set-version VERSION="$GITHUB_REF_NAME" BUILD="$GITHUB_RUN_NUMBER"
+      - name: Build and verify all four packages
+        run: make packages DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      - name: Write exact release checksums
+        run: |
+          version="$(make --no-print-directory print-version)"
+          cd build/Packages
+          shasum -a 256 \
+            "wiki.qaq.fila_${version}_iphoneos-arm64.deb" \
+            "wiki.qaq.fila_${version}_iphoneos-arm64e.deb" \
+            "Fila_${version}.ipa" "Fila_${version}.tipa" > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fila-packages
+          path: build/Packages/
+          if-no-files-found: error
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(make --no-print-directory print-version)"
+          notes="$RUNNER_TEMP/fila-release.md"
+          cat > "$notes" <<'NOTES'
+          Fila file manager for iOS. Includes RootHide and rootless Debian packages,
+          a TrollStore TIPA, and a standard IPA with its App Group entitlement.
+
+          Native app and daemon retain physical filesystem paths. Destructive
+          operations are protected by FilaGuard on both jailbreak layouts. RootHide device
+          validation remains pending; CI verifies builds, host tests and archives.
+          NOTES
+          files=("build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64.deb"
+                 "build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64e.deb"
+                 "build/Packages/Fila_${version}.ipa" "build/Packages/Fila_${version}.tipa"
+                 "build/Packages/SHA256SUMS")
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" --clobber "${files[@]}"
+            gh release edit "$GITHUB_REF_NAME" --notes-file "$notes"
+          else
+            gh release create "$GITHUB_REF_NAME" --title "Fila $version" --notes-file "$notes" "${files[@]}"
+          fi

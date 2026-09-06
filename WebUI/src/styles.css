@@ -1,0 +1,583 @@
+@import './generated/accent.css';
+
+/* --accent comes from the app's AccentColor.colorset via generated/accent.css. */
+:root {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --subtle: #f6f6f6;
+  --hover: #f3f3f3;
+  --border: #e3e3e3;
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --accent-hover: color-mix(in srgb, var(--accent) 88%, black);
+  --accent-text: #ffffff;
+  --danger: #d43030;
+  --focus: color-mix(in srgb, var(--accent) 35%, transparent);
+  --radius: 4px;
+  --control: 32px; /* shared height for every toolbar button and input */
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f0f;
+    --surface: #161616;
+    --subtle: #1c1c1c;
+    --hover: #202020;
+    --border: #2c2c2c;
+    --text: #ededed;
+    --muted: #8f8f8f;
+    --danger: #f06060;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Noto Sans CJK SC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+.muted {
+  color: var(--muted);
+}
+.error {
+  color: var(--danger);
+  margin: 0;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.brand picture {
+  display: flex;
+}
+.brand-mark {
+  width: 22px;
+  height: 22px;
+}
+
+/* Toolbar */
+.main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px 20px 40px;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 32px;
+}
+.toolbar .spacer {
+  flex: 1;
+}
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.crumbs::-webkit-scrollbar {
+  display: none;
+}
+.crumbs button {
+  background: none;
+  border: 0;
+  padding: 4px 6px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+}
+.crumbs button:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.crumbs button:last-child {
+  color: var(--text);
+  font-weight: 600;
+}
+.crumbs .sep {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* Controls */
+.btn {
+  height: var(--control);
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover:not(:disabled) {
+  background: var(--hover);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.btn.danger {
+  color: var(--danger);
+}
+.btn.danger:hover:not(:disabled) {
+  border-color: var(--danger);
+}
+.btn.icon {
+  width: var(--control);
+  padding: 0;
+  justify-content: center;
+}
+.btn.plain {
+  border-color: transparent;
+  background: none;
+}
+input[type='text'],
+input:not([type]) {
+  height: var(--control);
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  width: 100%;
+}
+input:not([type]):focus,
+input[type='text']:focus,
+.btn:focus-visible,
+input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+input.filter {
+  width: 200px;
+  flex: none;
+}
+input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Notice */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--subtle);
+}
+.notice.error {
+  border-left-color: var(--danger);
+}
+.notice span {
+  flex: 1;
+  word-break: break-word;
+}
+.notice button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+/* Table */
+/* Not overflow: hidden — the row menus drop below their cell and past the
+   last row. The corners are rounded on the header and footer themselves. */
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  position: relative;
+}
+thead th:first-child {
+  border-top-left-radius: var(--radius);
+}
+thead th:last-child {
+  border-top-right-radius: var(--radius);
+}
+tbody.loading {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.panel.dropping::after {
+  content: attr(data-drop);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-weight: 500;
+  pointer-events: none;
+}
+.progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+}
+.progress::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--accent);
+  animation: slide 1.2s ease-in-out infinite;
+}
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+th,
+td {
+  padding: 0 12px;
+  height: 40px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+th {
+  height: 36px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--subtle);
+}
+tr:last-child td {
+  border-bottom: 0;
+}
+tbody tr:hover {
+  background: var(--hover);
+}
+tbody tr.selected {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.col-check {
+  width: 40px;
+  padding-right: 0;
+}
+.col-size {
+  width: 96px;
+  text-align: right;
+}
+.col-date {
+  width: 180px;
+}
+.col-more {
+  width: 44px;
+  padding: 0;
+  text-align: center;
+  overflow: visible;
+}
+.fileicon,
+.thumb {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  object-fit: contain;
+}
+.thumb {
+  object-fit: cover;
+  border-radius: 3px;
+  background: var(--subtle);
+}
+.name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.name a,
+.name button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.name a:hover,
+.name button:hover {
+  text-decoration: underline;
+}
+/* Icon and thumbnail share one 20 px box so names line up across rows. */
+.glyph {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  flex: none;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.name .glyph.folder {
+  fill: color-mix(in srgb, var(--accent) 25%, transparent);
+  stroke: var(--accent);
+}
+.bulk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bulk .count {
+  color: var(--text);
+  margin-right: 4px;
+}
+.bulk .btn {
+  height: 26px;
+  padding: 0 10px;
+}
+.empty {
+  padding: 40px 12px;
+  text-align: center;
+  color: var(--muted);
+}
+.footer {
+  padding: 8px 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  background: var(--subtle);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.progress {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* Row menu */
+.menu-anchor {
+  position: relative;
+  display: inline-block;
+}
+.menu-anchor > .btn.plain {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  justify-content: center;
+  color: var(--muted);
+}
+.menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  min-width: 140px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.menu a,
+.menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.menu a:hover,
+.menu button:hover:not(:disabled) {
+  background: var(--hover);
+}
+.menu button:disabled {
+  opacity: 0.45;
+}
+.menu .danger {
+  color: var(--danger);
+}
+.menu hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}
+
+/* Dialog */
+.modal {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+.modal form {
+  padding: 20px;
+}
+.modal h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-body p {
+  margin: 0;
+}
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+.namelist {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--subtle);
+  max-height: 160px;
+  overflow: auto;
+  list-style: none;
+  word-break: break-all;
+}
+.picker {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.picker-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--subtle);
+  overflow: hidden;
+}
+.picker-path .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker-list {
+  max-height: 220px;
+  overflow: auto;
+  padding: 4px;
+}
+.picker-list p {
+  margin: 0;
+  padding: 12px;
+  text-align: center;
+}
+.picker-list button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.picker-list button:hover {
+  background: var(--hover);
+}
+
+@media (max-width: 640px) {
+  .col-date,
+  .filter {
+    display: none;
+  }
+  .header,
+  .main {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}

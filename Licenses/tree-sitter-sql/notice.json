@@ -1,0 +1,6 @@
+{
+  "name": "tree-sitter-sql",
+  "url": "https://github.com/DerekStride/tree-sitter-sql",
+  "source": "https://raw.githubusercontent.com/DerekStride/tree-sitter-sql/HEAD/LICENSE",
+  "sha256": "3b3e4e4252d5d7d1c18e1257005f23242bf0580ad619204fd093c99b8c56748d"
+}
