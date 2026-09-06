@@ -4,14 +4,19 @@
 // Run on a Mac, by hand, when the icon set changes:
 //
 //     swift Scripts/make-file-icons.swift
+//     swift Scripts/remove-archive-label.swift
+//
+// The second step removes the ZIP label from the shared archive artwork:
+// this icon also represents Debian packages, tarballs and other formats.
+// Pass asset names to regenerate only those icons, e.g. `drive-internal`.
 //
 // Not wired into the Makefile: it needs AppKit and the running system's own
 // icon artwork, so it cannot run on the build the app ships from, and the
 // output is checked in.
 //
-// Every icon here is Apple's, drawn by the machine this ran on: the three
-// generics come straight out of `CoreTypes.bundle`, the rest are what
-// `NSWorkspace` composes for a uniform type. Shipping them inside the deb is
+// Every icon here is Apple's: bundled icons come from `CoreTypes.bundle`,
+// composed icons come from `NSWorkspace`, and imported artwork is retained
+// under `Scripts/Artwork`. Shipping them inside the deb is
 // redistribution of Apple artwork, done deliberately — the alternative was a
 // list of monochrome glyphs that all read the same at a glance.
 //
@@ -35,10 +40,12 @@ let sizes: [(suffix: String, points: CGFloat)] = [("", 40), ("-large", 192)]
 enum Source {
     case bundled(String)
     case composed(String)
+    case imported(String)
 }
 
 let icons: [(name: String, source: Source)] = [
     ("folder", .bundled("GenericFolderIcon")),
+    ("drive-internal", .imported("磁盘-内置-Internal.png")),
     ("document", .bundled("GenericDocumentIcon")),
     ("application", .bundled("GenericApplicationIcon")),
     // The sidebar's presets: the root, the bootstrap, the camera roll, the
@@ -86,11 +93,13 @@ func render(_ image: NSImage, points: CGFloat, scale: Int) -> Data? {
     return bitmap.representation(using: .png, properties: [:])
 }
 
-for (name, source) in icons {
+let requestedIcons = Set(CommandLine.arguments.dropFirst())
+for (name, source) in icons where requestedIcons.isEmpty || requestedIcons.contains(name) {
     let image: NSImage?
     switch source {
     case let .bundled(file): image = NSImage(contentsOfFile: coreTypes + file + ".icns")
     case let .composed(identifier): image = UTType(identifier).map(NSWorkspace.shared.icon(for:))
+    case let .imported(file): image = NSImage(contentsOf: repository.appendingPathComponent("Scripts/Artwork/\(file)"))
     }
     guard let image else {
         FileHandle.standardError.write(Data("no artwork for \(name)\n".utf8))

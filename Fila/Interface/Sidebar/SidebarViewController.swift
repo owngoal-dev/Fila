@@ -247,7 +247,7 @@ final class SidebarViewController: UIViewController {
             guard let mount = mounts.first(where: { $0.path == path }) else { return }
             name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
             detail = mount.isReadOnly ? [path, String(localized: "Read Only")].joined(separator: " · ") : path
-            image = UIImage(systemName: "externaldrive")
+            image = UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal)
         case .apps:
             name = String(localized: "Applications")
             image = UIImage(named: "FileIcons/application")?.withRenderingMode(.alwaysOriginal)

@@ -32,7 +32,7 @@ extension SidebarLocation {
         let installRoot: String?
         if case let .daemon(root) = backend { installRoot = root } else { installRoot = nil }
         var places = [
-            SidebarLocation(position: .root, title: String(localized: "Root"), icon: .artwork("finder"), path: "/"),
+            SidebarLocation(position: .root, title: String(localized: "Root"), icon: .artwork("drive-internal"), path: "/"),
             SidebarLocation(position: .mobile, title: String(localized: "Mobile"), icon: .artwork("home"), path: "/var/mobile"),
             SidebarLocation(position: .pictures, title: String(localized: "Pictures"), icon: .artwork("pictures"), path: "/var/mobile/Media/DCIM"),
             inbox,
