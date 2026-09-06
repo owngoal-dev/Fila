@@ -1,90 +1,92 @@
+<p align="center">
+  <a href="README.md">English</a> |
+  <a href="README_zh-Hans.md">简体中文</a>
+</p>
+
 # Fila
 
-Browse, organize, and edit files on your iPhone or iPad. Fila supports iOS 15 or
-later, with root access on [roothide](https://github.com/roothide) and rootless
-jailbreaks. You can also install it through TrollStore or sideloading with more
-limited file access.
+Browse, organize, and edit files on your iPhone or iPad. Install Fila on a supported jailbreak to access system files with root privileges.
 
-## Features
-
-- Copy, move, rename, and delete files and folders. Restore deleted items from Trash.
-- Keep folders open in tabs and return to them through Favorites and Recents.
-- Search for files and folders by name.
-- Browse installed apps and open their app and data folders where access is available.
-- Run executable files in a terminal on supported jailbreak installations.
-- Edit text files and property lists. View images and PDFs, play audio and video,
-  and inspect binary files in hex or view Mach-O details.
-- Browse and extract archives, including ZIP, TAR, 7z, and RAR. Create ZIP and TAR
-  archives, with password protection available for ZIP.
-- Import files and photos, download files from a URL, and share files with other apps.
-- Share a folder over your network through a web browser or WebDAV client.
-- Access Fila documents in the Files app on iOS 16 or later.
-
-Available folders and actions depend on how you install Fila.
+![Preview](./Documents/screenshots.png)
 
 ## Install
 
-Choose the package that matches your device and installation method.
+On a jailbroken device, add the OwnGoal Studio repository in Sileo, Zebra, or another package manager:
 
-| Installation | Package | File Access |
+**[Add to Sileo](sileo://source/https://apt.owngoal.dev)** · [apt.owngoal.dev](https://apt.owngoal.dev/)
+
+Packages are also on [GitHub Releases](https://github.com/owngoal-dev/Fila/releases). Choose the file that matches how you install apps.
+
+| Installation | Package | File access |
 | --- | --- | --- |
-| roothide jailbreak | `wiki.qaq.fila_<v>_iphoneos-arm64e.deb` | Root access |
-| Rootless jailbreak | `wiki.qaq.fila_<v>_iphoneos-arm64.deb` | Root access |
-| TrollStore | `Fila_<v>.tipa` | Files accessible to the `mobile` user; no root access |
-| AltStore, SideStore, or Sideloadly | `Fila_<v>.ipa` | Fila's own files and files you import; no root access |
+| [roothide](https://github.com/roothide) jailbreak | `iphoneos-arm64e` `.deb` | Root access |
+| Rootless jailbreak (`/var/jb`) | `iphoneos-arm64` `.deb` | Root access |
+| TrollStore | `Fila_<version>.tipa` | Files the `mobile` user can reach |
+| AltStore, SideStore, or Sideloadly | `Fila_<version>.ipa` | Fila’s own files and files you import |
 
-`<v>` is the version number in the package name.
+Requires iOS 15 or later. Root access needs the `.deb` on a supported jailbreak. The `.tipa` and `.ipa` do not include it.
 
-- **Jailbroken device:** Open the matching `.deb` with your package manager and install it.
-- **TrollStore:** Open the `.tipa` in TrollStore and install it.
-- **Sideloading:** Open the `.ipa` with your signing tool and install it. The tool
-  must provision the same App Group for Fila and its Files extension.
+When sideloading, provision the same App Group for Fila and its Files extension.
 
-Root access requires the `.deb` installation on a supported jailbreak. Installing
-the `.tipa` or `.ipa` alone does not provide it.
+## Features
+
+- **Organize**: Copy, move, rename, and delete files. Deleted items go to Trash by default, where you can restore them. Keep folders open in tabs and return to saved or recently visited locations through Favorites and Recents.
+- **Search**: Find files and folders by name. Search does not look inside file contents.
+- **Apps**: Browse installed apps and open their bundle or data folder when your installation allows it.
+- **View and edit**: Edit text with syntax highlighting and property lists. Preview images and PDFs, play audio and video, inspect binaries in hex, and read Mach-O details. Browse the Music library.
+- **Archives**: Browse and extract ZIP, TAR, 7z, and RAR. Create ZIP and TAR archives; ZIP can be password-protected.
+- **Share**: Import files and photos, download from a URL, share with other apps, or publish a folder over the network through a browser or WebDAV client.
+- **Files app**: On iOS 16 or later, open Fila documents from the Files app. Files cannot use Fila’s root access.
+- **Terminal**: On a jailbroken device, run an executable or open a shell in the current folder.
+- **Deletion protection**: Fila blocks deletion of key system folders by default.
+
+Available folders and actions depend on how you install Fila.
 
 ## Using Fila
 
-Tap a folder to browse it or a file to open it. Touch and hold an item for actions
-such as Copy, Move, Rename, and Properties. Use Select to work with several items.
+Tap a folder to browse it or a file to open it. Touch and hold an item for Copy, Move, Rename, and Properties. Use Select to work with several items at once.
 
-Deleted items go to Trash by default. Open Trash and choose Put Back to restore an
-item to its original location. Delete Permanently and Empty Trash cannot be undone.
-You can change the default deletion behavior in Settings → Move to Trash.
+Deleted items go to Trash by default. Open Trash and choose Put Back to restore an item. To change the default deletion behavior, open Settings → Move to Trash. Delete Permanently and Empty Trash cannot be undone.
 
-To share a folder with another device, open Settings → File Sharing. Choose the
-shared folder and credentials, turn sharing on, then open the displayed address in
-a browser or WebDAV client on your network.
+To share a folder with another device, open Settings → File Sharing. Choose a folder, set a user name and password, and turn on sharing. On the other device connected to the same network, open the displayed address in a browser or WebDAV client and sign in.
 
-On iOS 16 or later, Settings → Files App Folder lets you manage the folder shown
-in the Files app. Files cannot use Fila's root access.
+On iOS 16 or later, Settings → Files App Folder manages the folder shown in the Files app.
 
-Search matches file and folder names; it does not search file contents.
+## Links
 
-## Links and Shortcuts
-
-Use `fila://` links in Shortcuts or other apps to open a folder, file, or screen.
-The destination must be accessible to your Fila installation.
+Use `fila://` links in Shortcuts or other apps to open a folder, file, or screen. The destination must be reachable in your Fila installation. These links navigate or inspect; they do not modify or delete files.
 
 | Link | Opens |
 | --- | --- |
 | `fila:///var/mobile/Documents` | The Documents folder |
 | `fila://open?path=/var/mobile` | The specified folder |
 | `fila://open?path=/var/mobile&tab=new` | The folder in a new tab |
-| `fila://reveal?path=/etc/hosts` | The folder containing the file |
+| `fila://reveal?path=/etc/hosts` | The folder that contains the file |
 | `fila://view?path=/etc/hosts` | The file in its viewer |
-| `fila://info?path=/etc/hosts` | The file's properties |
+| `fila://info?path=/etc/hosts` | The file’s properties |
 | `fila://search?query=hosts` | A name search starting at `/` |
 | `fila://search?query=hosts&path=/etc` | A name search within `/etc` |
-| `fila://app?bundle=com.example.thing` | The app's bundle folder |
-| `fila://app?bundle=com.example.thing&container=data` | The app's data folder |
+| `fila://app?bundle=com.example.thing` | The app’s bundle folder |
+| `fila://app?bundle=com.example.thing&container=data` | The app’s data folder |
 | `fila://apps` | Applications |
 | `fila://settings` | Settings |
 
-These links navigate or inspect files; they do not modify or delete them.
+## Build from Source
+
+```sh
+make packages         # roothide and rootless .deb, TrollStore .tipa, and sideload .ipa
+make deb              # roothide .deb
+make deb-rootless     # rootless .deb
+make tipa
+make ipa
+```
+
+Contributor notes are in [AGENTS.md](AGENTS.md).
 
 ## License
 
-Fila is available under the [MIT license](LICENSE).
+Fila is available under the [MIT License](LICENSE).
 
-Build instructions and contributor guidance are in [AGENTS.md](AGENTS.md).
+Jailbreak packages are not for the App Store.
+
+Join the community on [Discord](https://discord.gg/vqhDEep2mN).
