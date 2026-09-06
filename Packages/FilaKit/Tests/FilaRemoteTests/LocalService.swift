@@ -49,6 +49,10 @@ final class LocalService: RemoteFileService, @unchecked Sendable {
         try operations.create(template, at: path)
     }
 
+    func setAttributes(_ change: AttributeChange, at path: String) async throws {
+        try operations.setAttributes(change, at: path)
+    }
+
     func rename(_ source: String, to destination: String, exclusive: Bool) async throws {
         try operations.rename(source, to: destination, exclusive: exclusive)
     }

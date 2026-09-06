@@ -47,11 +47,13 @@ struct AtomicReplaceTests {
         #expect(metadata(of: target)?.st_size == 3)
     }
 
-    @Test("Saving a file that is not there yet is just the rename")
+    @Test("Saving a new file applies defaults before publishing it")
     func createsWhenNothingToReplace() throws {
         let temporary = scratch.file("brand-new.txt.tmp", contents: "hello")
         try operations.replaceItem(at: scratch.path("brand-new.txt"), withTemporary: temporary)
         #expect(metadata(of: scratch.path("brand-new.txt"))?.st_size == 5)
+        #expect(metadata(of: scratch.path("brand-new.txt")).map { $0.st_mode & 0o7777 } == 0o777)
+        #expect(metadata(of: scratch.path("brand-new.txt"))?.st_uid == (geteuid() == 0 ? 501 : getuid()))
         #expect(!exists(temporary))
     }
 

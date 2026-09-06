@@ -142,8 +142,8 @@ final class LocalFileService: FileService, @unchecked Sendable {
         try await run { try self.operations.open(path, flags: flags, mode: mode) }
     }
 
-    func create(_ template: NodeTemplate, at path: String) async throws {
-        try await run { try self.operations.create(template, at: path) }
+    func create(_ template: NodeTemplate, at path: String, mode: mode_t? = nil) async throws {
+        try await run { try self.operations.create(template, at: path, mode: mode) }
     }
 
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws {

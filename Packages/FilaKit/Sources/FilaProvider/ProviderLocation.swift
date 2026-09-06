@@ -147,6 +147,6 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
         }
         try file.write(contentsOf: bytes)
         try file.synchronize()
-        try operations.replaceItem(at: destination.path, withTemporary: temporary.path)
+        try operations.replaceItem(at: destination.path, withTemporary: temporary.path, permissions: 0o600)
     }
 }

@@ -20,7 +20,7 @@ protocol FileService: AnyObject, Sendable {
     func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage
     func details(of path: String) async throws -> FileDetails
     func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32
-    func create(_ template: NodeTemplate, at path: String) async throws
+    func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws
     func setAttributes(_ change: AttributeChange, at path: String) async throws
     func replaceItem(at target: String, withTemporary temporary: String) async throws

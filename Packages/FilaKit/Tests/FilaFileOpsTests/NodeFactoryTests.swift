@@ -10,6 +10,26 @@ struct NodeFactoryTests {
     let scratch = Scratch()
     let operations = FileOperations(bootstrapRoot: "")
 
+    @Test("New files and directories use the default owner and exact 0777 mode", arguments: [NodeTemplate.emptyFile, .directory, .symbolicLink(target: "missing")])
+    func defaultPermissions(_ template: NodeTemplate) throws {
+        let path = scratch.path("new")
+        try operations.create(template, at: path)
+        let node = try #require(metadata(of: path))
+        #expect(node.st_mode & 0o7777 == 0o777)
+        #expect(node.st_uid == (geteuid() == 0 ? 501 : getuid()))
+        #expect(node.st_gid == (geteuid() == 0 ? 501 : getgid()))
+    }
+
+    @Test("Explicit private creation and hard links retain their permissions")
+    func preservesSuppliedPermissions() throws {
+        let path = scratch.path("private")
+        try operations.create(.directory, at: path, mode: 0o700)
+        #expect(metadata(of: path).map { $0.st_mode & 0o7777 } == 0o700)
+        let original = scratch.file("source", contents: "source", mode: 0o640)
+        try operations.create(.hardLink(existing: original), at: scratch.path("link"))
+        #expect(metadata(of: original).map { $0.st_mode & 0o7777 } == 0o640)
+    }
+
     @Test("Each template makes what it says")
     func makesEachKind() throws {
         try operations.create(.directory, at: scratch.path("folder"))

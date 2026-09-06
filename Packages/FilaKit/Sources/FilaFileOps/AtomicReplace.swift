@@ -63,6 +63,9 @@ public extension FileOperations {
                 filaTimeValue(filaSeconds(original.st_mtimespec)),
             ]
             try filaCheck(source) { lutimes(source, &times) }
+        } else if permissions == nil {
+            _ = try resolveForWrite(source, changesInode: true)
+            try filaApplyAttributes(.newItemDefaults, to: source)
         }
 
         if let permissions {

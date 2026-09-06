@@ -43,7 +43,7 @@ extension OperationCenter {
         let temporary = (directory as NSString)
             .appendingPathComponent(".fila-tmp-\(UUID().uuidString)")
         let descriptor = try await session.perform {
-            try await $0.open(temporary, flags: O_CREAT | O_EXCL | O_WRONLY, mode: 0o644)
+            try await $0.open(temporary, flags: O_CREAT | O_EXCL | O_WRONLY, mode: 0o600)
         }
         // One cleanup for every way this can fail after the temporary exists —
         // the write, the rename, or running out of names. A leftover
@@ -51,6 +51,7 @@ extension OperationCenter {
         // half of the bug; the invisible half is that it holds the bytes.
         do {
             try await Task.detached { try DescriptorIO.copyAndClose(descriptor, from: file) }.value
+            try await session.perform { try await $0.setAttributes(.newItemDefaults, at: temporary) }
             try await claim(temporary, named: file.lastPathComponent, in: directory)
         } catch {
             await session.discardTemporary(temporary)

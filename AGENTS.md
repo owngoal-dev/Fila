@@ -83,6 +83,11 @@ between the app and the kernel with nothing in between.
   so hard links to the old file and processes holding it open keep the old
   content — that is a deliberate trade, taken because a truncating write can
   destroy a file the user cannot restore.
+- **New user files default to mobile:mobile (501:501), mode 0777.** Copies
+  and hard links preserve their metadata, and extraction keeps archive modes.
+  Explicit modes remain available for private staging and workspace directories.
+  Apply new-file defaults before publication; replacing an existing file keeps
+  that file’s metadata.
 - **Delete moves to the trash by default.** Same-volume `rename` into
   `<install root>/.fila-trash` on a restricted daemon, or
   `<volume mount point>/.fila-trash` otherwise, is instant and undoable; permanent
@@ -538,7 +543,7 @@ separate from this device temporary-file policy.
 Run the macOS harness first. Use the simulator when useful for local UI work,
 and a running **vphone** (or another jailbroken device) for the real privileged
 backend, entitlements, launchd and bootstrap layouts. Vphone testing uses the
-native socket, never SSH, and does not restart the VM. Install on a physical
+native socket by default, or SSH when explicitly authorized, and does not restart the VM. Install on a physical
 device only when its owner authorizes that target. Keep destructive test
 fixtures in the app-owned temporary workspace.
 

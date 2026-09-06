@@ -2,8 +2,8 @@ import Darwin
 import FilaProtocol
 import Foundation
 
-// Making a node, and moving one. Both are one syscall; what is worth writing
-// down is which syscall, and what the guard has to be asked first.
+// Creating a node applies its default attributes before returning it to the
+// client. Moving a node preserves the metadata it already carries.
 
 public extension FileOperations {
     /// Removes only an empty directory. The kernel's emptiness check and
@@ -15,20 +15,21 @@ public extension FileOperations {
 
     /// mkdir, symlink, hardlink, or an empty regular file.
     ///
-    /// `mode` is what the client asked for, or the usual default for the kind.
+    /// An explicit `mode` keeps the caller's creation policy, such as a private
+    /// workspace or an archive entry. Otherwise use the mobile/0777 defaults.
     /// Creation must stay in the writable root and fails with `EEXIST` rather
     /// than replacing anything.
     func create(_ template: NodeTemplate, at path: String, mode: mode_t? = nil) throws {
         let resolved = try resolveForWrite(path)
         switch template {
         case .directory:
-            try filaCheck(resolved) { mkdir(resolved, mode ?? 0o755) }
+            try filaCheck(resolved) { mkdir(resolved, mode ?? 0o700) }
         case .emptyFile:
             // O_EXCL, so "New File" can never truncate one that is already
             // there. A file manager that can destroy a file by creating one is
             // not a file manager.
             let descriptor = try filaCheck(resolved) {
-                Darwin.open(resolved, O_CREAT | O_EXCL | O_WRONLY, mode ?? 0o644)
+                Darwin.open(resolved, O_CREAT | O_EXCL | O_WRONLY, mode ?? 0o600)
             }
             close(descriptor)
         case let .symbolicLink(target):
@@ -45,6 +46,17 @@ public extension FileOperations {
             // No `AT_SYMLINK_FOLLOW`: a hard link to a symlink links the link,
             // which is the same rule the destructive operations follow.
             try filaCheck(resolved) { linkat(AT_FDCWD, target, AT_FDCWD, resolved, 0) }
+            return // A hard link shares the source's existing metadata.
+        }
+        guard mode == nil else { return }
+        do {
+            try setAttributes(.newItemDefaults, at: resolved)
+        } catch {
+            // Only remove the node this call created. Never walk a directory
+            // if another process has already put children inside it.
+            if template == .directory { _ = rmdir(resolved) }
+            else { _ = unlink(resolved) }
+            throw error
         }
     }
 

@@ -262,16 +262,12 @@ extension WebDAVHandler {
         // owner, times, xattrs and flags across and `rename(2)`s. A truncating
         // write here would let a dropped Wi-Fi connection halve a system plist.
         let temporary = RemotePath.join(parent, ".fila-tmp-\(UUID().uuidString)")
-        // `replaceItem` carries an existing file's mode across, so the
-        // temporary's own mode only survives when the target is new — and a
-        // file uploaded to a shared volume that lands `rw-------` is one the
-        // user cannot read back from anywhere else. The window in which the
-        // temporary is readable is the upload itself, under a random name, in
-        // a directory the client can already read.
+        // Keep incomplete uploads private; publication applies the new-file
+        // defaults or preserves the existing destination’s metadata.
         let descriptor = try await service.open(
             temporary,
             flags: O_CREAT | O_EXCL | O_WRONLY,
-            mode: existing == nil ? 0o644 : 0o600
+            mode: 0o600
         )
 
         // Two `do` blocks, and the split is not cosmetic. The descriptor has to
@@ -302,6 +298,7 @@ extension WebDAVHandler {
                 // The backend publishes with RENAME_EXCL. A file arriving
                 // during this upload must remain untouched, even after the
                 // earlier existence check succeeded.
+                try await service.setAttributes(.newItemDefaults, at: temporary)
                 try await service.rename(temporary, to: path, exclusive: true)
             } else {
                 try await service.replaceItem(at: path, withTemporary: temporary)

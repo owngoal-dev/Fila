@@ -493,15 +493,17 @@ struct ServerTests {
         #expect(created.status == 201)
         #expect(harness.scratch.contents("note.txt") == "first")
 
-        // A new file keeps the temporary's mode, so the temporary's mode has to
-        // be one the user can read the file back with.
+        // Publication applies the new-file defaults after the upload finishes.
         var found = stat()
         #expect(lstat(harness.scratch.path("note.txt"), &found) == 0)
-        #expect(found.st_mode & 0o777 == 0o644)
+        #expect(found.st_mode & 0o777 == 0o777)
 
+        #expect(chmod(harness.scratch.path("note.txt"), 0o640) == 0)
         let replaced = try await harness.send("PUT", "/note.txt", body: Data("second".utf8))
         #expect(replaced.status == 204)
         #expect(harness.scratch.contents("note.txt") == "second")
+        #expect(lstat(harness.scratch.path("note.txt"), &found) == 0)
+        #expect(found.st_mode & 0o777 == 0o640)
 
         // Into a directory that does not exist. Nothing is invented for it.
         let orphan = try await harness.send("PUT", "/missing/note.txt", body: Data("x".utf8))

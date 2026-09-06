@@ -203,7 +203,7 @@ final class FileSession {
             // The fixed parent keeps mkdir's root ownership and 0755 mode.
             // Only UUID workspaces need an ownership change, so a kill between
             // create and chown leaves a disposable child, not a poisoned root.
-            do { try await link.create(.directory, at: parent.path) }
+            do { try await link.create(.directory, at: parent.path, mode: 0o755) }
             catch let failure as FilaFailure where failure.systemError == EEXIST {}
         } else if mkdir(parent.path, 0o700) != 0, errno != EEXIST {
             throw FilaFailure(errno: errno, path: parent.path)
@@ -230,7 +230,7 @@ final class FileSession {
         try Task.checkCancellation()
         let workspace = parent.appendingPathComponent(temporaryIdentifier, isDirectory: true)
         if hello.isPrivileged {
-            try await link.create(.directory, at: workspace.path)
+            try await link.create(.directory, at: workspace.path, mode: 0o700)
             do {
                 try await link.setAttributes(AttributeChange(mode: 0o700, ownerID: getuid(), groupID: getgid()), at: workspace.path)
                 try Task.checkCancellation()

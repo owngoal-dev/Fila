@@ -90,10 +90,11 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         return descriptor
     }
 
-    func create(_ template: NodeTemplate, at path: String) async throws {
+    func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws {
         _ = try await send(.createNode) { request in
             xpc_dictionary_set_string(request, FilaWireKey.path, path)
             template.encode(into: request)
+            if let mode { xpc_dictionary_set_uint64(request, FilaWireKey.mode, UInt64(mode)) }
         }
     }
 

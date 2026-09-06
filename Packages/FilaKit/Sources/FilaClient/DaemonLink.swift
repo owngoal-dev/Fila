@@ -314,8 +314,8 @@ public final class DaemonLink: @unchecked Sendable {
         try await service().open(path, flags: flags, mode: mode)
     }
 
-    public func create(_ template: NodeTemplate, at path: String) async throws {
-        try await service().create(template, at: path)
+    public func create(_ template: NodeTemplate, at path: String, mode: mode_t? = nil) async throws {
+        try await service().create(template, at: path, mode: mode)
     }
 
     /// Move or rename one node.

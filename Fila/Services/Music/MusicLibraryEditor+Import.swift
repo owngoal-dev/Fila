@@ -65,6 +65,7 @@ extension MusicLibraryEditor {
             )
             guard result.code == .success else { throw result }
             try Task.checkCancellation()
+            try await session.perform { try await $0.setAttributes(.newItemDefaults, at: destination) }
             try backupLibrary()
             do { _ = try native.importFile(atPath: destination, metadata: metadata) }
             catch {

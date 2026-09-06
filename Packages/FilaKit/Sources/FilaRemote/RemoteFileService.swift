@@ -26,6 +26,7 @@ public protocol RemoteFileService: Sendable {
     func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32
 
     func create(_ template: NodeTemplate, at path: String) async throws
+    func setAttributes(_ change: AttributeChange, at path: String) async throws
 
     /// `exclusive` maps to the kernel's own check-and-move, which is what keeps
     /// a `MOVE` with `Overwrite: F` from destroying a file that appeared between

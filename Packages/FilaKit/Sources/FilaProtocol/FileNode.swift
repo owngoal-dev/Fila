@@ -208,6 +208,12 @@ public enum NodeTemplate: Sendable, Hashable {
 /// it": the properties screen edits one row at a time, and a write that carried
 /// the whole struct would race with anything else touching the file.
 public struct AttributeChange: Sendable, Hashable {
+    /// New user files belong to mobile, including when filad creates them.
+    /// The local backend keeps its own identity (also mobile on a device).
+    public static var newItemDefaults: Self {
+        Self(mode: 0o777, ownerID: geteuid() == 0 ? 501 : getuid(), groupID: geteuid() == 0 ? 501 : getgid())
+    }
+
     public var mode: mode_t?
     public var ownerID: uid_t?
     public var groupID: gid_t?

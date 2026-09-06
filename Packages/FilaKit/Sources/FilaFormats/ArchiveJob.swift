@@ -90,10 +90,11 @@ public final class ArchiveJob: @unchecked Sendable {
         // central directory never got written is not a partial archive, it is
         // an unopenable one, and it must not appear under the real name.
         let temporary = FilaPath.join(FilaPath.directory(of: target), ".fila-archive-\(UUID().uuidString)")
-        let descriptor = try operations.open(temporary, flags: O_WRONLY | O_CREAT | O_EXCL, mode: 0o644)
+        let descriptor = try operations.open(temporary, flags: O_WRONLY | O_CREAT | O_EXCL, mode: 0o600)
         defer { close(descriptor) }
         do {
             try write(members, to: descriptor, progress: progress)
+            try operations.setAttributes(.newItemDefaults, at: temporary)
             try synchronize(descriptor, path: temporary)
             try checkCancelled(target)
             try operations.rename(temporary, to: target, exclusive: true)
@@ -400,7 +401,7 @@ private final class Placement {
             }
             try makeDirectories(parent(of: relative))
             guard overwrite || !filaExists(target) else { throw Skipped(reason: "an item with that name already exists") }
-            try operations.create(.symbolicLink(target: linkTarget), at: target)
+            try operations.create(.symbolicLink(target: linkTarget), at: target, mode: entry.permissions)
             planted.insert(relative)
 
         case .regular:
@@ -485,7 +486,7 @@ private final class Placement {
     /// a failure; anything else is.
     private func makeDirectory(_ path: String) throws -> Bool {
         do {
-            try operations.create(.directory, at: path)
+            try operations.create(.directory, at: path, mode: 0o755)
             return true
         } catch let failure as FilaFailure where failure.systemError == EEXIST {
             return false
