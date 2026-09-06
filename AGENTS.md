@@ -314,10 +314,12 @@ the lookup key and ships English on a Chinese device. Computed copy
 (`FailureMessage.text(for:)`, a path) is the `String` overload on
 purpose — it is not a catalogue key.
 
-The package has `.normal` and `.accent`, not `.destructive`. The
-confirming action is `.accent` even when it destroys; the blunt wording
-in the catalogue is what makes it alarming. An OK-only alert calls
-`context.allowSimpleDispose()` so Escape dismisses it.
+The package has `.normal` and `.accent`, not `.destructive`. Permanent
+file deletion uses `PermanentDeleteConfirmation`, hosted through the package's
+public custom-content initializer, so its action is system red without changing
+the global accent. Every alert has a visible Close/Cancel/OK action;
+`context.allowSimpleDispose()` only enables Escape and does not add a button.
+Deletion icons use the standard `trash` symbol, never `trash.slash`.
 
 One line of input is `AlertInputViewController` (rename, new folder, jump
 to offset). Do not revive `addTextField` to set `keyboardType`. Delayed
@@ -338,9 +340,10 @@ share sheets and document pickers, not for alerts.
 Transient "copied / undone / finished" feedback is `Toast.show`. Do not
 construct `SPIndicatorView` at a feature call site, and do not present
 an alert for something that has no question and no button. Errors that
-need a title, a reason and OK stay AlertController; `Toast` is the
-fallback only when the presenting screen is already gone
-(`FileActions.report` when `activePresenter` is nil).
+need a title, a reason and Close stay AlertController; `FeedbackAlert` finds
+the active presenter when the original screen is gone. `Toast` is success-only:
+a single line with SPIndicator's `.done` preset, without custom icons or subtitles.
+Its optional Undo action remains available on that same line.
 
 `Fila/Interface/Feedback/Toast.swift` is the only file that imports
 SPIndicator. It already queues, hosts a passthrough window, and wires

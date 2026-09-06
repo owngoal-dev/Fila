@@ -189,6 +189,9 @@ public enum FilaOperation: UInt64, Sendable, CaseIterable {
     /// its connection goes away, so nothing this daemon spawned outlives the
     /// app that asked for it.
     case closeTerminal = 18
+
+    /// Read the kernel mount table for the sidebar.
+    case mountPoints = 19
 }
 
 public extension FilaOperation {
@@ -214,6 +217,7 @@ public extension FilaOperation {
         case .fetchLog: return "fetchLog"
         case .openTerminal: return "openTerminal"
         case .closeTerminal: return "closeTerminal"
+        case .mountPoints: return "mountPoints"
         }
     }
 }
@@ -329,6 +333,7 @@ public enum FilaWireKey {
     public static let overrideGuard = "override"
     public static let details = "details"
     public static let volume = "vol"
+    public static let mounts = "mounts"
     public static let attributeName = "aname"
     public static let attributeValue = "avalue"
     public static let attributes = "attrs"

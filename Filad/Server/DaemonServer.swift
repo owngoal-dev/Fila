@@ -304,6 +304,11 @@ final class DaemonServer: @unchecked Sendable {
                 withTemporary: try string(FilaWireKey.path, in: message)
             )
 
+        case .mountPoints:
+            let mounts = xpc_array_create(nil, 0)
+            for mount in try operations.mountPoints() { xpc_array_append_value(mounts, mount.encoded()) }
+            xpc_dictionary_set_value(reply, FilaWireKey.mounts, mounts)
+
         case .volumeInfo:
             let volume = try operations.volumeInfo(for: try string(FilaWireKey.path, in: message))
             xpc_dictionary_set_value(reply, FilaWireKey.volume, volume.encoded())

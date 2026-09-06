@@ -51617,6 +51617,160 @@
           }
         }
       }
+    },
+    "Mount Points" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نقاط التحميل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einhängepunkte"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntos de montaje"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points de montage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punti di montaggio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マウントポイント"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마운트 지점"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pontos de montagem"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Точки монтирования"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điểm gắn kết"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "挂载点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "掛載點"
+          }
+        }
+      }
+    },
+    "The trash is on another volume or cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سلة المهملات على وحدة تخزين أخرى أو لا يمكن الكتابة إليها. هل تريد حذف العناصر المحددة التي ما زالت في مساراتها الأصلية نهائيًا؟ ستبقى العناصر الموجودة في سلة المهملات هناك. لا يمكن التراجع عن هذا الإجراء."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Papierkorb liegt auf einem anderen Volume oder ist nicht beschreibbar. Ausgewählte Objekte, die noch an ihren ursprünglichen Pfaden liegen, endgültig löschen? Objekte im Papierkorb bleiben dort. Dies kann nicht rückgängig gemacht werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La papelera está en otro volumen o no se puede escribir en ella. ¿Eliminar permanentemente los elementos seleccionados que siguen en sus rutas originales? Los elementos que ya están en la papelera permanecerán allí. Esta acción no se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La corbeille se trouve sur un autre volume ou est inaccessible en écriture. Supprimer définitivement les éléments sélectionnés encore à leur emplacement d’origine ? Les éléments déjà dans la corbeille y resteront. Cette action est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il Cestino si trova su un altro volume o non è scrivibile. Eliminare definitivamente gli elementi selezionati ancora nei percorsi originali? Gli elementi già nel Cestino vi rimarranno. Questa operazione non può essere annullata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゴミ箱が別のボリュームにあるか、書き込みができません。元のパスに残っている選択項目を完全に削除しますか？すでにゴミ箱にある項目はそのまま残ります。この操作は取り消せません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "휴지통이 다른 볼륨에 있거나 쓸 수 없습니다. 원래 경로에 남아 있는 선택한 항목을 영구 삭제할까요? 이미 휴지통에 있는 항목은 그대로 유지됩니다. 이 작업은 취소할 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Lixo está em outro volume ou não permite gravação. Apagar permanentemente os itens selecionados que ainda estão nos caminhos originais? Os itens já no Lixo permanecerão lá. Esta ação não pode ser desfeita."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Корзина находится на другом томе или недоступна для записи. Удалить безвозвратно выбранные объекты, которые остались по исходным путям? Объекты, уже находящиеся в корзине, останутся там. Это действие нельзя отменить."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thùng rác nằm trên ổ đĩa khác hoặc không thể ghi vào. Xóa vĩnh viễn các mục đã chọn vẫn còn ở đường dẫn gốc? Các mục đã ở trong Thùng rác sẽ được giữ nguyên. Không thể hoàn tác thao tác này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "废纸篓位于其他宗卷，或无法写入。要永久删除仍在原路径的所选项目吗？已移入废纸篓的项目将保留。此操作无法撤销。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "垃圾桶位於其他卷宗，或無法寫入。要永久刪除仍在原始路徑的所選項目嗎？已移入垃圾桶的項目將保留。此操作無法復原。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

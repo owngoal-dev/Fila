@@ -246,7 +246,7 @@ final class CompressViewController: UIViewController {
         view.endEditing(true)
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !trimmed.contains("/"), !trimmed.contains("\0"), trimmed != ".", trimmed != ".." else {
-            Toast.show(String(localized: "Invalid Name"), detail: String(localized: "Enter an archive name without slashes. “.” and “..” cannot be used."), symbol: "exclamationmark.triangle")
+            FeedbackAlert.show(String(localized: "Invalid Name"), message: String(localized: "Enter an archive name without slashes. “.” and “..” cannot be used."))
             return
         }
         let choice = Choice(

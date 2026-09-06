@@ -148,6 +148,16 @@ struct FileInspectorTests {
         #expect(try volume.deviceIdentifier == operations.volumeInfo(for: scratch.root).deviceIdentifier)
     }
 
+    @Test("Mount table agrees with statfs for the root volume")
+    func mountedRoot() throws {
+        let operations = FileOperations(bootstrapRoot: "")
+        let volume = try operations.volumeInfo(for: "/")
+        let mount = try #require(operations.mountPoints().first { $0.path == volume.mountPoint })
+        #expect(mount.device == volume.deviceName)
+        #expect(mount.filesystem == volume.filesystemType)
+        #expect(mount.isReadOnly == volume.isReadOnly)
+    }
+
     @Test("A descriptor comes back opened, and the daemon read none of it")
     func opensAsRoot() throws {
         let operations = FileOperations(bootstrapRoot: "")

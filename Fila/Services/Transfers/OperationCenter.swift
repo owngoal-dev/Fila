@@ -579,7 +579,7 @@ final class OperationCenter: ObservableObject {
 
     /// Feedback for operations whose caller has not taken ownership of it:
     ///
-    /// - Every failure is a toast, carrying a way through to the details.
+    /// - Every failure is an alert with its reason and a Close button.
     /// - A cancellation says nothing. The user cancelled it; they know.
     /// - A success that can be undone is a toast carrying the undo, because an
     ///   offer nobody sees is not an offer.
@@ -590,26 +590,17 @@ final class OperationCenter: ObservableObject {
         guard operation.feedback != .silent else { return }
         if let failure = operation.failure {
             guard operation.feedback == .automatic else { return }
-            Toast.show(
-                FailureText.title(for: failure),
-                detail: FailureText.summary(for: failure),
-                symbol: "exclamationmark.triangle.fill",
-                action: Toast.Action(title: String(localized: "Details")) {
-                    TransfersViewController.presentAsSheet()
-                }
-            )
+            FeedbackAlert.show(FailureText.title(for: failure), message: FailureText.summary(for: failure))
             return
         }
         guard operation.succeeded else { return }
         if let undo = operation.undo {
             Toast.show(
                 operation.kind.completionTitle,
-                detail: operation.subtitle,
-                symbol: operation.kind.symbol,
                 action: Toast.Action(title: undo.title) { [weak self] in self?.undo(operation) }
             )
         } else if operation.feedback == .successOnly || operation.kind.isInstant || operation.kind == .compress || operation.kind == .extract {
-            Toast.show(operation.kind.completionTitle, detail: operation.subtitle, symbol: operation.kind.symbol)
+            Toast.show(operation.kind.completionTitle)
         }
     }
 
@@ -654,16 +645,12 @@ final class OperationCenter: ObservableObject {
             )
         }
         guard !operations.isEmpty else { return }
-        // Deferred one hop so the scene has a window to hang a toast on.
+        // Deferred one hop so the scene has a window to present an alert from.
         Task { [weak self] in
             guard let self, !self.operations.isEmpty else { return }
-            Toast.show(
+            FeedbackAlert.show(
                 String(localized: "Task stopped"),
-                detail: String(localized: "Fila closed before the task finished. Start it again."),
-                symbol: "exclamationmark.triangle.fill",
-                action: Toast.Action(title: String(localized: "Details")) {
-                    TransfersViewController.presentAsSheet()
-                }
+                message: String(localized: "Fila closed before the task finished. Start it again.")
             )
         }
     }
@@ -826,7 +813,7 @@ extension OperationCenter.Kind {
         case .copy: return "doc.on.doc"
         case .move: return "scissors"
         case .trash: return "trash"
-        case .delete: return "trash.slash"
+        case .delete: return "trash"
         case .compress: return "doc.zipper"
         case .extract: return "arrow.down.to.line"
         case .rename: return "pencil"

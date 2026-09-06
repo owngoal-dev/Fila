@@ -24,6 +24,7 @@ protocol FileService: AnyObject, Sendable {
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws
     func setAttributes(_ change: AttributeChange, at path: String) async throws
     func replaceItem(at target: String, withTemporary temporary: String) async throws
+    func mountPoints() async throws -> [MountPoint]
     func volumeInfo(for path: String) async throws -> VolumeInfo
     func extendedAttribute(_ name: String, at path: String) async throws -> Data
     func startJob(_ job: JobRequest) async throws -> UInt64

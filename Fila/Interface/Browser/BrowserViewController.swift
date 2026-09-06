@@ -326,13 +326,12 @@ final class BrowserViewController: UIViewController {
                 $0.backgroundColor = .clear
                 $0.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
                     guard let self, let node = self.dataSource.itemIdentifier(for: indexPath) else { return nil }
-                    let permanent = self.isTrash || !AppPreferences.shared.usesTrash
                     let title = self.isTrash ? String(localized: "Delete Permanently") : self.deleteTitle
                     let delete = UIContextualAction(style: .destructive, title: title) { _, _, done in
                         self.delete([self.path(of: node)])
                         done(true)
                     }
-                    delete.image = UIImage(systemName: permanent ? "trash.slash" : "trash")
+                    delete.image = UIImage(systemName: "trash")
                     return UISwipeActionsConfiguration(actions: [delete])
                 }
             }
@@ -741,7 +740,7 @@ final class BrowserViewController: UIViewController {
         items.selectAll.image = UIImage(systemName: allSelected ? "checkmark.circle.fill" : "checkmark.circle")
         items.selectAll.accessibilityLabel = allSelected ? String(localized: "Deselect All") : String(localized: "Select All")
         items.selectAll.isEnabled = !visible.isEmpty
-        items.delete.image = UIImage(systemName: AppPreferences.shared.usesTrash && !isTrash ? "trash" : "trash.slash")
+        items.delete.image = UIImage(systemName: "trash")
         items.delete.accessibilityLabel = isTrash ? String(localized: "Delete Permanently") : deleteTitle
         for item in [items.copy, items.move, items.compress, items.putBack, items.delete] { item.isEnabled = count > 0 }
 
@@ -1017,6 +1016,14 @@ final class BrowserViewController: UIViewController {
 // MARK: - Collection view
 
 extension BrowserViewController: UICollectionViewDelegate {
+    func collectionView(_: UICollectionView, shouldBeginMultipleSelectionInteractionAt indexPath: IndexPath) -> Bool {
+        dataSource.itemIdentifier(for: indexPath) != nil
+    }
+
+    func collectionView(_: UICollectionView, didBeginMultipleSelectionInteractionAt _: IndexPath) {
+        setEditing(true, animated: true)
+    }
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard !isEditing else {
             recordDirectoryUse()

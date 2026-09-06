@@ -75,7 +75,7 @@ final class FileActions {
             },
             UIAction(title: String(localized: "Copy Path"), image: UIImage(systemName: "text.quote")) { _ in
                 UIPasteboard.general.string = path
-                Toast.show(String(localized: "Copied"), detail: path, symbol: "doc.on.doc")
+                Toast.show(String(localized: "Copied"))
             },
             UIAction(title: String(localized: "Rename…"), image: UIImage(systemName: "pencil")) { [self] _ in confirm { self.promptRename(path) } },
         ]
@@ -84,7 +84,7 @@ final class FileActions {
             compressAction(paths: { [path] }, confirm: confirm),
         ])
         var destructive: [UIMenuElement] = [
-            UIAction(title: Self.deleteTitle, image: UIImage(systemName: AppPreferences.shared.usesTrash ? "trash" : "trash.slash"), attributes: .destructive) { [self] _ in confirm { self.delete([path]) } },
+            UIAction(title: Self.deleteTitle, image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in confirm { self.delete([path]) } },
         ]
         if AppPreferences.shared.allowsGuardOverride {
             destructive.append(UIAction(title: String(localized: "Override Protection…"), image: UIImage(systemName: "exclamationmark.octagon"), attributes: .destructive) { [self] _ in
@@ -106,7 +106,7 @@ final class FileActions {
                 UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in showProperties(path) },
             ]),
             UIMenu(options: .displayInline, children: [
-                UIAction(title: String(localized: "Delete Permanently"), image: UIImage(systemName: "trash.slash"), attributes: .destructive) { [self] _ in
+                UIAction(title: String(localized: "Delete Permanently"), image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in
                     confirm { self.delete([path], permanently: true) }
                 },
             ]),
@@ -259,7 +259,7 @@ final class FileActions {
     /// while the card is up.
     private func promptInstallApp(_ path: String) {
         guard !Self.appInstallInFlight else {
-            Toast.show(String(localized: "App Installation Pending"), detail: String(localized: "Wait for the current installation to finish, then try again."), symbol: "hourglass")
+            FeedbackAlert.show(String(localized: "App Installation Pending"), message: String(localized: "Wait for the current installation to finish, then try again."))
             return
         }
         Self.appInstallInFlight = true
@@ -320,7 +320,7 @@ final class FileActions {
         await dismiss(progress)
         switch outcome {
         case .installed:
-            Toast.show(String(localized: "App Installed"), detail: manifest.displayName, symbol: "checkmark.circle")
+            Toast.show(String(localized: "App Installed"))
         case .unsupported:
             reportInstallRefusal(
                 path,
@@ -364,7 +364,7 @@ final class FileActions {
     /// where TrollStore (or another installer) is one tap away.
     private func reportInstallRefusal(_ path: String, message: String) {
         guard let presenter = activePresenter else {
-            Toast.show(String(localized: "Cannot Install"), detail: message, symbol: "exclamationmark.triangle")
+            FeedbackAlert.show(String(localized: "Cannot Install"), message: message)
             return
         }
         let alert = AlertViewController(title: "Cannot Install", message: message) { context in
@@ -395,20 +395,21 @@ final class FileActions {
         if AppPreferences.shared.usesTrash, !permanently, !paths.allSatisfy(Self.isInTrash) {
             startDelete(paths, useTrash: true)
         } else {
-            confirmDestruction(
-                title: String(localized: "Delete Permanently?"),
-                message: String(localized: "\(paths.count) items will be deleted and cannot be recovered."),
-                confirm: String(localized: "Delete")
+            guard let presenter = activePresenter else { return }
+            PermanentDeleteConfirmation.present(
+                from: presenter, title: String(localized: "Delete Permanently?"),
+                message: String(localized: "\(paths.count) items will be deleted and cannot be recovered.")
             ) { self.startDelete(paths) }
         }
     }
 
     func promptOverriddenDelete(_ paths: [String]) {
         guard !paths.isEmpty else { return }
-        confirmDestruction(
-            title: String(localized: "Override Protection?"),
+        guard let presenter = activePresenter else { return }
+        PermanentDeleteConfirmation.present(
+            from: presenter, title: String(localized: "Override Protection?"),
             message: String(localized: "The device needs this item to start up. Deleting it cannot be undone, and the device may need to be restored."),
-            confirm: String(localized: "Delete Anyway")
+            confirmTitle: String(localized: "Delete Anyway")
         ) { self.startDelete(paths, overrideGuard: true) }
     }
 
@@ -489,20 +490,30 @@ final class FileActions {
         guard failure.code != .success, failure.code != .cancelled else { return }
         guard useTrash, failure.systemError == EXDEV || failure.systemError == EROFS,
               let presenter = activePresenter else { return report(failure) }
-        let alert = AlertViewController(
-            title: "Cannot Move to Trash",
-            message: "The trash is on another volume or cannot be written to. Items that could not be moved remain in their original locations. Permanent deletion cannot be undone."
-        ) { context in
-            context.addAction(title: "Cancel") { context.dispose() }
-            // A failed batch can already have moved some roots. Do not guess
-            // which paths are still owned by that batch or delete them again.
-            if paths.count == 1 {
-                context.addAction(title: "Delete Permanently", attribute: .accent) {
-                    context.dispose { self.startDelete(paths) }
+        PermanentDeleteConfirmation.present(
+            from: presenter, title: String(localized: "Cannot Move to Trash"),
+            message: String(localized: "The trash is on another volume or cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone.")
+        ) { self.deleteRemainingItems(at: paths) }
+    }
+
+    /// A new, explicitly confirmed deletion of the items currently at these
+    /// paths. Missing names are skipped, never treated as proof of a trash move.
+    private func deleteRemainingItems(at paths: [String]) {
+        Task {
+            do {
+                var remaining: [String] = []
+                for path in paths {
+                    do {
+                        _ = try await session.perform { try await $0.details(of: path) }
+                        remaining.append(path)
+                    } catch let failure as FilaFailure where failure.code == .notFound || failure.systemError == ENOENT {
+                        continue
+                    }
                 }
-            }
+                guard !remaining.isEmpty else { didRemove(); return }
+                startDelete(remaining)
+            } catch { report(error) }
         }
-        presenter.present(alert, animated: true)
     }
 
     func promptRename(_ path: String) {
@@ -653,7 +664,7 @@ final class FileActions {
         if let failure = error as? FilaFailure, failure.code == .success || failure.code == .cancelled { return }
         if error is CancellationError { return }
         guard let presenter = activePresenter else {
-            Toast.show(String(localized: "Operation Failed"), detail: FailureMessage.text(for: error), symbol: "exclamationmark.triangle")
+            FeedbackAlert.show(String(localized: "Operation Failed"), message: FailureMessage.text(for: error))
             return
         }
         if let failure = error as? FilaFailure { presenter.report(failure); return }

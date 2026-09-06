@@ -171,6 +171,26 @@ public extension FileDetails {
     }
 }
 
+public extension MountPoint {
+    func encoded() -> xpc_object_t {
+        let dictionary = xpc_dictionary_create(nil, nil, 0)
+        xpc_dictionary_set_string(dictionary, VolumeKey.mountPoint, path)
+        xpc_dictionary_set_string(dictionary, VolumeKey.device, device)
+        xpc_dictionary_set_string(dictionary, VolumeKey.type, filesystem)
+        xpc_dictionary_set_bool(dictionary, VolumeKey.readOnly, isReadOnly)
+        return dictionary
+    }
+
+    init?(decoding dictionary: xpc_object_t) {
+        guard xpc_get_type(dictionary) == XPC_TYPE_DICTIONARY,
+              let path = xpc_dictionary_get_string(dictionary, VolumeKey.mountPoint),
+              let device = xpc_dictionary_get_string(dictionary, VolumeKey.device),
+              let filesystem = xpc_dictionary_get_string(dictionary, VolumeKey.type) else { return nil }
+        self.init(path: String(cString: path), device: String(cString: device),
+                  filesystem: String(cString: filesystem), isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly))
+    }
+}
+
 // MARK: - VolumeInfo
 
 public extension VolumeInfo {

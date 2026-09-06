@@ -63,7 +63,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
                 if tracks.isEmpty {
                     tableView.backgroundView = StatusView(content: .message(symbol: "music.note", title: String(localized: "Music Unavailable"), detail: error.localizedDescription))
                 } else {
-                    Toast.show(String(localized: "Unable to Refresh"), detail: error.localizedDescription, symbol: "exclamationmark.triangle")
+                    FeedbackAlert.show(String(localized: "Unable to Refresh"), message: error.localizedDescription)
                 }
             }
         }

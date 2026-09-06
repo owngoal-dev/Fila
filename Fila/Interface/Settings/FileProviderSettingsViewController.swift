@@ -123,7 +123,7 @@ final class FileProviderSettingsViewController: UITableViewController {
         location = try ProviderLocation.bind(to: url, isDefault: isDefault, in: Self.groupURL())
         reloadLocation()
         FileProviderDomain.reset()
-        Toast.show(String(localized: "Files app folder updated"), symbol: "checkmark")
+        Toast.show(String(localized: "Files app folder updated"))
     }
 
     private func show(_ error: Error) {
@@ -136,6 +136,7 @@ final class FileProviderSettingsViewController: UITableViewController {
         FilaLog.error("File Provider location change failed: \(error)")
         let alert = AlertViewController(title: String(localized: "Cannot Use Folder"), message: message) { context in
             context.allowSimpleDispose()
+            context.addAction(title: "Close", attribute: .accent) { context.dispose() }
         }
         present(alert, animated: true)
     }

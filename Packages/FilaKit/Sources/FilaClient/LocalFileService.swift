@@ -160,6 +160,10 @@ final class LocalFileService: FileService, @unchecked Sendable {
         try await run { try self.operations.replaceItem(at: target, withTemporary: temporary) }
     }
 
+    func mountPoints() async throws -> [MountPoint] {
+        try await run { try self.operations.mountPoints() }
+    }
+
     func volumeInfo(for path: String) async throws -> VolumeInfo {
         try await run { try self.operations.volumeInfo(for: path) }
     }

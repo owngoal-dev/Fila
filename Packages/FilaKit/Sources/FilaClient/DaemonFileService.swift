@@ -120,6 +120,18 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         }
     }
 
+    func mountPoints() async throws -> [MountPoint] {
+        let reply = try await send(.mountPoints) { _ in }
+        guard let values = xpc_dictionary_get_value(reply, FilaWireKey.mounts),
+              xpc_get_type(values) == XPC_TYPE_ARRAY else { throw FilaFailure(code: .operationFailed) }
+        return try (0 ..< xpc_array_get_count(values)).map { index in
+            guard let mount = MountPoint(decoding: xpc_array_get_value(values, index)) else {
+                throw FilaFailure(code: .operationFailed)
+            }
+            return mount
+        }
+    }
+
     func volumeInfo(for path: String) async throws -> VolumeInfo {
         let reply = try await send(.volumeInfo) { request in
             xpc_dictionary_set_string(request, FilaWireKey.path, path)

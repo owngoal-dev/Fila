@@ -225,12 +225,14 @@ final class RootSplitViewController: UISplitViewController {
     /// something Back should walk out of through somebody's Documents. Back out
     /// of the jump climbs `/etc`'s own chain instead. Each parent is created
     /// only when Back opens it, so an unseen ancestor is never a recent visit.
+    // The compact column already hosts content. show(.secondary) while
+    // collapsed asks UIKit to push its navigation wrapper and crashes on iOS 18.
     func open(_ path: String, select: String? = nil) {
         confirmLeavingContent { [weak self] in
             guard let self else { return }
             self.dismissSidebarSheet()
             self.content.showRoot(path, select: select)
-            self.show(.secondary)
+            if !self.isCollapsed { self.show(.secondary) }
         }
     }
 
@@ -253,7 +255,7 @@ final class RootSplitViewController: UISplitViewController {
             guard let self else { return }
             self.dismissSidebarSheet()
             self.content.navigation?.setViewControllers([viewController], animated: false)
-            self.show(.secondary)
+            if !self.isCollapsed { self.show(.secondary) }
         }
     }
 
@@ -268,11 +270,7 @@ final class RootSplitViewController: UISplitViewController {
     func openInNewTab(_ path: String) {
         content.captureCurrentTab()
         guard let tab = BrowserTabStore.shared.open(path) else {
-            Toast.show(
-                String(localized: "Too Many Tabs"),
-                detail: String(localized: "Opened in this tab instead."),
-                symbol: "square.on.square"
-            )
+            FeedbackAlert.show(String(localized: "Too Many Tabs"), message: String(localized: "Opened in this tab instead."))
             confirmLeavingContent { [weak self] in
                 guard let self else { return }
                 if let browser = self.content.navigation?.topViewController as? BrowserViewController {
@@ -306,7 +304,7 @@ final class RootSplitViewController: UISplitViewController {
         content.captureCurrentTab()
         BrowserTabStore.shared.openFromLink(path)
         content.showCurrentTab()
-        show(.secondary)
+        if !isCollapsed { show(.secondary) }
     }
 
     /// The overview covers the content, without dismissing any document.

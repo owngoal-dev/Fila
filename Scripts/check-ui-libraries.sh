@@ -73,12 +73,34 @@ alert_message_hits="$(perl -0777 -ne '
         next if $ARGV =~ m{/Fila/Interface/Transfers/OperationCoverViewController\.swift$}
             && $args =~ /^contentViewController:\s*content\b/
             && /subtitleLabel\.text\s*=\s*operation\.subtitle\.isEmpty\s*\?\s*String\(localized:\s*"Preparing…"\)\s*:\s*operation\.subtitle/;
+        # Permanent deletion uses the public custom-content API for a red
+        # action without changing the global accent.
+        next if $ARGV =~ m{/Fila/Interface/Feedback/PermanentDeleteConfirmation\.swift$}
+            && $args =~ /^contentViewController:\s*content\b/;
         my $line = 1 + (substr($_, 0, $offset) =~ tr/\n//);
         print "$ARGV:$line: $&\n";
     }' $(find "${ui_roots[@]}" -name '*.swift'))"
 if [[ -n "$alert_message_hits" ]]; then
     error "every AlertViewController / AlertInputViewController needs a non-empty message:"
     echo "$alert_message_hits" >&2
+fi
+
+# Escape dismissal is not a visible action; an empty action closure leaves
+# touch-only users with no way to close the card.
+empty_alert_hits="$(perl -0777 -ne '
+    while (/allowSimpleDispose\(\)\s*\}/sg) {
+        my $line = 1 + (substr($_, 0, $-[0]) =~ tr/\n//);
+        print "$ARGV:$line: allowSimpleDispose needs a visible Close/OK action\n";
+    }' $(find "${ui_roots[@]}" -name '*.swift'))"
+if [[ -n "$empty_alert_hits" ]]; then
+    error "alert cards need a visible dismissal button:"
+    echo "$empty_alert_hits" >&2
+fi
+
+delete_icon_hits="$(search '"trash\.slash"' "${ui_roots[@]}")"
+if [[ -n "$delete_icon_hits" ]]; then
+    error "deletion uses the standard trash symbol:"
+    echo "$delete_icon_hits" >&2
 fi
 
 daemon_hits="$(search 'import (SnapKit|Then|AlertController|SPIndicator)' \

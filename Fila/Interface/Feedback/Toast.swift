@@ -12,14 +12,12 @@ enum Toast {
         let handler: () -> Void
     }
 
-    static func show(_ title: String, detail: String = "", symbol: String, action: Action? = nil) {
-        presenter.enqueue(Item(title: title, detail: detail, symbol: symbol, action: action))
+    static func show(_ title: String, action: Action? = nil) {
+        presenter.enqueue(Item(title: title, action: action))
     }
 
     fileprivate struct Item {
         let title: String
-        let detail: String
-        let symbol: String
         let action: Action?
     }
 
@@ -87,7 +85,7 @@ private final class Presenter {
 
 /// SPIndicator supplies the appearance, layout, drag dismissal, and timing.
 /// The whole indicator activates its one labeled action, including VoiceOver.
-/// Undo/Details are still the operation's original callbacks, consumed once.
+/// The operation's original Undo callback is consumed once.
 @MainActor
 private final class ActionIndicatorView: SPIndicatorView {
     private var action: Toast.Action?
@@ -95,16 +93,13 @@ private final class ActionIndicatorView: SPIndicatorView {
 
     init(item: Toast.Item) {
         action = item.action
-        let message = [item.action?.title, item.detail.isEmpty ? nil : item.detail]
-            .compactMap { $0 }.joined(separator: " · ")
-        let image = UIImage(systemName: item.symbol) ?? UIImage()
-        super.init(title: item.title, message: message.isEmpty ? nil : message, preset: .custom(image))
+        let title = [item.title, item.action?.title].compactMap { $0 }.joined(separator: " · ")
+        super.init(title: title, message: nil, preset: .done)
         self.do {
             $0.titleLabel?.adjustsFontForContentSizeCategory = true
-            $0.subtitleLabel?.adjustsFontForContentSizeCategory = true
+            $0.titleLabel?.numberOfLines = 1
             $0.isAccessibilityElement = true
-            $0.accessibilityLabel = [item.title, item.detail, item.action?.title ?? ""]
-                .filter { !$0.isEmpty }.joined(separator: ", ")
+            $0.accessibilityLabel = title
         }
         if let action = item.action {
             accessibilityTraits = .button

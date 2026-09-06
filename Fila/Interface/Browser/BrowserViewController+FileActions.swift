@@ -64,7 +64,7 @@ extension BrowserViewController {
     /// would leave the rest with a confirmation that named the wrong count.
     func emptyTrashAction() -> UIAction {
         UIAction(
-            title: String(localized: "Empty Trash"), image: UIImage(systemName: "trash.slash"),
+            title: String(localized: "Empty Trash"), image: UIImage(systemName: "trash"),
             attributes: entries.isEmpty || isListing ? [.destructive, .disabled] : .destructive
         ) { [weak self] _ in
             guard let self else { return }

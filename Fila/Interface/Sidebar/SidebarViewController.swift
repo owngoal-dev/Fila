@@ -8,12 +8,14 @@ final class SidebarViewController: UIViewController {
     private enum Section: Int {
         case places
         case favorites
+        case mounts
         case recents
 
         var title: String? {
             switch self {
             case .places: String(localized: "Places")
             case .favorites: String(localized: "Favorites")
+            case .mounts: String(localized: "Mount Points")
             case .recents: String(localized: "Recents")
             }
         }
@@ -26,6 +28,7 @@ final class SidebarViewController: UIViewController {
         case apps
         case music
         case recent(String)
+        case mount(String)
     }
 
     private let session = FileSession.shared
@@ -38,6 +41,8 @@ final class SidebarViewController: UIViewController {
     private var rebuildGeneration = UUID()
     private var isApplyingSnapshot = false
     private var openTask: Task<Void, Never>?
+    private var mounts: [MountPoint] = []
+    private var mountTask: Task<Void, Never>?
     /// Whether the trash holds anything, so its row can show a full or empty
     /// bin. Asked of the backend rather than the app's own filesystem: the
     /// trash is root-owned 0700 on a daemon. A missing or unreadable trash is
@@ -85,6 +90,7 @@ final class SidebarViewController: UIViewController {
     deinit {
         recentImageTask?.cancel()
         openTask?.cancel()
+        mountTask?.cancel()
     }
 
     override func viewDidLoad() {
@@ -124,6 +130,7 @@ final class SidebarViewController: UIViewController {
             NotificationCenter.default.addObserver(self, selector: #selector(rebuild), name: name, object: nil)
         }
         NotificationCenter.default.addObserver(self, selector: #selector(probeTrash), name: .filaJobFinished, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(loadMounts), name: UIApplication.didBecomeActiveNotification, object: nil)
         rebuild()
         Task { [weak self] in
             await FileSession.shared.ready()
@@ -136,13 +143,33 @@ final class SidebarViewController: UIViewController {
         super.viewDidAppear(animated)
         loadRecentImages()
         probeTrash()
+        loadMounts()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         recentImageTask?.cancel()
         trashProbe?.cancel()
+        mountTask?.cancel()
         openTask?.cancel()
+    }
+
+    @objc private func loadMounts() {
+        guard viewIfLoaded?.window != nil else { return }
+        mountTask?.cancel()
+        mountTask = Task { [weak self, session] in
+            let hello = await session.ready()
+            guard !Task.isCancelled, hello.backend != .local(reach: .container) else { return }
+            do {
+                let mounts = try await session.perform(retryOnDisconnect: true) { try await $0.mountPoints() }
+                guard let self, !Task.isCancelled else { return }
+                self.mounts = mounts
+                self.rebuild()
+            } catch {
+                // The shortcut section can be retried by reopening Places;
+                // an older daemon may not have the mount-table request yet.
+            }
+        }
     }
 
     /// One page is enough: the question is whether there is anything at all.
@@ -216,6 +243,11 @@ final class SidebarViewController: UIViewController {
                 name = displayName
                 color = .systemBrown
             }
+        case let .mount(path):
+            guard let mount = mounts.first(where: { $0.path == path }) else { return }
+            name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
+            detail = mount.isReadOnly ? [path, String(localized: "Read Only")].joined(separator: " · ") : path
+            image = UIImage(systemName: "externaldrive")
         case .apps:
             name = String(localized: "Applications")
             image = UIImage(named: "FileIcons/application")?.withRenderingMode(.alwaysOriginal)
@@ -262,6 +294,7 @@ final class SidebarViewController: UIViewController {
         let sections: [(Section, [Item])] = [
             (.places, presets),
             (.favorites, preferences.favorites.map(Item.favorite)),
+            (.mounts, mounts.map { Item.mount($0.path) }),
             (.recents, recents.map(Item.recent)),
         ].filter { !$0.1.isEmpty }
         let previous = dataSource.snapshot()
@@ -405,7 +438,7 @@ final class SidebarViewController: UIViewController {
                 // not worth keeping: the entry goes, the sidebar rebuilds.
                 if failure.code == .notFound || failure.systemError == ENOENT {
                     AppPreferences.shared.forgetRecent(path)
-                    Toast.show(String(localized: "Removed from Recents"), detail: String(localized: "The item no longer exists."), symbol: "clock.badge.xmark")
+                    Toast.show(String(localized: "Removed from Recents"))
                     return
                 }
                 self.report(failure)
@@ -460,7 +493,7 @@ extension SidebarViewController: UICollectionViewDelegate {
             break
         case let .place(place):
             open(place.path)
-        case let .favorite(path):
+        case let .favorite(path), let .mount(path):
             open(path)
         case let .recent(path):
             openRecent(path)

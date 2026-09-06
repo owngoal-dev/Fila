@@ -90,14 +90,14 @@ final class MusicTrackViewController: UITableViewController {
                 details = try await MusicLibraryEditor.shared.save(id: track.id, field: field, original: original, value: value)
                 let savedTitle = details?.values[.title] ?? ""
                 title = savedTitle.isEmpty ? String(localized: "Song Details") : savedTitle
-                Toast.show(String(localized: "Saved"), symbol: "checkmark.circle")
+                Toast.show(String(localized: "Saved"))
             } catch {
                 let alert = AlertViewController(title: String(localized: "Unable to Save"), message: error.localizedDescription) { context in
                     context.allowSimpleDispose()
                     context.addAction(title: "OK") { context.dispose() }
                 }
                 if viewIfLoaded?.window != nil { present(alert, animated: true) }
-                else { Toast.show(String(localized: "Unable to Save"), detail: error.localizedDescription, symbol: "exclamationmark.triangle") }
+                else { FeedbackAlert.show(String(localized: "Unable to Save"), message: error.localizedDescription) }
             }
         }
     }

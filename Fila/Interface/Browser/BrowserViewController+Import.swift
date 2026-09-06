@@ -69,7 +69,7 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
                 if (error as? FilaFailure)?.code == .cancelled || error is CancellationError { return }
                 let message = FailureMessage.text(for: error)
                 guard viewIfLoaded?.window != nil, presentedViewController == nil else {
-                    Toast.show(String(localized: "Import Failed"), detail: message, symbol: "exclamationmark.triangle")
+                    FeedbackAlert.show(String(localized: "Import Failed"), message: message)
                     return
                 }
                 let alert = AlertViewController(title: "Import Failed", message: message) { context in

@@ -359,6 +359,10 @@ public final class DaemonLink: @unchecked Sendable {
         try await service().replaceItem(at: target, withTemporary: temporary)
     }
 
+    public func mountPoints() async throws -> [MountPoint] {
+        try await service().mountPoints()
+    }
+
     public func volumeInfo(for path: String) async throws -> VolumeInfo {
         try await service().volumeInfo(for: path)
     }
