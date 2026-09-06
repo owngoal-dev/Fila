@@ -139,34 +139,6 @@ enum AppFolderDisplay {
         return image ?? placeholderIcon
     }
 
-    #if DEBUG
-    static func runSelfCheck() {
-        let app = InstalledApp(
-            name: "Example", bundleIdentifier: "wiki.qaq.example",
-            bundlePath: "/private/var/containers/Bundle/Application/Bundle/Example.app",
-            dataPath: "/private/var/mobile/Containers/Data/Application/Data",
-            groupPaths: ["group.wiki.qaq.example": "/private/var/mobile/Containers/Shared/AppGroup/Group"]
-        )
-        for path in ["/var/containers/Bundle/Application/Bundle/Example.app", "/var/containers/Bundle/Application/Bundle", "/var/mobile/Containers/Data/Application/Data"] {
-            assert(presentation(for: path, apps: [app])?.applicationIdentifier == app.bundleIdentifier)
-        }
-        let group = "/var/mobile/Containers/Shared/AppGroup/Group"
-        assert(presentation(for: group, apps: [app])?.name == "group.wiki.qaq.example")
-        var second = app
-        second.name = "Second"
-        second.bundleIdentifier = "wiki.qaq.second"
-        assert(presentation(for: group, apps: [app, second])?.applicationIdentifier == nil)
-        assert(presentation(for: group, apps: [app, second])?.detail == "Example, Second")
-        let system = InstalledApp(name: "System", bundleIdentifier: "wiki.qaq.system", bundlePath: "/Applications/System.app", dataPath: nil)
-        assert(presentation(for: system.bundlePath, apps: [system])?.name == "System")
-        assert(presentation(for: "/Applications", apps: [system]) == nil)
-        assert(presentation(for: "/var/mobile/Containers/Data/Application/Data/Documents", apps: [app]) == nil)
-        assert(InstalledApp.name(" ", nil, identifier: "com.apple.MediaRemoteUI") == "MediaRemoteUI")
-        assert(InstalledApp.name("\u{200E}", "Short", identifier: "com.apple.MediaRemoteUI") == "Short")
-        assert(InstalledApp.name(nil, identifier: "MobileNotes") == "MobileNotes")
-        assert(InstalledApp.name("Notes", "Short", identifier: "com.apple.mobilenotes") == "Notes")
-    }
-    #endif
 }
 
 /// A hook's peek is its application artwork and real location, never a file

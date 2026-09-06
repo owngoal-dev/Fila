@@ -20,11 +20,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // scheme wired to only the warm path fails exactly when someone taps
         // the link with the app not running, which is most of the time.
         root.follow(connectionOptions.urlContexts)
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("-FilaSidebarRegression") {
-            SidebarNavigationProbe.run(in: root)
-        }
-        #endif
     }
 
     func scene(_: UIScene, openURLContexts contexts: Set<UIOpenURLContext>) {

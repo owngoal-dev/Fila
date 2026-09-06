@@ -36,8 +36,7 @@ if [[ -n "$layout_hits" ]]; then
     echo "$layout_hits" >&2
 fi
 
-alert_hits="$(search 'UIAlertController|UIAlertAction' "${ui_roots[@]}" \
-    | grep -v 'Fila/Application/Diagnostics/IPAInstallProbe.swift' || true)"
+alert_hits="$(search 'UIAlertController|UIAlertAction' "${ui_roots[@]}")"
 if [[ -n "$alert_hits" ]]; then
     error "alerts must use AlertController; found UIAlertController / UIAlertAction:"
     echo "$alert_hits" >&2

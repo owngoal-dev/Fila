@@ -1,3 +1,4 @@
+import AlertController
 import FilaMedia
 import Then
 import UIKit
@@ -5,17 +6,58 @@ import UIKit
 final class MusicLibraryViewController: UITableViewController, UISearchResultsUpdating {
     private var tracks: [MusicLibraryDatabase.Track] = []
     private var rows: [MusicLibraryDatabase.Track] = []
+    private var importing = false
     private var load: Task<Void, Never>?
 
     init() {
         super.init(style: .plain)
+        configureMenu()
+    }
+
+    private func configureMenu() {
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
+            UIAction(title: String(localized: "Import Music"), image: UIImage(systemName: "square.and.arrow.down"), attributes: importing ? .disabled : []) { [weak self] _ in
+                self?.chooseMusic()
+            },
             UIAction(title: String(localized: "Refresh"), image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in self?.reload() },
             UIAction(title: String(localized: "Show Library Folder"), image: UIImage(systemName: "folder")) { [weak self] _ in
                 self?.navigationController?.pushViewController(BrowserViewController(directory: "/var/mobile/Media/iTunes_Control"), animated: true)
             },
         ]))
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
+    }
+
+    private func chooseMusic() {
+        let session = FileSession.shared
+        let directory = session.hello?.isPrivileged == true ? "/var/mobile" : NSHomeDirectory()
+        let picker = SaveDestinationViewController(
+            directory: URL(fileURLWithPath: directory, isDirectory: true),
+            fileTypes: MusicLibraryEditor.audioExtensions, link: session.link
+        ) { [weak self] file in self?.importMusic(file) }
+        presentAsSheet(UINavigationController(rootViewController: picker))
+    }
+
+    private func importMusic(_ file: URL) {
+        guard !importing else { return }
+        importing = true
+        configureMenu()
+        let progress = AlertProgressIndicatorViewController(title: "Importing Music…", message: "Keep Fila open until the import finishes.")
+        present(progress, animated: true)
+        Task {
+            var failure: Error?
+            do { try await MusicLibraryEditor.shared.importTrack(from: file.path) }
+            catch { failure = error }
+            progress.dismiss(animated: true) { [self] in
+                importing = false
+                configureMenu()
+                if let failure {
+                    FeedbackAlert.show(String(localized: "Unable to Import Music"), message: FailureMessage.text(for: failure))
+                } else {
+                    Toast.show(String(localized: "Music Imported"))
+                    reload()
+                }
+            }
+        }
     }
 
     @available(*, unavailable)
@@ -78,7 +120,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         tableView.reloadData()
         tableView.backgroundView = rows.isEmpty ? StatusView(content: .message(
             symbol: "music.note", title: query.isEmpty ? String(localized: "No Music") : String(localized: "No Matches"),
-            detail: query.isEmpty ? String(localized: "Songs in this device’s music library appear here.") : nil
+            detail: query.isEmpty ? String(localized: "Import an audio file from the More menu to add it to this device’s music library.") : nil
         )) : nil
     }
 

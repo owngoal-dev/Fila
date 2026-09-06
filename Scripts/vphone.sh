@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [[ $# -ne 0 ]]; then
-    echo "usage: $0 (install and run the self-test through the vphone UI)" >&2
+    echo "usage: $0 (install and check features in vphone)" >&2
     exit 64
 fi
 
@@ -70,9 +70,8 @@ try:
             print(f"1. In vphone Safari, paste the URL and download {filename}.")
             print(f"2. Open Files > Recents, tap {filename}, then install it in Sileo.")
             print("3. After installation, close the old Fila in the App Switcher and reopen Fila.")
-            print("4. Open Settings > ellipsis > Run Self-Test and inspect its result.")
             print("Same-version rebuilds: remove only Fila's old .deb from Sileo's APT cache in Fila before installing.")
-            print("Installation and self-test are manual; neither has run yet.")
+            print("Installation and runtime checks have not run yet.")
             print("Keep this server running until the download finishes. Ctrl-C stops it.", flush=True)
             server.serve_forever()
 except KeyboardInterrupt:

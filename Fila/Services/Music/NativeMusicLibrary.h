@@ -8,7 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable instancetype)initWithExpectedDatabasePath:(NSString *)path error:(NSError **)error;
 - (nullable NSDictionary<NSString *, NSString *> *)valuesForTrackID:(int64_t)trackID error:(NSError **)error;
 - (BOOL)setValue:(id)value forField:(NSString *)field trackID:(int64_t)trackID expected:(NSString *)expected error:(NSError **)error;
-+ (BOOL)checkEditingAtSnapshotPath:(NSString *)path error:(NSError **)error;
+- (nullable NSNumber *)importFileAtPath:(NSString *)path metadata:(NSDictionary<NSString *, id> *)metadata error:(NSError **)error;
 @end
 
 NS_ASSUME_NONNULL_END

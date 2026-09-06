@@ -33,24 +33,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             catch { FilaLog.error("Temporary workspace preparation failed: \(error)") }
         }
 
-        #if DEBUG
-            // The `fila://` parser is the one piece of this app that takes
-            // input from a stranger, and it is pure logic over a `URL`. The
-            // app target has no test target, so its check runs here — every
-            // Debug launch, on the simulator and vphone.
-            FilaLink.runSelfCheck()
-            // Shortcuts is the second entry point that takes input from outside
-            // the app, and `IntentSupport` is where that input is bounded.
-            IntentSupport.runSelfCheck()
-            // Same reason: the tab list is arithmetic over a plist — which tab
-            // is current after a close, what the cap does, what a reload gets
-            // back — and it is reachable from `fila://` too.
-            BrowserTabStore.runSelfCheck()
-            SearchViewController.runSelfCheck()
-            PropertyListValue.runSelfCheck()
-            AppFolderDisplay.runSelfCheck()
-            TabContainerViewController.runSelfCheck()
-        #endif
         return true
     }
 

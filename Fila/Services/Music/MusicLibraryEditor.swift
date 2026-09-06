@@ -62,17 +62,7 @@ actor MusicLibraryEditor {
         guard before.values[field] == original else { throw changed() }
         if expected == original { return before }
 
-        let backups = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Music Backups", isDirectory: true)
-        let directory = backups.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
-                                                attributes: [.posixPermissions: 0o700])
-        do {
-            try MusicLibraryDatabase(path: Self.databasePath).backup(to: directory.appendingPathComponent("MediaLibrary.sqlitedb"))
-        } catch {
-            try? FileManager.default.removeItem(at: directory)
-            throw error
-        }
+        try backupLibrary()
         // The native bridge rereads before writing and catches Objective-C
         // exceptions before they can unwind Swift. Its failure keeps the backup.
         do {
@@ -100,7 +90,21 @@ actor MusicLibraryEditor {
         }
     }
 
-    private func nativeLibrary() throws -> NativeMusicLibrary {
+    func backupLibrary() throws {
+        let backups = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Music Backups", isDirectory: true)
+        let directory = backups.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
+                                                attributes: [.posixPermissions: 0o700])
+        do {
+            try MusicLibraryDatabase(path: Self.databasePath).backup(to: directory.appendingPathComponent("MediaLibrary.sqlitedb"))
+        } catch {
+            try? FileManager.default.removeItem(at: directory)
+            throw error
+        }
+    }
+
+    func nativeLibrary() throws -> NativeMusicLibrary {
         guard MPMediaLibrary.authorizationStatus() == .authorized else {
             throw error(String(localized: "Fila does not have access to Music. Allow access in Settings, then try again."))
         }
@@ -116,7 +120,7 @@ actor MusicLibraryEditor {
         error(String(localized: "Fila cannot edit the music library on this device."))
     }
 
-    private func error(_ message: String) -> NSError {
+    func error(_ message: String) -> NSError {
         NSError(domain: "MusicLibrary", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 }

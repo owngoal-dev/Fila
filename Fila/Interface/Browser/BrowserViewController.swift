@@ -120,7 +120,9 @@ final class BrowserViewController: UIViewController {
             object: nil
         )
 
-        for name in [Notification.Name.filaClipboardChanged, .filaTabsChanged, .filaSidebarChanged] {
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshTaskIcon), name: .filaSidebarChanged, object: nil)
+
+        for name in [Notification.Name.filaClipboardChanged, .filaTabsChanged] {
             NotificationCenter.default.addObserver(self, selector: #selector(refreshToolbar), name: name, object: nil)
         }
 
@@ -830,9 +832,19 @@ final class BrowserViewController: UIViewController {
         return more
     }()
 
+    private var displayedTaskCount: Int?
+
+    @objc private func refreshTaskIcon() {
+        _ = moreItem()
+    }
+
     private func moreItem() -> UIBarButtonItem {
         let running = session.operations.operations.filter(\.isRunning).count
-        moreButton.image = UIImage(systemName: running > 0 ? "\(min(running, 50)).circle" : "ellipsis")
+        guard displayedTaskCount != running else { return moreButton }
+        if displayedTaskCount.map({ min($0, 50) }) != min(running, 50) {
+            moreButton.image = UIImage(systemName: running > 0 ? "\(min(running, 50)).circle" : "ellipsis")
+        }
+        displayedTaskCount = running
         moreButton.accessibilityValue = running > 0 ? String(localized: "\(running) in progress") : nil
         return moreButton
     }
@@ -846,7 +858,7 @@ final class BrowserViewController: UIViewController {
         clipboardBar.isHidden = isEditing || isTrash || FileClipboard.shared.isEmpty
         clipboardBar.configure(FileClipboard.shared)
         guard !isEditing else { return }
-        navigationItem.rightBarButtonItem = moreItem()
+        if navigationItem.rightBarButtonItem !== moreButton { navigationItem.rightBarButtonItem = moreItem() }
 
         updatePathBarWidth()
         setToolbarItems(browsingToolbar, animated: shouldAnimateToolbar(animated))

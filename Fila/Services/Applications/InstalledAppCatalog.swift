@@ -1,5 +1,6 @@
 import FilaProtocol
 import Foundation
+import ObjectiveC
 
 struct InstalledApp: Hashable {
     var name: String
@@ -41,7 +42,24 @@ struct InstalledApp: Hashable {
 /// the containers can still be listed through the daemon, which
 /// gives the bundles but not the data containers, because the mapping between
 /// the two lives only in that database.
+@objc private protocol ApplicationOpening {
+    func openApplicationWithBundleID(_ identifier: String) -> Bool
+}
+
 enum InstalledAppCatalog {
+    /// LaunchServices opens the registered app as the current user; no helper
+    /// process or privileged daemon request is involved.
+    @MainActor
+    static func open(_ app: InstalledApp) -> Bool {
+        guard SystemCapabilities.showsApplications,
+              let type = NSClassFromString("LSApplicationWorkspace") as? NSObject.Type,
+              type.responds(to: NSSelectorFromString("defaultWorkspace")),
+              let workspace = type.perform(NSSelectorFromString("defaultWorkspace"))?.takeUnretainedValue() as? NSObject,
+              workspace.responds(to: #selector(ApplicationOpening.openApplicationWithBundleID(_:)))
+        else { return false }
+        return unsafeBitCast(workspace, to: ApplicationOpening.self).openApplicationWithBundleID(app.bundleIdentifier)
+    }
+
     @MainActor
     static func load(session: FileSession) async -> [InstalledApp] {
         // Off means no LaunchServices call and no scan, for every caller —

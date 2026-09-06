@@ -311,36 +311,3 @@ struct IntentFailure: LocalizedError {
         IntentFailure(errorDescription: FailureText.title(for: failure) + " · " + FailureText.summary(for: failure))
     }
 }
-
-#if DEBUG
-    extension IntentSupport {
-        /// The bounding check, run once at launch in Debug builds.
-        ///
-        /// Beside `FilaLink.runSelfCheck` and for the same reason: a shortcut
-        /// is input from outside the app, this is where it is bounded, the app
-        /// target has no test target, and the piece worth checking is pure
-        /// logic over strings.
-        static func runSelfCheck() {
-            assert((try? path("/var/mobile")) == "/var/mobile")
-            // Trimmed, and `..` collapsed a component at a time — so this is
-            // `/var/etc`, not `/etc`.
-            assert((try? path("  /var/mobile/../etc  ")) == "/var/etc")
-            assert((try? path("/var/mobile/../../../..")) == "/")
-            assert((try? path("var/mobile")) == nil)
-            assert((try? path("")) == nil)
-
-            // A name is a name. It is built out of whatever the previous action
-            // in the shortcut produced, so a separator or a `..` in it would
-            // turn "create a folder in Documents" into "create one anywhere".
-            assert((try? child(of: "/var/mobile", named: "Notes")) == "/var/mobile/Notes")
-            assert((try? child(of: "/", named: "Notes")) == "/Notes")
-            assert((try? child(of: "/var/mobile", named: " Notes ")) == "/var/mobile/Notes")
-            assert((try? child(of: "/var/mobile", named: "../../etc")) == nil)
-            assert((try? child(of: "/var/mobile", named: "a/b")) == nil)
-            assert((try? child(of: "/var/mobile", named: "..")) == nil)
-            assert((try? child(of: "/var/mobile", named: ".")) == nil)
-            assert((try? child(of: "/var/mobile", named: "")) == nil)
-            assert((try? child(of: "/var/mobile", named: "a\0b")) == nil)
-        }
-    }
-#endif

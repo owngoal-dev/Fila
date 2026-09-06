@@ -122,7 +122,7 @@ help:
 	@echo "  packages    All four: both .deb flavours, the .tipa and the .ipa"
 	@echo "  install     Build for FLAVOR and install it on the device via iproxy"
 	@echo "  vphone      Incremental Debug build and serve one .deb for Safari/Sileo (no SSH)"
-	@echo "              Install and run the self-test in the VM UI; Ctrl-C stops the server"
+	@echo "              Install and check features in the VM; Ctrl-C stops the server"
 	@echo "              Defaults: rootless, HTTP 192.168.64.1:8765; VPHONE_HTTP_HOST and VPHONE_HTTP_PORT override"
 	@echo "  set-version Write VERSION=x.y.z [BUILD=n] into Configuration/Version.xcconfig"
 	@echo "  clean       Remove derived data and generated packages"
@@ -277,7 +277,7 @@ install: deb
 # Development only: Xcode owns incremental rebuilds; package signing and its
 # entitlement checks still run. `build`, `deb`, and `install` retain all gates.
 # Environment / command-line overrides are exported by make; file defaults
-# remain private. Safari/Sileo and Fila's Debug menu own install and self-test.
+# remain private. Safari/Sileo handle installation; runtime checks are separate.
 vphone:
 	@"$(ROOT_DIR)/Scripts/vphone.sh"
 

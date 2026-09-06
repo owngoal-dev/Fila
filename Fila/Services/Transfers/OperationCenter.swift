@@ -506,7 +506,7 @@ final class OperationCenter: ObservableObject {
         guard let index = operations.firstIndex(where: { $0.id == identity }),
               operations[index].isRunning else { return }
         operations[index].state = .running(progress)
-        changed()
+        // @Published updates task rows; progress does not change sidebar icons.
     }
 
     private func finish(_ identity: UUID, _ failure: FilaFailure) {

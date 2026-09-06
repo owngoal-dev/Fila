@@ -156,34 +156,9 @@ shape until AppSync is a stated requirement. None of this belongs in `filad`:
 `installd` does the work as `_installd` whichever process asks, and root buys
 nothing.
 
-**In the tree (Debug only):** `Fila/Services/Installation/IPAInstaller.swift` — the
-shared install (IX→LS chain) / uninstall / registration lookup, plus the
-self-test check; `Fila/Application/Diagnostics/IPAInstallProbe.swift` — Settings →
-ellipsis → Install IPA Probe (LS or IX by hand, exact `NSError` in an alert);
-`FileOperationSelfTest` — an "App installation" section that first proves the
-transport (installcoordinationd accepts the process, the probe id is not
-registered, an uninstall request for it is accepted rather than refused on
-entitlement), then builds a
-re-identified copy of Fila (`wiki.qaq.fila.selftest`, so it can never replace
-the running app) in the app workspace and installs it. `MIInstallerErrorDomain
-13` on that unsigned fixture is reported as
-`[SKIP] … needs AppSync Unified or a trustcache (installd refused the
-signature)` after its placeholder is removed and verified gone; an
-unprivileged backend or an unreachable installcoordinationd also skips; any
-other error, or a leftover bundle, fails. The install-success branch is
-written to spec but unverified — no AppSync device was available.
-
-Sources: [AppSync `appinst.m`](https://github.com/akemin-dayo/AppSync/blob/master/appinst/appinst.m)
-(the SPI, the `CFBundleIdentifier` option, and "LSApplicationWorkspace will
-actually delete the IPA once it's finished extracting", which is why every
-caller copies first); [AppSync Unified](https://github.com/akemin-dayo/AppSync)
-(the installd hook); [TrollStore `RootHelper/main.m`](https://github.com/opa334/TrollStore/blob/main/RootHelper/main.m),
-[`RootHelper/uicache.m`](https://github.com/opa334/TrollStore/blob/main/RootHelper/uicache.m)
-and [`RootHelper/entitlements.plist`](https://github.com/opa334/TrollStore/blob/main/RootHelper/entitlements.plist)
-(the container + registration route and its entitlement set);
-[installer entitlements](https://gist.github.com/osy/3c39b535ae8fe41ef268e85ea82c1aac).
-The iOS 26.6.1 InstallCoordination / installcoordinationd class, selector and
-entitlement dumps came from the Xcode DeviceSupport symbols.
+**Current implementation:** `Fila/Services/Installation/IPAInstaller.swift` owns
+installation through the IX → LS chain. Runtime probes and installation
+fixtures were removed in 0.1.6; build-time tests remain in `Packages/FilaKit/Tests`.
 
 ## Done, and where the decision is written down
 

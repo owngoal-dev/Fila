@@ -132,8 +132,7 @@ between the app and the kernel with nothing in between.
   screens.
   App source is organized by ownership:
   - `Application/State/` — `AppPreferences`, `FileClipboard`, `BrowserTabStore`
-    and shared app-list options; `System/` owns capability availability and
-    `Diagnostics/` contains development probes and self-tests.
+    and shared app-list options; `System/` owns capability availability.
   - `Services/Files/` — `FileSession`, `DirectoryReader`, `FileSearch` and
     blocking `DescriptorIO`; `Transfers/` owns `OperationCenter` and downloads;
     `Sharing/` owns `FileSharingServer` and `WebDAVFileService`; `Applications/`
@@ -209,7 +208,9 @@ AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .sys
 AlertControllerConfiguration.alertImage = UIImage(named: "cat.fill")
 ```
 
-Do not set those per alert. Do not leave the package's default red accent.
+Permanent deletion may temporarily set the accent to system red while constructing
+the standard AlertController, then restore it synchronously. Do not leave the
+package's default red accent on other alerts.
 
 ### Then — construct and configure
 
@@ -315,9 +316,9 @@ the lookup key and ships English on a Chinese device. Computed copy
 purpose — it is not a catalogue key.
 
 The package has `.normal` and `.accent`, not `.destructive`. Permanent
-file deletion uses `PermanentDeleteConfirmation`, hosted through the package's
-public custom-content initializer, so its action is system red without changing
-the global accent. Every alert has a visible Close/Cancel/OK action;
+file deletion uses `PermanentDeleteConfirmation`, which constructs the standard
+package alert under a temporary system-red accent and restores the default.
+Every alert has a visible Close/Cancel/OK action;
 `context.allowSimpleDispose()` only enables Escape and does not add a button.
 Deletion icons use the standard `trash` symbol, never `trash.slash`.
 
@@ -328,9 +329,6 @@ work that currently presents a system progress alert is
 `progressContext.purpose(message:)`, and keep FileActions' delayed
 reveal — a job that finishes in a blink never shows the card. Dismiss
 only that operation's own alert.
-
-The one exception is `IPAInstallProbe.swift`: a DEBUG probe with four
-fields on one form, which the package cannot express. Nowhere else.
 
 A card does not need a popover source. `anchor(_:to:)` remains for
 share sheets and document pickers, not for alerts.
@@ -448,7 +446,7 @@ sentence. The same script fails on a missing or `""` message.
   The running VM's native socket places the download URL in its clipboard;
   in Safari, paste and download. Open Files → Recents, tap `Fila.deb`, then
   install it in Sileo. Close the old Fila in the App Switcher and reopen it;
-  open Settings → ellipsis → Run Self-Test and inspect its result.
+  check the changed features.
   The script neither installs nor claims a test result. Ctrl-C
   stops the server and removes its temporary copy. Same-version rebuilds may
   reuse Sileo's old APT cache: remove only the previous Fila `.deb` inside the
@@ -496,7 +494,7 @@ this job moved them. Preserve the failed selection instead of guessing.
 ### Temporary files
 
 `FileSession` owns app-created share, download, nested-archive, log-export
-and self-test directories. Derive the location from `Hello.backend`: the
+directories. Derive the location from `Hello.backend`: the
 daemon uses `<installRoot>/.fila-tmp/<process UUID>`; the local backend uses
 the app's system temporary directory under `wiki.qaq.fila/<process UUID>`.
 Never hardcode a bootstrap prefix or use its `tmp` symlink, which may lead
@@ -547,15 +545,11 @@ fixtures in the app-owned temporary workspace.
 SourceKit diagnostics in this repo are frequently stale false positives around
 `PBXFileSystemSynchronizedRootGroup` — trust `xcodebuild`, not the editor.
 
-For the running vphone, use Fila's **Debug** Settings → ellipsis → Run
-Self-Test; inspect the displayed result. `Scripts/vphone-ui.py` provides native
-VM interaction; this workflow uses neither SSH nor host UI automation.
-
-The self-test runs inside a dedicated temporary workspace and streams progress
-and its terminal result to a read-only libghostty page. It has no filesystem
-request marker or on-disk report. A timeout or incomplete cleanup is failure,
-never a passing result. Do not record a browser in Recents until it actually
-appears; creating hidden controllers for restoration or tests is not a visit.
+Runtime self-tests and fixtures are not shipped. Run the host harness and use
+focused device checks for changed features. `Scripts/vphone-ui.py` provides
+native VM interaction; SSH may be used when the user explicitly authorizes it.
+Do not record a browser in Recents until it actually appears; creating hidden
+controllers for restoration or tests is not a visit.
 
 ### Navigation chrome
 

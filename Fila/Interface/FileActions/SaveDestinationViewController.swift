@@ -14,12 +14,14 @@ final class SaveDestinationViewController: UIViewController {
         /// Files are listed too and tapping one is the answer; the checkmark
         /// still answers with the folder being shown. For a symlink target.
         let picksFiles: Bool
+        let fileTypes: Set<String>?
         let confirm: (URL) -> Void
 
-        init(folderName: String?, message: String?, picksFiles: Bool, confirm: @escaping (URL) -> Void) {
+        init(folderName: String?, message: String?, picksFiles: Bool, fileTypes: Set<String>? = nil, confirm: @escaping (URL) -> Void) {
             self.folderName = folderName
             self.message = message
             self.picksFiles = picksFiles
+            self.fileTypes = fileTypes
             self.confirm = confirm
         }
     }
@@ -56,8 +58,8 @@ final class SaveDestinationViewController: UIViewController {
         return item
     }()
 
-    convenience init(directory: URL, folderName: String? = nil, message: String? = nil, picksFiles: Bool = false, link: DaemonLink, confirm: @escaping (URL) -> Void) {
-        self.init(directory: directory, link: link, selection: Selection(folderName: folderName, message: message, picksFiles: picksFiles, confirm: confirm), isRoot: true)
+    convenience init(directory: URL, folderName: String? = nil, message: String? = nil, picksFiles: Bool = false, fileTypes: Set<String>? = nil, link: DaemonLink, confirm: @escaping (URL) -> Void) {
+        self.init(directory: directory, link: link, selection: Selection(folderName: folderName, message: message, picksFiles: picksFiles || fileTypes != nil, fileTypes: fileTypes, confirm: confirm), isRoot: true)
     }
 
     private init(directory: URL, link: DaemonLink, selection: Selection, isRoot: Bool = false) {
@@ -65,7 +67,8 @@ final class SaveDestinationViewController: UIViewController {
         self.link = link
         self.selection = selection
         super.init(nibName: nil, bundle: nil)
-        title = selection.picksFiles ? String(localized: "Choose Link Target") : String(localized: "Save To")
+        title = selection.fileTypes != nil ? String(localized: "Choose Audio File")
+            : selection.picksFiles ? String(localized: "Choose Link Target") : String(localized: "Save To")
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.backButtonDisplayMode = .minimal
         navigationItem.leftBarButtonItem = isRoot ? cancelItem : nil
@@ -168,7 +171,7 @@ final class SaveDestinationViewController: UIViewController {
             UIAction(title: String(localized: "Refresh"), image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in self?.load() },
             UIAction(title: String(localized: "Cancel"), image: UIImage(systemName: "xmark")) { [weak self] _ in self?.cancel() },
         ])
-        navigationItem.rightBarButtonItems = [confirmItem, menuItem]
+        navigationItem.rightBarButtonItems = selection.fileTypes == nil ? [confirmItem, menuItem] : [menuItem]
         navigationItem.hidesBackButton = availability == .creatingFolder
         list.isUserInteractionEnabled = availability != .creatingFolder
         pathBar.isUserInteractionEnabled = availability != .creatingFolder
@@ -195,7 +198,13 @@ final class SaveDestinationViewController: UIViewController {
                     let page = try await link.list(directory: path, cursor: cursor)
                     guard !Task.isCancelled, let self else { return }
                     let picksFiles = self.selection.picksFiles
-                    self.folders.append(contentsOf: page.entries.filter { picksFiles || $0.isNavigable })
+                    self.folders.append(contentsOf: page.entries.filter { node in
+                        if node.isNavigable { return true }
+                        if let types = self.selection.fileTypes {
+                            return node.kind == .regular && types.contains((node.name as NSString).pathExtension.lowercased())
+                        }
+                        return picksFiles
+                    })
                     self.folders.sort {
                         $0.isNavigable != $1.isNavigable ? $0.isNavigable : $0.name.localizedStandardCompare($1.name) == .orderedAscending
                     }
@@ -203,8 +212,11 @@ final class SaveDestinationViewController: UIViewController {
                     self.availability = .ready
                     if !self.folders.isEmpty { self.list.backgroundView = nil }
                     else if page.cursor == 0 {
+                        let title: String
+                        if self.selection.fileTypes != nil { title = String(localized: "No Audio Files") }
+                        else { title = picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders") }
                         self.list.backgroundView = StatusView(content: .message(
-                            symbol: "folder", title: picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
+                            symbol: "folder", title: title
                         ))
                     }
                     self.refreshActions()
@@ -297,7 +309,7 @@ final class SaveDestinationViewController: UIViewController {
     @objc private func cancel() { dismiss(animated: true) }
 
     @objc private func commit() {
-        guard confirmItem.isEnabled else { return }
+        guard selection.fileTypes == nil, confirmItem.isEnabled else { return }
         confirmItem.isEnabled = false
         work?.cancel()
         let destination = selection.folderName.map { directory.appendingPathComponent($0, isDirectory: true) } ?? directory

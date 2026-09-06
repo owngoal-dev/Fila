@@ -42,10 +42,7 @@ final class SettingsViewController: UIViewController {
         case runsPrograms
         case allowsGuardOverride
         case appearance, behavior, sharing, protection, about
-        case selfTest
-        #if DEBUG
-        case installProbe
-        #endif
+        case tasks
         case fileProvider
         case log
         case version
@@ -148,8 +145,8 @@ final class SettingsViewController: UIViewController {
         switch page {
         case .main:
             snapshot.appendSections([.groups, .diagnostics, .about, .branding])
-            snapshot.appendItems([.appearance, .behavior, .sharing], toSection: .groups)
-            snapshot.appendItems([.protection, .selfTest], toSection: .diagnostics)
+            snapshot.appendItems([.appearance, .behavior, .tasks, .sharing], toSection: .groups)
+            snapshot.appendItems([.protection], toSection: .diagnostics)
             snapshot.appendItems([.version, .about, .license], toSection: .about)
         case .behavior:
             snapshot.appendSections([.browsing, .fileOperations, .systemFeatures])
@@ -162,9 +159,6 @@ final class SettingsViewController: UIViewController {
         case .about:
             snapshot.appendSections([.about])
             snapshot.appendItems([.daemon, .protocolVersion, .installRoot, .log], toSection: .about)
-            #if DEBUG
-            snapshot.appendItems([.installProbe], toSection: .about)
-            #endif
         }
         // Reload rather than apply: the item identifiers never change, so a
         // plain apply after the handshake lands would be an empty diff and the
@@ -182,12 +176,8 @@ final class SettingsViewController: UIViewController {
             configureDisclosure(cell, title: String(localized: "Behavior"))
         case .sharing:
             configureDisclosure(cell, title: String(localized: "File Sharing"))
-        case .selfTest:
-            configureDisclosure(cell, title: String(localized: "Self-Test"))
-        #if DEBUG
-        case .installProbe:
-            configureDisclosure(cell, title: "Install IPA Probe")
-        #endif
+        case .tasks:
+            configureDisclosure(cell, title: String(localized: "Operation History"))
         case .recordsRecents:
             configureToggle(cell, title: String(localized: "Remember Recents"), keyPath: \.recordsRecents)
         case .usesTrash:
@@ -379,10 +369,7 @@ extension SettingsViewController: UICollectionViewDelegate {
     /// Only disclosure rows navigate.
     func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         let row = dataSource.itemIdentifier(for: indexPath)
-        if row == .selfTest { return true }
-        #if DEBUG
-        if row == .installProbe { return true }
-        #endif
+        if row == .tasks { return true }
         return [.appearance, .behavior, .sharing, .protection, .about, .license, .log, .fileProvider].contains(row)
     }
 
@@ -397,12 +384,8 @@ extension SettingsViewController: UICollectionViewDelegate {
             navigationController?.pushViewController(SettingsViewController(page: .behavior), animated: true)
         case .sharing:
             navigationController?.pushViewController(FileSharingViewController(), animated: true)
-        case .selfTest:
-            FileOperationSelfTest.present(from: self)
-        #if DEBUG
-        case .installProbe:
-            IPAInstallProbe.present(from: self)
-        #endif
+        case .tasks:
+            navigationController?.pushViewController(TransfersViewController(), animated: true)
         case .license:
             navigationController?.pushViewController(LicensesViewController(), animated: true)
         case .log:

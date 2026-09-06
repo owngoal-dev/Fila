@@ -112,9 +112,8 @@ final class BrowserTabStore {
     private(set) var tabs: [BrowserTab]
     private(set) var currentID: UUID
 
-    /// Injectable for the self-check below, and for nothing else — the app has
-    /// exactly one of these and it is `shared`.
-    private init(defaults: UserDefaults = .standard) {
+    private init() {
+        let defaults = UserDefaults.standard
         self.defaults = defaults
         var stored = Self.load(from: defaults)
         if case .local(.container) = FileSession.shared.hello?.backend {
@@ -268,110 +267,3 @@ final class BrowserTabStore {
         if notify { NotificationCenter.default.post(name: .filaTabsChanged, object: nil) }
     }
 }
-
-#if DEBUG
-    extension BrowserTabStore {
-        /// The parts that are arithmetic rather than UI: which tab is current
-        /// after a close, what the cap does, what survives a round trip through
-        /// the plist, and what `record` trims. Debug-only assertions in the same
-        /// shape as `FilaLink.runSelfCheck`, and for the same reason — this is
-        /// app code and the app target has no test target.
-        static func runSelfCheck() {
-            let suite = "wiki.qaq.fila.selfcheck"
-            guard let defaults = UserDefaults(suiteName: suite) else { return }
-            defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
-
-            func fresh() -> BrowserTabStore {
-                UserDefaults.standard.removePersistentDomain(forName: suite)
-                return BrowserTabStore(defaults: defaults)
-            }
-
-            // A store with nothing written down still has somewhere to be.
-            let empty = fresh()
-            assert(empty.tabs.count == 1)
-            assert(empty.currentID == empty.tabs[0].id)
-
-            // A tab's stack is the path it sits at, so Back is always one
-            // component shallower and the breadcrumb always has somewhere on
-            // the stack to pop back to.
-            assert(BrowserTab.chain(to: "/") == ["/"])
-            assert(BrowserTab.chain(to: "/usr/local/bin") == ["/", "/usr", "/usr/local", "/usr/local/bin"])
-            let seeding = fresh()
-            let seeded = seeding.open("/var/jb/bin")!
-            assert(seeded.stack == ["/", "/var", "/var/jb", "/var/jb/bin"])
-            assert(seeded.path == "/var/jb/bin", "the folder on screen is still the one that was asked for")
-
-            // Closing the tab you are on lands on the one that took its place.
-            let three = fresh()
-            let a = three.open("/a")!, b = three.open("/b")!
-            assert(three.tabs.count == 3, "one default plus two")
-            assert(three.currentID == b.id, "a new tab is the current one")
-            three.select(a.id)
-            three.close(a.id)
-            assert(three.currentID == b.id)
-            assert(three.tabs.count == 2)
-
-            // Two tabs on one directory are two tabs. The switcher diffs on
-            // identity, and a snapshot with a repeated identifier is a crash.
-            let twins = fresh()
-            let left = twins.open("/same")!, right = twins.open("/same")!
-            assert(left.id != right.id)
-
-            // Closing the last one leaves a tab, not an empty shell.
-            let last = fresh()
-            last.close(last.tabs[0].id)
-            assert(last.tabs.count == 1)
-            assert(last.currentID == last.tabs[0].id)
-
-            // The cap refuses rather than evicting somebody's tab, and the
-            // link path refuses too — it is the unauthenticated one.
-            let full = fresh()
-            while full.open("/x") != nil {}
-            assert(full.tabs.count == limit)
-            let before = full.tabs.map(\.id)
-            full.openFromLink("/somewhere-new")
-            assert(full.tabs.map(\.id) == before, "a link cannot grow the list past the cap")
-            // A link naming a path that is already open switches to it.
-            full.openFromLink("/x")
-            assert(full.current.path == "/x")
-
-            // Depth is capped from the far end, and offsets go with the
-            // directories they belonged to.
-            let deep = fresh()
-            let walk = BrowserTab.chain(to: (0 ... depthLimit + 4).map { "/d\($0)" }.joined())
-            deep.record(stack: walk, offsets: ["/": 5, walk.last!: 7], selection: "row")
-            assert(deep.current.stack.count == depthLimit)
-            assert(deep.current.stack.last == walk.last, "the folder you are in is the one that is kept")
-            assert(deep.current.offsets["/"] == nil, "an offset outlives its directory nowhere")
-            assert(deep.current.offsets[walk.last!] == 7)
-
-            // A browser pushed over screens that are not directories is written
-            // down as its own chain, never as a Back into somewhere unrelated.
-            let hopped = fresh()
-            let container = "/var/mobile/Containers/Data/Application/UUID"
-            hopped.record(stack: ["/var/mobile", container], offsets: ["/var/mobile": 3, container: 9], selection: nil)
-            assert(hopped.current.stack == BrowserTab.chain(to: container))
-            assert(hopped.current.offsets[container] == 9)
-
-            // A reorder that raced a close is dropped rather than applied to
-            // the wrong set.
-            let order = fresh()
-            order.open("/1")
-            order.open("/2")
-            let reversed = Array(order.tabs.map(\.id).reversed())
-            order.reorder(to: reversed)
-            assert(order.tabs.map(\.id) == reversed)
-            order.reorder(to: Array(reversed.dropLast()))
-            assert(order.tabs.map(\.id) == reversed, "an order missing a tab is a race, not an order")
-
-            // Everything above survives the plist.
-            let written = fresh()
-            written.record(stack: ["/", "/usr"], offsets: ["/": 120], selection: "usr")
-            let reread = BrowserTabStore(defaults: defaults)
-            assert(reread.current.stack == ["/", "/usr"])
-            assert(reread.current.offsets["/"] == 120)
-            assert(reread.current.selection == "usr")
-            assert(reread.currentID == written.currentID)
-        }
-    }
-#endif

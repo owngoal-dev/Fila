@@ -1,3 +1,4 @@
+import FilaClient
 import FilaProtocol
 import Foundation
 

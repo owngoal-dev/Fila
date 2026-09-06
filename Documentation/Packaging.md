@@ -18,7 +18,7 @@ layout, bundle/build identity, iOS device slices and deployment targets, code
 signature hashes, the exact entitlement templates for each wrapper, the File
 Provider's App Group, resources, and bootstrap layout. Invalid bundle symlinks
 and installed-device `.jbroot` artifacts are rejected. These are host packaging
-checks; a device self-test remains necessary to prove runtime behavior.
+checks; device checks remain necessary to prove runtime behavior.
 
 `make vphone` uses a SHA-256-derived download filename and prints the full hash.
 This distinguishes Safari downloads, but does not replace Sileo's package-version

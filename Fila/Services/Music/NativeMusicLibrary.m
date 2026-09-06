@@ -2,13 +2,20 @@
 #import <objc/runtime.h>
 #include <dlfcn.h>
 
+@protocol MusicImportAPI
+- (id)initWithMultiverseIdentifier:(id)identifier mediaItem:(id)item;
+- (id)initWithLibrary:(id)library connection:(id)connection configuration:(id)configuration;
+- (BOOL)begin;
+- (BOOL)finish;
+- (BOOL)addTrack:(id)track persistentID:(NSNumber **)identifier;
+@end
+
 @protocol MusicLibraryAPI
 + (id)sharedLibrary;
 - (NSString *)databasePath;
-- (void)performDatabaseTransactionWithBlock:(BOOL (^)(id))block;
+- (void)notifyEntitiesAddedOrRemoved;
 - (id)checkoutWriterConnection;
 - (void)checkInDatabaseConnection:(id)connection;
-- (id)initWithPath:(NSString *)path isUnitTesting:(BOOL)testing;
 @end
 @protocol MusicConnectionAPI
 - (BOOL)isInTransaction;
@@ -21,12 +28,12 @@
 - (id)objectForFirstRowAndColumn;
 @end
 @protocol MusicTrackAPI
++ (id)newWithDictionary:(NSDictionary *)values inLibrary:(id)library;
+- (int64_t)persistentID;
 + (id)newWithPersistentID:(int64_t)trackID inLibrary:(id)library;
 + (BOOL)trackWithPersistentID:(int64_t)trackID existsInLibrary:(id)library;
 + (NSSet<NSString *> *)unsettableProperties;
 - (id)valueForProperty:(NSString *)property;
-+ (NSArray<NSString *> *)extraTablesToInsert;
-+ (BOOL)insertValues:(NSDictionary *)values intoTable:(NSString *)table persistentID:(int64_t)trackID connection:(id)connection;
 @end
 
 @protocol MusicEditAPI
@@ -34,9 +41,6 @@
 - (BOOL)_setValues:(NSArray *)values forProperties:(NSArray *)properties withEntityClass:(Class)entityClass usingPersistentID:(int64_t)trackID connection:(id)connection error:(NSError **)error;
 @end
 
-@interface NativeMusicLibrary ()
-- (instancetype)initWithDatabasePath:(NSString *)path testing:(BOOL)testing error:(NSError **)error;
-@end
 
 static BOOL Signature(Method method, const char *result, NSArray<NSString *> *arguments, NSError **error) {
     if (!method || method_getNumberOfArguments(method) != arguments.count) {
@@ -69,6 +73,15 @@ static NSString *Text(id value) {
     return @"";
 }
 
+// This is fixed internal metadata, never caller-supplied KVC keys. Exceptions
+// for an unavailable class or setter stay inside the Objective-C boundary.
+static id ImportObject(NSString *className, NSDictionary *values) {
+    id object = [NSClassFromString(className) new];
+    if (!object) [NSException raise:NSInvalidArgumentException format:@"Missing %@", className];
+    [object setValuesForKeysWithDictionary:values];
+    return object;
+}
+
 @implementation NativeMusicLibrary {
     id _library;
     Class _trackClass;
@@ -76,10 +89,6 @@ static NSString *Text(id value) {
 }
 
 - (instancetype)initWithExpectedDatabasePath:(NSString *)path error:(NSError **)error {
-    return [self initWithDatabasePath:path testing:NO error:error];
-}
-
-- (instancetype)initWithDatabasePath:(NSString *)path testing:(BOOL)testing error:(NSError **)error {
     self = [super init];
     if (!self) return nil;
     @try {
@@ -96,7 +105,6 @@ static NSString *Text(id value) {
         _trackClass = NSClassFromString(@"ML3Track");
         if (!image
             || !Signature(class_getClassMethod(libraryClass, @selector(sharedLibrary)), "@", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(libraryClass, @selector(initWithPath:isUnitTesting:)), "@", @[@"@", @":", @"@", @"B"], error)
             || !Signature(class_getInstanceMethod(libraryClass, @selector(databasePath)), "@", @[@"@", @":"], error)
             || !Signature(class_getClassMethod(_trackClass, @selector(newWithPersistentID:inLibrary:)), "@", @[@"@", @":", @"q", @"@"], error)
             || !Signature(class_getClassMethod(_trackClass, @selector(trackWithPersistentID:existsInLibrary:)), "B", @[@"@", @":", @"q", @"@"], error)
@@ -111,14 +119,11 @@ static NSString *Text(id value) {
             || !Signature(class_getInstanceMethod(libraryClass, @selector(checkInDatabaseConnection:)), "v", @[@"@", @":", @"@"], error)
             || !Signature(class_getInstanceMethod(connectionClass, @selector(pushTransaction)), "B", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(connectionClass, @selector(popTransactionAndCommit:)), "B", @[@"@", @":", @"B"], error)
-            || !Signature(class_getInstanceMethod(connectionClass, @selector(popToRootTransactionAndCommit:)), "B", @[@"@", @":", @"B"], error)
-            || !Signature(class_getInstanceMethod(libraryClass, @selector(performDatabaseTransactionWithBlock:)), "v", @[@"@", @":", @"@?"], error)) {
+            || !Signature(class_getInstanceMethod(connectionClass, @selector(popToRootTransactionAndCommit:)), "B", @[@"@", @":", @"B"], error)) {
             if (error && !*error) Failure(error, 1);
             return nil;
         }
-        _library = testing
-            ? [(id<MusicLibraryAPI>)[libraryClass alloc] initWithPath:path isUnitTesting:YES]
-            : [(Class<MusicLibraryAPI>)libraryClass sharedLibrary];
+        _library = [(Class<MusicLibraryAPI>)libraryClass sharedLibrary];
         NSString *actual = [(id<MusicLibraryAPI>)_library databasePath];
         if (![actual.stringByResolvingSymlinksInPath isEqualToString:path.stringByResolvingSymlinksInPath]) {
             if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:1 userInfo:@{
@@ -228,71 +233,82 @@ static NSString *Text(id value) {
     }
 }
 
-+ (BOOL)checkEditingAtSnapshotPath:(NSString *)path error:(NSError **)error {
+
+- (NSNumber *)importFileAtPath:(NSString *)path metadata:(NSDictionary<NSString *, id> *)metadata error:(NSError **)error {
+    NSNumber *committedIdentifier = nil;
     @try {
-        NSString *live = @"/var/mobile/Media/iTunes_Control/iTunes/MediaLibrary.sqlitedb";
-        // This entry point is called only with the self-test's private snapshot.
-        if ([path.stringByResolvingSymlinksInPath isEqualToString:live.stringByResolvingSymlinksInPath]) {
-            Failure(error, 1);
-            return NO;
-        }
-        NativeMusicLibrary *test = [[self alloc] initWithDatabasePath:path testing:YES error:error];
-        if (!test) return NO;
-        const int64_t trackID = 9007199254740993LL;
-        __block BOOL inserted = NO;
-        [(id<MusicLibraryAPI>)test->_library performDatabaseTransactionWithBlock:^BOOL(id connection) {
-            Class<MusicTrackAPI> tracks = (Class<MusicTrackAPI>)test->_trackClass;
-            inserted = [tracks insertValues:@{@"media_type": @1} intoTable:@"item" persistentID:trackID connection:connection]
-                && [tracks insertValues:@{@"title": @"Fila fixture"} intoTable:@"item_extra" persistentID:trackID connection:connection];
-            for (NSString *table in [tracks extraTablesToInsert]) {
-                if (![table isEqualToString:@"item_extra"]) {
-                    NSDictionary *values = [table isEqualToString:@"item_store"] ? @{@"sync_id": @1, @"sync_in_my_library": @1} : @{};
-                    inserted = inserted && [tracks insertValues:values intoTable:table persistentID:trackID connection:connection];
-                }
+        Class sessionClass = NSClassFromString(@"ML3ClientImportServiceSession");
+        Class itemClass = NSClassFromString(@"ML3ClientImportItem");
+        Class baseClass = NSClassFromString(@"ML3BaseLocation");
+        if (!Signature(class_getInstanceMethod(sessionClass, @selector(initWithLibrary:connection:configuration:)), "@", @[@"@", @":", @"@", @"@", @"@"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(begin)), "B", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(finish)), "B", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(addTrack:persistentID:)), "B", @[@"@", @":", @"@", @"^@"], error)
+            || !Signature(class_getInstanceMethod(itemClass, @selector(initWithMultiverseIdentifier:mediaItem:)), "@", @[@"@", @":", @"@", @"@"], error)
+            || !Signature(class_getClassMethod(baseClass, @selector(newWithDictionary:inLibrary:)), "@", @[@"@", @":", @"@", @"@"], error)) return nil;
+
+        // MusicLibrary's importer owns artist/album
+        // entities, sort orders and all schema-dependent insertion details.
+        id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
+            @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath]
+        });
+        id artist = ImportObject(@"MIPArtist", @{@"name": metadata[@"Artist"] ?: @""});
+        id albumArtist = ImportObject(@"MIPArtist", @{@"name": metadata[@"AlbumArtist"] ?: metadata[@"Artist"] ?: @""});
+        id album = ImportObject(@"MIPAlbum", @{@"name": metadata[@"Album"] ?: @"", @"artist": albumArtist});
+        id song = ImportObject(@"MIPSong", @{@"artist": artist, @"album": album});
+        id media = ImportObject(@"MIPMediaItem", @{
+            @"title": metadata[@"Title"], @"duration": metadata[@"TotalTime"],
+            @"mediaType": @1, @"isInUsersLibrary": @YES, @"hasLocalAsset": @YES, @"song": song
+        });
+        id identity = ImportObject(@"MIPMultiverseIdentifier", @{
+            @"mediaType": @1, @"mediaObjectType": @6, @"name": NSUUID.UUID.UUIDString
+        });
+        id item = [(id<MusicImportAPI>)[itemClass alloc] initWithMultiverseIdentifier:identity mediaItem:media];
+        // A base location is relative to the device's Media folder. The native
+        // constructor reuses that location across imports. It may remain empty
+        // after a failed import, but no track or file is published by it.
+        id<MusicTrackAPI> base = [(Class<MusicTrackAPI>)baseClass newWithDictionary:@{@"path": @"iTunes_Control/Music/F00"} inLibrary:_library];
+        if (!item || !base) { Failure(error, 3); return nil; }
+        id<MusicConnectionAPI> connection = [(id<MusicLibraryAPI>)_library checkoutWriterConnection];
+        @try {
+            if (![connection pushTransaction]) { Failure(error, 3); return nil; }
+            id<MusicImportAPI> importer = [(id<MusicImportAPI>)[sessionClass alloc] initWithLibrary:_library connection:connection configuration:configuration];
+            NSNumber *identifier = nil;
+            if (![importer begin] || ![importer addTrack:item persistentID:&identifier] || ![importer finish] || !identifier) {
+                Failure(error, 3);
+                return nil;
             }
-            return inserted;
-        }];
-        if (!inserted) {
-            if (error) *error = [NSError errorWithDomain:@"MusicFixture" code:1 userInfo:@{
-                NSLocalizedDescriptionKey: @"The native music service refused insertion into the isolated snapshot."
-            }];
-            return NO;
-        }
-        NSError *conflict = nil;
-        BOOL staleWrite = [test setValue:@"Must not replace" forField:@"Title" trackID:trackID expected:@"An older title" error:&conflict];
-        if (staleWrite || ![conflict.domain isEqualToString:@"MusicLibrary"] || conflict.code != 2) {
-            if (error) *error = [NSError errorWithDomain:@"MusicFixture" code:4 userInfo:@{
-                NSLocalizedDescriptionKey: @"The transaction did not reject an outdated song value."
-            }];
-            return NO;
-        }
-        NSMutableArray<NSString *> *failures = [NSMutableArray array];
-        for (NSString *field in [test.editableFields.allObjects sortedArrayUsingSelector:@selector(compare:)]) {
-            NSDictionary *before = [test valuesForTrackID:trackID error:error];
-            if (!before) return NO;
-            BOOL numeric = [@[@"Year", @"TrackNumber", @"DiscNumber"] containsObject:field];
-            id value = numeric ? ([field isEqualToString:@"Year"] ? @2026 : @1) : [@"Fila test " stringByAppendingString:field];
-            if (![test setValue:value forField:field trackID:trackID expected:before[field] error:error]) {
-                NSDictionary *observed = [test valuesForTrackID:trackID error:nil];
-                [failures addObject:[NSString stringWithFormat:@"%@ (before=%@, after=%@)", field, before[field], observed[field]]];
-                continue;
+            // The importer owns metadata; this connection-scoped native edit
+            // attaches the already copied asset before committing. ML3Track's
+            // convenience setters dispatch to a different writer and cannot
+            // see the uncommitted track, even when passed this connection.
+            id<MusicEditAPI> operation = [(id<MusicEditAPI>)[NSClassFromString(@"ML3SetValuesForPropertiesOperation") alloc] initWithLibrary:_library writer:nil];
+            NSArray *values = @[@YES, @([base persistentID]), path.lastPathComponent, @1];
+            if (![operation _setValues:values forProperties:@[@"in_my_library", @"base_location_id", @"item_extra.location", @"media_type"] withEntityClass:_trackClass usingPersistentID:identifier.longLongValue connection:connection error:error]) {
+                if (error && !*error) Failure(error, 3);
+                return nil;
             }
-            NSDictionary *after = [test valuesForTrackID:trackID error:error];
-            if (![after[field] isEqualToString:Text(value)]) [failures addObject:field];
+            // A private API accepting a call is not proof it stored the fields.
+            id<MusicResultAPI> result = [connection executeQuery:@"SELECT COUNT(*) FROM item JOIN item_extra USING(item_pid) WHERE item_pid = ? AND in_my_library = 1 AND (media_type & 1) != 0 AND base_location_id = ? AND location = ?" withParameters:@[identifier, @([base persistentID]), path.lastPathComponent]];
+            if ([[result objectForFirstRowAndColumn] longLongValue] != 1 || ![connection popTransactionAndCommit:YES]) {
+                Failure(error, 3);
+                return nil;
+            }
+            committedIdentifier = identifier;
+        } @finally {
+            @try {
+                if ([connection isInTransaction]) [connection popToRootTransactionAndCommit:NO];
+            } @finally {
+                if (connection) [(id<MusicLibraryAPI>)_library checkInDatabaseConnection:connection];
+            }
         }
-        if (failures.count) {
-            if (error) *error = [NSError errorWithDomain:@"MusicFixture" code:2 userInfo:@{
-                NSLocalizedDescriptionKey: [@"Native fixture fields failed: " stringByAppendingString:[failures componentsJoinedByString:@", "]]
-            }];
-            return NO;
-        }
-        return YES;
+        [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
     } @catch (NSException *exception) {
-        if (error) *error = [NSError errorWithDomain:@"MusicFixture" code:3 userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Fixture exception %@: %@", exception.name, exception.reason]
-        }];
-        return NO;
+        if (!committedIdentifier) Failure(error, 3);
     }
+    // Once committed, even a notification/connection-cleanup exception must
+    // preserve the file now referenced by the library.
+    return committedIdentifier;
 }
 
 @end

@@ -25,6 +25,12 @@ final class AppDetailViewController: UITableViewController {
     init(app: InstalledApp) {
         self.app = app
         super.init(style: .insetGrouped)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: String(localized: "Open"), primaryAction: UIAction { [weak self] _ in
+            guard let self else { return }
+            if !InstalledAppCatalog.open(app) {
+                FeedbackAlert.show(String(localized: "Unable to Open App"), message: String(localized: "iOS could not open this app. It may be unavailable or may not have an interface."))
+            }
+        })
     }
 
     @available(*, unavailable)
