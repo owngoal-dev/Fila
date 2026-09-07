@@ -821,7 +821,7 @@ final class BrowserViewController: UIViewController {
                 let transfers: [UIMenuElement] = running > 0 ? [UIMenu(options: .displayInline, children: [
                     UIAction(
                         title: String(localized: "Tasks"), subtitle: String(localized: "\(running) in progress"),
-                        image: UIImage(systemName: "arrow.left.arrow.right")
+                        image: UIImage(systemName: "tray.and.arrow.down.fill")
                     ) { _ in TransfersViewController.presentAsSheet() },
                 ])] : []
                 let folder: UIMenuElement = self.isTrash ? self.emptyTrashAction() : self.newMenu()

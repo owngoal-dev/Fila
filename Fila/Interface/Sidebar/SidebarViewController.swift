@@ -65,7 +65,7 @@ final class SidebarViewController: UIViewController {
         return item
     }()
     private lazy var tasksItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "arrow.left.arrow.right"), primaryAction: UIAction { [weak self] _ in
+        let item = UIBarButtonItem(image: UIImage(systemName: "tray.and.arrow.down.fill"), primaryAction: UIAction { [weak self] _ in
             self?.presentTasks()
         })
         item.accessibilityLabel = String(localized: "Tasks")

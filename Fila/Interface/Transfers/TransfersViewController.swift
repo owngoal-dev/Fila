@@ -157,7 +157,7 @@ final class TransfersViewController: UIViewController {
 
         collectionView.showStatus(center.operations.isEmpty
             ? .message(
-                symbol: "arrow.left.arrow.right",
+                symbol: "tray.and.arrow.down.fill",
                 title: String(localized: "No Tasks"),
                 detail: String(localized: "Copy, move, delete, and other tasks appear here.")
             )
