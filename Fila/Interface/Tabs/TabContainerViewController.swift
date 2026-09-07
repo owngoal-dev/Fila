@@ -151,13 +151,8 @@ final class TabContainerViewController: UIViewController {
         label.snp.makeConstraints { make in
             make.center.equalToSuperview()
         }
-        if traitCollection.userInterfaceIdiom != .pad {
-            let places = UIBarButtonItem(image: UIImage(systemName: "bookmark"), primaryAction: UIAction { [weak self] _ in
-                self?.shell?.presentSidebar()
-            })
-            places.accessibilityLabel = String(localized: "Places")
-            waiting.navigationItem.leftBarButtonItem = places
-        }
+        // The shell supplies Places for this screen too, including when the
+        // split view changes between compact and wide layouts.
         display(UINavigationController(rootViewController: waiting))
     }
 
