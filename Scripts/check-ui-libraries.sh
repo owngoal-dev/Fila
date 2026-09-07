@@ -112,7 +112,11 @@ fi
 # error and not a warning: `UIImage(systemName:)` returns nil and the button
 # draws nothing. Xcode's own completion offers this year's symbols, so the only
 # thing standing between a blank icon on iOS 15 and a release is this check.
-# CoreGlyphs ships the availability table on every Mac; without it, skip.
+# CoreGlyphs ships the availability table on every Mac; without it, skip — and
+# skip on any other failure too (no python3, a CoreGlyphs layout that changes
+# under a future macOS), which is what the `|| true` below is for. Under
+# `set -e` this assignment would otherwise abort the whole release gate with a
+# traceback instead of reporting the checks that did run.
 symbol_hits="$(python3 - "$root" <<'PY'
 import plistlib, re, subprocess, sys
 root = sys.argv[1]
@@ -133,7 +137,7 @@ for line in found.splitlines():
         if release and tuple(int(part) for part in release.split(".")) > floor:
             print(f"{line.split(':')[0]}:{line.split(':')[1]}: {name} needs iOS {release}")
 PY
-)"
+)" || true
 if [[ -n "$symbol_hits" ]]; then
     error "these SF Symbols are newer than the deployment target and draw nothing on it:"
     echo "$symbol_hits" >&2
