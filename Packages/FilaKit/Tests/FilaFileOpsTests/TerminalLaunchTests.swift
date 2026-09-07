@@ -305,7 +305,7 @@ struct TerminalLaunchTests {
         #expect(literal.arguments == [script])
     }
 
-    @Test("only the interpreter is taken from a shebang, never what follows it")
+    @Test("a shebang that carries an argument is left to the kernel, not rewritten")
     func ignoresShebangArguments() throws {
         let bootstrap = Scratch()
         bootstrap.directory("usr/bin")
@@ -313,8 +313,10 @@ struct TerminalLaunchTests {
         let layout = BootstrapLayout(kind: .rootless(prefix: bootstrap.root))
         let scripts = Scratch()
 
-        // A flag after the interpreter is dropped: honouring it would be the
-        // daemon running a program with a command line the file wrote.
+        // Honouring the flag would be the daemon running a program with a
+        // command line the file wrote; dropping it would run `#!/bin/sh -e`
+        // without its abort-on-failure, as root, while the file says otherwise.
+        // So the redirect stands aside and the file is exec'd as it is.
         let flagged = try FilaPath.resolve(
             scripts.file("flagged.sh", contents: "#!/usr/bin/absent-bash -x\n", mode: 0o755)
         )
@@ -322,7 +324,8 @@ struct TerminalLaunchTests {
             request: TerminalRequest(executable: flagged, redirectsScriptInterpreter: true),
             layout: layout
         )
-        #expect(plan.arguments == [bash, flagged])
+        #expect(plan.executable == flagged)
+        #expect(plan.arguments == [flagged])
 
         // `env` is not the interpreter, it is how a script says "look on PATH"
         // — and it is itself missing on a rootless device, which is why the
@@ -336,9 +339,14 @@ struct TerminalLaunchTests {
         )
         #expect(resolvedByName.executable == bash)
 
-        // `env -S` and `env NAME=value` are both ways of spelling a command
-        // line, so neither names an interpreter this daemon will look up.
-        for line in ["#!/usr/bin/env -S absent-bash -x\n", "#!/usr/bin/env NAME=value absent-bash\n"] {
+        // `env -S`, `env NAME=value` and an argument after the interpreter are
+        // all ways of spelling a command line, so none of them names an
+        // interpreter this daemon will look up.
+        for line in [
+            "#!/usr/bin/env -S absent-bash -x\n",
+            "#!/usr/bin/env NAME=value absent-bash\n",
+            "#!/usr/bin/env absent-bash -x\n",
+        ] {
             let path = try FilaPath.resolve(scripts.file("spelled.sh", contents: line, mode: 0o755))
             let unredirected = try TerminalPlan(
                 request: TerminalRequest(executable: path, redirectsScriptInterpreter: true),
@@ -346,6 +354,61 @@ struct TerminalLaunchTests {
             )
             #expect(unredirected.arguments == [path])
         }
+    }
+
+    @Test("an interpreter the jbroot does not ship is still found on the system filesystem")
+    func findsASystemInterpreterUnderRoothide() throws {
+        // roothide's own spelling of a bootstrap file is the file's plain name,
+        // and `resolve` puts the jbroot in front of it — so the literal and the
+        // bootstrap candidates are one string, and only `systemPath` reaches
+        // the untouched filesystem, bridged in at `/rootfs`. Without it a
+        // script naming an interpreter that exists only there — which is what
+        // the kernel itself would have exec'd — would be refused as missing.
+        let jbroot = Scratch()
+        jbroot.directory("usr/libexec")
+        jbroot.directory("rootfs/usr/bin")
+        let system = jbroot.file("rootfs/usr/bin/absent-perl", contents: "#!/bin/sh\n", mode: 0o755)
+        let layout = BootstrapLayout(installRoot: jbroot.root)
+
+        let scripts = Scratch()
+        let script = try FilaPath.resolve(
+            scripts.file("job.pl", contents: "#!/usr/bin/absent-perl\n", mode: 0o755)
+        )
+        let plan = try TerminalPlan(
+            request: TerminalRequest(executable: script, redirectsScriptInterpreter: true),
+            layout: layout
+        )
+        #expect(plan.executable == system)
+        #expect(plan.arguments == [system, layout.systemPath(script)])
+    }
+
+    @Test(
+        "the shebang read refuses a fifo instead of waiting for a writer",
+        .timeLimit(.minutes(1))
+    )
+    func refusesToReadAFifo() throws {
+        // The shebang read is the one place the daemon opens a file the user
+        // chose, and it runs on the control queue. The plan stats the file
+        // first, so a FIFO never gets that far — but a FIFO put at that path in
+        // the window between the stat and the open would block `open` until a
+        // writer appeared, with every file operation in the app behind it. Hand
+        // the read the FIFO directly, which is that window: it must come back,
+        // and it must come back with nothing. Without `O_NONBLOCK` this test
+        // does not fail, it hangs — hence the limit.
+        let scratch = Scratch()
+        let fifo = scratch.root + "/pipe"
+        try #require(mkfifo(fifo, 0o755) == 0)
+        #expect(TerminalPlan.shebangInterpreter(of: fifo) == nil)
+
+        // And the outer refusal, which is what a client actually meets: a FIFO
+        // is not a program, whatever it would say if it were read.
+        let failure = #expect(throws: FilaFailure.self) {
+            try TerminalPlan(
+                request: TerminalRequest(executable: fifo, redirectsScriptInterpreter: true),
+                layout: BootstrapLayout(installRoot: "")
+            )
+        }
+        #expect(failure?.systemError == EACCES)
     }
 
     @Test("a shebang naming an interpreter that is nowhere says which one")

@@ -465,21 +465,37 @@ struct TerminalPlan {
     /// The interpreter a script's `#!` line names, or nil when the file does
     /// not begin with one.
     ///
-    /// **Only the interpreter, never the argument after it.** A shebang may
-    /// carry one, and passing it on would be the daemon running a program with
-    /// a flag the file chose — the shape `openTerminal` exists to refuse. The
-    /// single exception is `env`, where the word after it *is* the interpreter
-    /// rather than an option; anything that looks like a flag or an assignment
-    /// ends the read, because `env -S` and `env NAME=value` are both ways of
-    /// spelling a command line.
-    private static func shebangInterpreter(of path: String) -> String? {
+    /// **Only the interpreter, and only when it is the whole line.** A shebang
+    /// may carry an argument, and passing it on would be the daemon running a
+    /// program with a flag the file chose — the shape `openTerminal` exists to
+    /// refuse. Dropping it is no better: `#!/bin/sh -e` says abort at the first
+    /// failing command, and a maintenance script that runs to the end instead,
+    /// as root, is a worse outcome than one that does not start. So a line with
+    /// anything after the interpreter is not redirected at all — nil here means
+    /// the file is exec'd as it stands and the kernel reads the line itself,
+    /// flags included, which is the only reading that cannot be wrong.
+    ///
+    /// The single exception is `env`, where the word after it *is* the
+    /// interpreter rather than an option; anything else on that line — a flag,
+    /// an assignment, a further argument — ends the read, because `env -S` and
+    /// `env NAME=value` are both ways of spelling a command line.
+    /// Not private so the harness can hand it the file the plan's own stat
+    /// would have refused first — a FIFO — which is the whole point of the
+    /// non-blocking open below.
+    static func shebangInterpreter(of path: String) -> String? {
         // `O_NOFOLLOW` on an already-canonical path: realpath resolved the last
         // component, so this only refuses one that was swapped for a symlink
-        // since. Reading is all that happens here — the file was already
-        // required to be an executable regular file.
-        let descriptor = open(path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        // since. `O_NONBLOCK` because this runs on the daemon's control queue:
+        // the caller stat'd a regular file, but a FIFO put at that path in the
+        // window since would make this `open` wait for a writer and take every
+        // file operation in the app down with it. `fstat` then closes the same
+        // window for whatever was actually opened — reading is all that happens
+        // here, and only a regular file is worth reading.
+        let descriptor = open(path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK)
         guard descriptor >= 0 else { return nil }
         defer { close(descriptor) }
+        var opened = stat()
+        guard fstat(descriptor, &opened) == 0, opened.st_mode & S_IFMT == S_IFREG else { return nil }
         let wanted = shebangLimit
         var buffer = [UInt8](repeating: 0, count: wanted)
         var filled = 0
@@ -497,8 +513,10 @@ struct TerminalPlan {
             .split(whereSeparator: { $0 == " " || $0 == "\t" || $0 == "\r" })
             .map(String.init)
         guard let first = fields.first else { return nil }
-        guard first.split(separator: "/").last == "env" else { return first }
-        guard let named = fields.dropFirst().first,
+        guard first.split(separator: "/").last == "env" else {
+            return fields.count == 1 ? first : nil
+        }
+        guard fields.count == 2, let named = fields.last,
               !named.hasPrefix("-"), !named.contains("=") else { return nil }
         return named
     }
@@ -509,13 +527,18 @@ struct TerminalPlan {
     /// **The bootstrap's copy is the fallback, not the first answer.** Every
     /// script on every machine is written `#!/bin/sh`, and on a rootless device
     /// that file does not exist — `/var/jb/bin/sh` is the one that does. So the
-    /// literal path is tried as written, and only a miss reaches for the
-    /// bootstrap's spelling of the same name. A bare word only ever arrives
-    /// from `env`, and is looked for in the directories `PATH` names, in the
-    /// same order the session's own `PATH` lists them.
+    /// literal path is tried as written, then the bootstrap's spelling of the
+    /// same name, and last the untouched iOS filesystem: under roothide the
+    /// first two are the same string and `resolve` puts the jbroot in front of
+    /// both, so without `systemPath` an interpreter that lives only outside the
+    /// bootstrap — `/usr/bin/perl`, which is what the kernel itself would have
+    /// exec'd — is never found, and `#!/usr/bin/perl` would fail where
+    /// `#!/usr/bin/env perl` succeeds. A bare word only ever arrives from
+    /// `env`, and is looked for in the directories `PATH` names, in the same
+    /// order the session's own `PATH` lists them.
     private static func program(named name: String, layout: BootstrapLayout) -> String? {
         if name.hasPrefix("/") {
-            for candidate in [name, layout.bootstrapPath(name)] {
+            for candidate in [name, layout.bootstrapPath(name), layout.systemPath(name)] {
                 let real = layout.resolve(candidate)
                 if isExecutableFile(real) { return real }
             }
