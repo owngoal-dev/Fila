@@ -238,7 +238,10 @@ final class SidebarViewController: UIViewController {
         case let .favorite(path), let .recent(path):
             name = path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
             detail = path
-            image = recentItems[path]?.image ?? UIImage(named: "FileIcons/folder")?.withRenderingMode(.alwaysOriginal)
+            // Until `details(of:)` answers, draw what the path was when it was
+            // recorded: a file keeps its type artwork instead of a folder.
+            let kind: FileKind = AppPreferences.shared.recentFiles.contains(path) ? .regular : .directory
+            image = recentItems[path]?.image ?? FilePresentation.image(kind: kind, name: name)
             if let displayName = recentItems[path]?.name {
                 name = displayName
                 color = .systemBrown
@@ -428,7 +431,7 @@ final class SidebarViewController: UIViewController {
                 if details.node.isNavigable {
                     shell.open(path)
                 } else {
-                    AppPreferences.shared.noteVisit(path)
+                    AppPreferences.shared.noteVisit(path, isDirectory: false)
                     await shell.openFile(details, session: session)
                 }
             } catch let failure as FilaFailure {

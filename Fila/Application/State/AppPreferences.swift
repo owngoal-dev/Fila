@@ -296,7 +296,19 @@ final class AppPreferences {
 
     var recents: [String] {
         get { defaults.stringArray(forKey: "recents") ?? [] }
-        set { store(newValue, forKey: "recents") }
+        set {
+            // The subset that was a file when visited, so a cold-launched sidebar
+            // draws `song.mp3` as audio instead of as a folder while the daemon
+            // is still connecting. Kept in step with `recents` here, never
+            // written on its own.
+            defaults.set(recentFiles.filter(newValue.contains), forKey: "recentFiles")
+            store(newValue, forKey: "recents")
+        }
+    }
+
+    private(set) var recentFiles: [String] {
+        get { defaults.stringArray(forKey: "recentFiles") ?? [] }
+        set { defaults.set(newValue, forKey: "recentFiles") }
     }
 
     // Tabs were a `[String]` of paths here. They are `BrowserTabStore` now: a tab has
@@ -331,8 +343,12 @@ final class AppPreferences {
         recents.removeAll { $0 == path }
     }
 
-    func noteVisit(_ path: String) {
+    func noteVisit(_ path: String, isDirectory: Bool) {
         guard recordsRecents else { return }
+        var files = recentFiles
+        files.removeAll { $0 == path }
+        if !isDirectory { files.append(path) }
+        recentFiles = files
         var list = recents
         list.removeAll { $0 == path }
         list.insert(path, at: 0)

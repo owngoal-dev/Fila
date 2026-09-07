@@ -163,7 +163,7 @@ final class BrowserViewController: UIViewController {
     func recordDirectoryUse() {
         guard viewIfLoaded?.window != nil, navigationController?.topViewController === self,
               listingFailure == nil, !isListing || !entries.isEmpty else { return }
-        AppPreferences.shared.noteVisit(directory)
+        AppPreferences.shared.noteVisit(directory, isDirectory: true)
     }
 
     @objc private func sceneDidEnterBackground(_ note: Notification) {

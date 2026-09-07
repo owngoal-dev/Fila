@@ -57,7 +57,7 @@ extension UIViewController {
     func openFile(at path: String, session: FileSession) async {
         do {
             let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
-            AppPreferences.shared.noteVisit(path)
+            AppPreferences.shared.noteVisit(path, isDirectory: details.node.isNavigable)
             await openFile(details, session: session)
         } catch let failure as FilaFailure {
             report(failure)
