@@ -397,7 +397,9 @@ sentence. The same script fails on a missing or `""` message.
   SnapKit-bypass `translatesAutoresizingMaskIntoConstraints`, no
   `SPIndicatorView` outside `Toast.swift`).
 - `make build` — unsigned `Fila.app` + `filad` for iPhoneOS (runs `check` and
-  `harness` first).
+  `harness` first). It, `make sim` and `make vphone` bump
+  `CURRENT_PROJECT_VERSION` first, so `Version.xcconfig` comes out of a build
+  dirty by design.
 - `make sim` — Debug build onto the booted simulator. There is **no daemon**
   there and there cannot be: `launchd_sim` prefixes every job's program path
   with the runtime root, which is a sealed read-only volume, so no launchd job

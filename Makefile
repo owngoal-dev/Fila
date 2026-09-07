@@ -104,7 +104,7 @@ endif
 
 .PHONY: all help print-version print-build-number print-deb-path print-tipa-path \
 	print-ipa-path print-flavor \
-	set-version check harness build sim vphone _build-ios _package-deb \
+	set-version bump-build check harness build sim vphone _build-ios _package-deb \
 	deb deb-roothide deb-rootless deb-all tipa ipa packages install clean
 
 all: packages
@@ -148,6 +148,14 @@ print-flavor:
 set-version:
 	@test -n "$(VERSION)" || { echo "usage: make set-version VERSION=1.2.3 [BUILD=42]" >&2; exit 64; }
 	@"$(VERSION_APPLIER)" "$(VERSION)" $(BUILD)
+
+# Every build gets its own number, so a device can say which build it runs.
+# CI is exempt: the workflow pins the build number to its run number, and a
+# bump there would ship an artifact that disagrees with the tag.
+bump-build:
+	@if [ -n "$${CI:-}" ]; then echo "==> CI: keeping build $(BUILD_NUMBER)"; else \
+		"$(VERSION_APPLIER)" "$(APP_VERSION)" $$(( $(BUILD_NUMBER) + 1 )) >/dev/null; \
+		echo "==> build $$(( $(BUILD_NUMBER) + 1 ))"; fi
 
 check:
 	@command -v xcodebuild >/dev/null || { echo "error: xcodebuild is required" >&2; exit 69; }
@@ -199,7 +207,7 @@ webui:
 	$(WEBUI_BUILDER)
 
 # Shared recipes keep the UI iteration loop separate from the release gates.
-_build-ios:
+_build-ios: bump-build
 	XCBUILD_LABEL=build-ios python3 Scripts/build-package-inputs.py build "$(dir $(APP_BUNDLE))" $(XCODEBUILD) \
 		-configuration "$(CONFIGURATION)" \
 		-scheme "$(SCHEME)" \
@@ -208,7 +216,7 @@ _build-ios:
 
 # The simulator exercises the shell through the local backend. The real
 # daemon and its privileges are verified on vphone.
-sim: harness
+sim: harness bump-build
 	XCBUILD_LABEL=build-sim $(SIMULATOR_XCODEBUILD) \
 		-configuration Debug \
 		-scheme "$(SCHEME)" \
