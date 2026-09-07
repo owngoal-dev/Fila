@@ -25,6 +25,7 @@ final class SettingsViewController: UIViewController {
         case browsing
         case fileOperations
         case systemFeatures
+        case scripts
         case guardOverride
         case branding
         case diagnostics
@@ -40,6 +41,7 @@ final class SettingsViewController: UIViewController {
         case launchLocation
         case usesTrash
         case runsPrograms
+        case redirectsScriptInterpreters
         case allowsGuardOverride
         case appearance, behavior, sharing, protection, about
         case tasks
@@ -149,10 +151,11 @@ final class SettingsViewController: UIViewController {
             snapshot.appendItems([.protection], toSection: .diagnostics)
             snapshot.appendItems([.version, .about, .license], toSection: .about)
         case .behavior:
-            snapshot.appendSections([.browsing, .fileOperations, .systemFeatures])
+            snapshot.appendSections([.browsing, .fileOperations, .systemFeatures, .scripts])
             snapshot.appendItems([.launchLocation, .recordsRecents], toSection: .browsing)
             snapshot.appendItems([.usesTrash], toSection: .fileOperations)
             snapshot.appendItems([.runsPrograms, .fileProvider], toSection: .systemFeatures)
+            snapshot.appendItems([.redirectsScriptInterpreters], toSection: .scripts)
         case .protection:
             snapshot.appendSections([.guardOverride])
             snapshot.appendItems([.allowsGuardOverride], toSection: .guardOverride)
@@ -184,6 +187,12 @@ final class SettingsViewController: UIViewController {
             configureToggle(cell, title: String(localized: "Move to Trash"), keyPath: \.usesTrash)
         case .runsPrograms:
             configureToggle(cell, title: String(localized: "Run Programs"), keyPath: \.runsPrograms)
+        case .redirectsScriptInterpreters:
+            configureToggle(
+                cell,
+                title: String(localized: "Redirect Script Interpreters"),
+                keyPath: \.redirectsScriptInterpreters
+            )
         case .allowsGuardOverride:
             configureToggle(cell, title: String(localized: "Allow Overriding Protection"), keyPath: \.allowsGuardOverride)
         case .protection:
@@ -311,6 +320,7 @@ final class SettingsViewController: UIViewController {
         case .browsing: return String(localized: "Browsing")
         case .fileOperations: return String(localized: "File Operations")
         case .systemFeatures: return String(localized: "System Features")
+        case .scripts: return String(localized: "Scripts")
         case .guardOverride: return nil
         case .branding: return nil
         case .diagnostics: return String(localized: "Advanced")
@@ -324,6 +334,8 @@ final class SettingsViewController: UIViewController {
             return String(localized: "Move deleted items to the trash so they can be put back.")
         case .systemFeatures:
             return String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
+        case .scripts:
+            return String(localized: "A script's first line names the interpreter that runs it, usually /bin/sh or /bin/bash. Your jailbreak keeps its copy elsewhere, so the script fails to start. Fila finds that interpreter where the jailbreak installed it and runs the script with it. Turn this off to start scripts exactly as written.")
         case .guardOverride:
             return String(localized: "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore.")
         case .diagnostics:

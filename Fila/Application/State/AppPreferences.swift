@@ -219,6 +219,16 @@ final class AppPreferences {
         set { defaults.set(newValue, forKey: "runsPrograms") }
     }
 
+    /// On by default, because a script written `#!/bin/sh` is every script and
+    /// a rootless device has no `/bin/sh` — off, the kernel refuses it and the
+    /// user sees a file that will not run. Off is for the case where honouring
+    /// the line is wrong: a script that means the system's own interpreter,
+    /// on a bootstrap that ships a different one under the same name.
+    var redirectsScriptInterpreters: Bool {
+        get { defaults.object(forKey: "redirectsScriptInterpreters") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "redirectsScriptInterpreters") }
+    }
+
     // MARK: - WebDAV server
 
     /// 8080 rather than 80: a port under 1024 needs privilege the app does not

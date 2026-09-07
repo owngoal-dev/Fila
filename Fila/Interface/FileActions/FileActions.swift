@@ -163,7 +163,13 @@ final class FileActions {
     private func openTerminal(_ program: TerminalProgram, user: TerminalUser,
                               onProcessExit: (@MainActor @Sendable () -> Void)? = nil) -> Bool {
         guard let presenter = activePresenter else { return false }
-        let terminal = TerminalViewController(program: program, user: user, link: session.link, onProcessExit: onProcessExit)
+        let terminal = TerminalViewController(
+            program: program,
+            user: user,
+            redirectsScriptInterpreter: AppPreferences.shared.redirectsScriptInterpreters,
+            link: session.link,
+            onProcessExit: onProcessExit
+        )
         if let navigation = presenter.navigationController {
             navigation.pushViewController(terminal, animated: true)
         } else if let shell = presenter.shell {

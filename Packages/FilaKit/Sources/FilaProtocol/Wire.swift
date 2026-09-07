@@ -378,4 +378,9 @@ public enum FilaWireKey {
     /// A Debian package for `dpkg -i`, in place of `path`. See
     /// `FilaOperation.openTerminal`.
     public static let package = "pkg"
+    /// Whether a script's `#!` line may be honoured through the bootstrap's own
+    /// interpreter. A bool and nothing else: the client never names the
+    /// interpreter, and absent reads as off, which is what every terminal did
+    /// before the setting existed.
+    public static let redirectsScriptInterpreter = "shebang"
 }

@@ -421,6 +421,7 @@ public final class DaemonLink: @unchecked Sendable {
         executable: String? = nil,
         package: String? = nil,
         user: TerminalUser,
+        redirectsScriptInterpreter: Bool = false,
         workingDirectory: String? = nil,
         columns: UInt16,
         rows: UInt16
@@ -448,6 +449,7 @@ public final class DaemonLink: @unchecked Sendable {
                 xpc_dictionary_set_string(request, FilaWireKey.workingDirectory, workingDirectory)
             }
             xpc_dictionary_set_int64(request, FilaWireKey.terminalUser, user.rawValue)
+            xpc_dictionary_set_bool(request, FilaWireKey.redirectsScriptInterpreter, redirectsScriptInterpreter)
             xpc_dictionary_set_uint64(request, FilaWireKey.columns, UInt64(columns))
             xpc_dictionary_set_uint64(request, FilaWireKey.rows, UInt64(rows))
         }

@@ -27,6 +27,15 @@ public struct TerminalRequest: Sendable {
     public var package: String?
     /// Who it runs as. `.root` drops nothing and raises nothing.
     public var user: TerminalUser
+    /// Whether a `#!` line may be honoured through the bootstrap's own copy of
+    /// the interpreter it names. Off, `executable` is exec'd as it stands and
+    /// the kernel decides — which on a rootless device means a script written
+    /// `#!/bin/sh` does not run at all, because there is no `/bin/sh` there.
+    ///
+    /// A bool, and deliberately nothing more: it cannot name an interpreter,
+    /// an argument or an environment. What it turns on is a lookup this daemon
+    /// performs on the script's own first line.
+    public var redirectsScriptInterpreter: Bool
     /// Where the session starts. Ignored when it is not a directory the daemon
     /// can enter; the plan's home is the fallback, and `/` the fallback's.
     public var workingDirectory: String?
@@ -37,6 +46,7 @@ public struct TerminalRequest: Sendable {
         executable: String? = nil,
         package: String? = nil,
         user: TerminalUser = .root,
+        redirectsScriptInterpreter: Bool = false,
         workingDirectory: String? = nil,
         columns: UInt16 = 80,
         rows: UInt16 = 24
@@ -44,6 +54,7 @@ public struct TerminalRequest: Sendable {
         self.executable = executable
         self.package = package
         self.user = user
+        self.redirectsScriptInterpreter = redirectsScriptInterpreter
         self.workingDirectory = workingDirectory
         self.columns = max(1, columns)
         self.rows = max(1, rows)
@@ -75,9 +86,12 @@ public extension FileOperations {
     /// `mobile`.
     ///
     /// **What this spawns:** one executable regular file, with an argv of
-    /// exactly itself; the login shell chosen by `TerminalPlan.loginShell`
-    /// with `-il`; or the bootstrap's `dpkg` with `-i` and one package file,
-    /// as root only. **As whom:** whoever `filad` is — root on a device — or the
+    /// exactly itself; the interpreter that file's own `#!` line names, with an
+    /// argv of itself and that file, when the request allows it; the login
+    /// shell chosen by `TerminalPlan.loginShell` with `-il`; or the bootstrap's
+    /// `dpkg` with `-i` and one package file, as root only. Every one of those
+    /// argv lists is composed here and none of them can carry a flag the client
+    /// or the file chose. **As whom:** whoever `filad` is — root on a device — or the
     /// `mobile` account resolved by name, and nothing else, because the wire
     /// carries a two-case `TerminalUser` and not a uid. **What it refuses:**
     /// argv, an environment, a shell string, any `-c`, a package that is not a
@@ -132,6 +146,11 @@ struct BootstrapLayout {
     static let rootlessPrefix = "/var/jb"
 
     let kind: Kind
+
+    /// A layout stated outright. On a device every kind is derived from the
+    /// daemon's own install root; the harness cannot make a `/var/jb` exist on
+    /// the Mac, and the rootless remap is the whole of what needs testing.
+    init(kind: Kind) { self.kind = kind }
 
     init(installRoot: String) {
         var isBootstrap: Bool {
@@ -279,8 +298,24 @@ struct TerminalPlan {
             guard Self.isExecutableFile(resolved) else {
                 throw FilaFailure(code: .notPermitted, systemError: EACCES, path: requested)
             }
-            executable = resolved
-            arguments = [resolved]
+            if request.redirectsScriptInterpreter, let named = Self.shebangInterpreter(of: resolved) {
+                guard let interpreter = Self.program(named: named, layout: layout) else {
+                    // Named, and not there in either spelling. Said with the
+                    // interpreter as the path, because "sh: no such file" is
+                    // the answer and "<script>: no such file" — which is what
+                    // the kernel would have reported — names the one file that
+                    // does exist.
+                    throw FilaFailure(code: .notFound, systemError: ENOENT, path: named)
+                }
+                executable = interpreter
+                // The interpreter opens the script by the name it is handed,
+                // and under roothide it is vroot-linked: the same reasoning as
+                // dpkg's package argument, and the same `systemPath` for it.
+                arguments = [interpreter, layout.systemPath(resolved)]
+            } else {
+                executable = resolved
+                arguments = [resolved]
+            }
             if let shell = user?.shell, !shell.isEmpty { environment["SHELL"] = shell }
         } else {
             // Spawned directly rather than through the bootstrap's `login`, for
@@ -418,6 +453,81 @@ struct TerminalPlan {
             return shell
         }
         if let shell = user?.shell, !shell.isEmpty, layout.isExecutableFile(shell) { return shell }
+        return nil
+    }
+
+    /// XNU reads a shebang out of the first page and gives up at 512 bytes, so
+    /// there is nothing past that to read and no reason to read further. The
+    /// bound is the point: this is the one place the daemon looks inside a file
+    /// the user chose, and a file manager's files are gigabytes.
+    private static let shebangLimit = 512
+
+    /// The interpreter a script's `#!` line names, or nil when the file does
+    /// not begin with one.
+    ///
+    /// **Only the interpreter, never the argument after it.** A shebang may
+    /// carry one, and passing it on would be the daemon running a program with
+    /// a flag the file chose — the shape `openTerminal` exists to refuse. The
+    /// single exception is `env`, where the word after it *is* the interpreter
+    /// rather than an option; anything that looks like a flag or an assignment
+    /// ends the read, because `env -S` and `env NAME=value` are both ways of
+    /// spelling a command line.
+    private static func shebangInterpreter(of path: String) -> String? {
+        // `O_NOFOLLOW` on an already-canonical path: realpath resolved the last
+        // component, so this only refuses one that was swapped for a symlink
+        // since. Reading is all that happens here — the file was already
+        // required to be an executable regular file.
+        let descriptor = open(path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        guard descriptor >= 0 else { return nil }
+        defer { close(descriptor) }
+        let wanted = shebangLimit
+        var buffer = [UInt8](repeating: 0, count: wanted)
+        var filled = 0
+        while filled < wanted {
+            let got = buffer.withUnsafeMutableBytes {
+                read(descriptor, $0.baseAddress?.advanced(by: filled), wanted - filled)
+            }
+            if got > 0 { filled += got; continue }
+            if got < 0, Darwin.errno == EINTR { continue }
+            break
+        }
+        guard filled > 2, buffer[0] == UInt8(ascii: "#"), buffer[1] == UInt8(ascii: "!") else { return nil }
+        let line = buffer[2 ..< filled].prefix { $0 != UInt8(ascii: "\n") && $0 != 0 }
+        let fields = String(decoding: line, as: UTF8.self)
+            .split(whereSeparator: { $0 == " " || $0 == "\t" || $0 == "\r" })
+            .map(String.init)
+        guard let first = fields.first else { return nil }
+        guard first.split(separator: "/").last == "env" else { return first }
+        guard let named = fields.dropFirst().first,
+              !named.hasPrefix("-"), !named.contains("=") else { return nil }
+        return named
+    }
+
+    /// Where a program the shebang named actually lives, as a syscall wants it,
+    /// or nil when no spelling of it is runnable.
+    ///
+    /// **The bootstrap's copy is the fallback, not the first answer.** Every
+    /// script on every machine is written `#!/bin/sh`, and on a rootless device
+    /// that file does not exist — `/var/jb/bin/sh` is the one that does. So the
+    /// literal path is tried as written, and only a miss reaches for the
+    /// bootstrap's spelling of the same name. A bare word only ever arrives
+    /// from `env`, and is looked for in the directories `PATH` names, in the
+    /// same order the session's own `PATH` lists them.
+    private static func program(named name: String, layout: BootstrapLayout) -> String? {
+        if name.hasPrefix("/") {
+            for candidate in [name, layout.bootstrapPath(name)] {
+                let real = layout.resolve(candidate)
+                if isExecutableFile(real) { return real }
+            }
+            return nil
+        }
+        guard !name.isEmpty, !name.contains("/") else { return nil }
+        let directories = bootstrapBinaryDirectories.map(layout.bootstrapPath)
+            + systemBinaryDirectories.map(layout.systemPath)
+        for directory in directories {
+            let real = layout.resolve(directory + "/" + name)
+            if isExecutableFile(real) { return real }
+        }
         return nil
     }
 

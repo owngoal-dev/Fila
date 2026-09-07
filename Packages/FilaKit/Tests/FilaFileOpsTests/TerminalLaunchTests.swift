@@ -273,6 +273,110 @@ struct TerminalLaunchTests {
         #expect(fallback.executable == bare.root + "/legacy-zsh")
     }
 
+    /// The bug this exists for: every script on every machine is written
+    /// `#!/bin/sh`, and a rootless device has no `/bin/sh` — the bootstrap's is
+    /// at `/var/jb/bin/sh`. Without the redirect `execve` answers `ENOENT` and
+    /// the script simply does not run.
+    @Test("a script runs through the bootstrap's copy of the interpreter it names")
+    func redirectsAScriptInterpreter() throws {
+        let bootstrap = Scratch()
+        bootstrap.directory("bin")
+        bootstrap.directory("usr/bin")
+        // Named somewhere that does not exist on this machine either, so that
+        // the literal spelling cannot be what answers.
+        let shell = bootstrap.file("bin/absent-sh", contents: "#!/bin/sh\n", mode: 0o755)
+        let layout = BootstrapLayout(kind: .rootless(prefix: bootstrap.root))
+
+        let scripts = Scratch()
+        let script = try FilaPath.resolve(
+            scripts.file("job.sh", contents: "#!/bin/absent-sh\necho hi\n", mode: 0o755)
+        )
+        let plan = try TerminalPlan(
+            request: TerminalRequest(executable: script, redirectsScriptInterpreter: true),
+            layout: layout
+        )
+        #expect(plan.executable == shell)
+        #expect(plan.arguments == [shell, script])
+
+        // Off, the file is exec'd as it stands — which is what it was before
+        // the setting, and what the kernel then refuses.
+        let literal = try TerminalPlan(request: TerminalRequest(executable: script), layout: layout)
+        #expect(literal.executable == script)
+        #expect(literal.arguments == [script])
+    }
+
+    @Test("only the interpreter is taken from a shebang, never what follows it")
+    func ignoresShebangArguments() throws {
+        let bootstrap = Scratch()
+        bootstrap.directory("usr/bin")
+        let bash = bootstrap.file("usr/bin/absent-bash", contents: "#!/bin/sh\n", mode: 0o755)
+        let layout = BootstrapLayout(kind: .rootless(prefix: bootstrap.root))
+        let scripts = Scratch()
+
+        // A flag after the interpreter is dropped: honouring it would be the
+        // daemon running a program with a command line the file wrote.
+        let flagged = try FilaPath.resolve(
+            scripts.file("flagged.sh", contents: "#!/usr/bin/absent-bash -x\n", mode: 0o755)
+        )
+        let plan = try TerminalPlan(
+            request: TerminalRequest(executable: flagged, redirectsScriptInterpreter: true),
+            layout: layout
+        )
+        #expect(plan.arguments == [bash, flagged])
+
+        // `env` is not the interpreter, it is how a script says "look on PATH"
+        // — and it is itself missing on a rootless device, which is why the
+        // word after it has to be resolved here rather than by exec'ing env.
+        let viaEnv = try FilaPath.resolve(
+            scripts.file("env.sh", contents: "#!/usr/bin/env absent-bash\n", mode: 0o755)
+        )
+        let resolvedByName = try TerminalPlan(
+            request: TerminalRequest(executable: viaEnv, redirectsScriptInterpreter: true),
+            layout: layout
+        )
+        #expect(resolvedByName.executable == bash)
+
+        // `env -S` and `env NAME=value` are both ways of spelling a command
+        // line, so neither names an interpreter this daemon will look up.
+        for line in ["#!/usr/bin/env -S absent-bash -x\n", "#!/usr/bin/env NAME=value absent-bash\n"] {
+            let path = try FilaPath.resolve(scripts.file("spelled.sh", contents: line, mode: 0o755))
+            let unredirected = try TerminalPlan(
+                request: TerminalRequest(executable: path, redirectsScriptInterpreter: true),
+                layout: layout
+            )
+            #expect(unredirected.arguments == [path])
+        }
+    }
+
+    @Test("a shebang naming an interpreter that is nowhere says which one")
+    func reportsAMissingInterpreter() throws {
+        let scripts = Scratch()
+        let script = scripts.file("job.sh", contents: "#!/usr/bin/absent-python\n", mode: 0o755)
+        let failure = #expect(throws: FilaFailure.self) {
+            try TerminalPlan(
+                request: TerminalRequest(executable: script, redirectsScriptInterpreter: true),
+                layout: BootstrapLayout(installRoot: "")
+            )
+        }
+        // The interpreter, not the script: the script is the one file here that
+        // does exist, and naming it would send the user looking at the wrong
+        // thing.
+        #expect(failure?.path == "/usr/bin/absent-python")
+        #expect(failure?.systemError == ENOENT)
+    }
+
+    @Test("a program with no shebang is still exec'd as itself")
+    func leavesBinariesAlone() throws {
+        // The redirect reads a first line; a Mach-O has none, and turning the
+        // setting on must not put an interpreter in front of every binary.
+        let plan = try TerminalPlan(
+            request: TerminalRequest(executable: "/bin/echo", redirectsScriptInterpreter: true),
+            layout: BootstrapLayout(installRoot: "")
+        )
+        #expect(plan.executable == "/bin/echo")
+        #expect(plan.arguments == ["/bin/echo"])
+    }
+
     @Test("the bootstrap vocabulary keeps the two spellings apart")
     func bootstrapSpellings() {
         let rootful = BootstrapLayout(installRoot: "")

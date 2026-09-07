@@ -2645,6 +2645,83 @@
         }
       }
     },
+    "A script's first line names the interpreter that runs it, usually /bin/sh or /bin/bash. Your jailbreak keeps its copy elsewhere, so the script fails to start. Fila finds that interpreter where the jailbreak installed it and runs the script with it. Turn this off to start scripts exactly as written." : {
+      "comment" : "Settings section footer explaining the Redirect Script Interpreters toggle.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحدد السطر الأول من النص البرمجي المفسّر الذي يشغّله، وهو عادةً ‏/bin/sh‏ أو ‏/bin/bash‏. يحتفظ الجيلبريك بنسخته في مكان آخر، لذا يفشل تشغيل النص البرمجي. يعثر Fila على ذلك المفسّر حيث ثبّته الجيلبريك ويشغّل النص البرمجي به. أوقف هذا الخيار لتشغيل النصوص البرمجية كما هي مكتوبة تمامًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die erste Zeile eines Skripts nennt den Interpreter, der es ausführt, meist /bin/sh oder /bin/bash. Dein Jailbreak legt seine Kopie woanders ab, deshalb startet das Skript nicht. Fila findet diesen Interpreter dort, wo der Jailbreak ihn installiert hat, und führt das Skript damit aus. Schalte dies aus, um Skripte genau so zu starten, wie sie geschrieben sind."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La primera línea de un script indica el intérprete que lo ejecuta, normalmente /bin/sh o /bin/bash. Tu jailbreak guarda su copia en otro lugar, así que el script no llega a iniciarse. Fila busca ese intérprete donde el jailbreak lo instaló y ejecuta el script con él. Desactiva esta opción para iniciar los scripts exactamente como están escritos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La première ligne d'un script nomme l'interpréteur qui l'exécute, généralement /bin/sh ou /bin/bash. Votre jailbreak range sa copie ailleurs, le script ne démarre donc pas. Fila trouve cet interpréteur là où le jailbreak l'a installé et exécute le script avec. Désactivez cette option pour lancer les scripts exactement tels qu'ils sont écrits."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La prima riga di uno script indica l'interprete che lo esegue, di solito /bin/sh o /bin/bash. Il tuo jailbreak tiene la propria copia altrove, quindi lo script non si avvia. Fila trova quell'interprete dove il jailbreak lo ha installato ed esegue lo script con quello. Disattiva questa opzione per avviare gli script esattamente come sono scritti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリプトの1行目には、それを実行するインタプリタが書かれています。通常は /bin/sh か /bin/bash です。脱獄環境はそのコピーを別の場所に置いているため、スクリプトは起動できません。Fila は脱獄環境がインストールした場所からそのインタプリタを見つけ、それでスクリプトを実行します。書かれたとおりに起動するには、これをオフにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크립트의 첫 줄에는 이를 실행할 인터프리터가 적혀 있으며, 보통 /bin/sh 또는 /bin/bash입니다. 탈옥 환경은 해당 사본을 다른 곳에 두므로 스크립트가 시작되지 않습니다. Fila는 탈옥 환경이 설치한 위치에서 그 인터프리터를 찾아 스크립트를 실행합니다. 적힌 그대로 실행하려면 이 옵션을 끄십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A primeira linha de um script indica o interpretador que o executa, normalmente /bin/sh ou /bin/bash. Seu jailbreak guarda a cópia dele em outro lugar, então o script não inicia. O Fila encontra esse interpretador onde o jailbreak o instalou e executa o script com ele. Desative esta opção para iniciar os scripts exatamente como estão escritos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В первой строке скрипта указан интерпретатор, который его запускает, обычно /bin/sh или /bin/bash. Джейлбрейк хранит свою копию в другом месте, поэтому скрипт не запускается. Fila находит этот интерпретатор там, куда его установил джейлбрейк, и запускает скрипт с ним. Отключите этот параметр, чтобы запускать скрипты в точности так, как они написаны."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dòng đầu tiên của tập lệnh cho biết trình thông dịch chạy nó, thường là /bin/sh hoặc /bin/bash. Bản jailbreak giữ bản sao của nó ở nơi khác, nên tập lệnh không khởi chạy được. Fila tìm trình thông dịch đó ở nơi bản jailbreak đã cài và chạy tập lệnh bằng nó. Tắt tùy chọn này để khởi chạy tập lệnh đúng như đã viết."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本的第一行会写明运行它的执行器，通常是 /bin/sh 或 /bin/bash。越狱环境把自己的那份放在别处，脚本因此无法启动。Fila 会到越狱环境的安装位置找到该执行器，并用它运行脚本。关闭后将完全按脚本写明的方式启动。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼的第一行會寫明執行它的直譯器，通常是 /bin/sh 或 /bin/bash。越獄環境把自己的那份放在別處，指令碼因此無法啟動。Fila 會到越獄環境的安裝位置找到該直譯器，並用它執行指令碼。關閉後將完全按指令碼寫明的方式啟動。"
+          }
+        }
+      }
+    },
     "A key with this name already exists. Choose a different name." : {
       "localizations" : {
         "ar" : {
@@ -35822,6 +35899,83 @@
         }
       }
     },
+    "Redirect Script Interpreters" : {
+      "comment" : "Settings toggle: run a script through the bootstrap's copy of the interpreter its shebang names.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إعادة توجيه مفسّرات النصوص البرمجية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skript-Interpreter umleiten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redirigir intérpretes de scripts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rediriger les interpréteurs de scripts"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reindirizza gli interpreti degli script"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリプトインタプリタをリダイレクト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크립트 인터프리터 리디렉션"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redirecionar interpretadores de scripts"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перенаправлять интерпретаторы скриптов"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chuyển hướng trình thông dịch tập lệnh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本执行器重定向"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼直譯器重新導向"
+          }
+        }
+      }
+    },
     "Refresh" : {
       "localizations" : {
         "ar" : {
@@ -38650,6 +38804,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "掃描以連線"
+          }
+        }
+      }
+    },
+    "Scripts" : {
+      "comment" : "Settings section header for the script interpreter toggle.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "النصوص البرمجية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skripte"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scripts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scripts"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Script"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリプト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크립트"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scripts"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрипты"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tập lệnh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼"
           }
         }
       }

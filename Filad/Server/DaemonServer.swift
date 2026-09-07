@@ -412,6 +412,9 @@ final class DaemonServer: @unchecked Sendable {
             executable: xpc_dictionary_get_string(message, FilaWireKey.path).map { String(cString: $0) },
             package: package,
             user: user,
+            // Absent reads as false: a client that does not know about the
+            // setting gets what every terminal got before it existed.
+            redirectsScriptInterpreter: xpc_dictionary_get_bool(message, FilaWireKey.redirectsScriptInterpreter),
             workingDirectory: xpc_dictionary_get_string(message, FilaWireKey.workingDirectory)
                 .map { String(cString: $0) },
             columns: UInt16(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.columns)),

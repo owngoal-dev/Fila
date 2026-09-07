@@ -49,11 +49,16 @@ public final class TerminalViewController: UIViewController {
     /// - Parameters:
     ///   - program: what to run.
     ///   - user: the identity explicitly selected in the Run menu.
+    ///   - redirectsScriptInterpreter: the Behavior setting, carried rather
+    ///     than read, because this package is not the app and has no
+    ///     preferences of its own.
     ///   - link: the app's connection to `filad`.
-    public init(program: TerminalProgram, user: TerminalUser, link: DaemonLink,
+    public init(program: TerminalProgram, user: TerminalUser,
+                redirectsScriptInterpreter: Bool = false, link: DaemonLink,
                 onProcessExit: (@MainActor @Sendable () -> Void)? = nil) {
         self.program = program
         self.requestedUser = user
+        self.redirectsScriptInterpreter = redirectsScriptInterpreter
         self.link = link
         self.onProcessExit = onProcessExit.map(TerminalExitHandler.init(run:))
         super.init(nibName: nil, bundle: nil)
@@ -75,6 +80,7 @@ public final class TerminalViewController: UIViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
 
     private let program: TerminalProgram
+    private let redirectsScriptInterpreter: Bool
     private let link: DaemonLink
     /// Optional owner cleanup after the daemon has reaped the direct child.
     /// An unknown launch/termination outcome deliberately retains its input.
@@ -233,6 +239,7 @@ public final class TerminalViewController: UIViewController {
         let columns = pump.columns
         let rows = pump.rows
         let user = requestedUser
+        let redirectsScriptInterpreter = redirectsScriptInterpreter
         let onProcessExit = onProcessExit
         Task { [weak self] in
             while true {
@@ -241,6 +248,7 @@ public final class TerminalViewController: UIViewController {
                         executable: program.executablePath,
                         package: program.packagePath,
                         user: user,
+                        redirectsScriptInterpreter: redirectsScriptInterpreter,
                         workingDirectory: program.workingDirectory,
                         columns: columns,
                         rows: rows
@@ -276,8 +284,17 @@ public final class TerminalViewController: UIViewController {
     /// the Mach service not being registered yet and `ECONNRESET` is the link
     /// dying under the request; everything else is a decision the daemon made,
     /// and the user needs to read it.
+    ///
+    /// **A named path is what separates the two.** A link that was never
+    /// reached knows no path, while a child that failed `execve` reports the
+    /// program it could not run — and that failure is `.operationFailed` with
+    /// the child's `errno`, which for a script whose shebang interpreter does
+    /// not exist is `ENOENT`, the same pair. Without this the daemon's real
+    /// refusal was swallowed and the screen retried it forever, saying
+    /// *Starting…* at a program that was never going to start.
     private static func isDaemonMissing(_ failure: FilaFailure) -> Bool {
         failure.code == .operationFailed
+            && failure.path == nil
             && (failure.systemError == ENOENT || failure.systemError == ECONNRESET)
     }
 
