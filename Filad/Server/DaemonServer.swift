@@ -134,7 +134,7 @@ final class DaemonServer: @unchecked Sendable {
 
     private func accept(_ event: xpc_object_t) {
         dispatchPrecondition(condition: .onQueue(controlQueue))
-        guard xpc_get_type(event) == XPC_TYPE_CONNECTION else { return }
+        guard xpc_get_type(event) == FilaXPC.typeConnection else { return }
         guard listener != nil else {
             xpc_connection_cancel(event)
             return
@@ -162,8 +162,8 @@ final class DaemonServer: @unchecked Sendable {
     private func handle(_ message: xpc_object_t, key: ObjectIdentifier) {
         dispatchPrecondition(condition: .onQueue(controlQueue))
         guard let peer = peers[key] else { return }
-        guard xpc_get_type(message) == XPC_TYPE_DICTIONARY else {
-            // XPC_ERROR_CONNECTION_INVALID and friends arrive here.
+        guard xpc_get_type(message) == FilaXPC.typeDictionary else {
+            // The connection errors and friends arrive here.
             peerInvalidated(key)
             return
         }
@@ -247,7 +247,7 @@ final class DaemonServer: @unchecked Sendable {
             )
             let entries = xpc_array_create(nil, 0)
             for node in page.entries {
-                xpc_array_set_value(entries, XPC_ARRAY_APPEND, node.encoded())
+                xpc_array_set_value(entries, FilaXPC.arrayAppend, node.encoded())
             }
             xpc_dictionary_set_value(reply, FilaWireKey.entries, entries)
             xpc_dictionary_set_uint64(reply, FilaWireKey.cursor, page.cursor)

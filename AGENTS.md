@@ -100,6 +100,25 @@ between the app and the kernel with nothing in between.
   and opens nothing. A read-only volume or a cross-volume rename fails with
   the real errno, and the app offers a permanent delete instead of pretending
   the trash always works.
+- **iOS 15 is a promise the SDK will break for you.** The floor in
+  `Base.xcconfig` says nothing about whether the build runs there: the linker
+  believes the SDK's availability metadata, and where that is wrong the app dies
+  in dyld before `main` with nothing in the build to warn you. Two shapes have
+  already shipped. *One:* naming the SDK's XPC type, array-append or
+  connection-error macros in Swift resolves to accessors in
+  `/usr/lib/swift/libswiftXPC.dylib`, which arrived in iOS 16 and is linked
+  **non-weakly** because its `.tbd` carries no back-deployment metadata — that
+  killed 0.1.6 on two users' iOS 15 devices. `FilaXPC` reads the same constants
+  through `CFilaXPC`, one C path on every OS so the version tested is the
+  version that runs, and the overlay stays weakly linked and unused. *Two:* an
+  SF Symbol newer than the floor is not an error anywhere —
+  `UIImage(systemName:)` returns nil and the control draws nothing. `make check`
+  warns on the first (only below iOS 16; a raised floor is entitled to the
+  overlay) and fails on the second, against CoreGlyphs' own availability table.
+  Before a release, prove the product with `otool -L | grep -v ', weak)'`,
+  `nm -m | grep 'weak external'` and `vtool -show-build` on every embedded
+  framework — the same audit lives in
+  `../platformize-app-ios/scripts/audit-ios-floor.sh`.
 - **Versions live in `Configuration/Version.xcconfig` only** (edit via
   `make set-version`). xcconfigs attach at project level; a target-level
   `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in the pbxproj silently

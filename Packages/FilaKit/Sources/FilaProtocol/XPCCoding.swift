@@ -94,7 +94,7 @@ public extension FileNode {
     }
 
     init?(decoding dictionary: xpc_object_t) {
-        guard xpc_get_type(dictionary) == XPC_TYPE_DICTIONARY else { return nil }
+        guard xpc_get_type(dictionary) == FilaXPC.typeDictionary else { return nil }
         guard let name = xpc_dictionary_get_string(dictionary, NodeKey.name) else { return nil }
         var link: SymbolicLink?
         if let target = xpc_dictionary_get_string(dictionary, NodeKey.linkTarget) {
@@ -133,8 +133,8 @@ public extension FileDetails {
         let names = xpc_array_create(nil, 0)
         let sizes = xpc_array_create(nil, 0)
         for attribute in extendedAttributes {
-            xpc_array_set_string(names, XPC_ARRAY_APPEND, attribute.name)
-            xpc_array_set_int64(sizes, XPC_ARRAY_APPEND, attribute.byteCount)
+            xpc_array_set_string(names, FilaXPC.arrayAppend, attribute.name)
+            xpc_array_set_int64(sizes, FilaXPC.arrayAppend, attribute.byteCount)
         }
         xpc_dictionary_set_value(dictionary, DetailKey.xattrNames, names)
         xpc_dictionary_set_value(dictionary, DetailKey.xattrSizes, sizes)
@@ -144,7 +144,7 @@ public extension FileDetails {
     }
 
     init?(decoding dictionary: xpc_object_t) {
-        guard xpc_get_type(dictionary) == XPC_TYPE_DICTIONARY else { return nil }
+        guard xpc_get_type(dictionary) == FilaXPC.typeDictionary else { return nil }
         guard let path = xpc_dictionary_get_string(dictionary, DetailKey.path) else { return nil }
         guard let nodeValue = xpc_dictionary_get_value(dictionary, DetailKey.node),
               let node = FileNode(decoding: nodeValue) else { return nil }
@@ -182,7 +182,7 @@ public extension MountPoint {
     }
 
     init?(decoding dictionary: xpc_object_t) {
-        guard xpc_get_type(dictionary) == XPC_TYPE_DICTIONARY,
+        guard xpc_get_type(dictionary) == FilaXPC.typeDictionary,
               let path = xpc_dictionary_get_string(dictionary, VolumeKey.mountPoint),
               let device = xpc_dictionary_get_string(dictionary, VolumeKey.device),
               let filesystem = xpc_dictionary_get_string(dictionary, VolumeKey.type) else { return nil }
@@ -207,7 +207,7 @@ public extension VolumeInfo {
     }
 
     init?(decoding dictionary: xpc_object_t) {
-        guard xpc_get_type(dictionary) == XPC_TYPE_DICTIONARY else { return nil }
+        guard xpc_get_type(dictionary) == FilaXPC.typeDictionary else { return nil }
         guard let mountPoint = xpc_dictionary_get_string(dictionary, VolumeKey.mountPoint),
               let device = xpc_dictionary_get_string(dictionary, VolumeKey.device),
               let type = xpc_dictionary_get_string(dictionary, VolumeKey.type) else { return nil }
@@ -288,7 +288,7 @@ public extension AttributeChange {
     }
 
     init?(decoding dictionary: xpc_object_t) {
-        guard xpc_get_type(dictionary) == XPC_TYPE_DICTIONARY else { return nil }
+        guard xpc_get_type(dictionary) == FilaXPC.typeDictionary else { return nil }
         func optionalUInt64(_ key: String) -> UInt64? {
             xpc_dictionary_get_value(dictionary, key) == nil ? nil : xpc_dictionary_get_uint64(dictionary, key)
         }
@@ -325,7 +325,7 @@ public extension JobRequest {
     func encode(into request: xpc_object_t) {
         xpc_dictionary_set_uint64(request, FilaWireKey.jobKind, kind.rawValue)
         let array = xpc_array_create(nil, 0)
-        for source in sources { xpc_array_set_string(array, XPC_ARRAY_APPEND, source) }
+        for source in sources { xpc_array_set_string(array, FilaXPC.arrayAppend, source) }
         xpc_dictionary_set_value(request, FilaWireKey.sources, array)
         if let destination { xpc_dictionary_set_string(request, FilaWireKey.destination, destination) }
         xpc_dictionary_set_bool(request, FilaWireKey.useTrash, useTrash)
@@ -373,7 +373,7 @@ public extension ArchiveOptions {
             let entry = xpc_dictionary_create(nil, nil, 0)
             xpc_dictionary_set_int64(entry, FilaWireKey.memberIndex, member.index)
             xpc_dictionary_set_string(entry, FilaWireKey.memberPath, member.declaredPath)
-            xpc_array_set_value(array, XPC_ARRAY_APPEND, entry)
+            xpc_array_set_value(array, FilaXPC.arrayAppend, entry)
         }
         xpc_dictionary_set_value(request, FilaWireKey.archiveMembers, array)
     }
@@ -450,7 +450,7 @@ public extension SearchBatch {
             let entry = xpc_dictionary_create(nil, nil, 0)
             xpc_dictionary_set_string(entry, MatchKey.directory, match.directory)
             xpc_dictionary_set_value(entry, MatchKey.node, match.node.encoded())
-            xpc_array_set_value(array, XPC_ARRAY_APPEND, entry)
+            xpc_array_set_value(array, FilaXPC.arrayAppend, entry)
         }
         xpc_dictionary_set_value(message, FilaWireKey.matches, array)
         return message
@@ -458,7 +458,7 @@ public extension SearchBatch {
 
     /// Returns nil when the message is not a search result.
     static func decode(_ message: xpc_object_t) -> (jobIdentifier: UInt64, batch: SearchBatch)? {
-        guard xpc_get_type(message) == XPC_TYPE_DICTIONARY else { return nil }
+        guard xpc_get_type(message) == FilaXPC.typeDictionary else { return nil }
         guard xpc_dictionary_get_uint64(message, FilaWireKey.operation) == FilaOperation.searchResult.rawValue else {
             return nil
         }
@@ -511,7 +511,7 @@ public extension JobEvent {
 
     /// Returns nil when the message is not a job event.
     static func decode(_ message: xpc_object_t) -> (jobIdentifier: UInt64, event: JobEvent)? {
-        guard xpc_get_type(message) == XPC_TYPE_DICTIONARY else { return nil }
+        guard xpc_get_type(message) == FilaXPC.typeDictionary else { return nil }
         guard xpc_dictionary_get_uint64(message, FilaWireKey.operation) == FilaOperation.jobEvent.rawValue else { return nil }
         let identifier = xpc_dictionary_get_uint64(message, FilaWireKey.jobIdentifier)
         let path = xpc_dictionary_get_string(message, FilaWireKey.path).map { String(cString: $0) }

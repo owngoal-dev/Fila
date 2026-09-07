@@ -329,7 +329,8 @@ final class TextViewerViewController: UIViewController {
         ) { [weak self] _ in self?.toggleFind() }
         let wrap = UIAction(
             title: String(localized: "Wrap Lines"),
-            image: UIImage(systemName: "text.word.spacing"),
+            // `text.word.spacing` is an iOS 16 symbol and draws nothing on 15.
+            image: UIImage(systemName: "arrow.turn.down.left"),
             state: preferences.wrapsLines ? .on : .off
         ) { [weak self] _ in
             AppPreferences.shared.wrapsLines.toggle()

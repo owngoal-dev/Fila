@@ -30,6 +30,12 @@ ui_roots=(
     "$root/Packages/FilaKit/Sources/FilaTerminal"
 )
 
+# The floor the app promises. Two checks below are relative to it, and both stop
+# applying once it rises past the OS that caused them.
+minimum_ios="$(sed -n 's/^IPHONEOS_DEPLOYMENT_TARGET = \([0-9.]*\).*/\1/p' "$root/Configuration/Base.xcconfig")"
+minimum_ios_major="${minimum_ios%%.*}"
+: "${minimum_ios:?Configuration/Base.xcconfig has no IPHONEOS_DEPLOYMENT_TARGET}"
+
 layout_hits="$(search 'NSLayoutConstraint|translatesAutoresizingMaskIntoConstraints|[A-Za-z]+Anchor\.constraint\(' "${ui_roots[@]}")"
 if [[ -n "$layout_hits" ]]; then
     error "layout must use SnapKit; found NSLayoutConstraint / autoresizing-mask / anchor.constraint:"
@@ -100,6 +106,57 @@ delete_icon_hits="$(search '"trash\.slash"' "${ui_roots[@]}")"
 if [[ -n "$delete_icon_hits" ]]; then
     error "deletion uses the standard trash symbol:"
     echo "$delete_icon_hits" >&2
+fi
+
+# An SF Symbol from a release newer than the deployment target is not a build
+# error and not a warning: `UIImage(systemName:)` returns nil and the button
+# draws nothing. Xcode's own completion offers this year's symbols, so the only
+# thing standing between a blank icon on iOS 15 and a release is this check.
+# CoreGlyphs ships the availability table on every Mac; without it, skip.
+symbol_hits="$(python3 - "$root" <<'PY'
+import plistlib, re, subprocess, sys
+root = sys.argv[1]
+table = "/System/Library/CoreServices/CoreGlyphs.bundle/Contents/Resources/name_availability.plist"
+try:
+    data = plistlib.load(open(table, "rb"))
+except OSError:
+    sys.exit(0)
+minimum = re.search(r"IPHONEOS_DEPLOYMENT_TARGET = ([\d.]+)", open(f"{root}/Configuration/Base.xcconfig").read())
+floor = tuple(int(part) for part in minimum.group(1).split("."))
+uses = re.compile(r'system(?:Name|Image|ImageName|SymbolName)\s*:\s*"([^"]+)"')
+found = subprocess.run(
+    ["grep", "-rn", "--include=*.swift", "-E", 'system(Name|Image|ImageName|SymbolName)', f"{root}/Fila", f"{root}/Packages/FilaKit/Sources/FilaTerminal"],
+    capture_output=True, text=True).stdout
+for line in found.splitlines():
+    for name in uses.findall(line):
+        release = data["year_to_release"].get(data["symbols"].get(name, ""), {}).get("iOS")
+        if release and tuple(int(part) for part in release.split(".")) > floor:
+            print(f"{line.split(':')[0]}:{line.split(':')[1]}: {name} needs iOS {release}")
+PY
+)"
+if [[ -n "$symbol_hits" ]]; then
+    error "these SF Symbols are newer than the deployment target and draw nothing on it:"
+    echo "$symbol_hits" >&2
+fi
+
+# `XPC_TYPE_*`, `XPC_ARRAY_APPEND` and `XPC_ERROR_*` are Swift-overlay accessors
+# exported by /usr/lib/swift/libswiftXPC.dylib, which iOS 15 does not have: one
+# use makes dyld require the dylib and the app dies at launch. `FilaXPC` reads
+# the same constants through C. See Packages/FilaKit/Sources/CFilaXPC.
+#
+# A warning rather than an error, and only below iOS 16: a project that has
+# raised its floor above the overlay is entitled to use it, and this check has
+# no business failing someone else's build for a choice that is theirs.
+if (( minimum_ios_major < 16 )); then
+    overlay_hits="$(search 'XPC_TYPE_[A-Z]|XPC_ARRAY_APPEND|XPC_ERROR_[A-Z]' \
+        "$root/Fila" \
+        "$root/Filad" \
+        "$root/FilaArchive" \
+        "$root/Packages/FilaKit/Sources")"
+    if [[ -n "$overlay_hits" ]]; then
+        echo "warning: XPC constants named in Swift link libswiftXPC.dylib, which iOS ${minimum_ios} does not have; use FilaXPC:" >&2
+        echo "$overlay_hits" >&2
+    fi
 fi
 
 daemon_hits="$(search 'import (SnapKit|Then|AlertController|SPIndicator)' \

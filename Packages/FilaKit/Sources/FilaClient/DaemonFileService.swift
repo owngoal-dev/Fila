@@ -124,7 +124,7 @@ final class DaemonFileService: FileService, @unchecked Sendable {
     func mountPoints() async throws -> [MountPoint] {
         let reply = try await send(.mountPoints) { _ in }
         guard let values = xpc_dictionary_get_value(reply, FilaWireKey.mounts),
-              xpc_get_type(values) == XPC_TYPE_ARRAY else { throw FilaFailure(code: .operationFailed) }
+              xpc_get_type(values) == FilaXPC.typeArray else { throw FilaFailure(code: .operationFailed) }
         return try (0 ..< xpc_array_get_count(values)).map { index in
             guard let mount = MountPoint(decoding: xpc_array_get_value(values, index)) else {
                 throw FilaFailure(code: .operationFailed)
@@ -226,10 +226,10 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         let connection = try activeConnection()
         let reply: xpc_object_t = try await withCheckedThrowingContinuation { continuation in
             xpc_connection_send_message_with_reply(connection, request, queue) { reply in
-                if xpc_get_type(reply) == XPC_TYPE_DICTIONARY {
+                if xpc_get_type(reply) == FilaXPC.typeDictionary {
                     continuation.resume(returning: reply)
                 } else {
-                    // XPC_ERROR_CONNECTION_INTERRUPTED / _INVALID. The daemon is
+                    // A connection interrupted or invalid error. The daemon is
                     // on-demand and exits when idle, so this is a normal thing
                     // to see; the next call reconnects.
                     // The one failure the daemon has no line for, because by
@@ -268,8 +268,8 @@ final class DaemonFileService: FileService, @unchecked Sendable {
                 self.events.yield(DaemonLink.JobUpdate(identifier: update.jobIdentifier, event: update.event))
             } else if let result = SearchBatch.decode(message) {
                 self.matches.yield(DaemonLink.SearchUpdate(identifier: result.jobIdentifier, batch: result.batch))
-            } else if message === XPC_ERROR_CONNECTION_INTERRUPTED
-                || message === XPC_ERROR_CONNECTION_INVALID {
+            } else if message === FilaXPC.errorConnectionInterrupted
+                || message === FilaXPC.errorConnectionInvalid {
                 // Not a delivery problem to retry. The daemon cancels every job
                 // a peer started when that peer disconnects, so by the time
                 // this fires those jobs are already over and nothing will ever

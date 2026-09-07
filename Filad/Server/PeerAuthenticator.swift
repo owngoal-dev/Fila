@@ -48,7 +48,7 @@ final class PeerAuthenticator {
     private func hasRequiredEntitlements(token: inout audit_token_t) -> Bool {
         return Self.requiredEntitlements.allSatisfy { entitlement in
             let value = entitlement.withCString { filaXPCCopyEntitlement($0, &token) }
-            return value.map { xpc_get_type($0) == XPC_TYPE_BOOL && xpc_bool_get_value($0) } ?? false
+            return value.map { xpc_get_type($0) == FilaXPC.typeBool && xpc_bool_get_value($0) } ?? false
         }
     }
 

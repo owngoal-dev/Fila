@@ -48,7 +48,12 @@ let package = Package(
     targets: [
         // The wire vocabulary and the destruction guard. Compiled into both
         // sides, so it must stay free of anything platform-specific beyond XPC.
-        .target(name: "FilaProtocol", swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(name: "FilaProtocol", dependencies: ["CFilaXPC"], swiftSettings: [.swiftLanguageMode(.v5)]),
+
+        // The XPC constants, kept in C so that nothing links the Swift XPC
+        // overlay — a dylib iOS 15 does not have. No code, no library: a module
+        // map over the SDK's own macros. See `FilaXPC`.
+        .systemLibrary(name: "CFilaXPC", path: "Sources/CFilaXPC"),
 
         // Both sides' log. A fixed-size in-memory ring plus `os_log`, and no
         // dependency past FilaProtocol's wire keys: the daemon links this, and

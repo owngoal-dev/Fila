@@ -111,7 +111,7 @@ final class LocalFileService: FileService, @unchecked Sendable {
     /// own files would read as the app being broken.
     ///
     /// XPC cannot answer this — a sandbox-denied Mach lookup and a lookup for
-    /// an unregistered name are both `XPC_ERROR_CONNECTION_INVALID`, with the
+    /// an unregistered name are both a connection-invalid error, with the
     /// difference visible only in XPC's own log line — so ask the filesystem
     /// the question we actually mean: open the directory our container sits in,
     /// which the sandbox does not grant and which the app's own user owns. No

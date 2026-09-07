@@ -80,7 +80,7 @@ public extension FilaLog.Record {
             xpc_dictionary_set_uint64(entry, Key.level, UInt64(record.level.rawValue))
             xpc_dictionary_set_uint64(entry, Key.source, UInt64(record.source.rawValue))
             xpc_dictionary_set_string(entry, Key.message, record.message)
-            xpc_array_set_value(array, XPC_ARRAY_APPEND, entry)
+            xpc_array_set_value(array, FilaXPC.arrayAppend, entry)
         }
         xpc_dictionary_set_value(reply, FilaWireKey.logRecords, array)
         xpc_dictionary_set_uint64(reply, FilaWireKey.logDropped, dropped)

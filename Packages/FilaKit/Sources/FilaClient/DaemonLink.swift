@@ -218,7 +218,7 @@ public final class DaemonLink: @unchecked Sendable {
     ///
     /// (XPC does not help here, which is worth writing down so nobody goes
     /// looking again: a sandbox-denied lookup and a lookup for a name nobody
-    /// registered both surface as `XPC_ERROR_CONNECTION_INVALID` with no
+    /// registered both surface as a connection-invalid error with no
     /// distinguishing code. The difference is only in XPC's own log line.)
     public func hello() async throws -> Hello {
         if let bound = current() { return try await bound.hello() }
@@ -461,7 +461,7 @@ public final class DaemonLink: @unchecked Sendable {
         guard descriptor >= 0, identifier.value != 0,
               let program = xpc_dictionary_get_string(reply, FilaWireKey.path),
               let user = xpc_dictionary_get_value(reply, FilaWireKey.userIdentifier),
-              xpc_get_type(user) == XPC_TYPE_UINT64,
+              xpc_get_type(user) == FilaXPC.typeUInt64,
               let userIdentifier = UInt32(exactly: xpc_uint64_get_value(user)) else {
             // The daemon said yes and a process is already running as root.
             // Failing to make sense of the reply is no reason to leave it
