@@ -124,7 +124,11 @@ final class IconRowCell: UICollectionViewListCell {
             make.size.equalTo(FilaUI.IconSize.file)
         }
         linkBadge.snp.makeConstraints { make in
-            make.edges.equalTo(iconView)
+            // The arrow sits in the artwork's bottom-left corner, so scaling the
+            // whole canvas from that corner enlarges the arrow and leaves it put.
+            // At 1× it is unreadable on a phone.
+            make.width.height.equalTo(iconView).multipliedBy(2)
+            make.leading.bottom.equalTo(iconView)
         }
         favoriteBadge.snp.makeConstraints { make in
             make.size.equalTo(Self.badgeSize)
