@@ -37,6 +37,9 @@ final class StatusView: UIView {
     /// reads as the app working, a blank screen reads as it hanging.
     static let revealDelay: TimeInterval = 0.35
 
+    /// How long the panel takes to hand the screen over to what replaces it.
+    static let crossfadeDuration: TimeInterval = 0.25
+
     var content: Content {
         didSet {
             guard content != oldValue else { return }
@@ -165,14 +168,38 @@ extension UICollectionView {
     /// list configuration clears its section background for that reason; a new
     /// caller that finds this panel invisible should check the same thing
     /// before assuming the panel is broken.
+    /// Leaving a spinner cross-dissolves instead of cutting. The wait and what
+    /// ends it are the same rectangle, so a hard swap reads as a glitch —
+    /// `UIView.transition` keeps the old rendering on top for the fade and the
+    /// rows arriving underneath show through it.
     func showStatus(_ content: StatusView.Content?, action: (() -> Void)? = nil) {
+        let existing = backgroundView as? StatusView
+        var wasLoading = false
+        if case .loading? = existing?.content { wasLoading = true }
         guard let content else {
-            backgroundView = nil
+            guard existing != nil else { return }
+            if wasLoading {
+                UIView.transition(
+                    with: self,
+                    duration: StatusView.crossfadeDuration,
+                    options: [.transitionCrossDissolve, .allowUserInteraction]
+                ) { self.backgroundView = nil }
+            } else {
+                backgroundView = nil
+            }
             return
         }
-        let panel = backgroundView as? StatusView ?? StatusView(content: content)
-        panel.content = content
+        let panel = existing ?? StatusView(content: content)
         panel.action = action
+        if wasLoading, content != existing?.content {
+            UIView.transition(
+                with: panel,
+                duration: StatusView.crossfadeDuration,
+                options: [.transitionCrossDissolve, .allowUserInteraction]
+            ) { panel.content = content }
+        } else {
+            panel.content = content
+        }
         backgroundView = panel
     }
 }
