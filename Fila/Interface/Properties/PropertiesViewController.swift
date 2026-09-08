@@ -120,7 +120,10 @@ final class PropertiesViewController: UIViewController {
             let image: UIImage?
             if node.kind == .regular {
                 let rendered = await ThumbnailService.shared.thumbnail(
-                    path: path, modified: node.modified, byteCount: node.size, maxPixelSize: 512
+                    path: path,
+                    modified: node.modified,
+                    byteCount: node.size,
+                    maxPixelSize: 512
                 ) {
                     let descriptor = try await link.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
                     var status = stat()
@@ -147,8 +150,12 @@ final class PropertiesViewController: UIViewController {
             self.previewMaximumSide = node.kind == .regular ? 512 : 192
             // The summary identity is stable; refresh only its visible cell.
             for case let cell as PropertiesPreviewCell in self.table.visibleCells {
-                cell.show(image: image, title: URL(fileURLWithPath: path).lastPathComponent,
-                          kind: Self.name(of: node.kind), maximumSide: self.previewMaximumSide)
+                cell.show(
+                    image: image,
+                    title: URL(fileURLWithPath: path).lastPathComponent,
+                    kind: Self.name(of: node.kind),
+                    maximumSide: self.previewMaximumSide
+                )
             }
             self.table.performBatchUpdates(nil)
         }
@@ -188,9 +195,12 @@ final class PropertiesViewController: UIViewController {
             case .summary:
                 guard let self else { return cell }
                 let preview = table.dequeueReusableCell(withIdentifier: "Preview", for: indexPath) as! PropertiesPreviewCell
-                preview.show(image: previewImage ?? FilePresentation.largeImage(for: details.node),
-                             title: URL(fileURLWithPath: details.path).lastPathComponent,
-                             kind: Self.name(of: details.node.kind), maximumSide: previewMaximumSide)
+                preview.show(
+                    image: previewImage ?? FilePresentation.largeImage(for: details.node),
+                    title: URL(fileURLWithPath: details.path).lastPathComponent,
+                    kind: Self.name(of: details.node.kind),
+                    maximumSide: previewMaximumSide
+                )
                 return preview
 
             case let .fact(label, value, isMonospaced):
@@ -258,8 +268,11 @@ final class PropertiesViewController: UIViewController {
                 (.dates, dateRows()),
             ]
             if details.node.link != nil { summary.append((.link, linkRows())) }
-            summary.append((.advanced, [.disclosure(label: String(localized: "Advanced Information"),
-                value: String(localized: "Flags, extended attributes and identity"), action: .advanced)]))
+            summary.append((.advanced, [.disclosure(
+                label: String(localized: "Advanced Information"),
+                value: String(localized: "Flags, extended attributes and identity"),
+                action: .advanced
+            )]))
             result = summary
         }
 
@@ -346,8 +359,11 @@ final class PropertiesViewController: UIViewController {
     private func flagRows() -> [Row] {
         let flags = details.node.systemFlags
         let enabled = FileFlagsEditorViewController.flags.filter { flags & $0.mask != 0 }.map(\.label)
-        var rows: [Row] = [.disclosure(label: String(localized: "Edit Flags"),
-            value: enabled.isEmpty ? String(localized: "None") : enabled.joined(separator: ", "), action: .flags)]
+        var rows: [Row] = [.disclosure(
+            label: String(localized: "Edit Flags"),
+            value: enabled.isEmpty ? String(localized: "None") : enabled.joined(separator: ", "),
+            action: .flags
+        )]
         if details.node.kind == .directory {
             rows.append(.recursive(applyRecursively))
         }

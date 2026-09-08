@@ -460,10 +460,20 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         switch item {
         case let .directory(path):
-            navigationController?.pushViewController(ArchiveBrowserViewController(
-                title: title_, archivePath: archivePath, link: link, destinationHint: destinationHint, staged: nil,
-                directory: path, members: members, fileActionsOwner: fileActionsOwner, openArchive: openArchive
-            ), animated: true)
+            navigationController?.pushViewController(
+                ArchiveBrowserViewController(
+                    title: title_,
+                    archivePath: archivePath,
+                    link: link,
+                    destinationHint: destinationHint,
+                    staged: nil,
+                    directory: path,
+                    members: members,
+                    fileActionsOwner: fileActionsOwner,
+                    openArchive: openArchive
+                ),
+                animated: true
+            )
         case let .member(row):
             if Self.isNested(row.entry) { descend(into: row) }
             else { chooseDestination(for: [row]) }

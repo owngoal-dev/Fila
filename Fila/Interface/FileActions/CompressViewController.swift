@@ -50,7 +50,11 @@ final class CompressViewController: UIViewController {
 
     /// Wrapped in its navigation controller and sized for the device.
     static func present(
-        from presenter: UIViewController, suggestedName: String, directory: String, itemCount: Int, link: DaemonLink,
+        from presenter: UIViewController,
+        suggestedName: String,
+        directory: String,
+        itemCount: Int,
+        link: DaemonLink,
         confirm: @escaping (Choice) -> Void
     ) {
         let form = CompressViewController(suggestedName: suggestedName, directory: directory, itemCount: itemCount, link: link, confirm: confirm)
@@ -140,7 +144,10 @@ final class CompressViewController: UIViewController {
     /// A pop-up button on the trailing edge. `changesSelectionAsPrimaryAction`
     /// draws its own up/down indicator; a second chevron here doubled it.
     private func menuAccessory<Value: Equatable>(
-        _ values: [Value], selected: Value, title: @escaping (Value) -> String, choose: @escaping (Value) -> Void
+        _ values: [Value],
+        selected: Value,
+        title: @escaping (Value) -> String,
+        choose: @escaping (Value) -> Void
     ) -> UICellAccessory {
         let button = UIButton(configuration: .plain()).then {
             $0.menu = UIMenu(children: values.map { value in

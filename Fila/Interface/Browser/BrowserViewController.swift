@@ -128,7 +128,10 @@ final class BrowserViewController: UIViewController {
         }
 
         NotificationCenter.default.addObserver(
-            self, selector: #selector(sceneDidEnterBackground(_:)), name: UIScene.didEnterBackgroundNotification, object: nil
+            self,
+            selector: #selector(sceneDidEnterBackground(_:)),
+            name: UIScene.didEnterBackgroundNotification,
+            object: nil
         )
 
         reload()
@@ -347,12 +350,14 @@ final class BrowserViewController: UIViewController {
             return UICollectionViewCompositionalLayout { _, environment in
                 let columns = max(2, Int(environment.container.effectiveContentSize.width / 112))
                 let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(
-                    widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1)
+                    widthDimension: .fractionalWidth(1),
+                    heightDimension: .fractionalHeight(1)
                 ))
                 let height = 84 + UIFont.preferredFont(forTextStyle: .footnote).lineHeight * 2
                 let group = NSCollectionLayoutGroup.horizontal(
                     layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(height)),
-                    subitem: item, count: columns
+                    subitem: item,
+                    count: columns
                 )
                 group.interItemSpacing = .fixed(FilaUI.Spacing.small)
                 let section = NSCollectionLayoutSection(group: group)
@@ -429,7 +434,8 @@ final class BrowserViewController: UIViewController {
             // a broken folder: say what it is for, and offer to make it now.
             if isTrash, listingFailure.code == .notFound || listingFailure.systemError == ENOENT {
                 return .message(
-                    symbol: "trash", artwork: "trash-empty-large",
+                    symbol: "trash",
+                    artwork: "trash-empty-large",
                     title: String(localized: "No Trash Yet"),
                     detail: String(localized: "Deleted items are moved here so they can be put back."),
                     button: String(localized: "Create Trash")
@@ -454,7 +460,8 @@ final class BrowserViewController: UIViewController {
         }
         if isTrash {
             return .message(
-                symbol: "trash", artwork: "trash-empty-large",
+                symbol: "trash",
+                artwork: "trash-empty-large",
                 title: String(localized: "Trash Is Empty"),
                 detail: String(localized: "Deleted items are moved here so they can be put back.")
             )
@@ -827,13 +834,15 @@ final class BrowserViewController: UIViewController {
                 guard let self else { done([]); return }
                 self.recordDirectoryUse()
                 let select = UIAction(
-                    title: String(localized: "Select"), image: UIImage(systemName: "checkmark.circle"),
+                    title: String(localized: "Select"),
+                    image: UIImage(systemName: "checkmark.circle"),
                     attributes: self.visible.isEmpty ? .disabled : []
                 ) { [weak self] _ in self?.setEditing(true, animated: true) }
                 let running = self.session.operations.operations.filter(\.isRunning).count
                 let transfers: [UIMenuElement] = running > 0 ? [UIMenu(options: .displayInline, children: [
                     UIAction(
-                        title: String(localized: "Tasks"), subtitle: String(localized: "\(running) in progress"),
+                        title: String(localized: "Tasks"),
+                        subtitle: String(localized: "\(running) in progress"),
                         image: UIImage(systemName: "tray.and.arrow.down.fill")
                     ) { _ in TransfersViewController.presentAsSheet() },
                 ])] : []

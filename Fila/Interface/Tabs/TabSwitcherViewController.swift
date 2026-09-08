@@ -58,7 +58,8 @@ final class TabSwitcherViewController: UIViewController {
             let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230)))
             let group = NSCollectionLayoutGroup.horizontal(
                 layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230)),
-                subitem: item, count: columns
+                subitem: item,
+                count: columns
             )
             group.interItemSpacing = .fixed(spacing)
             return NSCollectionLayoutSection(group: group).then {
@@ -73,7 +74,9 @@ final class TabSwitcherViewController: UIViewController {
             guard let self, let tab = BrowserTabStore.shared.tabs.first(where: { $0.id == id }) else { return }
             let preview = self.content?.preview(for: tab)
             cell.configure(
-                title: preview?.title ?? tab.title, path: tab.path, image: preview?.image,
+                title: preview?.title ?? tab.title,
+                path: tab.path,
+                image: preview?.image,
                 current: id == BrowserTabStore.shared.currentID
             ) { [weak self] in self?.shell?.closeTab(id) }
         }

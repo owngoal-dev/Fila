@@ -62,7 +62,9 @@ final class FileActions {
     ) -> [UIMenuElement] {
         if Self.isInTrash(path) { return trashMenuElements(for: path, additional: additional, confirm: confirm) }
         let run: [UIMenuElement] = SystemCapabilities.runsPrograms && Self.canRun(node) ? [UIMenu(
-            title: String(localized: "Run"), image: UIImage(systemName: "play"), children: [
+            title: String(localized: "Run"),
+            image: UIImage(systemName: "play"),
+            children: [
                 runAction(path, user: .root, title: String(localized: "Run as root"), confirm: confirm),
                 runAction(path, user: .mobile, title: String(localized: "Run as mobile"), confirm: confirm),
             ]
@@ -75,19 +77,23 @@ final class FileActions {
             [UIAction(title: String(localized: "Preview"), image: UIImage(systemName: "eye")) { _ in confirm(open) }]
         } ?? []
         let inspection = additional + previewActions + properties
-        let copy = UIMenu(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc"), children: [
-            UIAction(title: String(localized: "File"), image: UIImage(systemName: "doc.on.doc")) { _ in
-                confirm { FileClipboard.shared.take([path], cut: false) }
-            },
-            UIAction(title: String(localized: "File Name"), image: UIImage(systemName: "textformat")) { _ in
-                UIPasteboard.general.string = (path as NSString).lastPathComponent
-                Toast.show(String(localized: "Copied"))
-            },
-            UIAction(title: String(localized: "Path"), image: UIImage(systemName: "text.quote")) { _ in
-                UIPasteboard.general.string = path
-                Toast.show(String(localized: "Copied"))
-            },
-        ])
+        let copy = UIMenu(
+            title: String(localized: "Copy"),
+            image: UIImage(systemName: "doc.on.doc"),
+            children: [
+                UIAction(title: String(localized: "File"), image: UIImage(systemName: "doc.on.doc")) { _ in
+                    confirm { FileClipboard.shared.take([path], cut: false) }
+                },
+                UIAction(title: String(localized: "File Name"), image: UIImage(systemName: "textformat")) { _ in
+                    UIPasteboard.general.string = (path as NSString).lastPathComponent
+                    Toast.show(String(localized: "Copied"))
+                },
+                UIAction(title: String(localized: "Path"), image: UIImage(systemName: "text.quote")) { _ in
+                    UIPasteboard.general.string = path
+                    Toast.show(String(localized: "Copied"))
+                },
+            ]
+        )
         let operations: [UIMenuElement] = [
             copy,
             UIAction(title: String(localized: "Move"), image: UIImage(systemName: "scissors")) { _ in
@@ -109,7 +115,8 @@ final class FileActions {
         }
         if groupsFileOperations {
             let file = UIMenu(
-                title: String(localized: "File Actions"), image: UIImage(systemName: "doc"),
+                title: String(localized: "File Actions"),
+                image: UIImage(systemName: "doc"),
                 children: FilaMenu.groups(operations, opening, destructive)
             )
             return FilaMenu.groups(inspection, [file])
@@ -126,15 +133,21 @@ final class FileActions {
         confirm: @escaping (@escaping () -> Void) -> Void
     ) -> [UIMenuElement] {
         [
-            UIMenu(options: .displayInline, children: additional + [
-                UIAction(title: String(localized: "Put Back"), image: UIImage(systemName: "arrow.uturn.backward")) { [self] _ in confirm { self.putBack([path]) } },
-                UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in showProperties(path) },
-            ]),
-            UIMenu(options: .displayInline, children: [
-                UIAction(title: String(localized: "Delete Permanently"), image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in
-                    confirm { self.delete([path], permanently: true) }
-                },
-            ]),
+            UIMenu(
+                options: .displayInline,
+                children: additional + [
+                    UIAction(title: String(localized: "Put Back"), image: UIImage(systemName: "arrow.uturn.backward")) { [self] _ in confirm { self.putBack([path]) } },
+                    UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in showProperties(path) },
+                ]
+            ),
+            UIMenu(
+                options: .displayInline,
+                children: [
+                    UIAction(title: String(localized: "Delete Permanently"), image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in
+                        confirm { self.delete([path], permanently: true) }
+                    },
+                ]
+            ),
         ]
     }
 
@@ -185,8 +198,11 @@ final class FileActions {
     }
 
     @discardableResult
-    private func openTerminal(_ program: TerminalProgram, user: TerminalUser,
-                              onProcessExit: (@MainActor @Sendable () -> Void)? = nil) -> Bool {
+    private func openTerminal(
+        _ program: TerminalProgram,
+        user: TerminalUser,
+        onProcessExit: (@MainActor @Sendable () -> Void)? = nil
+    ) -> Bool {
         guard let presenter = activePresenter else { return false }
         let terminal = TerminalViewController(
             program: program,
@@ -358,9 +374,13 @@ final class FileActions {
                 message: String(localized: "Fila cannot use the system installer. Open “\(manifest.displayName)” with another installer.")
             )
         case .timedOut:
-            report(NSError(domain: "IPAInstaller", code: -1, userInfo: [
-                NSLocalizedDescriptionKey: String(localized: "The installer is still working. Check Applications before trying again.")
-            ]))
+            report(NSError(
+                domain: "IPAInstaller",
+                code: -1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: String(localized: "The installer is still working. Check Applications before trying again.")
+                ]
+            ))
         case let .failed(domain, code, message):
             if outcome.isSignatureRefusal {
                 reportInstallRefusal(
@@ -428,7 +448,8 @@ final class FileActions {
         } else {
             guard let presenter = activePresenter else { return }
             PermanentDeleteConfirmation.present(
-                from: presenter, title: String(localized: "Delete Permanently?"),
+                from: presenter,
+                title: String(localized: "Delete Permanently?"),
                 message: String(localized: "\(paths.count) items will be deleted and cannot be recovered.")
             ) { self.startDelete(paths) }
         }
@@ -438,7 +459,8 @@ final class FileActions {
         guard !paths.isEmpty else { return }
         guard let presenter = activePresenter else { return }
         PermanentDeleteConfirmation.present(
-            from: presenter, title: String(localized: "Override Protection?"),
+            from: presenter,
+            title: String(localized: "Override Protection?"),
             message: String(localized: "The device needs this item to start up. Deleting it cannot be undone, and the device may need to be restored."),
             confirmTitle: String(localized: "Delete Anyway")
         ) { self.startDelete(paths, overrideGuard: true) }
@@ -529,7 +551,8 @@ final class FileActions {
         guard useTrash, failure.systemError == EROFS,
               let presenter = activePresenter else { return report(failure) }
         PermanentDeleteConfirmation.present(
-            from: presenter, title: String(localized: "Cannot Move to Trash"),
+            from: presenter,
+            title: String(localized: "Cannot Move to Trash"),
             message: String(localized: "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone.")
         ) { self.deleteRemainingItems(at: paths) }
     }
@@ -607,7 +630,11 @@ final class FileActions {
         guard !paths.isEmpty, let presenter = activePresenter else { return }
         let base = paths.count == 1 ? URL(fileURLWithPath: paths[0]).deletingPathExtension().lastPathComponent : URL(fileURLWithPath: directory).lastPathComponent
         CompressViewController.present(
-            from: presenter, suggestedName: base.isEmpty ? "Archive" : base, directory: directory, itemCount: paths.count, link: session.link
+            from: presenter,
+            suggestedName: base.isEmpty ? "Archive" : base,
+            directory: directory,
+            itemCount: paths.count,
+            link: session.link
         ) { [self] choice in
             let suffix = "." + choice.options.format.filenameExtension
             let stem = choice.name.hasSuffix(suffix) ? String(choice.name.dropLast(suffix.count)) : choice.name

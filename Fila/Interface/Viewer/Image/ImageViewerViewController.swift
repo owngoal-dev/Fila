@@ -60,7 +60,8 @@ final class ImageViewerViewController: UIViewController {
 
         let container = parent as? ViewerContainerViewController
         container?.childMenuElements = [UIAction(
-            title: String(localized: "Image Info"), image: UIImage(systemName: "info.circle")
+            title: String(localized: "Image Info"),
+            image: UIImage(systemName: "info.circle")
         ) { [weak self] _ in self?.showMetadata() }]
         container?.refreshBarItems()
 

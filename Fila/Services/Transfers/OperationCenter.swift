@@ -209,7 +209,10 @@ final class OperationCenter: ObservableObject {
         }
         return try await awaitJob(
             JobRequest(kind: .delete, sources: paths, useTrash: true, trashID: identity),
-            kind: .trash, subtitle: Self.describe(paths), undo: undo, feedback: feedback
+            kind: .trash,
+            subtitle: Self.describe(paths),
+            undo: undo,
+            feedback: feedback
         )
     }
 
@@ -729,7 +732,9 @@ final class OperationCenter: ObservableObject {
     private func restore(_ path: String, to original: String, identity: UUID? = nil) async throws {
         let outcome = try await awaitJob(
             JobRequest(kind: .restore, sources: [path], destination: (original as NSString).deletingLastPathComponent, trashID: identity),
-            kind: .move, subtitle: Self.describe([path], destination: original), feedback: .silent
+            kind: .move,
+            subtitle: Self.describe([path], destination: original),
+            feedback: .silent
         )
         guard outcome.code == .success else { throw outcome }
     }

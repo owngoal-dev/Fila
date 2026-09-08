@@ -268,9 +268,14 @@ struct ServerTests {
         let harness = try await Harness()
         harness.scratch.file("keep.txt", contents: "original")
         for method in ["PUT", "DELETE", "MOVE", "COPY"] {
-            let reply = try await harness.send(method, "/keep.txt", headers: [
-                "If-Match": "\"prior-version\"", "Destination": "/changed.txt",
-            ], body: method == "PUT" ? Data("replacement".utf8) : nil)
+            let reply = try await harness.send(
+                method,
+                "/keep.txt",
+                headers: [
+                    "If-Match": "\"prior-version\"", "Destination": "/changed.txt",
+                ],
+                body: method == "PUT" ? Data("replacement".utf8) : nil
+            )
             #expect(reply.status == 501)
             #expect(try String(contentsOfFile: harness.scratch.path("keep.txt"), encoding: .utf8) == "original")
             #expect(!harness.scratch.exists("changed.txt"))
@@ -661,9 +666,14 @@ struct ServerTests {
         #expect(properties.text.contains("<D:supportedlock/>"))
         #expect(!properties.text.contains("<D:lockentry>"))
         for method in ["PUT", "DELETE", "MOVE", "COPY"] {
-            let reply = try await harness.send(method, "/locked.txt", headers: [
-                "If": "(<opaquelocktoken:prior-session>)", "Destination": "/changed.txt",
-            ], body: method == "PUT" ? Data("replacement".utf8) : nil)
+            let reply = try await harness.send(
+                method,
+                "/locked.txt",
+                headers: [
+                    "If": "(<opaquelocktoken:prior-session>)", "Destination": "/changed.txt",
+                ],
+                body: method == "PUT" ? Data("replacement".utf8) : nil
+            )
             #expect(reply.status == 501)
             #expect(harness.scratch.contents("locked.txt") == "original")
             #expect(!harness.scratch.exists("changed.txt"))

@@ -221,7 +221,8 @@ final class TabContainerViewController: UIViewController {
         let top = browsers.last
         let selection = (top?.isViewLoaded ?? false) ? top?.selectedPaths().first : nil
         BrowserTabStore.shared.record(
-            stack: browsers.map(\.directory), offsets: offsets,
+            stack: browsers.map(\.directory),
+            offsets: offsets,
             selection: selection.map { URL(fileURLWithPath: $0).lastPathComponent }
         )
     }

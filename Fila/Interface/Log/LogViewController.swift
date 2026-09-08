@@ -546,11 +546,14 @@ private final class LogRecordViewController: UIViewController {
         self.record = record
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Log Entry")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
-            UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { [record] _ in
-                UIPasteboard.general.string = LogViewController.exportLine(record)
-            },
-        ]))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis"),
+            menu: UIMenu(children: [
+                UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { [record] _ in
+                    UIPasteboard.general.string = LogViewController.exportLine(record)
+                },
+            ])
+        )
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
     }
 
