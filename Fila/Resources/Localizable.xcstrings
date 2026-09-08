@@ -8919,6 +8919,83 @@
         }
       }
     },
+    "Close All Tabs?" : {
+      "comment" : "Confirmation alert title in the tab switcher: close every tab at once.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إغلاق كل علامات التبويب؟"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Tabs schließen?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Cerrar todas las pestañas?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer tous les onglets ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiudere tutti i pannelli?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべてのタブを閉じますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 탭을 닫으시겠습니까?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar todas as abas?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть все вкладки?"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đóng tất cả các tab?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭所有标签页？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉所有標籤頁？"
+          }
+        }
+      }
+    },
     "Close Tab" : {
       "comment" : "Accessibility label on the × button of a tab card.",
       "localizations" : {
@@ -16583,6 +16660,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "錯誤"
+          }
+        }
+      }
+    },
+    "Every open tab will close; tabs with unsaved changes will ask first." : {
+      "comment" : "Confirmation alert message: tabs with unsaved work still prompt before closing.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ستُغلق كل علامات التبويب المفتوحة؛ وستطلب علامات التبويب ذات التغييرات غير المحفوظة الحفظ أولاً."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle geöffneten Tabs werden geschlossen; Tabs mit ungespeicherten Änderungen fragen zuerst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las pestañas abiertas se cerrarán; las pestañas con cambios sin guardar preguntarán primero."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les onglets ouverts seront fermés ; les onglets avec des modifications non enregistrées demanderont d’abord."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutti i pannelli aperti verranno chiusi; i pannelli con modifiche non salvate chiederanno prima."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開いているすべてのタブを閉じます。変更が保存されていないタブは、先に確認を求められます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "열려 있는 모든 탭이 닫힙니다. 변경 사항이 저장되지 않은 탭은 먼저 저장 여부를 묻습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas as abas abertas serão fechadas; abas com alterações não salvas perguntarão primeiro."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Все открытые вкладки будут закрыты; вкладки с несохранёнными изменениями сначала спросят."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tất cả các tab đang mở sẽ được đóng; tab có thay đổi chưa lưu sẽ hỏi trước."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有打开的标签页都将关闭；有未保存更改的标签页会先询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有開啟的標籤頁都將關閉；有未儲存變更的標籤頁會先詢問。"
           }
         }
       }

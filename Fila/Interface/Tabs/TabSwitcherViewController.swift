@@ -1,3 +1,4 @@
+import AlertController
 import SnapKit
 import Then
 import UIKit
@@ -114,7 +115,7 @@ final class TabSwitcherViewController: UIViewController {
         ]))
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "New Tab")
         let closeAll = UIBarButtonItem(title: String(localized: "Close All"), primaryAction: UIAction { [weak self] _ in
-            self?.shell?.closeAllTabs()
+            self?.confirmCloseAll()
         })
         closeAll.tintColor = .systemRed
         let settings = UIBarButtonItem(
@@ -139,6 +140,27 @@ final class TabSwitcherViewController: UIViewController {
             .flexibleSpace(), settings, .fixedSpace(FilaUI.Spacing.medium),
             closeAll, .fixedSpace(FilaUI.Spacing.medium), places, .flexibleSpace(),
         ]
+    }
+
+    /// The bar button sits where a thumb rests during one-handed browsing, so
+    /// more than one tab asks first. A lone tab closes without ceremony.
+    private func confirmCloseAll() {
+        guard BrowserTabStore.shared.tabs.count > 1 else {
+            shell?.closeAllTabs()
+            return
+        }
+        let alert = AlertViewController(
+            title: String(localized: "Close All Tabs?"),
+            message: String(localized: "Every open tab will close; tabs with unsaved changes will ask first.")
+        ) { context in
+            context.addAction(title: String.LocalizationValue("Cancel")) {
+                context.dispose()
+            }
+            context.addAction(title: String.LocalizationValue("Close All"), attribute: .accent) {
+                context.dispose { self.shell?.closeAllTabs() }
+            }
+        }
+        present(alert, animated: true)
     }
 
     private func newTabMenuElements() -> [UIMenuElement] {
