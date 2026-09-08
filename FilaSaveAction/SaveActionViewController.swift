@@ -83,6 +83,9 @@ final class SaveActionViewController: UIViewController {
             guard let type = UTType(candidate) else { return false }
             return type.conforms(to: .data) && !type.conforms(to: .url)
         }
+        // Read off the provider here: the callback runs on the provider's own
+        // queue, and NSItemProvider is not Sendable.
+        let suggestedName = provider.suggestedName
         // Provider URLs live only for the callback. Copy before it returns.
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             @Sendable func receive(_ url: URL?, _ error: Error?) {
@@ -95,7 +98,7 @@ final class SaveActionViewController: UIViewController {
                         }
                     }
                     let inbox = try SharedInbox.directory(in: group)
-                    try SharedInbox.save(url, suggestedName: provider.suggestedName, in: inbox)
+                    try SharedInbox.save(url, suggestedName: suggestedName, in: inbox)
                     continuation.resume()
                 } catch { continuation.resume(throwing: error) }
             }
