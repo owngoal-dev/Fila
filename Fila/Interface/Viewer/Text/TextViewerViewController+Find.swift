@@ -35,10 +35,9 @@ extension TextViewerViewController {
                 first = match
             }
             last = match
-            if forwards
-                ? target == nil, match.location >= NSMaxRange(selection)
-                : NSMaxRange(match) <= selection.location
-            {
+            let conditionA = target == nil && match.location >= NSMaxRange(selection)
+            let conditionB = forwards ? conditionA : NSMaxRange(match) <= selection.location
+            if conditionB {
                 target = match
                 current = count
             }
