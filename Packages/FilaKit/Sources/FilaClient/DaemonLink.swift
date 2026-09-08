@@ -398,7 +398,7 @@ public final class DaemonLink: @unchecked Sendable {
         /// travels through this descriptor between the app and the kernel; the
         /// daemon kept no copy and sees none of it.
         public let descriptor: Int32
-        /// What was actually exec'd, resolved.
+        /// The resolved session target; account startup may exit before running it.
         public let executable: String
         /// Who it runs as — the daemon's answer, not the request. Zero for a
         /// root session; `mobile`'s uid for one the daemon dropped. The UI
@@ -427,7 +427,7 @@ public final class DaemonLink: @unchecked Sendable {
         rows: UInt16
     ) async throws -> Terminal {
         // Straight to the daemon, and only when the daemon is what answers.
-        // Without one there is no terminal to open: a `forkpty` in this process
+        // Without one there is no terminal to open: a session spawned in this process
         // would run a shell as whoever the app is, which is not what a root
         // file manager's terminal is for, and pretending otherwise would be
         // worse than refusing.

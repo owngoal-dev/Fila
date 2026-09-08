@@ -3,6 +3,7 @@ import Dispatch
 import FilaFileOps
 import Foundation
 import Testing
+import FilaTestSupport
 
 @testable import FilaTerminal
 
@@ -14,7 +15,10 @@ import Testing
 /// between them, and the fact that on a device the spawn happens as root.
 @Suite("Terminal pump")
 struct TerminalPTYTests {
-    private let operations = FileOperations(bootstrapRoot: "")
+    private var operations: FileOperations {
+        _ = TerminalSessionFixture.executable
+        return FileOperations(bootstrapRoot: TerminalSessionFixture.root)
+    }
 
     /// Collects what the program prints, and lets a test wait for a marker.
     private final class Sink: @unchecked Sendable {

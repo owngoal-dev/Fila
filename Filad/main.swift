@@ -1,7 +1,10 @@
 import Dispatch
+import FilaFileOps
 import FilaLog
 import FilaProtocol
 import Foundation
+
+FileOperations.runTerminalSessionIfRequested()
 
 autoreleasepool {
     do {

@@ -203,7 +203,7 @@ final class DaemonFileService: FileService, @unchecked Sendable {
 
     /// Not private: `DaemonLink` sends the two terminal operations straight
     /// through here rather than through `FileService`. A terminal is the one
-    /// thing the local backend cannot answer — `forkpty` in the app would give
+    /// thing the local backend cannot answer — a session spawned in the app would give
     /// a shell running as `mobile`, which is not the feature — so putting it on
     /// the protocol would mean a second implementation whose only job is to
     /// refuse.

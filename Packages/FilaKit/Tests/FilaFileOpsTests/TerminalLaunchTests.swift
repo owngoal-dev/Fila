@@ -1,6 +1,7 @@
 import Darwin
 import Foundation
 import Testing
+import FilaTestSupport
 
 @testable import FilaFileOps
 @testable import FilaProtocol
@@ -34,14 +35,14 @@ struct TerminalLaunchTests {
     /// exercising the same plan and real PTY spawn used by FileOperations.
     private func openTerminal(_ request: TerminalRequest) throws -> TerminalLaunch {
         let plan = try TerminalPlan(request: request, layout: BootstrapLayout(kind: .rootless(prefix: account.root)))
-        return try TerminalSpawn.run(plan, columns: request.columns, rows: request.rows)
+        return try TerminalSpawn.run(plan, sessionHolder: TerminalSessionFixture.executable, columns: request.columns, rows: request.rows)
     }
 
     @Test("launch confirmation distinguishes EOF, errno, and damaged reports")
     func launchReports() throws {
         var failure: Int32 = ENOEXEC
         let full = withUnsafeBytes(of: &failure) { Data($0) }
-        for payload in [Data(), full, Data(full.prefix(2))] {
+        for payload in [Data(), Data(repeating: 0, count: 4), full, Data(full.prefix(2))] {
             var descriptors: [Int32] = [-1, -1]
             try #require(pipe(&descriptors) == 0)
             defer { close(descriptors[0]) }
@@ -49,13 +50,33 @@ struct TerminalLaunchTests {
             close(descriptors[1])
             try #require(sent == payload.count)
             switch payload.count {
-            case 0: #expect(try TerminalSpawn.readReport(descriptors[0]) == nil)
-            case 4: #expect(try TerminalSpawn.readReport(descriptors[0]) == ENOEXEC)
+            case 4: #expect(try TerminalSpawn.readReport(descriptors[0]) == (payload == full ? ENOEXEC : nil))
             default: #expect(throws: FilaFailure.self) { try TerminalSpawn.readReport(descriptors[0]) }
             }
         }
         let unreadable = #expect(throws: FilaFailure.self) { try TerminalSpawn.readReport(-1) }
         #expect(unreadable?.systemError == EBADF)
+    }
+
+    @Test("Login initialization admits root-controlled targets and rejects user-writable paths")
+    func rootControlledTargets() throws {
+        #expect(TerminalPlan.isRootControlled("/bin/echo"))
+        let scratch = Scratch()
+        let executable = scratch.file("program", mode: 0o700)
+        #expect(!TerminalPlan.isRootControlled(executable))
+        #expect(!TerminalPlan.isRootControlled(scratch.root + "/missing"))
+        #expect(!TerminalPlan.isRootControlled("relative"))
+    }
+
+    @Test("An account shell symlink is canonicalized before launch")
+    func canonicalShell() throws {
+        let scratch = Scratch()
+        scratch.directory("etc")
+        let shell = scratch.link("sh", to: "/bin/sh")
+        scratch.file("etc/passwd", contents: "tester:*:\(getuid()):\(getgid()):Tester:/:\(shell)\n")
+        let plan = try TerminalPlan(request: TerminalRequest(), layout: BootstrapLayout(kind: .rootless(prefix: scratch.root)))
+        #expect(plan.executable == "/bin/sh")
+        #expect(plan.targetExecutable == "/bin/sh")
     }
 
     @Test("a child reports an executable format refusal instead of a successful launch")
@@ -64,7 +85,7 @@ struct TerminalLaunchTests {
         let file = scratch.file("invalid-program", contents: "Fila format fixture\n", mode: 0o700)
         let failure = #expect(throws: FilaFailure.self) {
             let plan = try TerminalPlan(request: TerminalRequest(executable: file), layout: BootstrapLayout(kind: .roothide(jbroot: scratch.root)))
-            return try TerminalSpawn.run(plan, columns: 80, rows: 24)
+            return try TerminalSpawn.run(plan, sessionHolder: TerminalSessionFixture.executable, columns: 80, rows: 24)
         }
         #expect(failure?.systemError == ENOEXEC)
     }
@@ -96,7 +117,8 @@ struct TerminalLaunchTests {
         let link = scratch.link("echo", to: "/bin/echo")
         let launch = try openTerminal(TerminalRequest(executable: link))
         defer { close(launch.descriptor) }
-        #expect(launch.executable == "/bin/sh")
+        #expect(launch.executable == "/bin/echo")
+        #expect(launch.launcher == "/bin/sh")
         #expect(launch.userIdentifier == getuid())
         let ended = DispatchSemaphore(value: 0)
         launch.process.watch { ended.signal() }
@@ -171,10 +193,45 @@ struct TerminalLaunchTests {
         #expect(kill(pid, 0) != 0)
     }
 
+    @Test("The controlling terminal handles interruption and does not inherit daemon descriptors")
+    func controllingTerminal() throws {
+        let scratch = Scratch()
+        let original = Darwin.open(scratch.file("private"), O_RDONLY)
+        try #require(original >= 0)
+        defer { close(original) }
+        let privateDescriptor = fcntl(original, F_DUPFD, 100)
+        try #require(privateDescriptor >= 100)
+        defer { close(privateDescriptor) }
+        let launch = try openTerminal(TerminalRequest())
+        let ended = DispatchSemaphore(value: 0)
+        launch.process.watch { ended.signal() }
+        defer {
+            close(launch.descriptor)
+            launch.process.terminate()
+            #expect(ended.wait(timeout: .now() + 10) == .success)
+        }
+        var attributes = termios()
+        try #require(tcgetattr(launch.descriptor, &attributes) == 0)
+        attributes.c_lflag &= ~tcflag_t(ECHO)
+        try #require(tcsetattr(launch.descriptor, TCSANOW, &attributes) == 0)
+        func send(_ text: String) {
+            _ = text.withCString { write(launch.descriptor, $0, strlen($0)) }
+        }
+        send("test ! -e /dev/fd/\(privateDescriptor) && printf 'CLOSED\\n'; stty size </dev/tty; printf 'READY\\n'\n")
+        let output = readUntil(launch.descriptor, contains: "READY")
+        #expect(output.contains("CLOSED"))
+        #expect(output.contains("24 80"))
+        send("sleep 30\n")
+        usleep(200_000)
+        send("\u{03}")
+        send("printf 'INTERRUPTED\\n'\n")
+        #expect(readUntil(launch.descriptor, contains: "INTERRUPTED").contains("INTERRUPTED"))
+    }
+
     @Test("cleanup waits for the kill grace when the leader exits before its child")
     func cleansUpAfterLeaderExits() throws {
         let launch = try openTerminal(TerminalRequest(executable: "/bin/sh"))
-        let leader = launch.process.processIdentifier
+        let holder = launch.process.processIdentifier
         let ended = DispatchGroup()
         ended.enter()
         launch.process.watch { ended.leave() }
@@ -190,28 +247,22 @@ struct TerminalLaunchTests {
         try #require(fcntl(launch.descriptor, F_SETFL, O_NONBLOCK) == 0)
         // Both ignore HUP. Once ready, this fixture ends the leader itself,
         // leaving a known live child in the original group until forced kill.
-        let script = "set +H\nset +m; trap '' HUP; /bin/sleep 30 & child=$!; printf '\\nCHILD=%s\\n' \"$child\"; printf 'READY\\n'; wait\n"
+        let script = "set +H\nset +m; trap '' HUP; /bin/sleep 30 & child=$!; printf '\\nCHILD=%s\\n' \"$child\"; printf 'LEADER=%s\\n' \"$$\"; printf 'READY\\n'; wait\n"
         let written = script.withCString { write(launch.descriptor, $0, strlen($0)) }
         try #require(written == script.utf8.count)
         let output = readUntil(launch.descriptor, contains: "READY")
         let childLine = try #require(output.components(separatedBy: .newlines).first { $0.hasPrefix("CHILD=") }, "Controlled shell output: \(output)")
         let child = try #require(pid_t(childLine.dropFirst(6)))
+        let leaderLine = try #require(output.components(separatedBy: .newlines).first { $0.hasPrefix("LEADER=") })
+        let leader = try #require(pid_t(leaderLine.dropFirst(7)))
         try #require(child > 0 && getpgid(child) == leader)
 
         try #require(kill(leader, SIGKILL) == 0)
-        launch.process.terminate()
         try #require(ended.wait(timeout: .now() + 0.25) == .timedOut)
-        var information = siginfo_t()
-        let leaderDeadline = Date().addingTimeInterval(1)
-        while Date() < leaderDeadline {
-            _ = waitid(P_PID, id_t(leader), &information, WEXITED | WNOHANG | WNOWAIT)
-            if information.si_pid == leader { break }
-            usleep(10_000)
-        }
-        #expect(information.si_pid == leader)
         #expect(kill(child, 0) == 0)
         #expect(ended.wait(timeout: .now() + 10) == .success)
         #expect(kill(leader, 0) != 0)
+        #expect(kill(holder, 0) != 0)
         let deadline = Date().addingTimeInterval(5)
         while kill(child, 0) == 0, Date() < deadline { usleep(10_000) }
         #expect(kill(child, 0) != 0)
@@ -556,7 +607,7 @@ struct TerminalLaunchTests {
         bootstrap.file("usr/bin/dpkg", contents: "#!/bin/sh\nprintf 'INSTALL_STARTED\\n'\n", mode: 0o755)
         let package = bootstrap.file("package.deb")
         let plan = try TerminalPlan(request: TerminalRequest(package: package), layout: BootstrapLayout(kind: .rootless(prefix: bootstrap.root)))
-        let launch = try TerminalSpawn.run(plan, columns: 80, rows: 24)
+        let launch = try TerminalSpawn.run(plan, sessionHolder: TerminalSessionFixture.executable, columns: 80, rows: 24)
         defer { close(launch.descriptor); launch.process.terminate() }
         let output = readUntil(launch.descriptor, contains: "INSTALL_STARTED")
         #expect(output.contains("STARTUP_STOPPED"))
@@ -572,14 +623,14 @@ struct TerminalLaunchTests {
         bootstrap.file("etc/passwd", contents: "tester:*:\(getuid()):\(getgid()):Tester:\(home):\(shell)\n")
         // A different default shell is present; installation must follow passwd.
         bootstrap.link("usr/bin/zsh", to: "/bin/zsh")
-        bootstrap.file("home/.profile", contents: "export FILA_INSTALL_TEST=login\ncase $- in *i*) FILA_INSTALL_TEST=login-interactive;; esac\n")
+        bootstrap.file("home/.profile", contents: "export FILA_INIT_PID=$$\nexport FILA_INSTALL_TEST=login\ncase $- in *i*) FILA_INSTALL_TEST=login-interactive;; esac\n")
         bootstrap.file("home/.bash_profile", contents: ". \"$HOME/.profile\"\n")
-        bootstrap.file("home/.zprofile", contents: "export FILA_INSTALL_TEST=login\n")
+        bootstrap.file("home/.zprofile", contents: "export FILA_INIT_PID=$$\nexport FILA_INSTALL_TEST=login\n")
         bootstrap.file("home/.zshrc", contents: "export FILA_INSTALL_TEST=$FILA_INSTALL_TEST-interactive\n")
-        bootstrap.file("home/.config/fish/config.fish", contents: "if status is-login; and status is-interactive\n set -gx FILA_INSTALL_TEST login-interactive\nend\n")
+        bootstrap.file("home/.config/fish/config.fish", contents: "set -gx FILA_INIT_PID $fish_pid\nif status is-login; and status is-interactive\n set -gx FILA_INSTALL_TEST login-interactive\nend\n")
         let body = #"""
         #!/bin/sh
-        printf 'ARGC=%s\nFLAG=%s\nFILE=%s\nMARK=%s\nSHELL=%s\nPID=%s\nDONE\n' "$#" "$1" "$2" "$FILA_INSTALL_TEST" "$SHELL" "$$"
+        printf 'ARGC=%s\nFLAG=%s\nFILE=%s\nMARK=%s\nSHELL=%s\nPID=%s\nDONE\n' "$#" "$1" "$2" "$FILA_INSTALL_TEST" "$SHELL" "$([ "$FILA_INIT_PID" = "$$" ] && printf unchanged)"
         """#
         bootstrap.file("usr/bin/dpkg", contents: body, mode: 0o755)
         let package = bootstrap.file("雪 ' \" $HOME;[1]*\n.deb")
@@ -592,7 +643,7 @@ struct TerminalLaunchTests {
         ]
         for request in requests {
             let plan = try TerminalPlan(request: request, layout: BootstrapLayout(kind: .rootless(prefix: bootstrap.root)))
-            let launch = try TerminalSpawn.run(plan, columns: 120, rows: 24)
+            let launch = try TerminalSpawn.run(plan, sessionHolder: TerminalSessionFixture.executable, columns: 120, rows: 24)
             defer { close(launch.descriptor); launch.process.terminate() }
             let binary = request.executable == "/usr/bin/env"
             let output = readUntil(launch.descriptor, contains: binary ? "FILA_INSTALL_TEST=login-interactive" : "DONE")
@@ -601,7 +652,7 @@ struct TerminalLaunchTests {
                 #expect(output.contains("FILA_INSTALL_TEST=login-interactive"), "\(output)")
             } else {
                 let arguments = request.package == nil ? "ARGC=0\nFLAG=\nFILE=\n" : "ARGC=2\nFLAG=-i\nFILE=\(package)\n"
-                #expect(output.contains(arguments + "MARK=login-interactive\nSHELL=\(shell)\nPID=\(launch.process.processIdentifier)\nDONE"), "\(output)")
+                #expect(output.contains(arguments + "MARK=login-interactive\nSHELL=\(shell)\nPID=unchanged\nDONE"), "\(output)")
             }
         }
     }

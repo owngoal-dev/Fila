@@ -189,6 +189,7 @@ check:
 			|| { echo "error: missing Xcode target $$target" >&2; exit 65; }; \
 	done
 	@"$(UI_LIBRARY_CHECK)"
+	@Scripts/check-process-launch.sh
 
 # The FilaKit tests, on the Mac, against a real filesystem. This is where a
 # guard mistake or a copy that loses an xattr gets caught, and it needs neither

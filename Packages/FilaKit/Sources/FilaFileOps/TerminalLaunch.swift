@@ -1,4 +1,5 @@
 import Darwin
+import CTerminalSession
 import Dispatch
 import FilaProtocol
 import Foundation
@@ -70,19 +71,26 @@ public struct TerminalLaunch: Sendable {
     /// that no descriptor and no byte of the stream stays in this process.
     public let descriptor: Int32
     public let process: TerminalProcess
-    /// What was actually exec'd, resolved. Shown to the user, so they can tell
-    /// a symlink from what it pointed at.
+    /// The canonical target selected for this session, preserving the program
+    /// behind a symlink. Launch acknowledges the launcher, not target completion:
+    /// account startup files may exit before handing over to this program.
     public let executable: String
+    /// The canonical program started by the session holder (possibly a shell).
+    public let launcher: String
     /// Who it actually runs as. Sent to the client so the UI can say so rather
     /// than assume it: the app asked for one of two users, and this is the
     /// answer, which is the direction of that sentence that cannot lie. It is
-    /// only ever reported for a child that reached `execve` — a drop that
+    /// only ever reported after the program was spawned — a drop that
     /// failed never gets this far, because the child refuses to exec and says
     /// so down the report pipe.
     public let userIdentifier: uid_t
 }
 
 public extension FileOperations {
+    static func runTerminalSessionIfRequested() {
+        fila_terminal_session_if_requested(CommandLine.argc, CommandLine.unsafeArgv)
+    }
+
     /// Open a pseudo-terminal and run one program on it, as root or as
     /// `mobile`.
     ///
@@ -99,7 +107,7 @@ public extension FileOperations {
     /// regular file, anything that is not a
     /// real executable regular file, and any climb in privilege — the only
     /// credential change here is downward, it happens in the child before
-    /// `execve`, and the child proves it took by checking that it can no longer
+    /// spawning the program, and the holder checks that it can no longer
     /// become root.
     ///
     /// A root session is the deliberate default for a *root file manager* —
@@ -111,7 +119,8 @@ public extension FileOperations {
     func openTerminal(_ request: TerminalRequest) throws -> TerminalLaunch {
         let layout = BootstrapLayout(installRoot: bootstrapRoot)
         let plan = try TerminalPlan(request: request, layout: layout)
-        return try TerminalSpawn.run(plan, columns: request.columns, rows: request.rows)
+        let holder = try FilaPath.resolve(layout.resolve(layout.bootstrapPath("/usr/libexec/filad")))
+        return try TerminalSpawn.run(plan, sessionHolder: holder, columns: request.columns, rows: request.rows)
     }
 }
 
@@ -124,7 +133,7 @@ public extension FileOperations {
 /// direction is its own function and every call site names the one it means.
 /// The rule, copied from iGhostVT (which took it from roothide's own NewTerm):
 ///
-/// - The path handed to `execve` must be what the **kernel** wants, because
+/// - The path handed to `posix_spawn` must be what the **kernel** wants, because
 ///   neither the kernel nor `filad` is linked against libvroot — `resolve`.
 /// - Every path that goes *into the environment* must be in the bootstrap's own
 ///   vocabulary, because the programs that read it are vroot-linked under
@@ -216,11 +225,12 @@ struct BootstrapLayout {
 
 // MARK: - What runs, and in what world
 
-/// Everything the child needs, decided before anything is forked.
+/// Everything the session needs, decided before it is spawned.
 struct TerminalPlan {
-    /// Real path, for `execve`. Always `arguments[0]` as well — nothing here
+    /// Real launcher path, for `posix_spawn`. Always `arguments[0]` as well — nothing here
     /// ever runs a program under a name that is not its own.
     var executable: String
+    var targetExecutable: String
     var arguments: [String]
     var environment: [String: String]
     /// Already checked to be a directory; nil means the child stays in the
@@ -229,11 +239,10 @@ struct TerminalPlan {
     /// **Non-nil only when the child must become someone else.** Nil is not
     /// "run as root" — it is "change nothing", which is the only honest
     /// spelling of a process that never raises privilege. Where this is set,
-    /// the child drops to it before `execve` and verifies it cannot climb back.
+    /// the holder drops to it before starting the program and verifies it cannot climb back.
     var credential: Credential?
 
-    /// The ids a child drops to, resolved from a passwd entry in the parent so
-    /// that nothing between `fork` and `execve` has to read a database.
+    /// The ids the holder drops to, resolved from the bootstrap passwd database.
     struct Credential {
         var uid: uid_t
         var gid: gid_t
@@ -266,6 +275,7 @@ struct TerminalPlan {
         // be a shell that cannot write its own history and, worse, one that
         // reads configuration only root should have chosen.
         var environment = Self.baseEnvironment(user: user, layout: layout)
+        var inputIsRootControlled = true
 
         if let package = request.package {
             // The one program that gets an argument, and the argument is the
@@ -308,6 +318,7 @@ struct TerminalPlan {
             guard Self.isExecutableFile(resolved) else {
                 throw FilaFailure(code: .notPermitted, systemError: EACCES, path: requested)
             }
+            inputIsRootControlled = Self.isRootControlled(resolved)
             if request.redirectsScriptInterpreter, let named = Self.shebangInterpreter(of: resolved) {
                 guard let interpreter = Self.program(named: named, layout: layout) else {
                     // Named, and not there in either spelling. Said with the
@@ -332,17 +343,32 @@ struct TerminalPlan {
             arguments = []
         }
 
+        targetExecutable = arguments.isEmpty ? "" : try FilaPath.resolve(executable)
+        if !arguments.isEmpty {
+            executable = targetExecutable
+            arguments[0] = targetExecutable
+        }
+        // A root launch of a mutable program must not spend time in startup
+        // files between validation and exec. Preserve the direct-exec path for
+        // downloads, including a mutable script behind a trusted interpreter.
+        let initializesTarget = getuid() != 0 || credential != nil || request.executable == nil
+            || (inputIsRootControlled && Self.isRootControlled(targetExecutable))
+
         // Every terminal entry point uses the same account environment. Resolve
         // argv first, then let the login shell initialize and exec that target.
         // No PAM login process: pam_launchd can move the child into a bootstrap
         // namespace that cannot reach the system DNS service.
         if let shell = Self.loginShell(user: user, layout: layout) {
             environment["SHELL"] = shell
-            let shellPath = layout.resolve(shell)
+            let shellPath = try FilaPath.resolve(layout.resolve(shell))
+            guard Self.isExecutableFile(shellPath) else {
+                throw FilaFailure(code: .notPermitted, systemError: EACCES, path: shellPath)
+            }
             if arguments.isEmpty {
                 executable = shellPath
+                targetExecutable = shellPath
                 arguments = [shellPath] + (Self.shellExecArguments(shell) == nil ? [] : ["-il"])
-            } else if let invocation = Self.shellExecArguments(shell) {
+            } else if initializesTarget, let invocation = Self.shellExecArguments(shell) {
                 arguments[0] = layout.programPath(executable)
                 arguments = [shellPath] + invocation + arguments
                 executable = shellPath
@@ -439,11 +465,15 @@ struct TerminalPlan {
     /// Account paths already use the bootstrap's vocabulary; an unprefixed
     /// rootless entry is also tried beneath the derived install prefix.
     private static func loginShell(user: PasswdEntry?, layout: BootstrapLayout) -> String? {
+        let usable: (String) -> Bool = { candidate in
+            guard let resolved = try? FilaPath.resolve(layout.resolve(candidate)) else { return false }
+            return Self.isExecutableFile(resolved)
+        }
         if let named = user?.shell, named.hasPrefix("/"), !named.utf8.contains(0),
-           let shell = [named, layout.bootstrapPath(named)].first(where: layout.isExecutableFile) {
+           let shell = [named, layout.bootstrapPath(named)].first(where: usable) {
             return shell
         }
-        return bootstrapShells.map(layout.bootstrapPath).first(where: layout.isExecutableFile)
+        return bootstrapShells.map(layout.bootstrapPath).first(where: usable)
     }
 
     /// Fixed source only; the target and its arguments are separate argv entries.
@@ -458,6 +488,31 @@ struct TerminalPlan {
             ["-ilc", "exec $argv"]
         default:
             nil
+        }
+    }
+
+    /// Conservative admission for delaying root execution through login setup.
+    /// Every component must be root-owned, without group/world writes or ACLs.
+    /// An unfamiliar ACL falls back to direct execution, never to guessing its
+    /// effective permissions. `path` is canonical before it reaches this check.
+    static func isRootControlled(_ path: String) -> Bool {
+        guard path.hasPrefix("/") else { return false }
+        var component = path
+        while true {
+            var info = stat()
+            guard lstat(component, &info) == 0, info.st_uid == 0,
+                  info.st_mode & 0o022 == 0,
+                  info.st_mode & S_IFMT == S_IFREG || info.st_mode & S_IFMT == S_IFDIR else { return false }
+            if let acl = acl_get_file(component, ACL_TYPE_EXTENDED) {
+                defer { acl_free(UnsafeMutableRawPointer(acl)) }
+                var entry: acl_entry_t?
+                if acl_get_entry(acl, Int32(ACL_FIRST_ENTRY.rawValue), &entry) == 0 { return false }
+                guard errno == EINVAL else { return false }
+            } else if errno != ENOTSUP && errno != ENOENT {
+                return false
+            }
+            if component == "/" { return true }
+            component = (component as NSString).deletingLastPathComponent
         }
     }
 
@@ -566,7 +621,7 @@ struct TerminalPlan {
         // session that is about to drop to `mobile` that is the permissive
         // answer rather than the exact one — a root-only binary passes here and
         // then fails in the child. It fails legibly, which is the part that
-        // matters: `execve` sets `EACCES`, the child writes it down the report
+        // matters: `posix_spawn` returns `EACCES`, the holder writes it down the report
         // pipe, and the screen says "Permission denied" instead of opening a
         // terminal that closes itself. Checking with `mobile`'s credentials
         // instead would mean holding them in the parent, and the parent is the
@@ -643,175 +698,96 @@ struct PasswdEntry {
     }
 }
 
-// MARK: - The fork
+// MARK: - The spawn
 
-/// The only place in this project that creates a process.
+/// Starts a terminal session through the daemon’s internal session-holder mode.
 enum TerminalSpawn {
-    static func run(_ plan: TerminalPlan, columns: UInt16, rows: UInt16) throws -> TerminalLaunch {
-        // Everything the child touches is built here, before the fork: between
-        // `fork` and `execve` a Swift process may only make async-signal-safe
-        // calls, and allocating an array is not one of them.
-        let argv = CStringArray(plan.arguments)
+    private static let ptyAllocationLock = NSLock()
+    static func run(_ plan: TerminalPlan, sessionHolder: String, columns: UInt16, rows: UInt16) throws -> TerminalLaunch {
+        func checked(_ error: Int32) throws {
+            guard error == 0 else { throw FilaFailure(code: .operationFailed, systemError: error, path: plan.executable) }
+        }
+        // A session holder establishes the controlling terminal and credentials,
+        // then uses an ordinary posix_spawn for the program. Neither process
+        // forks or replaces itself; the holder remains waitable until cleanup.
+        let arguments = [sessionHolder, "--terminal-session", plan.credential.map { String($0.uid) } ?? "-",
+                         String(plan.credential?.gid ?? 0), plan.workingDirectory ?? "/", plan.executable] + plan.arguments
+        let argv = CStringArray(arguments)
         let envp = CStringArray(plan.environment.map { "\($0.key)=\($0.value)" }.sorted())
-        let executable = strdup(plan.executable)
-        let directory = plan.workingDirectory.flatMap { strdup($0) }
-        // Read out here, so the child branch touches nothing but locals of
-        // trivial type — no property access, no ARC, no allocation.
-        let argvPointer = argv.pointer
-        let envpPointer = envp.pointer
-        // The passwd lookup that produced these ran in the parent for the same
-        // reason: `getpwnam` reads a database and allocates, and between `fork`
-        // and `execve` only async-signal-safe calls may run. What crosses the
-        // fork is three integers.
-        let mustDrop = plan.credential != nil
-        let dropUID = plan.credential?.uid ?? 0
-        let dropGID = plan.credential?.gid ?? 0
-        defer {
-            argv.deallocate()
-            envp.deallocate()
-            free(executable)
-            free(directory)
-        }
-
-        // How the child says why it never reached `execve`. The write end is
-        // close-on-exec, so a successful exec closes it and the parent reads
-        // EOF; anything else arrives as an errno. Without it the only evidence
-        // is a terminal that opens and closes again, and the overwhelmingly
-        // likely cause on a jailbroken device — a binary AMFI refuses, `EPERM`
-        // — would be indistinguishable from a missing file.
-        var reportPipe: [Int32] = [-1, -1]
-        guard pipe(&reportPipe) == 0 else { throw FilaFailure(errno: Darwin.errno) }
-        let reportRead = reportPipe[0]
-        let reportWrite = reportPipe[1]
-        guard fcntl(reportWrite, F_SETFD, FD_CLOEXEC) == 0 else {
-            let failure = FilaFailure(errno: Darwin.errno, path: plan.executable)
-            close(reportRead)
-            close(reportWrite)
-            throw failure
-        }
-        let report = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-        defer { report.deallocate() }
+        defer { argv.deallocate(); envp.deallocate() }
 
         var size = winsize(ws_row: rows, ws_col: columns, ws_xpixel: 0, ws_ypixel: 0)
         var master: Int32 = -1
-        // `forkpty` does the parts that have to be right and are easy to get
-        // wrong: `setsid`, `TIOCSCTTY` on the slave, and the slave onto 0/1/2.
-        let pid = forkpty(&master, nil, nil, &size)
-        if pid == 0 {
-            close(reportRead)
-            // The daemon's descriptors are close-on-exec, but it holds open
-            // directories, jobs and an XPC connection to root; the sweep is
-            // what guarantees none of them reaches a shell because one call
-            // site forgot the flag.
-            var descriptor: Int32 = 3
-            let limit = getdtablesize()
-            while descriptor < limit {
-                if descriptor != reportWrite { close(descriptor) }
-                descriptor += 1
-            }
-            // The privilege drop, and the only place in this project that
-            // changes a credential. It happens here — in the child, after the
-            // descriptor sweep so that nothing root opened survives it, and
-            // before both `chdir` and `execve` — because a drop after `execve`
-            // is not a drop at all and a drop in the parent would be the daemon
-            // giving up its own root.
-            //
-            // Order is not a style choice. `setuid` is what surrenders the
-            // privilege that `setgid` and `setgroups` require, so groups first,
-            // then the group, then the user; the reverse order leaves a child
-            // running as `mobile` while still in root's group, and nothing
-            // afterwards can fix it. `setgroups` rather than `initgroups(3)`
-            // for the async-signal-safety reason above: `initgroups` reads the
-            // group database.
-            if mustDrop {
-                // The tty follows the user, the way `login` does it. `forkpty`
-                // opened the slave as root, so `grantpt` left it owned by root
-                // — and the child would keep it, because descriptors 0, 1 and 2
-                // are already open and permissions are only checked at `open`.
-                // It matters for everything that reopens its own terminal by
-                // name: a pager, an editor, anything that wants `/dev/tty`.
-                // Done while still root, and ignored if it fails, because a
-                // root-owned tty is a worse session rather than no session.
-                _ = fchown(0, dropUID, dropGID)
-                var group = dropGID
-                if setgroups(1, &group) != 0 || setgid(dropGID) != 0 || setuid(dropUID) != 0 {
-                    report.pointee = Darwin.errno
-                    writeReport(reportWrite, from: report)
-                    _exit(127)
-                }
-                // And the assertion that the drop was real. `setuid` from a
-                // process with euid 0 sets the real, effective *and* saved-set
-                // uids, so afterwards there is no root left to return to and
-                // this call must fail. If it succeeds, the three calls above
-                // all returned 0 and the child is nevertheless still able to
-                // become root — a session that is `mobile` in name only. There
-                // is no recovering from that, so it never reaches `execve`.
-                if setuid(0) == 0 {
-                    report.pointee = EPERM
-                    writeReport(reportWrite, from: report)
-                    _exit(127)
-                }
-            }
-            // After the drop on purpose: `chdir` as root and then dropping
-            // would leave the session's cwd inside a directory the session's
-            // user cannot open, and relative lookups from a cwd are not
-            // rechecked against its ancestors — a small hole, but a real one.
-            // A refusal here is not fatal; the child stays in the daemon's own
-            // directory, which is launchd's `/`.
-            if let directory { _ = chdir(directory) }
-            // `SIG_IGN` survives `execve`, and libdispatch leaves SIGPIPE
-            // ignored: without this `yes | head` would see EPIPE writes
-            // succeed forever instead of the exit a terminal gives it.
-            signal(SIGPIPE, SIG_DFL)
-            execve(executable, argvPointer, envpPointer)
-            report.pointee = Darwin.errno
-            writeReport(reportWrite, from: report)
-            _exit(127)
+        var slave: Int32 = -1
+        // PTY allocation is short and serialized, including for concurrent host
+        // clients. Darwin can refuse overlapping allocations with ENXIO.
+        ptyAllocationLock.lock()
+        let opened = openpty(&master, &slave, nil, nil, &size)
+        let openError = Darwin.errno
+        ptyAllocationLock.unlock()
+        guard opened == 0 else { throw FilaFailure(errno: openError, path: plan.executable) }
+        var transferred = false
+        defer {
+            close(slave)
+            if !transferred { close(master) }
         }
-        close(reportWrite)
-        guard pid > 0, master >= 0 else {
-            let failure = FilaFailure(errno: Darwin.errno, path: plan.executable)
-            close(reportRead)
-            if master >= 0 { close(master) }
-            throw failure
-        }
+        guard fcntl(master, F_SETFD, FD_CLOEXEC) == 0 else { throw FilaFailure(errno: Darwin.errno) }
+        // Sources must survive actions overwriting 0/1/2 and report descriptor 3,
+        // even when the parent was started with a standard descriptor closed.
+        slave = try relocate(slave)
+        var report: [Int32] = [-1, -1]
+        guard pipe(&report) == 0 else { throw FilaFailure(errno: Darwin.errno) }
+        defer { close(report[0]); close(report[1]) }
+        report[1] = try relocate(report[1])
+        guard fcntl(report[0], F_SETFD, FD_CLOEXEC) == 0 else { throw FilaFailure(errno: Darwin.errno) }
 
-        // Blocks only until the child execs (EOF) or gives up (four bytes).
+        var actions: posix_spawn_file_actions_t?
+        try checked(posix_spawn_file_actions_init(&actions))
+        defer { posix_spawn_file_actions_destroy(&actions) }
+        for destination in [STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO] {
+            try checked(posix_spawn_file_actions_adddup2(&actions, slave, destination))
+        }
+        try checked(posix_spawn_file_actions_adddup2(&actions, report[1], 3))
+        var attributes: posix_spawnattr_t?
+        try checked(posix_spawnattr_init(&attributes))
+        defer { posix_spawnattr_destroy(&attributes) }
+        var defaults = sigset_t()
+        var mask = sigset_t()
+        sigfillset(&defaults)
+        sigemptyset(&mask)
+        try checked(posix_spawnattr_setsigdefault(&attributes, &defaults))
+        try checked(posix_spawnattr_setsigmask(&attributes, &mask))
+        try checked(posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_CLOEXEC_DEFAULT | POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK)))
+        var pid: pid_t = -1
+        try checked(posix_spawn(&pid, sessionHolder, &actions, &attributes, argv.pointer, envp.pointer))
+        close(report[1])
+        report[1] = -1
         do {
-            defer { close(reportRead) }
-            if let error = try readReport(reportRead) {
-                throw FilaFailure(code: .operationFailed, systemError: error, path: plan.executable)
-            }
-            // A later fork must not keep this terminal alive through exec.
-            guard fcntl(master, F_SETFD, FD_CLOEXEC) == 0 else {
-                throw FilaFailure(errno: Darwin.errno, path: plan.executable)
-            }
+            if let error = try readReport(report[0]) { try checked(error) }
         } catch {
-            // An unreadable or incomplete report is not proof of exec. The
-            // child remains ours and waitable until this cleanup reaps it.
             _ = killpg(pid, SIGKILL)
             _ = kill(pid, SIGKILL)
             var status: Int32 = 0
-            while waitpid(pid, &status, 0) < 0, Darwin.errno == EINTR {}
-            close(master)
+            while waitpid(pid, &status, 0) < 0, errno == EINTR {}
             throw error
         }
-
-        return TerminalLaunch(
-            descriptor: master,
-            process: TerminalProcess(processIdentifier: pid),
-            executable: plan.executable,
-            // Who the child actually is. The parent is entitled to say so
-            // without asking: a child that failed any part of the drop wrote an
-            // errno down the report pipe and never exec'd, and the throw above
-            // is the only way out of that. Nothing here raises privilege, so
-            // this is either the daemon's own user or the one it dropped to.
-            userIdentifier: plan.credential?.uid ?? getuid()
-        )
+        transferred = true
+        return TerminalLaunch(descriptor: master, process: TerminalProcess(processIdentifier: pid),
+                              executable: plan.targetExecutable, launcher: plan.executable,
+                              userIdentifier: plan.credential?.uid ?? getuid())
     }
 
-    /// Empty EOF is the close-on-exec signal. A full report is the child's
-    /// errno; a partial report or read error leaves launch unconfirmed.
+    /// Moves an owned action source out of the fixed 0...3 destination range.
+    /// On failure the caller still owns the original descriptor.
+    private static func relocate(_ descriptor: Int32) throws -> Int32 {
+        let moved = fcntl(descriptor, F_DUPFD_CLOEXEC, 4)
+        guard moved >= 0 else { throw FilaFailure(errno: Darwin.errno) }
+        close(descriptor)
+        return moved
+    }
+
+    /// The holder acknowledges successful program spawn with an explicit zero.
+    /// Empty EOF, a partial report or a read error leaves launch unconfirmed.
     static func readReport(_ descriptor: Int32) throws -> Int32? {
         var error: Int32 = 0
         return try withUnsafeMutablePointer(to: &error) { buffer in
@@ -824,28 +800,17 @@ enum TerminalSpawn {
                     if Darwin.errno == EINTR { continue }
                     throw FilaFailure(errno: Darwin.errno)
                 }
-                guard total == 0 else { throw FilaFailure(errno: EIO) }
-                return nil
+                throw FilaFailure(errno: EIO)
             }
-            guard buffer.pointee > 0 else { throw FilaFailure(errno: EIO) }
-            return buffer.pointee
+            guard buffer.pointee >= 0 else { throw FilaFailure(errno: EIO) }
+            return buffer.pointee == 0 ? nil : buffer.pointee
         }
     }
 
-    /// Used after fork: only trivial locals and async-signal-safe write calls.
-    private static func writeReport(_ descriptor: Int32, from buffer: UnsafePointer<Int32>) {
-        let wanted = MemoryLayout<Int32>.size
-        var total = 0
-        while total < wanted {
-            let sent = Darwin.write(descriptor, UnsafeRawPointer(buffer).advanced(by: total), wanted - total)
-            if sent > 0 { total += sent; continue }
-            if sent < 0, Darwin.errno == EINTR { continue }
-            return
-        }
-    }
+
 }
 
-/// A NULL-terminated `char *[]`, allocated before a fork and freed after it.
+/// A NULL-terminated argv or environment for posix_spawn.
 private struct CStringArray {
     let pointer: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>
     private let count: Int
@@ -865,15 +830,15 @@ private struct CStringArray {
 
 // MARK: - The child, once it is running
 
-/// The spawned process, from the daemon's side: something to reap, and
+/// The session holder, from the daemon's side: something to reap, and
 /// something to hang up.
 ///
 /// This is the daemon's *entire* per-session cost. It holds no descriptor, no
 /// buffer and no byte of the stream — the master went to the client and the
 /// client pumps it — so a hundred sessions are a hundred pids and a hundred
 /// dispatch sources, and a shell printing a gigabyte costs this process
-/// nothing. That is what keeps `filad` under launchd's 6 MB jetsam cap without
-/// the second process `ighostvtd` needs.
+/// nothing. The small session holder owns the controlling terminal and waits
+/// for the program; neither it nor the daemon pumps terminal bytes.
 public final class TerminalProcess: @unchecked Sendable {
     public let processIdentifier: pid_t
 

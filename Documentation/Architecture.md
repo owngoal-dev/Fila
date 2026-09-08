@@ -77,13 +77,27 @@ its cost is the depth, not the tree. So the walk runs in `filad`, where it
 does not pay an XPC round trip per directory, and streams matches back in
 batches. 460k entries in about 2.6 seconds on the development device.
 
-The terminal is the other place the daemon touches something that is not a
-plain file, and it holds the same line: `openTerminal` `forkpty`s, `execve`s
-one program, and hands the **master descriptor** back — the `openPath` trade
-applied to a stream. The daemon keeps a pid and a dispatch source per session
-and no bytes at all, which is exactly why Fila still needs nothing like
-`ighostvtd-io`. See the hard rule in `AGENTS.md` for what that operation
-refuses, and why it is not and must never become `exec(path, argv)`.
+The terminal keeps the same descriptor boundary. `openTerminal` opens a PTY
+and uses ordinary `posix_spawn` to start `filad --terminal-session`. This
+internal mode runs before XPC and logging initialize. It establishes the
+controlling terminal, drops credentials for mobile, enters the working
+directory with those credentials, and uses ordinary `posix_spawn` to start
+the account shell or fixed program. Fila uses neither fork/exec calls nor
+`POSIX_SPAWN_SETEXEC`.
+
+The session holder waits for the program and cleans its original process group
+before reaping its leader. The daemon retains only the holder PID and a dispatch
+source; the app owns the PTY master and reads its bytes directly. The holder does
+not proxy output and is another invocation of the installed daemon, not a new
+package executable. The XPC request still cannot supply argv or an environment.
+
+Root launches use device-owner authentication in the app when the device has a
+passcode. Cancellation prevents the launch request. This UI check supplements
+the daemon's peer authentication; it does not authenticate arbitrary XPC callers.
+Account startup files remain intentional. Mutable programs run as root take the
+direct spawn path rather than waiting through login startup before execution.
+The audit record distinguishes the selected canonical target from its launcher;
+starting the launcher does not imply that startup files reached the target.
 
 ## The trust boundary
 

@@ -34,10 +34,7 @@ final class TextViewerViewController: UIViewController {
 
     private let textView = RunestoneEditorView.new()
     private let findBar = FindBar()
-    private let notice = UILabel()
-    /// Holds the stack under the bar while the notice is showing; inactive
-    /// otherwise, so the editor and its gutter run up under the bar.
-    private var noticeBelowBar: Constraint?
+    private var pendingNotice: String?
     /// A grammar the reader picked by hand for this document, by its name in
     /// `TextSyntax.choices`. Nil means the file's own detection decides.
     private var chosenLanguage: String?
@@ -106,17 +103,17 @@ final class TextViewerViewController: UIViewController {
         refreshBarItems()
     }
 
-    private func buildInterface() {
-        notice.do {
-            $0.font = .preferredFont(forTextStyle: .footnote)
-            $0.adjustsFontForContentSizeCategory = true
-            $0.textColor = .secondaryLabel
-            $0.numberOfLines = 0
-            $0.textAlignment = .center
-            $0.backgroundColor = .secondarySystemBackground
-            $0.isHidden = true
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard let message = pendingNotice, presentedViewController == nil else { return }
+        pendingNotice = nil
+        let alert = AlertViewController(title: title ?? details.node.name, message: message) { context in
+            context.addAction(title: "Close") { context.dispose() }
         }
+        present(alert, animated: true)
+    }
 
+    private func buildInterface() {
         findBar.do {
             $0.isHidden = true
             $0.onFind = { [weak self] term, forwards in self?.find(term, forwards: forwards) }
@@ -139,10 +136,8 @@ final class TextViewerViewController: UIViewController {
             $0.editorDelegate = self
         }
 
-        // A stack, so that hiding the notice or the find bar takes their height
-        // with them: a hidden view still occupies its constraints, and the
-        // usual case here is both of them hidden.
-        let stack = UIStackView(arrangedSubviews: [notice, textView, findBar])
+        // Hiding the find bar removes its height from the editor.
+        let stack = UIStackView(arrangedSubviews: [textView, findBar])
         stack.axis = .vertical
         view.addSubview(stack)
 
@@ -155,14 +150,12 @@ final class TextViewerViewController: UIViewController {
         // Up to the screen edge, not the safe area: the text view is a scroll
         // view and insets its own content under the bar, which leaves the
         // gutter running the full height behind it instead of stopping short
-        // in a white band. Only a notice needs to start below the bar.
+        // in a white band.
         stack.snp.makeConstraints { make in
-            make.top.equalToSuperview().priority(.high)
-            noticeBelowBar = make.top.equalTo(view.safeAreaLayoutGuide).constraint
+            make.top.equalToSuperview()
             make.leading.trailing.equalToSuperview()
             make.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
         }
-        noticeBelowBar?.deactivate()
 
         // With the gutter running under the bar, the bar needs a background of
         // its own. Before iOS 26 the scroll-edge appearance is transparent, so
@@ -195,26 +188,19 @@ final class TextViewerViewController: UIViewController {
             apply(text: text)
 
             if isTruncated {
-                showNotice(String(
+                pendingNotice = String(
                     format: String(localized: "Showing the first %@ of %@. This file is too large to edit. Open it as Hex to see the rest."),
                     FilePresentation.byteLabel(limit),
                     FilePresentation.byteLabel(file.byteCount)
-                ))
-                notice.layoutIfNeeded()
+                )
             } else if encoding != .utf8 {
-                showNotice(String(localized: "This file is not valid UTF-8. It is shown and saved without changing the bytes."))
+                pendingNotice = String(localized: "This file is not valid UTF-8. It is shown and saved without changing the bytes.")
             }
         } catch {
-            showNotice(FailureMessage.text(for: error))
+            pendingNotice = FailureMessage.text(for: error)
             canEdit = false
         }
         refreshBarItems()
-    }
-
-    private func showNotice(_ text: String) {
-        notice.text = text
-        notice.isHidden = false
-        noticeBelowBar?.activate()
     }
 
     /// UTF-8 first. A truncated read can cut a multi-byte sequence in half, so a

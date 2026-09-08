@@ -69,7 +69,8 @@ let package = Package(
         // The root side: POSIX calls and libSystem jobs. The daemon is a
         // dispatcher over this module and holds no file logic of its own,
         // which is what lets the tests reach every destructive path.
-        .target(name: "FilaFileOps", dependencies: ["FilaProtocol", "CRemoveFile"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(name: "CTerminalSession"),
+        .target(name: "FilaFileOps", dependencies: ["FilaProtocol", "CRemoveFile", "CTerminalSession"], swiftSettings: [.swiftLanguageMode(.v5)]),
 
         // The app's side of the link: async XPC, one request per call, job
         // events as a stream — and, when there is no daemon to talk to, the
@@ -152,7 +153,8 @@ let package = Package(
         .testTarget(name: "FilaProviderTests", dependencies: ["FilaProvider"], swiftSettings: [.swiftLanguageMode(.v5)]),
 
         .testTarget(name: "FilaProtocolTests", dependencies: ["FilaProtocol"], swiftSettings: [.swiftLanguageMode(.v5)]),
-        .testTarget(name: "FilaFileOpsTests", dependencies: ["FilaFileOps", "CRemoveFile"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(name: "FilaTestSupport", path: "Tests/Support", swiftSettings: [.swiftLanguageMode(.v5)]),
+        .testTarget(name: "FilaFileOpsTests", dependencies: ["FilaFileOps", "CRemoveFile", "FilaTestSupport"], swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(name: "FilaFormatsTests", dependencies: ["FilaFormats", "FilaFileOps"], swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(name: "FilaLogTests", dependencies: ["FilaLog", "FilaProtocol"], swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(name: "FilaMediaTests", dependencies: ["FilaMedia"], swiftSettings: [.swiftLanguageMode(.v5)]),
@@ -171,7 +173,7 @@ let package = Package(
         // makes, running as whoever runs the tests.
         .testTarget(
             name: "FilaTerminalTests",
-            dependencies: ["FilaTerminal", "FilaFileOps"],
+            dependencies: ["FilaTestSupport", "FilaTerminal", "FilaFileOps"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]

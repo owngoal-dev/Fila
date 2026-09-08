@@ -23,6 +23,11 @@ between the app and the kernel with nothing in between.
   must never grow a generic `exec(path, argv)` case, and the daemon's exposed
   surface stays narrower than "run what I tell you". Anything that spawns says
   plainly what it spawns, as whom, and what it refuses.
+- **Spawn normally.** Fila uses ordinary `posix_spawn`, never `fork`, `forkpty`,
+  `execv`/`execve` or `POSIX_SPAWN_SETEXEC`. The daemon's internal
+  `--terminal-session` mode establishes the controlling terminal and drops
+  credentials before spawning its fixed program; shell internals are the shell's
+  responsibility. No generic argv/environment operation is added to XPC.
 - **File bytes never enter the daemon.** `FilaOperation` has no `readFile` and
   no `writeFile`, and it never will: the client asks for a path, the daemon
   `open(2)`s it as root, and the descriptor travels over XPC

@@ -244,7 +244,7 @@ public enum TerminalUser: Int64, Sendable, CaseIterable {
 
     /// The device's own unprivileged account, resolved by **name** from the
     /// passwd database rather than by a number anybody chose. The child drops
-    /// to it before `execve` and cannot climb back.
+    /// to it before spawning the program and cannot climb back.
     case mobile = 1
 
     /// The account `.mobile` looks for. It is the user iOS runs everything

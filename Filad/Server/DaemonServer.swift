@@ -400,7 +400,7 @@ final class DaemonServer: @unchecked Sendable {
             throw FilaFailure(code: .invalidRequest)
         }
         // ponytail: the spawn blocks this control queue until the child reaches
-        // `execve` — it waits on the pipe the child reports a failed exec
+        // its program spawn — it waits on the pipe the session holder reports failure
         // through, which is what turns "the terminal opened and closed again"
         // into a readable errno. On a device that wait is AMFI validating a
         // signature: tens of milliseconds, once per terminal the user opens,
@@ -445,7 +445,7 @@ final class DaemonServer: @unchecked Sendable {
         // saying what it started and as whom — the uid it resolved, not the one
         // that was asked for — and, for the one argv that carries a file the
         // client chose, which file.
-        FilaLog.info("terminal \(identifier) \(launch.executable)\(package.map { " -i \($0)" } ?? "") uid \(launch.userIdentifier)")
+        FilaLog.info("terminal \(identifier) \(launch.executable)\(package.map { " -i \($0)" } ?? "") via \(launch.launcher) uid \(launch.userIdentifier)")
         xpc_dictionary_set_fd(reply, FilaWireKey.descriptor, launch.descriptor)
         xpc_dictionary_set_uint64(reply, FilaWireKey.terminalIdentifier, identifier)
         xpc_dictionary_set_string(reply, FilaWireKey.terminalOwner, peer.terminalOwner)
