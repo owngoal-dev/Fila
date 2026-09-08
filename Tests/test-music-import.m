@@ -24,6 +24,18 @@
 }
 @end
 
+@interface ML3ArtworkTokenSet : NSObject <MusicArtworkTokenAPI>
+@property(nonatomic, copy) NSDictionary *tokens;
+@end
+@implementation ML3ArtworkTokenSet
+- (id)initWithEntity:(id)entity artworkType:(int64_t)artworkType {
+    self = [super init];
+    if (self) _tokens = [entity copy];
+    return self;
+}
+- (NSString *)artworkTokenForSource:(int64_t)source { return self.tokens[@(source)]; }
+@end
+
 int main(void) {
     @autoreleasepool {
         id legacy = ImportObject(@"LegacyImportHints", @{@"operationCount": @1});
@@ -46,6 +58,17 @@ int main(void) {
         @try { OptionalImportValue([RefusingImportHints new], @"shouldLibraryAdd", @YES); }
         @catch (NSException *exception) { rejected = [exception.name isEqual:NSInvalidArgumentException]; }
         NSCAssert(rejected, @"An available setter's failure must not be swallowed");
+
+        NSCAssert([ArtworkSource(@{@0: @"our-cover"}, @"our-cover", 1) isEqual:@0],
+                  @"Legacy imports must use their registered source, not source 500");
+        NSCAssert([ArtworkSource(@{@500: @"our-cover"}, @"our-cover", 1) isEqual:@500],
+                  @"Modern imports must keep their registered source");
+        NSCAssert([ArtworkSource(@{@500: @"another-cover", @0: @"our-cover"}, @"our-cover", 1) isEqual:@0],
+                  @"Another token at source 500 must not hide our source 0 token");
+        NSCAssert(ArtworkSource(@{@500: @"another-cover"}, @"our-cover", 6) == nil,
+                  @"An existing album's unrelated cover must not be overwritten");
+        NSCAssert(ArtworkSource(@{}, @"our-cover", 6) == nil,
+                  @"Legacy albums without a separate token use their representative track");
         puts("Music import compatibility tests passed");
     }
     return 0;

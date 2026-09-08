@@ -4,8 +4,9 @@ import Then
 import UIKit
 
 final class MusicLibraryViewController: UITableViewController, UISearchResultsUpdating {
-    private var tracks: [MusicLibraryTrack] = []
+    private var tracks: [MusicLibraryTrack]?
     private var rows: [MusicLibraryTrack] = []
+    private var dataSource: UITableViewDiffableDataSource<Int, Int64>!
     private var isChangingLibrary = false
     private var load: Task<Void, Never>?
 
@@ -51,6 +52,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     private func importMusic(_ file: URL) {
         guard !isChangingLibrary else { return }
         isChangingLibrary = true
+        load?.cancel()
         configureMenu()
         let progress = AlertProgressIndicatorViewController(
             title: String.LocalizationValue("Importing Music…"),
@@ -59,11 +61,14 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         present(progress, animated: true)
         Task {
             var failure: Error?
-            do { try await MusicLibraryEditor.shared.importTrack(from: file.path) }
-            catch { failure = error }
+            do {
+                let result = try await MusicLibraryEditor.shared.importTrack(from: file.path)
+                await applyTracks(result)
+            } catch { failure = error }
             progress.dismiss(animated: true) { [self] in
                 isChangingLibrary = false
                 configureMenu()
+                refreshControl?.endRefreshing()
                 if let failure {
                     FeedbackAlert.show(
                         String(localized: "Unable to Import Music"),
@@ -71,7 +76,6 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
                     )
                 } else {
                     Toast.show(String(localized: "Music Imported"))
-                    reload()
                 }
             }
         }
@@ -90,7 +94,15 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.backButtonDisplayMode = .minimal
         definesPresentationContext = true
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Song")
+        tableView.register(MusicTrackCell.self, forCellReuseIdentifier: "Song")
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 64
+        dataSource = UITableViewDiffableDataSource<Int, Int64>(tableView: tableView) { [weak self] table, indexPath, id in
+            guard let track = self?.rows.first(where: { $0.id == id }) else { return nil }
+            let cell = table.dequeueReusableCell(withIdentifier: "Song", for: indexPath) as! MusicTrackCell
+            cell.show(track)
+            return cell
+        }
         tableView.keyboardDismissMode = .onDrag
         let search = UISearchController(searchResultsController: nil).then {
             $0.searchResultsUpdater = self
@@ -118,8 +130,9 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     }
 
     @objc private func reload() {
+        guard !isChangingLibrary else { return }
         load?.cancel()
-        if tracks.isEmpty {
+        if tracks == nil, tableView.backgroundView == nil {
             tableView.backgroundView = StatusView(content: .loading(String(localized: "Loading Music…")))
         }
         load = Task { [weak self] in
@@ -132,7 +145,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
             } catch {
                 guard let self, !Task.isCancelled else { return }
                 refreshControl?.endRefreshing()
-                if tracks.isEmpty {
+                if tracks == nil {
                     tableView.backgroundView = StatusView(content: .message(
                         symbol: "music.note",
                         title: String(localized: "Music Unavailable"),
@@ -149,35 +162,35 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         filter()
     }
 
-    private func filter() {
+    private func applyTracks(_ result: [MusicLibraryTrack]) async {
+        tracks = result
+        await withCheckedContinuation { continuation in
+            filter { continuation.resume() }
+        }
+    }
+
+    private func filter(completion: (() -> Void)? = nil) {
+        guard let tracks else { completion?(); return }
         let query = navigationItem.searchController?.searchBar.text ?? ""
-        rows = tracks.filter { query.isEmpty || $0.title.localizedStandardContains(query)
+        let filtered = tracks.filter { query.isEmpty || $0.title.localizedStandardContains(query)
             || $0.artist.localizedStandardContains(query) || $0.album.localizedStandardContains(query)
         }
-        tableView.reloadWithAnimation()
-        tableView.backgroundView = rows.isEmpty ? StatusView(content: .message(
+        tableView.backgroundView = filtered.isEmpty ? StatusView(content: .message(
             symbol: "music.note",
             title: query.isEmpty ? String(localized: "No Music") : String(localized: "No Matches"),
             detail: query.isEmpty
                 ? String(localized: "Import an audio file to add it to this device’s music library.")
                 : nil
         )) : nil
-    }
-
-    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
-        rows.count
-    }
-
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let track = rows[indexPath.row]
-        return tableView.dequeueReusableCell(withIdentifier: "Song", for: indexPath).then {
-            $0.contentConfiguration = UIListContentConfiguration.valueCell().with {
-                $0.text = track.title.isEmpty ? String(localized: "Untitled") : track.title
-                $0.secondaryText = track.artist
-                $0.image = UIImage(systemName: "music.note")
-            }
-            $0.accessoryType = .disclosureIndicator
-        }
+        guard rows != filtered else { completion?(); return }
+        let previous = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0) })
+        rows = filtered
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Int64>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(rows.map(\.id))
+        snapshot.reconfigureItems(rows.filter { previous[$0.id] != nil && previous[$0.id] != $0 }.map(\.id))
+        dataSource.apply(snapshot, animatingDifferences: !previous.isEmpty && !UIAccessibility.isReduceMotionEnabled,
+                         completion: completion)
     }
 
     override func tableView(
@@ -185,7 +198,8 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
     ) -> UISwipeActionsConfiguration? {
         guard !isChangingLibrary else { return nil }
-        let track = rows[indexPath.row]
+        guard let id = dataSource.itemIdentifier(for: indexPath),
+              let track = rows.first(where: { $0.id == id }) else { return nil }
         let action = UIContextualAction(
             style: .destructive,
             title: String(localized: "Delete")
@@ -209,22 +223,32 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         isChangingLibrary = true
         load?.cancel()
         configureMenu()
+        let progress = AlertProgressIndicatorViewController(
+            title: String.LocalizationValue("Deleting…"),
+            message: String.LocalizationValue("Updating the music library. Keep Fila open until this finishes.")
+        )
+        present(progress, animated: true)
         Task { [self] in
+            var failure: Error?
             do {
-                try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
-                tracks.removeAll { $0.id == track.id }
-                filter()
-            } catch {
-                FeedbackAlert.show(String(localized: "Unable to Delete Music"), message: error.localizedDescription)
+                let result = try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
+                await applyTracks(result)
+            } catch { failure = error }
+            progress.dismiss(animated: true) { [self] in
+                isChangingLibrary = false
+                configureMenu()
+                refreshControl?.endRefreshing()
+                if let failure {
+                    FeedbackAlert.show(String(localized: "Unable to Delete Music"), message: failure.localizedDescription)
+                }
             }
-            isChangingLibrary = false
-            configureMenu()
-            reload()
         }
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        navigationController?.pushViewController(MusicTrackViewController(track: rows[indexPath.row]), animated: true)
+        guard !isChangingLibrary, let id = dataSource.itemIdentifier(for: indexPath),
+              let track = rows.first(where: { $0.id == id }) else { return }
+        navigationController?.pushViewController(MusicTrackViewController(track: track), animated: true)
     }
 }

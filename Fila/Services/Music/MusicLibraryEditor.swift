@@ -40,7 +40,8 @@ actor MusicLibraryEditor {
                 id: Int64(bitPattern: $0.persistentID),
                 title: $0.title ?? "",
                 artist: $0.artist ?? "",
-                album: $0.albumTitle ?? ""
+                album: $0.albumTitle ?? "",
+                duration: $0.playbackDuration
             )
         }.sorted {
             let order = $0.title.localizedStandardCompare($1.title)
@@ -48,12 +49,27 @@ actor MusicLibraryEditor {
         }
     }
 
-    func deleteTrack(id: Int64) async throws {
+    func deleteTrack(id: Int64) async throws -> [MusicLibraryTrack] {
         try await authorize()
         do { try nativeLibrary().deleteTrackID(id) }
         catch {
             FilaLog.error("Music library deletion failed: \(error)")
             throw self.error(String(localized: "The song could not be deleted from the music library. Try again."))
+        }
+        return try await tracks(confirming: id, present: false)
+    }
+
+    // MusicLibrary's write completes before MediaPlayer invalidates its cache.
+    // Return only a fetched snapshot that actually reflects this operation.
+    func tracks(confirming id: Int64, present: Bool) async throws -> [MusicLibraryTrack] {
+        let deadline = ProcessInfo.processInfo.systemUptime + 10
+        while true {
+            let result = try await tracks()
+            if result.contains(where: { $0.id == id }) == present { return result }
+            guard ProcessInfo.processInfo.systemUptime < deadline else {
+                throw error(String(localized: "The music library has not finished updating. Refresh the list to check."))
+            }
+            try await Task.sleep(nanoseconds: 100_000_000)
         }
     }
 

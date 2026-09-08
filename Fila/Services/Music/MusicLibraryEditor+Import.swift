@@ -8,7 +8,7 @@ extension MusicLibraryEditor {
     static let audioExtensions: Set<String> = ["mp3", "m4a", "aac", "wav", "aif", "aiff", "aifc", "caf", "flac"]
     private static let importDirectory = "/var/mobile/Media/iTunes_Control/Music/F00"
 
-    func importTrack(from path: String) async throws {
+    func importTrack(from path: String) async throws -> [MusicLibraryTrack] {
         try await authorize()
         let native = try nativeLibrary()
         let session = await FileSession.shared
@@ -44,6 +44,12 @@ extension MusicLibraryEditor {
         try FileManager.default.moveItem(at: staged, to: source)
         for directory in [(Self.importDirectory as NSString).deletingLastPathComponent, Self.importDirectory] {
             try await session.perform { link in
+                do {
+                    guard try await link.details(of: directory).node.kind == .directory else {
+                        throw FilaFailure(code: .operationFailed, systemError: ENOTDIR, path: directory)
+                    }
+                    return
+                } catch let failure as FilaFailure where failure.systemError == ENOENT { }
                 do { try await link.create(.directory, at: directory) }
                 catch let failure as FilaFailure where failure.systemError == EEXIST {
                     guard try await link.details(of: directory).node.kind == .directory else { throw failure }
@@ -62,10 +68,11 @@ extension MusicLibraryEditor {
         // Only a confirmed publication may be cleaned up by this import.
         guard result.code == .success else { throw result }
         var preserveImportedFile = false
+        let identifier: Int64
         do {
             try Task.checkCancellation()
             try await session.perform { try await $0.setAttributes(.newItemDefaults, at: destination) }
-            do { _ = try native.importFile(atPath: destination, metadata: metadata) }
+            do { identifier = try native.importFile(atPath: destination, metadata: metadata).int64Value }
             catch {
                 preserveImportedFile = (error as NSError).userInfo["PreserveImportedFile"] as? Bool == true
                 FilaLog.error("Music library import failed: \(error)")
@@ -88,5 +95,7 @@ extension MusicLibraryEditor {
             } catch { FilaLog.error("Music import cleanup failed at \(destination): \(error)") }
             throw error
         }
+        // A stale MediaPlayer snapshot must not trigger cleanup of committed audio.
+        return try await tracks(confirming: identifier, present: true)
     }
 }

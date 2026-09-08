@@ -5,4 +5,5 @@ struct MusicLibraryTrack: Identifiable, Hashable, Sendable {
     let title: String
     let artist: String
     let album: String
+    let duration: TimeInterval
 }

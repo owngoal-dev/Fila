@@ -54570,6 +54570,158 @@
           }
         }
       }
+    },
+    "The music library has not finished updating. Refresh the list to check." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يكتمل تحديث مكتبة الموسيقى. حدّث القائمة للتحقق."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Musikmediathek wurde noch nicht fertig aktualisiert. Aktualisiere die Liste, um den Stand zu prüfen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La biblioteca de música aún no ha terminado de actualizarse. Actualiza la lista para comprobarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La mise à jour de la bibliothèque musicale n’est pas terminée. Actualisez la liste pour vérifier."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La libreria musicale non ha terminato l’aggiornamento. Aggiorna l’elenco per verificare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュージックライブラリの更新が完了していません。リストを更新して確認してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 보관함 업데이트가 아직 완료되지 않았습니다. 목록을 새로 고쳐 확인하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A biblioteca de músicas ainda não terminou de atualizar. Atualize a lista para conferir."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновление медиатеки ещё не завершено. Обновите список для проверки."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thư viện nhạc chưa cập nhật xong. Làm mới danh sách để kiểm tra."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐资料库尚未更新完成，请刷新列表确认结果。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂資料庫尚未更新完成，請重新整理列表確認結果。"
+          }
+        }
+      }
+    },
+    "Updating the music library. Keep Fila open until this finishes." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ تحديث مكتبة الموسيقى. أبقِ Fila مفتوحًا حتى يكتمل التحديث."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Musikmediathek wird aktualisiert. Lass Fila geöffnet, bis der Vorgang abgeschlossen ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizando la biblioteca de música. Mantén Fila abierto hasta que termine."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour de la bibliothèque musicale. Gardez Fila ouvert jusqu’à la fin."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiornamento della libreria musicale. Tieni Fila aperto fino al termine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュージックライブラリを更新しています。完了するまで Fila を開いたままにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 보관함을 업데이트하고 있습니다. 완료될 때까지 Fila를 열어 두세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizando a biblioteca de músicas. Mantenha o Fila aberto até terminar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновление медиатеки. Не закрывайте Fila до завершения."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang cập nhật thư viện nhạc. Giữ Fila mở cho đến khi hoàn tất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新音乐资料库，请保持 Fila 打开，直到完成。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新音樂資料庫，請保持 Fila 開啟，直到完成。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

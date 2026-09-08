@@ -17,6 +17,11 @@
 - (NSDictionary *)resultingDatabasePersistentIDs;
 @end
 
+@protocol MusicArtworkTokenAPI
+- (id)initWithEntity:(id)entity artworkType:(int64_t)artworkType;
+- (NSString *)artworkTokenForSource:(int64_t)source;
+@end
+
 @protocol MusicLibraryAPI
 + (id)sharedLibrary;
 - (NSString *)databasePath;
@@ -49,7 +54,6 @@
 - (BOOL)setValue:(id)value forProperty:(NSString *)property;
 - (void)populateLocationPropertiesWithPath:(NSString *)path;
 - (NSString *)absoluteFilePath;
-- (BOOL)populateArtworkCacheWithArtworkData:(NSData *)data;
 - (id)multiverseIdentifierLibraryOnly:(BOOL)libraryOnly;
 @end
 
@@ -127,6 +131,18 @@ static void OptionalImportValue(id object, NSString *key, id value) {
     if ([object respondsToSelector:NSSelectorFromString(setter)]) {
         [object setValue:value forKey:key];
     }
+}
+
+// The legacy importer registers source 0; newer importers honor our source 500
+// hint. Resolve the token actually registered, rather than assuming that a
+// supported setter implies the service used it.
+static NSNumber *ArtworkSource(id entity, NSString *token, int64_t artworkType) {
+    id<MusicArtworkTokenAPI> tokens = [(id<MusicArtworkTokenAPI>)[NSClassFromString(@"ML3ArtworkTokenSet") alloc]
+                                     initWithEntity:entity artworkType:artworkType];
+    for (NSNumber *source in @[@500, @0]) {
+        if ([[tokens artworkTokenForSource:source.longLongValue] isEqualToString:token]) return source;
+    }
+    return nil;
 }
 
 @implementation NativeMusicLibrary {
@@ -321,10 +337,21 @@ static void OptionalImportValue(id object, NSString *key, id value) {
             || !Signature(class_getInstanceMethod(resultClass, @selector(success)), "B", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(resultClass, @selector(resultingDatabasePersistentIDs)), "@", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(_trackClass, @selector(populateLocationPropertiesWithPath:)), "v", @[@"@", @":", @"@"], error)
-            || (metadata[@"Lyrics"] && !Signature(class_getInstanceMethod(_trackClass, @selector(setValue:forProperty:)), "B", @[@"@", @":", @"@", @"@"], error))
+            || !Signature(class_getInstanceMethod(_trackClass, @selector(setValue:forProperty:)), "B", @[@"@", @":", @"@", @"@"], error)
             || !Signature(class_getInstanceMethod(_trackClass, @selector(absoluteFilePath)), "@", @[@"@", @":"], error)
-            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod(_trackClass, @selector(populateArtworkCacheWithArtworkData:)), "B", @[@"@", @":", @"@"], error))
+            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod(NSClassFromString(@"ML3ArtworkTokenSet"), @selector(initWithEntity:artworkType:)), "@", @[@"@", @":", @"@", @"q"], error))
+            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod(NSClassFromString(@"ML3ArtworkTokenSet"), @selector(artworkTokenForSource:)), "@", @[@"@", @":", @"q"], error))
+            || (metadata[@"Artwork"] && !Signature(class_getClassMethod(NSClassFromString(@"ML3Album"), @selector(newWithPersistentID:inLibrary:)), "@", @[@"@", @":", @"q", @"@"], error))
             || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod([_library class], @selector(importOriginalArtworkFromImageData:withArtworkToken:artworkType:sourceType:mediaType:)), "B", @[@"@", @":", @"@", @"@", @"q", @"q", @"I"], error))) return nil;
+
+        NSString *__unsafe_unretained *albumProperty = metadata[@"Artwork"]
+            ? (NSString *__unsafe_unretained *)dlsym(RTLD_DEFAULT, "ML3TrackPropertyAlbumPersistentID") : NULL;
+        if (metadata[@"Artwork"] && !albumProperty) { FailedStep(error, 1, @"album property"); return nil; }
+        NSString *__unsafe_unretained *membershipProperty =
+            (NSString *__unsafe_unretained *)dlsym(RTLD_DEFAULT, "ML3TrackPropertyIsInMyLibrary");
+        NSString *__unsafe_unretained *dateAddedProperty =
+            (NSString *__unsafe_unretained *)dlsym(RTLD_DEFAULT, "ML3TrackPropertyDateAdded");
+        if (!membershipProperty || !dateAddedProperty) { FailedStep(error, 1, @"library membership properties"); return nil; }
 
         id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
             @"operationCount": @1,
@@ -344,8 +371,8 @@ static void OptionalImportValue(id object, NSString *key, id value) {
             @"DiscCount": @"numDiscs", @"Compilation": @"compilation"
         };
         for (NSString *key in albumFields) if (metadata[key]) albumValues[albumFields[key]] = metadata[key];
-        // The native original-artwork helper resolves artwork type 1/source 500.
-        // Give both entities the same unique token before populating its cache.
+        // Give both entities the same unique token; resolve the source chosen
+        // by the importer before publishing the original artwork.
         NSString *artworkToken = metadata[@"Artwork"] ? NSUUID.UUID.UUIDString : nil;
         if (artworkToken) albumValues[@"artworkId"] = artworkToken;
         id album = ImportObject(@"MIPAlbum", albumValues);
@@ -415,15 +442,45 @@ static void OptionalImportValue(id object, NSString *key, id value) {
             FailedStep(error, 3, @"verify local audio location");
             return nil;
         }
-        if (metadata[@"Artwork"] && ![track populateArtworkCacheWithArtworkData:metadata[@"Artwork"]]) {
-            FailedStep(error, 3, @"import cover artwork");
+        if (artworkToken) {
+            // populateArtworkCacheWithArtworkData: only looks up source 500,
+            // even on iOS 18 where the client importer registers source 0.
+            NSNumber *source = ArtworkSource(track, artworkToken, 1);
+            if (!source) { FailedStep(error, 3, @"resolve cover artwork token"); return nil; }
+            if (![(id<MusicLibraryAPI>)_library importOriginalArtworkFromImageData:metadata[@"Artwork"]
+                withArtworkToken:artworkToken artworkType:1 sourceType:source.longLongValue mediaType:1]) {
+                FailedStep(error, 3, @"import cover artwork");
+                return nil;
+            }
+            int64_t albumID = [[track valueForProperty:*albumProperty] longLongValue];
+            id album = albumID ? [(Class<MusicTrackAPI>)NSClassFromString(@"ML3Album") newWithPersistentID:albumID inLibrary:_library] : nil;
+            NSNumber *albumSource = albumID ? ArtworkSource(album, artworkToken, 6) : nil;
+            // Older importers only register track artwork; albums use their
+            // representative track. Cache a separate album image only when
+            // the importer actually attached our token to that album.
+            if (albumSource && ![(id<MusicLibraryAPI>)_library importOriginalArtworkFromImageData:metadata[@"Artwork"]
+                withArtworkToken:artworkToken artworkType:6 sourceType:albumSource.longLongValue mediaType:1]) {
+                FailedStep(error, 3, @"import album artwork");
+                return nil;
+            }
+        }
+        // Older client importers accept isInUsersLibrary but leave membership
+        // false. Publish the complete local song through native property writes,
+        // including the date used by Music's Recently Added view.
+        if (![[track valueForProperty:*dateAddedProperty] doubleValue]
+            && ![track setValue:@(NSDate.timeIntervalSinceReferenceDate) forProperty:*dateAddedProperty]) {
+            FailedStep(error, 3, @"save date added");
             return nil;
         }
-        // MIPAlbum registers album artwork as type 6, independently of the
-        // track's type 1 entry. Both must have an original image in the cache.
-        if (artworkToken && ![(id<MusicLibraryAPI>)_library importOriginalArtworkFromImageData:metadata[@"Artwork"]
-            withArtworkToken:artworkToken artworkType:6 sourceType:500 mediaType:1]) {
-            FailedStep(error, 3, @"import album artwork");
+        if (![[track valueForProperty:*membershipProperty] boolValue]
+            && ![track setValue:@YES forProperty:*membershipProperty]) {
+            FailedStep(error, 3, @"add to music library");
+            return nil;
+        }
+        id<MusicTrackAPI> saved = [self track:identifier.longLongValue error:error];
+        if (!saved || ![[saved valueForProperty:*membershipProperty] boolValue]
+            || [[saved valueForProperty:*dateAddedProperty] doubleValue] <= 0) {
+            FailedStep(error, 3, @"verify music library membership");
             return nil;
         }
         [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];

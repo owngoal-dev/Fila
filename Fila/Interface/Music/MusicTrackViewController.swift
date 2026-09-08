@@ -41,6 +41,7 @@ final class MusicTrackViewController: UITableViewController {
             do {
                 let result = try await MusicLibraryEditor.shared.details(id: track.id)
                 guard let self, !Task.isCancelled else { return }
+                guard details?.values != result.values || details?.editableFields != result.editableFields else { return }
                 details = result
                 tableView.backgroundView = nil
                 tableView.reloadWithAnimation()
@@ -62,8 +63,7 @@ final class MusicTrackViewController: UITableViewController {
 
     override func tableView(_: UITableView, titleForFooterInSection _: Int) -> String? {
         guard details != nil else { return nil }
-        return isSaving ? String(localized: "Saving…")
-            : String(localized: "Tap a field with an arrow to edit it.")
+        return String(localized: "Tap a field with an arrow to edit it.")
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -104,12 +104,13 @@ final class MusicTrackViewController: UITableViewController {
         guard !isSaving else { return }
         load?.cancel()
         isSaving = true
-        tableView.reloadWithAnimation()
+        let progress = AlertProgressIndicatorViewController(
+            title: String.LocalizationValue("Saving…"),
+            message: String.LocalizationValue("Updating the music library. Keep Fila open until this finishes.")
+        )
+        present(progress, animated: true)
         Task { [self] in
-            defer {
-                isSaving = false
-                tableView.reloadWithAnimation()
-            }
+            var failure: Error?
             do {
                 details = try await MusicLibraryEditor.shared.save(
                     id: track.id,
@@ -119,19 +120,15 @@ final class MusicTrackViewController: UITableViewController {
                 )
                 let savedTitle = details?.values[.title] ?? ""
                 title = savedTitle.isEmpty ? String(localized: "Song Details") : savedTitle
-                Toast.show(String(localized: "Saved"))
-            } catch {
-                let alert = AlertViewController(
-                    title: String(localized: "Unable to Save"),
-                    message: error.localizedDescription
-                ) { context in
-                    context.allowSimpleDispose()
-                    context.addAction(title: String.LocalizationValue("OK")) { context.dispose() }
-                }
-                if viewIfLoaded?.window != nil {
-                    present(alert, animated: true)
+                tableView.reloadData()
+                tableView.layoutIfNeeded()
+            } catch { failure = error }
+            isSaving = false
+            progress.dismiss(animated: true) {
+                if let failure {
+                    FeedbackAlert.show(String(localized: "Unable to Save"), message: failure.localizedDescription)
                 } else {
-                    FeedbackAlert.show(String(localized: "Unable to Save"), message: error.localizedDescription)
+                    Toast.show(String(localized: "Saved"))
                 }
             }
         }
