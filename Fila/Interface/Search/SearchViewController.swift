@@ -404,6 +404,11 @@ extension SearchViewController: UISearchBarDelegate {
 }
 
 extension SearchViewController: UICollectionViewDelegate {
+    func collectionView(_: UICollectionView, willDisplay _: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        guard let hit = dataSource.itemIdentifier(for: indexPath), hit.node.isNavigable else { return }
+        DirectoryPrefetch.shared.prefetch([hit.path])
+    }
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let hit = dataSource.itemIdentifier(for: indexPath) else { return }

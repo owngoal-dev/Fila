@@ -50,6 +50,11 @@ final class AppDetailViewController: UITableViewController {
         tableView.reloadWithAnimation()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DirectoryPrefetch.shared.prefetch(app.locations.map(\.path))
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = app.name
