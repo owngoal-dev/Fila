@@ -52,13 +52,15 @@ extension MusicLibraryEditor {
         }
         let destination = Self.importDirectory + "/" + name
         let center = await session.operations
+        let result = try await center.awaitJob(
+            JobRequest(kind: .copy, sources: [source.path], destination: Self.importDirectory),
+            kind: .copy, subtitle: URL(fileURLWithPath: path).lastPathComponent, feedback: .silent
+        )
+        // A failed copy does not establish ownership of the destination name.
+        // Only a confirmed publication may be cleaned up by this import.
+        guard result.code == .success else { throw result }
         var preserveImportedFile = false
         do {
-            let result = try await center.awaitJob(
-                JobRequest(kind: .copy, sources: [source.path], destination: Self.importDirectory),
-                kind: .copy, subtitle: URL(fileURLWithPath: path).lastPathComponent, feedback: .silent
-            )
-            guard result.code == .success else { throw result }
             try Task.checkCancellation()
             try await session.perform { try await $0.setAttributes(.newItemDefaults, at: destination) }
             do { _ = try native.importFile(atPath: destination, metadata: metadata) }
