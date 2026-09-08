@@ -413,6 +413,12 @@ final class BrowserViewController: UIViewController {
             guard let self else { return }
             cell.configure(node, presentation: appFolders[node.name])
             cell.showThumbnail(for: path(of: node), node: node, session: session)
+            if !isTrash {
+                cell.showProperties { [weak self] in
+                    guard let self else { return }
+                    FileActions(presenter: self, directory: directory).showProperties(path(of: node))
+                }
+            }
         }
 
         let gridCell = UICollectionView.CellRegistration<BrowserGridCell, FileNode> { [weak self] cell, _, node in

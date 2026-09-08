@@ -37,6 +37,7 @@ for payload in \
     "/Applications/Fila.app/WebUI/app.js" \
     "/Applications/Fila.app/WebUI/app.css" \
     "/Applications/Fila.app/PlugIns/FilaFileProvider.appex/FilaFileProvider" \
+    "/Applications/Fila.app/PlugIns/FilaSaveAction.appex/FilaSaveAction" \
     "/usr/libexec/filad" \
     "/usr/libexec/fila-archive" \
     "/Library/LaunchDaemons/wiki.qaq.filad.plist"

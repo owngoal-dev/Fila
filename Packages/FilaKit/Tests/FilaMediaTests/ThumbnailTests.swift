@@ -1,4 +1,5 @@
 import CoreGraphics
+import FilaFormats
 @testable import FilaMedia
 import Foundation
 import ImageIO
@@ -11,6 +12,36 @@ import UniformTypeIdentifiers
 /// of them would prove nothing about the only thing that can go wrong.
 @Suite("Thumbnails")
 struct ThumbnailTests {
+    @Test("Executable artwork uses content, not filenames or 0777 permissions")
+    func executableArtwork() async throws {
+        try await withScratchAsync { directory in
+            let file = directory.appendingPathComponent("launchd")
+            let service = ThumbnailService()
+            for (index, bytes) in [Data([0xcf, 0xfa, 0xed, 0xfe]), Data([0xca, 0xfe, 0xba, 0xbf]), Data("text".utf8)].enumerated() {
+                try bytes.write(to: file)
+                #expect(chmod(file.path, 0o777) == 0)
+                let found = await service.isMachO(path: file.path, modified: Double(index), byteCount: 4) { try openForReading(file) }
+                #expect(found == (index < 2))
+                let cached = await service.isMachO(path: file.path, modified: Double(index), byteCount: 4) { throw POSIXError(.EACCES) }
+                #expect(cached == found)
+            }
+        }
+    }
+
+    @Test("Image metadata reports dimensions without making a thumbnail")
+    func imageInformation() async throws {
+        try await withScratchAsync { directory in
+            let file = directory.appendingPathComponent("wide.png")
+            try writePNG(width: 900, height: 300, to: file)
+            let descriptor = try openForReading(file)
+            defer { close(descriptor) }
+            let info = try await FileMediaInformation.read(descriptor: descriptor, name: file.lastPathComponent)
+            #expect(info.width == 900)
+            #expect(info.height == 300)
+            #expect(info.duration == nil)
+        }
+    }
+
     @Test("Background thumbnails do not promote a named image into PDF decoding")
     func misleadingPDFName() async throws {
         try await withScratchAsync { directory in

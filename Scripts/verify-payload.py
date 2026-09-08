@@ -77,7 +77,18 @@ def main():
     provider = app / "PlugIns/FilaFileProvider.appex"
     template = "AppGroup.entitlements" if kind == "ipa" else "FilaFileProvider.entitlements"
     binary(provider / "FilaFileProvider", entitlements(template, group), "16.0")
-    for folder, minimum in ((app / "Frameworks", minimum), (provider / "Frameworks", "16.0")):
+    action = app / "PlugIns/FilaSaveAction.appex"
+    template = "AppGroup.entitlements" if kind == "ipa" else "FilaSaveAction.entitlements"
+    binary(action / "FilaSaveAction", entitlements(template, group), minimum)
+    action_info = plistlib.loads((action / "Info.plist").read_bytes())
+    for key in ("CFBundleShortVersionString", "CFBundleVersion", "FilaAppGroupIdentifier", "MinimumOSVersion"):
+        if action_info.get(key) != info.get(key):
+            raise ValueError(f"Save action {key} differs from containing app")
+    if action_info.get("CFBundleIdentifier") != "wiki.qaq.fila.saveaction":
+        raise ValueError("Save action bundle identity is wrong")
+    if action_info.get("NSExtension", {}).get("NSExtensionPointIdentifier") != "com.apple.ui-services":
+        raise ValueError("Save action extension point is wrong")
+    for folder, minimum in ((app / "Frameworks", minimum), (provider / "Frameworks", "16.0"), (action / "Frameworks", minimum)):
         for library in folder.glob("*.dylib"):
             binary(library, {}, minimum)
         for framework in folder.glob("*.framework"):

@@ -1,3 +1,4 @@
+import FilaFileOps
 import FilaClient
 import FilaProtocol
 import Foundation
@@ -121,6 +122,11 @@ extension SidebarLocation {
     /// container, which is the one place every backend can write, so it is
     /// made here rather than waiting for the first share to make it.
     static var inboxDirectory: String {
+        if let identifier = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
+           let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier),
+           let inbox = try? SharedInbox.directory(in: group) {
+            return inbox.path
+        }
         let inbox = NSHomeDirectory() + "/Documents/Inbox"
         try? FileManager.default.createDirectory(atPath: inbox, withIntermediateDirectories: true)
         return inbox

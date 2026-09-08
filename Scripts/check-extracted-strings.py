@@ -31,6 +31,7 @@ import sys
 # Each target that ships user-facing strings, and where its two halves live.
 TARGETS = [
     ("Fila", "Fila.build", "Fila/Resources/Localizable.xcstrings"),
+    ("FilaSaveAction", "Fila.build", "FilaSaveAction/Localizable.xcstrings"),
     (
         "FilaFormats",
         "FilaKit.build",

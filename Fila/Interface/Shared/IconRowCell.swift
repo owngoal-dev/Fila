@@ -33,6 +33,7 @@ final class IconRowCell: UICollectionViewListCell {
     /// Identifies the artwork load in flight, so a cell reused mid-fetch never
     /// ends up showing the previous row's app.
     private var iconToken = UUID()
+    private var thumbnailTask: Task<Void, Never>?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,6 +44,14 @@ final class IconRowCell: UICollectionViewListCell {
     required init?(coder _: NSCoder) {
         fatalError("not supported")
     }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        thumbnailTask?.cancel()
+        iconToken = UUID()
+    }
+
+    deinit { thumbnailTask?.cancel() }
 
     // MARK: - Hierarchy
 
@@ -187,9 +196,24 @@ final class IconRowCell: UICollectionViewListCell {
         linkBadge.isHidden = true
         appBadge.isHidden = true
         favoriteBadge.isHidden = true
+        thumbnailTask?.cancel()
         iconToken = UUID()
         accessories = [.disclosureIndicator()]
         accessibilityLabel = [name, detail].compactMap(\.self).joined(separator: ", ")
+    }
+
+    func showProperties(action: @escaping () -> Void) {
+        let button = UIButton(type: .infoLight).then {
+            $0.accessibilityLabel = String(localized: "Properties")
+            $0.addAction(UIAction { _ in action() }, for: .touchUpInside)
+        }
+        button.snp.makeConstraints { $0.size.equalTo(FilaUI.minimumTapTarget) }
+        let info = UICellAccessory.customView(configuration: .init(
+            customView: button,
+            placement: .trailing(displayed: .whenNotEditing, at: { _ in 0 }),
+            reservedLayoutWidth: .custom(FilaUI.minimumTapTarget)
+        ))
+        accessories.insert(info, at: 1)
     }
 
     func showFavoriteBadge() {
@@ -223,11 +247,18 @@ final class IconRowCell: UICollectionViewListCell {
     /// A picture of the file itself where one can be made cheaply — see
     /// `ThumbnailCache`. Lands only if the cell still shows this row.
     func showThumbnail(for path: String, node: FileNode, session: FileSession) {
-        guard node.kind == .regular, FilePresentation.format(of: node) == .image else { return }
+        guard node.kind == .regular || node.link?.resolvedKind == .regular else { return }
         let token = UUID()
         iconToken = token
-        Task { [weak self] in
-            guard let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session),
+        thumbnailTask?.cancel()
+        thumbnailTask = Task { [weak self] in
+            if let executable = await FilePresentation.executableImage(for: path, node: node, session: session) {
+                guard let self, iconToken == token else { return }
+                iconView.image = executable
+                return
+            }
+            guard node.kind == .regular, FilePresentation.format(of: node) == .image,
+                  let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session),
                   let self, iconToken == token else { return }
             iconView.image = thumbnail
             iconView.contentMode = .scaleAspectFill

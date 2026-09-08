@@ -100,6 +100,7 @@ final class SearchViewController: UIViewController {
                 image: FilePresentation.image(for: hit.node),
                 highlight: self?.query
             )
+            cell.showThumbnail(for: hit.path, node: hit.node, session: .shared)
             cell.accessories = hit.node.isNavigable ? [.disclosureIndicator()] : []
         }
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, hit in

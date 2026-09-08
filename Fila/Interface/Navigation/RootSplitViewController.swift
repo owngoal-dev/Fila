@@ -89,6 +89,7 @@ final class RootSplitViewController: UISplitViewController {
     /// in late on the arriving one. Every screen keeps its own pair, ready
     /// before the transition starts.
     private let sidebarToggles = NSMapTable<UIViewController, UIBarButtonItem>.weakToStrongObjects()
+    private let tabButtons = NSMapTable<UIViewController, UIBarButtonItem>.weakToStrongObjects()
     private let navigationBacks = NSMapTable<UIViewController, UIBarButtonItem>.weakToStrongObjects()
     private lazy var columnToggle = makeSidebarToggle()
 
@@ -129,6 +130,12 @@ final class RootSplitViewController: UISplitViewController {
 
     /// A standard Back item preserves the guarded history menu while allowing
     /// the sidebar toggle to move between columns independently.
+    private func makeTabButton() -> UIBarButtonItem {
+        UIBarButtonItem(image: UIImage(systemName: "square.on.square"), primaryAction: UIAction { [weak self] _ in
+            self?.content.showTabSwitcher()
+        }).then { $0.accessibilityLabel = String(localized: "Tabs") }
+    }
+
     private func makeNavigationBack() -> UIBarButtonItem {
         UIBarButtonItem(
             image: UIImage(systemName: "chevron.backward"),
@@ -169,8 +176,9 @@ final class RootSplitViewController: UISplitViewController {
         let item = controller.navigationItem
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
+        let tabs = self.item(in: tabButtons, for: controller, make: makeTabButton)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
-        var buttons = (leadingItems ?? item.leftBarButtonItems ?? []).filter { $0 !== toggle && $0 !== back }
+        var buttons = (leadingItems ?? item.leftBarButtonItems ?? []).filter { $0 !== toggle && $0 !== back && $0 !== tabs }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
         // exit intact, rather than creating another route around its save guard.
         if !controller.isEditing, !item.hidesBackButton {
@@ -189,6 +197,9 @@ final class RootSplitViewController: UISplitViewController {
             {
                 back.menu = nil
                 buttons.insert(back, at: 0)
+            }
+            if controller is AppListViewController || controller is MusicLibraryViewController {
+                buttons.insert(tabs, at: 0)
             }
             // Custom leading items suppress UIKit's default Back control.
             // Keep its native edge transition, subject to editor guards.

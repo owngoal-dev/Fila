@@ -7,7 +7,7 @@
 - (id)initWithConfiguration:(id)configuration delegate:(id)delegate;
 - (BOOL)start;
 - (BOOL)finish;
-- (void)cancel;
+- (BOOL)cancel;
 - (id)addItemsReturningResult:(NSArray *)items;
 @end
 
@@ -40,7 +40,8 @@
 + (BOOL)trackWithPersistentID:(int64_t)trackID existsInLibrary:(id)library;
 + (NSSet<NSString *> *)unsettableProperties;
 - (id)valueForProperty:(NSString *)property;
-- (BOOL)populateLocationPropertiesWithPath:(NSString *)path;
+- (void)populateLocationPropertiesWithPath:(NSString *)path;
+- (NSString *)absoluteFilePath;
 @end
 
 @protocol MusicEditAPI
@@ -264,12 +265,13 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         if (!Signature(class_getInstanceMethod(sessionClass, @selector(initWithConfiguration:delegate:)), "@", @[@"@", @":", @"@", @"@"], error)
             || !Signature(class_getInstanceMethod(sessionClass, @selector(start)), "B", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(sessionClass, @selector(finish)), "B", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(sessionClass, @selector(cancel)), "v", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(cancel)), "B", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(sessionClass, @selector(addItemsReturningResult:)), "@", @[@"@", @":", @"@"], error)
             || !Signature(class_getInstanceMethod(itemClass, @selector(initWithMultiverseIdentifier:mediaItem:)), "@", @[@"@", @":", @"@", @"@"], error)
             || !Signature(class_getInstanceMethod(resultClass, @selector(success)), "B", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(resultClass, @selector(resultingDatabasePersistentIDs)), "@", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(_trackClass, @selector(populateLocationPropertiesWithPath:)), "B", @[@"@", @":", @"@"], error)) return nil;
+            || !Signature(class_getInstanceMethod(_trackClass, @selector(populateLocationPropertiesWithPath:)), "v", @[@"@", @":", @"@"], error)
+            || !Signature(class_getInstanceMethod(_trackClass, @selector(absoluteFilePath)), "@", @[@"@", @":"], error)) return nil;
 
         id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
             @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath], @"shouldLibraryAdd": @YES
@@ -277,7 +279,11 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         id artist = ImportObject(@"MIPArtist", @{@"name": metadata[@"Artist"] ?: @""});
         id albumArtist = ImportObject(@"MIPArtist", @{@"name": metadata[@"AlbumArtist"] ?: metadata[@"Artist"] ?: @""});
         id album = ImportObject(@"MIPAlbum", @{@"name": metadata[@"Album"] ?: @"", @"artist": albumArtist});
-        id song = ImportObject(@"MIPSong", @{@"artist": artist, @"album": album});
+        NSMutableDictionary *songValues = [@{@"artist": artist, @"album": album} mutableCopy];
+        if (metadata[@"Lyrics"]) songValues[@"lyrics"] = metadata[@"Lyrics"];
+        if (metadata[@"Composer"]) songValues[@"composer"] = ImportObject(@"MIPArtist", @{@"name": metadata[@"Composer"]});
+        if (metadata[@"Genre"]) songValues[@"genre"] = ImportObject(@"MIPGenre", @{@"name": metadata[@"Genre"]});
+        id song = ImportObject(@"MIPSong", songValues);
         id media = ImportObject(@"MIPMediaItem", @{
             @"title": metadata[@"Title"], @"duration": metadata[@"TotalTime"],
             @"mediaType": @1, @"isInUsersLibrary": @YES, @"song": song
@@ -304,7 +310,13 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         id<MusicTrackAPI> track = [self track:identifier.longLongValue error:error];
         // Let MusicLibrary resolve the asset's base location and file metadata.
         // No private table names or hand-built location identifiers are needed.
-        if (![track populateLocationPropertiesWithPath:path]) { FailedStep(error, 3, @"attach local audio"); return nil; }
+        if (!track) return nil;
+        [track populateLocationPropertiesWithPath:path];
+        NSString *attachedPath = [track absoluteFilePath];
+        if (![attachedPath.stringByResolvingSymlinksInPath isEqualToString:path.stringByResolvingSymlinksInPath]) {
+            FailedStep(error, 3, @"verify local audio location");
+            return nil;
+        }
         [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
         return identifier;
     } @catch (NSException *exception) {

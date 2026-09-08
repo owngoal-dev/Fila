@@ -81,6 +81,10 @@ enum DescriptorImage {
     /// provider dies, and a provider outliving the caller's `close(2)` would be
     /// reading whatever file inherited the number — a wrong picture rather than
     /// a failure, which is the worse of the two.
+    static func provider(descriptor: Int32, byteCount: Int64) -> CGDataProvider? {
+        provider(descriptor: descriptor, byteCount: byteCount, reads: ReadLog())
+    }
+
     private static func provider(descriptor: Int32, byteCount: Int64, reads: ReadLog) -> CGDataProvider? {
         let copy = dup(descriptor)
         guard copy >= 0, byteCount > 0 else {

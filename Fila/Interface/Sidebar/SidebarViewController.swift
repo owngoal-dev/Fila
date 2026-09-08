@@ -36,7 +36,7 @@ final class SidebarViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
     /// Only the current eight rows' presentation; thumbnail reuse stays in ThumbnailCache.
-    private var recentItems: [String: (image: UIImage?, name: String?)] = [:]
+    private var recentItems: [String: (image: UIImage?, name: String?, isDirectory: Bool)] = [:]
     private var recentsDecoratedWithApplications = SystemCapabilities.showsApplications
     private var recentImageTask: Task<Void, Never>?
     private var rebuildGeneration = UUID()
@@ -176,7 +176,7 @@ final class SidebarViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        loadRecentImages()
+        loadRecentImages(refresh: true)
         probeTrash()
         loadMounts()
     }
@@ -333,9 +333,9 @@ final class SidebarViewController: UIViewController {
         recentItems = recentItems.filter { recents.contains($0.key) || preferences.favorites.contains($0.key) }
         let sections: [(Section, [Item])] = [
             (.places, presets),
-            (.favorites, preferences.favorites.map(Item.favorite)),
+            (.favorites, preferences.favorites.filter { recentItems[$0]?.isDirectory == true }.map(Item.favorite)),
             (.mounts, mounts.map { Item.mount($0.path) }),
-            (.recents, recents.map(Item.recent)),
+            (.recents, recents.filter { recentItems[$0]?.isDirectory == true }.map(Item.recent)),
         ].filter { !$0.1.isEmpty }
         let previous = dataSource.snapshot()
         let collapsed = Set(previous.sectionIdentifiers.filter { section in
@@ -420,21 +420,18 @@ final class SidebarViewController: UIViewController {
         }
     }
 
-    private func loadRecentImages() {
+    private func loadRecentImages(refresh: Bool = false) {
         recentImageTask?.cancel()
         guard !isApplyingSnapshot, viewIfLoaded?.window != nil else { return }
-        let paths = dataSource.snapshot().itemIdentifiers.compactMap { item -> String? in
-            switch item {
-            case let .recent(path), let .favorite(path):
-                recentItems[path] == nil ? path : nil
-            default: nil
-            }
-        }
+        let preferences = AppPreferences.shared
+        let paths = (preferences.favorites + Array(preferences.recents.prefix(8)))
+            .filter { refresh || recentItems[$0] == nil }
         guard !paths.isEmpty else { return }
         recentImageTask = Task { [weak self, session] in
             let apps = await InstalledAppCatalog.load(session: session)
             // One bounded sequence, never one task per cell or per scroll event.
             var loaded = Set<String>()
+            var didLoad = false
             for path in paths where loaded.insert(path).inserted {
                 guard !Task.isCancelled else { return }
                 guard let details = try? await session.perform(
@@ -447,23 +444,13 @@ final class SidebarViewController: UIViewController {
                 var image = FilePresentation.image(for: node)
                 if let identifier = presentation?.applicationIdentifier {
                     image = await AppFolderDisplay.icon(for: identifier)
-                } else if node.kind == .regular, FilePresentation.format(of: node) == .image,
-                          let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session)
-                {
-                    image = thumbnail
                 }
                 guard let self, !Task.isCancelled else { return }
-                let items = [Item.recent(path), Item.favorite(path)]
-                guard items.contains(where: self.dataSource.snapshot().itemIdentifiers.contains) else { continue }
-                self.recentItems[path] = (image, presentation?.name)
-                // Keep section outlines intact. Offscreen cells pick up the
-                // cached artwork when configured; refresh matching visible rows.
-                for item in items {
-                    guard let index = self.dataSource.indexPath(for: item),
-                          let cell = self.collectionView.cellForItem(at: index) as? IconRowCell else { continue }
-                    self.configure(cell, for: item)
-                }
+                self.recentItems[path] = (image, presentation?.name, node.isNavigable)
+                didLoad = true
             }
+            guard didLoad, !Task.isCancelled else { return }
+            self?.rebuild()
         }
     }
 
@@ -476,8 +463,7 @@ final class SidebarViewController: UIViewController {
                 if details.node.isNavigable {
                     shell.open(path)
                 } else {
-                    AppPreferences.shared.noteVisit(path, isDirectory: false)
-                    await shell.openFile(details, session: session)
+                    AppPreferences.shared.forgetRecent(path)
                 }
             } catch let failure as FilaFailure {
                 guard let self, !Task.isCancelled, self.viewIfLoaded?.window != nil,

@@ -47,6 +47,7 @@ public actor ThumbnailService {
     /// The files that produced nothing, so a folder of unsupported video does
     /// not re-open and re-decode every one of them on every scroll pass.
     private let failures = NSCache<NSString, NSNull>()
+    private let executableIcons = NSCache<NSString, NSNumber>()
 
     /// A fresh service, with its own cache. The app wants `shared`; a second one
     /// exists so a test can start from an empty cache.
@@ -56,6 +57,30 @@ public actor ThumbnailService {
         images.countLimit = 256
         images.totalCostLimit = 32 * 1024 * 1024
         failures.countLimit = 256
+        executableIcons.countLimit = 512
+    }
+
+    /// Identify Mach-O artwork without decoding content or trusting execute bits.
+    /// Uses the thumbnail queue so scrolling cannot exhaust descriptors.
+    public func isMachO(path: String, modified: Double, byteCount: Int64,
+                        open: @escaping @Sendable () async throws -> Int32) async -> Bool {
+        guard byteCount >= 4, !Task.isCancelled else { return false }
+        let key = "\(path)@\(modified.bitPattern)@\(byteCount)" as NSString
+        if let hit = executableIcons.object(forKey: key) { return hit.boolValue }
+        await acquire()
+        defer { release() }
+        guard !Task.isCancelled else { return false }
+        if let hit = executableIcons.object(forKey: key) { return hit.boolValue }
+        guard let descriptor = try? await open(), descriptor >= 0 else { return false }
+        defer { close(descriptor) }
+        var status = stat()
+        guard fstat(descriptor, &status) == 0, status.st_mode & S_IFMT == S_IFREG else { return false }
+        var head = Data(count: 4)
+        let count = head.withUnsafeMutableBytes { pread(descriptor, $0.baseAddress, 4, 0) }
+        guard count == 4 else { return false }
+        let result = FileFormat.detect(head: head, name: "") == .machO
+        executableIcons.setObject(NSNumber(value: result), forKey: key)
+        return result
     }
 
     /// A thumbnail for the file at `path`, or nil — which means "draw the icon"

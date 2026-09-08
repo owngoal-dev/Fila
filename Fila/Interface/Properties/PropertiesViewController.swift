@@ -20,7 +20,7 @@ import UIKit
 /// silently re-write the owner every time somebody flipped a permission bit.
 final class PropertiesViewController: UIViewController {
     private enum Section: Hashable {
-        case item, size, dates, permissions, flags, link, extendedAttributes, identity, advanced
+        case item, size, dates, permissions, flags, link, extendedAttributes, identity, advanced, media, checksums
 
         var title: String? {
             switch self {
@@ -33,6 +33,8 @@ final class PropertiesViewController: UIViewController {
             case .extendedAttributes: String(localized: "Extended Attributes")
             case .identity: String(localized: "Identity")
             case .advanced: nil
+            case .media: String(localized: "Media")
+            case .checksums: String(localized: "Checksums")
             }
         }
     }
@@ -41,7 +43,7 @@ final class PropertiesViewController: UIViewController {
     /// row is a snapshot identifier now, and a closure is neither `Hashable` nor
     /// something two runs of `rebuild` can agree about.
     private enum Action: Hashable {
-        case mode, owner, group, flags, advanced
+        case mode, owner, group, flags, advanced, calculateChecksums, cancelChecksums
         case extendedAttribute(String)
     }
 
@@ -73,6 +75,10 @@ final class PropertiesViewController: UIViewController {
     private var didChange: ((FileDetails) -> Void)?
     private var refreshTask: Task<Void, Never>?
     private var previewTask: Task<Void, Never>?
+    private var checksumTask: Task<FileChecksums, Error>?
+    private var checksums: FileChecksums?
+    private var mediaTask: Task<Void, Never>?
+    private var mediaInformation: FileMediaInformation?
     private var previewImage: UIImage?
     private var previewMaximumSide: CGFloat = 192
     /// Directories only. Owner and mode changes across a tree are the one bulk
@@ -124,9 +130,16 @@ final class PropertiesViewController: UIViewController {
             do {
                 let updated = try await link.details(of: path)
                 guard !Task.isCancelled else { return }
+                if details.node != updated.node {
+                    checksumTask?.cancel()
+                    checksumTask = nil
+                    checksums = nil
+                    mediaInformation = nil
+                    previewImage = nil
+                }
                 details = updated
                 rebuild()
-                if !showsAdvanced { loadPreview() }
+                if !showsAdvanced { loadPreview(); loadMediaInformation() }
             } catch {
                 guard !Task.isCancelled else { return }
                 FeedbackAlert.show(String(localized: "Unable to Read This File"), message: FailureMessage.text(for: error))
@@ -134,7 +147,16 @@ final class PropertiesViewController: UIViewController {
         }
     }
 
-    deinit { previewTask?.cancel(); refreshTask?.cancel() }
+    deinit { previewTask?.cancel(); refreshTask?.cancel(); checksumTask?.cancel(); mediaTask?.cancel() }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        if isBeingDismissed || navigationController?.isBeingDismissed == true || isMovingFromParent {
+            checksumTask?.cancel()
+            mediaTask?.cancel()
+            previewTask?.cancel()
+        }
+    }
 
     /// The existing media service consumes and closes the backend descriptor.
     /// A stale or cancelled preview never updates a reused/closed page.
@@ -145,7 +167,9 @@ final class PropertiesViewController: UIViewController {
         let link = link
         previewTask = Task { [weak self] in
             let image: UIImage?
-            if node.kind == .regular {
+            if let executable = await FilePresentation.executableImage(for: path, node: node, session: .shared, large: true) {
+                image = executable
+            } else if node.kind == .regular {
                 let rendered = await ThumbnailService.shared.thumbnail(
                     path: path,
                     modified: node.modified,
@@ -244,10 +268,10 @@ final class PropertiesViewController: UIViewController {
                 var content = UIListContentConfiguration.valueCell()
                 content.text = label
                 content.secondaryText = value
-                content.secondaryTextProperties.numberOfLines = 0
+                content.secondaryTextProperties.numberOfLines = 1
                 if isMonospaced {
                     content.secondaryTextProperties.font = FilaUI.Font.monospacedValue
-                    content.secondaryTextProperties.lineBreakMode = .byCharWrapping
+                    content.secondaryTextProperties.lineBreakMode = .byTruncatingMiddle
                 }
                 cell.contentConfiguration = content
 
@@ -304,6 +328,38 @@ final class PropertiesViewController: UIViewController {
                 (.permissions, permissionRows()),
                 (.dates, dateRows()),
             ]
+            if details.node.kind == .regular {
+                if let mediaInformation {
+                    var rows: [Row] = []
+                    if let width = mediaInformation.width, let height = mediaInformation.height, width > 0, height > 0 {
+                        rows.append(.fact(label: String(localized: "Resolution"), value: "\(width.formatted(.number.precision(.fractionLength(0)))) × \(height.formatted(.number.precision(.fractionLength(0))))", isMonospaced: false))
+                    }
+                    if let duration = mediaInformation.duration {
+                        let formatter = DateComponentsFormatter()
+                        formatter.allowedUnits = [.hour, .minute, .second]
+                        formatter.unitsStyle = .positional
+                        formatter.zeroFormattingBehavior = .pad
+                        rows.append(.fact(label: String(localized: "Duration"), value: formatter.string(from: duration) ?? "", isMonospaced: false))
+                    }
+                    if let rate = mediaInformation.frameRate {
+                        rows.append(.fact(label: String(localized: "Frame Rate"), value: String(localized: "\(rate.formatted(.number.precision(.fractionLength(0...3)))) fps"), isMonospaced: false))
+                    }
+                    if !rows.isEmpty { summary.append((.media, rows)) }
+                }
+                if let checksums {
+                    summary.append((.checksums, [
+                        .fact(label: "MD5", value: checksums.md5, isMonospaced: true),
+                        .fact(label: "SHA-1", value: checksums.sha1, isMonospaced: true),
+                        .fact(label: "SHA-256", value: checksums.sha256, isMonospaced: true),
+                    ]))
+                } else {
+                    summary.append((.checksums, [.disclosure(
+                        label: checksumTask == nil ? String(localized: "Calculate Checksums") : String(localized: "Cancel Calculation"),
+                        value: checksumTask == nil ? "MD5, SHA-1, SHA-256" : String(localized: "Calculating…"),
+                        action: checksumTask == nil ? .calculateChecksums : .cancelChecksums
+                    )]))
+                }
+            }
             if details.node.link != nil {
                 summary.append((.link, linkRows()))
             }
@@ -511,6 +567,8 @@ final class PropertiesViewController: UIViewController {
 
     private func open(_ action: Action) {
         switch action {
+        case .calculateChecksums: calculateChecksums()
+        case .cancelChecksums: checksumTask?.cancel()
         case .mode: editMode()
         case .owner: editOwner()
         case .group: editGroup()
@@ -530,6 +588,57 @@ final class PropertiesViewController: UIViewController {
             }
             navigationController?.pushViewController(advanced, animated: true)
         case let .extendedAttribute(name): showAttribute(named: name)
+        }
+    }
+
+    private func calculateChecksums() {
+        guard checksumTask == nil else { return }
+        let path = details.path
+        let link = link
+        let task = Task.detached(priority: .utility) {
+            let descriptor = try await link.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
+            defer { close(descriptor) }
+            return try FileChecksums.read(descriptor: descriptor)
+        }
+        checksumTask = task
+        rebuild()
+        Task { [weak self] in
+            do {
+                let result = try await task.value
+                guard !task.isCancelled, let self, checksumTask == task else { return }
+                checksums = result
+            } catch {
+                if !task.isCancelled { self?.report(error) }
+            }
+            guard let self else { return }
+            // A refresh may already have cancelled and discarded this calculation.
+            if checksumTask == task {
+                checksumTask = nil
+                rebuild()
+            }
+        }
+    }
+
+    private func loadMediaInformation() {
+        mediaTask?.cancel()
+        guard details.node.kind == .regular else { return }
+        let format = FilePresentation.format(of: details.node)
+        guard format == .image || format == .audio || format == .video else { return }
+        let path = details.path
+        let name = details.node.name
+        let link = link
+        mediaTask = Task { [weak self] in
+            let worker = Task.detached(priority: .utility) {
+                let descriptor = try await link.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
+                defer { close(descriptor) }
+                return try await FileMediaInformation.read(descriptor: descriptor, name: name)
+            }
+            let result = try? await withTaskCancellationHandler {
+                try await worker.value
+            } onCancel: { worker.cancel() }
+            guard !Task.isCancelled, let self else { return }
+            mediaInformation = result
+            rebuild()
         }
     }
 

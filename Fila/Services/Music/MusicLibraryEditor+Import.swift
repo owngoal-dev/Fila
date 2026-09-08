@@ -43,6 +43,18 @@ extension MusicLibraryEditor {
                 metadata[field] = value
             }
         }
+        for item in try await asset.load(.metadata) {
+            let field: String? = switch item.identifier {
+            case .iTunesMetadataAlbumArtist: "AlbumArtist"
+            case .iTunesMetadataLyrics, .id3MetadataUnsynchronizedLyric: "Lyrics"
+            case .iTunesMetadataComposer: "Composer"
+            case .iTunesMetadataUserGenre: "Genre"
+            default: nil
+            }
+            if let field, let value = try await item.load(.stringValue), !value.isEmpty {
+                metadata[field] = value
+            }
+        }
         // A UUID name makes every import independent of existing songs and of
         // the source filename. The copy job publishes the bytes atomically.
         let name = UUID().uuidString + "." + staged.pathExtension.lowercased()
@@ -75,8 +87,8 @@ extension MusicLibraryEditor {
             }
         } catch {
             if preserveImportedFile { throw error }
-            // No library record refers to this file unless the native call
-            // returned success. Cleanup waits for the backend's final verdict.
+            // The native bridge keeps the copy when a remote commit is uncertain.
+            // Otherwise cleanup waits for the backend's final verdict.
             do {
                 let result = try await center.awaitJob(
                     JobRequest(kind: .delete, sources: [destination]),

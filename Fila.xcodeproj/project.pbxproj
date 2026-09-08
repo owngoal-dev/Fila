@@ -24,7 +24,9 @@
 		FA200000000000000000002C /* FilaTerminal in Frameworks */ = {isa = PBXBuildFile; productRef = FA200000000000000000001C /* FilaTerminal */; };
 		FA200000000000000000002D /* FilaRemote in Frameworks */ = {isa = PBXBuildFile; productRef = FA200000000000000000001D /* FilaRemote */; };
 		FA400000000000000000000B /* FilaFileProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FA4000000000000000000001 /* FilaFileProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FA800000000000000000000B /* FilaSaveAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FA8000000000000000000001 /* FilaSaveAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FA400000000000000000000E /* FilaProvider in Frameworks */ = {isa = PBXBuildFile; productRef = FA400000000000000000000D /* FilaProvider */; };
+		FA800000000000000000000E /* FilaFileOps in Frameworks */ = {isa = PBXBuildFile; productRef = FA800000000000000000000D /* FilaFileOps */; };
 		FA4000000000000000000011 /* FilaProvider in Frameworks */ = {isa = PBXBuildFile; productRef = FA4000000000000000000010 /* FilaProvider */; };
 		FA5000000000000000000003 /* SPIndicator in Frameworks */ = {isa = PBXBuildFile; productRef = FA5000000000000000000002 /* SPIndicator */; };
 		FA7000000000000000000051 /* FilaProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = FA7000000000000000000041 /* FilaProtocol */; };
@@ -47,6 +49,13 @@
 			remoteGlobalIDString = FA4000000000000000000005;
 			remoteInfo = FilaFileProvider;
 		};
+		FA8000000000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA8000000000000000000005;
+			remoteInfo = FilaSaveAction;
+		};
 		FA7000000000000000000020 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FA0000000000000000000001 /* Project object */;
@@ -63,6 +72,7 @@
 			dstSubfolder = PlugIns;
 			files = (
 				FA400000000000000000000B /* FilaFileProvider.appex in Embed Foundation Extensions */,
+				FA800000000000000000000B /* FilaSaveAction.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 		};
@@ -72,6 +82,7 @@
 		FA0000000000000000000044 /* Fila.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fila.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA1000000000000000000001 /* filad */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = filad; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA4000000000000000000001 /* FilaFileProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FilaFileProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA8000000000000000000001 /* FilaSaveAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FilaSaveAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA7000000000000000000001 /* fila-archive */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "fila-archive"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -94,6 +105,11 @@
 		FA4000000000000000000002 /* FilaFileProvider */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FilaFileProvider;
+			sourceTree = "<group>";
+		};
+		FA8000000000000000000002 /* FilaSaveAction */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FilaSaveAction;
 			sourceTree = "<group>";
 		};
 		FA7000000000000000000003 /* FilaArchive */ = {
@@ -138,6 +154,12 @@
 				FA400000000000000000000E /* FilaProvider in Frameworks */,
 			);
 		};
+		FA8000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				FA800000000000000000000E /* FilaFileOps in Frameworks */,
+			);
+		};
 		FA7000000000000000000012 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
@@ -157,6 +179,7 @@
 				FA1000000000000000000003 /* Filad */,
 				FA7000000000000000000003 /* FilaArchive */,
 				FA4000000000000000000002 /* FilaFileProvider */,
+				FA8000000000000000000002 /* FilaSaveAction */,
 				FA0000000000000000000045 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -168,6 +191,7 @@
 				FA1000000000000000000001 /* filad */,
 				FA7000000000000000000001 /* fila-archive */,
 				FA4000000000000000000001 /* FilaFileProvider.appex */,
+				FA8000000000000000000001 /* FilaSaveAction.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -192,6 +216,7 @@
 				FA1000000000000000000021 /* PBXTargetDependency */,
 				FA7000000000000000000021 /* PBXTargetDependency */,
 				FA400000000000000000000A /* PBXTargetDependency */,
+				FA800000000000000000000A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FA0000000000000000000046 /* Fila */,
@@ -259,6 +284,27 @@
 			);
 			productName = FilaFileProvider;
 			productReference = FA4000000000000000000001 /* FilaFileProvider.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		FA8000000000000000000005 /* FilaSaveAction */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FA8000000000000000000006 /* Build configuration list for PBXNativeTarget "FilaSaveAction" */;
+			buildPhases = (
+				FA8000000000000000000003 /* Sources */,
+				FA8000000000000000000004 /* Frameworks */,
+				FA800000000000000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				FA8000000000000000000002 /* FilaSaveAction */,
+			);
+			name = FilaSaveAction;
+			packageProductDependencies = (
+				FA800000000000000000000D /* FilaFileOps */,
+			);
+			productName = FilaSaveAction;
+			productReference = FA8000000000000000000001 /* FilaSaveAction.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		FA7000000000000000000010 /* FilaArchive */ = {
@@ -342,6 +388,7 @@
 				FA1000000000000000000010 /* Filad */,
 				FA7000000000000000000010 /* FilaArchive */,
 				FA4000000000000000000005 /* FilaFileProvider */,
+				FA8000000000000000000005 /* FilaSaveAction */,
 			);
 		};
 /* End PBXProject section */
@@ -353,6 +400,11 @@
 			);
 		};
 		FA400000000000000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FA800000000000000000000F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -399,6 +451,11 @@
 			files = (
 			);
 		};
+		FA8000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 		FA7000000000000000000011 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
@@ -416,6 +473,11 @@
 			isa = PBXTargetDependency;
 			target = FA4000000000000000000005 /* FilaFileProvider */;
 			targetProxy = FA4000000000000000000009 /* PBXContainerItemProxy */;
+		};
+		FA800000000000000000000A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA8000000000000000000005 /* FilaSaveAction */;
+			targetProxy = FA8000000000000000000009 /* PBXContainerItemProxy */;
 		};
 		FA7000000000000000000021 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -682,6 +744,27 @@
 			};
 			name = Debug;
 		};
+		FA8000000000000000000007 /* Debug configuration for PBXNativeTarget "FilaSaveAction" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../../Frameworks", );
+				CODE_SIGN_ENTITLEMENTS = Packaging/AppGroup.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_DEBUG_DYLIB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Packaging/FilaSaveAction-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Save to Fila";
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.saveaction;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		FA4000000000000000000008 /* Release configuration for PBXNativeTarget "FilaFileProvider" */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = FA3000000000000000000001 /* Configuration */;
@@ -695,6 +778,27 @@
 				INFOPLIST_FILE = "Packaging/FilaFileProvider-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Fila;
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.fileprovider;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FA8000000000000000000008 /* Release configuration for PBXNativeTarget "FilaSaveAction" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/../../Frameworks", );
+				CODE_SIGN_ENTITLEMENTS = Packaging/AppGroup.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_DEBUG_DYLIB = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Packaging/FilaSaveAction-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Save to Fila";
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.saveaction;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -768,6 +872,14 @@
 			buildConfigurations = (
 				FA4000000000000000000007 /* Debug configuration for PBXNativeTarget "FilaFileProvider" */,
 				FA4000000000000000000008 /* Release configuration for PBXNativeTarget "FilaFileProvider" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		FA8000000000000000000006 /* Build configuration list for PBXNativeTarget "FilaSaveAction" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FA8000000000000000000007 /* Debug configuration for PBXNativeTarget "FilaSaveAction" */,
+				FA8000000000000000000008 /* Release configuration for PBXNativeTarget "FilaSaveAction" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -906,6 +1018,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FA2000000000000000000001 /* XCLocalSwiftPackageReference "Packages/FilaKit" */;
 			productName = FilaProvider;
+		};
+		FA800000000000000000000D /* FilaFileOps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FA2000000000000000000001 /* XCLocalSwiftPackageReference "Packages/FilaKit" */;
+			productName = FilaFileOps;
 		};
 		FA4000000000000000000010 /* FilaProvider */ = {
 			isa = XCSwiftPackageProductDependency;

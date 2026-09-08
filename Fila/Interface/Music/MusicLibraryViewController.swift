@@ -28,7 +28,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
             ], [
                 UIAction(
                     title: String(localized: "Show Library Folder"),
-                    image: UIImage(systemName: "folder")
+                    image: FilePresentation.image(kind: .directory, name: "iTunes_Control")
                 ) { [weak self] _ in
                     self?.navigationController?.pushViewController(
                         BrowserViewController(directory: "/var/mobile/Media/iTunes_Control"),

@@ -11,6 +11,7 @@ final class BrowserGridCell: UICollectionViewCell {
     /// Identifies the load in flight, so a cell that was reused mid-read does
     /// not end up showing the previous file's thumbnail.
     private var token = UUID()
+    private var thumbnailTask: Task<Void, Never>?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -58,11 +59,20 @@ final class BrowserGridCell: UICollectionViewCell {
         fatalError("not supported")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        thumbnailTask?.cancel()
+        token = UUID()
+    }
+
+    deinit { thumbnailTask?.cancel() }
+
     override var isSelected: Bool {
         didSet { contentView.backgroundColor = isSelected ? .systemFill : nil }
     }
 
     func configure(node: FileNode, path: String, session: FileSession, presentation: AppFolderPresentation? = nil) {
+        thumbnailTask?.cancel()
         let presentation = node.kind == .directory ? presentation : nil
         label.text = presentation.map { [$0.name, $0.detail].compactMap(\.self).joined(separator: "\n") } ?? node.name
         label.textColor = presentation == nil ? .label : .systemBrown
@@ -96,8 +106,14 @@ final class BrowserGridCell: UICollectionViewCell {
                 }
             }
         }
-        guard node.kind == .regular, FilePresentation.format(of: node) == .image else { return }
-        Task { [weak self] in
+        guard node.kind == .regular || node.link?.resolvedKind == .regular else { return }
+        thumbnailTask = Task { [weak self] in
+            if let executable = await FilePresentation.executableImage(for: path, node: node, session: session) {
+                guard let self, self.token == token else { return }
+                image.image = executable
+                return
+            }
+            guard node.kind == .regular, FilePresentation.format(of: node) == .image else { return }
             let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session)
             guard let self, self.token == token, let thumbnail else { return }
             image.image = thumbnail
