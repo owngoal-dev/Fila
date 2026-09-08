@@ -270,8 +270,11 @@ public final class ArchiveJob: @unchecked Sendable {
     }
 
     private func place(
-        _ entry: ArchiveEntry, with placement: Placement, from reader: ArchiveReader,
-        progress: Progress, note: (String) -> Void
+        _ entry: ArchiveEntry,
+        with placement: Placement,
+        from reader: ArchiveReader,
+        progress: Progress,
+        note: (String) -> Void
     ) throws {
         do {
             try placement.place(entry, from: reader) { done, _ in

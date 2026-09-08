@@ -645,7 +645,7 @@ final class OperationCenter: ObservableObject {
         Task { [weak self] in
             guard let self, !self.operations.isEmpty else { return }
             FeedbackAlert.show(
-                String(localized: "Task stopped"),
+                String(localized: "Task Stopped"),
                 message: String(localized: "Fila closed before the task finished. Start it again.")
             )
         }
@@ -777,7 +777,7 @@ extension OperationCenter.Kind {
         case .extract: return String(localized: "Extracted")
         case .rename: return String(localized: "Renamed")
         case .create: return String(localized: "Created")
-        case .attributes: return String(localized: "Attributes changed")
+        case .attributes: return String(localized: "Attributes Changed")
         case .download: return String(localized: "Downloaded")
         }
     }

@@ -2,7 +2,7 @@ Package: @PACKAGE_ID@
 Name: Fila
 Version: @VERSION@
 Architecture: @ARCHITECTURE@
-Description: Root file manager for @FLAVOR@ jailbreaks
+Description: Root file manager for @FLAVOR@ bootstraps
  Browse and edit every file on your device, not just the ones an app is allowed
  to see. Copy, move and rename with progress you can cancel, create and unpack
  zip, 7z, rar and tar archives, edit text with syntax highlighting, read plists,

@@ -267,7 +267,7 @@ final class RootSplitViewController: UISplitViewController {
     func openInNewTab(_ path: String) {
         content.captureCurrentTab()
         guard let tab = BrowserTabStore.shared.open(path) else {
-            FeedbackAlert.show(String(localized: "Too Many Tabs"), message: String(localized: "Opened in this tab instead."))
+            FeedbackAlert.show(String(localized: "Too Many Tabs"), message: String(localized: "This folder opened in the current tab. Close a tab to open a new one."))
             confirmLeavingContent { [weak self] in
                 guard let self else { return }
                 if let browser = self.content.navigation?.topViewController as? BrowserViewController {

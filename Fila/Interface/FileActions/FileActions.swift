@@ -52,8 +52,13 @@ final class FileActions {
     /// Editors provide their existing unsaved-changes boundary. Reading a path or
     /// opening metadata does not leave editing; file-content actions do.
     func menuElements(
-        for path: String, node: FileNode, additional: [UIMenuElement] = [], includesProperties: Bool = true, groupsFileOperations: Bool = false,
-        preview: (() -> Void)? = nil, confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
+        for path: String,
+        node: FileNode,
+        additional: [UIMenuElement] = [],
+        includesProperties: Bool = true,
+        groupsFileOperations: Bool = false,
+        preview: (() -> Void)? = nil,
+        confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
     ) -> [UIMenuElement] {
         if Self.isInTrash(path) { return trashMenuElements(for: path, additional: additional, confirm: confirm) }
         let run: [UIMenuElement] = SystemCapabilities.runsPrograms && Self.canRun(node) ? [UIMenu(
@@ -116,7 +121,9 @@ final class FileActions {
     /// Nothing that opens, copies or renames — the trash is not a folder to
     /// work in, and an item that is wanted goes home first.
     private func trashMenuElements(
-        for path: String, additional: [UIMenuElement], confirm: @escaping (@escaping () -> Void) -> Void
+        for path: String,
+        additional: [UIMenuElement],
+        confirm: @escaping (@escaping () -> Void) -> Void
     ) -> [UIMenuElement] {
         [
             UIMenu(options: .displayInline, children: additional + [
@@ -145,7 +152,7 @@ final class FileActions {
                 if let presenter = activePresenter {
                     let alert = AlertViewController(
                         title: "Cannot Put Back",
-                        message: String(localized: "Fila has no original location for “\(name)”. Move it out of the trash, or delete it permanently.")
+                        message: String(localized: "The original location of “\(name)” was not recorded. It can only be deleted permanently.")
                     ) { context in
                         context.allowSimpleDispose()
                         context.addAction(title: "OK", attribute: .accent) {
@@ -283,7 +290,7 @@ final class FileActions {
     /// while the card is up.
     private func promptInstallApp(_ path: String) {
         guard !Self.appInstallInFlight else {
-            FeedbackAlert.show(String(localized: "App Installation Pending"), message: String(localized: "Wait for the current installation to finish, then try again."))
+            FeedbackAlert.show(String(localized: "Installation in Progress"), message: String(localized: "Wait for the current installation to finish, then try again."))
             return
         }
         Self.appInstallInFlight = true

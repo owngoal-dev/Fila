@@ -440,7 +440,7 @@ final class ArchiveBrowserViewController: UIViewController {
 
     private func promptPassword(_ handler: @escaping (String) -> Void) {
         let alert = AlertInputViewController(
-            title: "Password",
+            title: "Enter Password",
             message: "This archive is encrypted. Enter its password to extract.",
             placeholder: "Password",
             text: "",

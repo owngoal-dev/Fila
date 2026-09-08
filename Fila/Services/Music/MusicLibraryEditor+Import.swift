@@ -25,7 +25,7 @@ extension MusicLibraryEditor {
         }
         let duration = try await asset.load(.duration).seconds
         guard duration.isFinite, duration > 0, duration < Double(Int64.max) / 1000 else {
-            throw error(String(localized: "This audio file has no valid duration."))
+            throw error(String(localized: "This audio file could not be read. Choose another file."))
         }
         var metadata: [String: Any] = [
             "Title": URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent,

@@ -1,172 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Authenticate to run a terminal session as root." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "صادق على هويتك لبدء جلسة طرفية بصلاحيات root."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Authentifiziere dich, um eine Terminalsitzung als root zu starten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Authenticate to run a terminal session as root."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autentícate para iniciar una sesión de terminal como root."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Authentifiez-vous pour lancer une session de terminal en tant que root."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autenticati per avviare una sessione del terminale come root."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "root としてターミナルセッションを開始するには認証してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "root로 터미널 세션을 시작하려면 인증하세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autentique-se para iniciar uma sessão de terminal como root."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пройдите аутентификацию для запуска сеанса терминала от имени root."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Xác thực để bắt đầu phiên dòng lệnh với quyền root."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请认证以 root 身份启动终端会话。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請認證以 root 身分啟動終端機工作階段。"
-          }
-        }
-      }
-    },
-    "Authentication failed." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "فشلت المصادقة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Authentifizierung fehlgeschlagen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Authentication failed."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La autenticación ha fallado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’authentification a échoué."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autenticazione non riuscita."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "認証に失敗しました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "인증에 실패했습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A autenticação falhou."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось пройти аутентификацию."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Xác thực không thành công."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "认证失败。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "認證失敗。"
-          }
-        }
-      }
-    },
     "“%@” could not be read as text. Choose a text file." : {
       "localizations" : {
         "ar" : {
@@ -627,6 +461,7 @@
     },
     "“%@” is not a valid Debian package." : {
       "comment" : "Error shown when Install… is used on a .deb whose archive has no control member. %@ is the file name.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -701,6 +536,9 @@
           }
         }
       }
+    },
+    "“%@” is not a valid Debian package. Choose another file." : {
+
     },
     "“%@” is not a valid name. Enter a name without slashes, and do not use “.” or “..”." : {
       "localizations" : {
@@ -2811,79 +2649,34 @@
         }
       }
     },
-    "A script's first line names the interpreter that runs it, usually /bin/sh or /bin/bash. Your jailbreak keeps its copy elsewhere, so the script fails to start. Fila finds that interpreter where the jailbreak installed it and runs the script with it. Turn this off to start scripts exactly as written." : {
-      "comment" : "Settings section footer explaining the Redirect Script Interpreters toggle.",
+    "A file and a folder have the same name at the destination. Rename one or choose another folder." : {
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يحدد السطر الأول من النص البرمجي المفسّر الذي يشغّله، وهو عادةً ‏/bin/sh‏ أو ‏/bin/bash‏. يحتفظ الجيلبريك بنسخته في مكان آخر، لذا يفشل تشغيل النص البرمجي. يعثر Fila على ذلك المفسّر حيث ثبّته الجيلبريك ويشغّل النص البرمجي به. أوقف هذا الخيار لتشغيل النصوص البرمجية كما هي مكتوبة تمامًا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die erste Zeile eines Skripts nennt den Interpreter, der es ausführt, meist /bin/sh oder /bin/bash. Dein Jailbreak legt seine Kopie woanders ab, deshalb startet das Skript nicht. Fila findet diesen Interpreter dort, wo der Jailbreak ihn installiert hat, und führt das Skript damit aus. Schalte dies aus, um Skripte genau so zu starten, wie sie geschrieben sind."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La primera línea de un script indica el intérprete que lo ejecuta, normalmente /bin/sh o /bin/bash. Tu jailbreak guarda su copia en otro lugar, así que el script no llega a iniciarse. Fila busca ese intérprete donde el jailbreak lo instaló y ejecuta el script con él. Desactiva esta opción para iniciar los scripts exactamente como están escritos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La première ligne d'un script nomme l'interpréteur qui l'exécute, généralement /bin/sh ou /bin/bash. Votre jailbreak range sa copie ailleurs, le script ne démarre donc pas. Fila trouve cet interpréteur là où le jailbreak l'a installé et exécute le script avec. Désactivez cette option pour lancer les scripts exactement tels qu'ils sont écrits."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La prima riga di uno script indica l'interprete che lo esegue, di solito /bin/sh o /bin/bash. Il tuo jailbreak tiene la propria copia altrove, quindi lo script non si avvia. Fila trova quell'interprete dove il jailbreak lo ha installato ed esegue lo script con quello. Disattiva questa opzione per avviare gli script esattamente come sono scritti."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スクリプトの1行目には、それを実行するインタプリタが書かれています。通常は /bin/sh か /bin/bash です。脱獄環境はそのコピーを別の場所に置いているため、スクリプトは起動できません。Fila は脱獄環境がインストールした場所からそのインタプリタを見つけ、それでスクリプトを実行します。書かれたとおりに起動するには、これをオフにしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "스크립트의 첫 줄에는 이를 실행할 인터프리터가 적혀 있으며, 보통 /bin/sh 또는 /bin/bash입니다. 탈옥 환경은 해당 사본을 다른 곳에 두므로 스크립트가 시작되지 않습니다. Fila는 탈옥 환경이 설치한 위치에서 그 인터프리터를 찾아 스크립트를 실행합니다. 적힌 그대로 실행하려면 이 옵션을 끄십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A primeira linha de um script indica o interpretador que o executa, normalmente /bin/sh ou /bin/bash. Seu jailbreak guarda a cópia dele em outro lugar, então o script não inicia. O Fila encontra esse interpretador onde o jailbreak o instalou e executa o script com ele. Desative esta opção para iniciar os scripts exatamente como estão escritos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В первой строке скрипта указан интерпретатор, который его запускает, обычно /bin/sh или /bin/bash. Джейлбрейк хранит свою копию в другом месте, поэтому скрипт не запускается. Fila находит этот интерпретатор там, куда его установил джейлбрейк, и запускает скрипт с ним. Отключите этот параметр, чтобы запускать скрипты в точности так, как они написаны."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dòng đầu tiên của tập lệnh cho biết trình thông dịch chạy nó, thường là /bin/sh hoặc /bin/bash. Bản jailbreak giữ bản sao của nó ở nơi khác, nên tập lệnh không khởi chạy được. Fila tìm trình thông dịch đó ở nơi bản jailbreak đã cài và chạy tập lệnh bằng nó. Tắt tùy chọn này để khởi chạy tập lệnh đúng như đã viết."
-          }
-        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "脚本的第一行会写明运行它的执行器，通常是 /bin/sh 或 /bin/bash。越狱环境把自己的那份放在别处，脚本因此无法启动。Fila 会到越狱环境的安装位置找到该执行器，并用它运行脚本。关闭后将完全按脚本写明的方式启动。"
+            "value" : "目标位置存在同名的文件或文件夹，类型不同，无法替换。请先重命名或选择其他文件夹。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "指令碼的第一行會寫明執行它的直譯器，通常是 /bin/sh 或 /bin/bash。越獄環境把自己的那份放在別處，指令碼因此無法啟動。Fila 會到越獄環境的安裝位置找到該直譯器，並用它執行指令碼。關閉後將完全按指令碼寫明的方式啟動。"
+            "value" : "目標位置存在同名的檔案或檔案夾，類型不同，無法取代。請先重新命名或選擇其他檔案夾。"
+          }
+        }
+      }
+    },
+    "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不能将文件夹拷贝或移动到自身或其子文件夹中。请选择此文件夹以外的位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法將檔案夾拷貝或搬移至自身或其子檔案夾中。請選擇此檔案夾以外的位置。"
           }
         }
       }
@@ -2960,6 +2753,100 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已有相同名稱的鍵。請選擇其他名稱。"
+          }
+        }
+      }
+    },
+    "A script's first line names the interpreter that runs it, usually /bin/sh or /bin/bash. Your jailbreak keeps its copy elsewhere, so the script fails to start. Fila finds that interpreter where the jailbreak installed it and runs the script with it. Turn this off to start scripts exactly as written." : {
+      "comment" : "Settings section footer explaining the Redirect Script Interpreters toggle.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحدد السطر الأول من النص البرمجي المفسّر الذي يشغّله، وهو عادةً ‏/bin/sh‏ أو ‏/bin/bash‏. يحتفظ الجيلبريك بنسخته في مكان آخر، لذا يفشل تشغيل النص البرمجي. يعثر Fila على ذلك المفسّر حيث ثبّته الجيلبريك ويشغّل النص البرمجي به. أوقف هذا الخيار لتشغيل النصوص البرمجية كما هي مكتوبة تمامًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die erste Zeile eines Skripts nennt den Interpreter, der es ausführt, meist /bin/sh oder /bin/bash. Dein Jailbreak legt seine Kopie woanders ab, deshalb startet das Skript nicht. Fila findet diesen Interpreter dort, wo der Jailbreak ihn installiert hat, und führt das Skript damit aus. Schalte dies aus, um Skripte genau so zu starten, wie sie geschrieben sind."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La primera línea de un script indica el intérprete que lo ejecuta, normalmente /bin/sh o /bin/bash. Tu jailbreak guarda su copia en otro lugar, así que el script no llega a iniciarse. Fila busca ese intérprete donde el jailbreak lo instaló y ejecuta el script con él. Desactiva esta opción para iniciar los scripts exactamente como están escritos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La première ligne d'un script nomme l'interpréteur qui l'exécute, généralement /bin/sh ou /bin/bash. Votre jailbreak range sa copie ailleurs, le script ne démarre donc pas. Fila trouve cet interpréteur là où le jailbreak l'a installé et exécute le script avec. Désactivez cette option pour lancer les scripts exactement tels qu'ils sont écrits."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La prima riga di uno script indica l'interprete che lo esegue, di solito /bin/sh o /bin/bash. Il tuo jailbreak tiene la propria copia altrove, quindi lo script non si avvia. Fila trova quell'interprete dove il jailbreak lo ha installato ed esegue lo script con quello. Disattiva questa opzione per avviare gli script esattamente come sono scritti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリプトの1行目には、それを実行するインタプリタが書かれています。通常は /bin/sh か /bin/bash です。脱獄環境はそのコピーを別の場所に置いているため、スクリプトは起動できません。Fila は脱獄環境がインストールした場所からそのインタプリタを見つけ、それでスクリプトを実行します。書かれたとおりに起動するには、これをオフにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크립트의 첫 줄에는 이를 실행할 인터프리터가 적혀 있으며, 보통 /bin/sh 또는 /bin/bash입니다. 탈옥 환경은 해당 사본을 다른 곳에 두므로 스크립트가 시작되지 않습니다. Fila는 탈옥 환경이 설치한 위치에서 그 인터프리터를 찾아 스크립트를 실행합니다. 적힌 그대로 실행하려면 이 옵션을 끄십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A primeira linha de um script indica o interpretador que o executa, normalmente /bin/sh ou /bin/bash. Seu jailbreak guarda a cópia dele em outro lugar, então o script não inicia. O Fila encontra esse interpretador onde o jailbreak o instalou e executa o script com ele. Desative esta opção para iniciar os scripts exatamente como estão escritos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В первой строке скрипта указан интерпретатор, который его запускает, обычно /bin/sh или /bin/bash. Джейлбрейк хранит свою копию в другом месте, поэтому скрипт не запускается. Fila находит этот интерпретатор там, куда его установил джейлбрейк, и запускает скрипт с ним. Отключите этот параметр, чтобы запускать скрипты в точности так, как они написаны."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dòng đầu tiên của tập lệnh cho biết trình thông dịch chạy nó, thường là /bin/sh hoặc /bin/bash. Bản jailbreak giữ bản sao của nó ở nơi khác, nên tập lệnh không khởi chạy được. Fila tìm trình thông dịch đó ở nơi bản jailbreak đã cài và chạy tập lệnh bằng nó. Tắt tùy chọn này để khởi chạy tập lệnh đúng như đã viết."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "脚本的第一行会写明运行它的执行器，通常是 /bin/sh 或 /bin/bash。越狱环境把自己的那份放在别处，脚本因此无法启动。Fila 会到越狱环境的安装位置找到该执行器，并用它运行脚本。关闭后将完全按脚本写明的方式启动。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指令碼的第一行會寫明執行它的直譯器，通常是 /bin/sh 或 /bin/bash。越獄環境把自己的那份放在別處，指令碼因此無法啟動。Fila 會到越獄環境的安裝位置找到該直譯器，並用它執行指令碼。關閉後將完全按指令碼寫明的方式啟動。"
+          }
+        }
+      }
+    },
+    "A symbolic link in this path cannot be followed for this operation. Choose a direct path to the item." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此路径中的符号链接无法用于当前操作。请选择项目的直接路径。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此路徑中的符號連結無法用於目前操作。請選擇項目的直接路徑。"
           }
         }
       }
@@ -4416,6 +4303,7 @@
       }
     },
     "App Installation Pending" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5489,6 +5377,7 @@
       }
     },
     "Attributes changed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -5564,6 +5453,9 @@
         }
       }
     },
+    "Attributes Changed" : {
+
+    },
     "Audio" : {
       "comment" : "Noun. A file format in the \"Open As\" menu.",
       "localizations" : {
@@ -5637,6 +5529,172 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "音訊"
+          }
+        }
+      }
+    },
+    "Authenticate to run a terminal session as root." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صادق على هويتك لبدء جلسة طرفية بصلاحيات root."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifiziere dich, um eine Terminalsitzung als root zu starten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authenticate to run a terminal session as root."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autentícate para iniciar una sesión de terminal como root."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifiez-vous pour lancer une session de terminal en tant que root."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticati per avviare una sessione del terminale come root."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "root としてターミナルセッションを開始するには認証してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "root로 터미널 세션을 시작하려면 인증하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autentique-se para iniciar uma sessão de terminal como root."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пройдите аутентификацию для запуска сеанса терминала от имени root."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xác thực để bắt đầu phiên dòng lệnh với quyền root."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请认证以 root 身份启动终端会话。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請認證以 root 身分啟動終端機工作階段。"
+          }
+        }
+      }
+    },
+    "Authentication failed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشلت المصادقة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizierung fehlgeschlagen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentication failed."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La autenticación ha fallado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’authentification a échoué."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione non riuscita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "認証に失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인증에 실패했습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A autenticação falhou."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось пройти аутентификацию."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xác thực không thành công."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "认证失败。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "認證失敗。"
           }
         }
       }
@@ -7710,6 +7768,22 @@
         }
       }
     },
+    "Check the source and destination folders before trying again. Some items may already have been transferred." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试前请先检查源文件夹和目标文件夹，部分项目可能已完成传输。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重試前請先檢查來源檔案夾和目標檔案夾，部分項目可能已完成傳輸。"
+          }
+        }
+      }
+    },
     "Checking…" : {
       "comment" : "Clipboard row subtitle while Fila asks the daemon whether the item is still at its path.",
       "localizations" : {
@@ -7859,6 +7933,158 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請選擇 Fila 和「檔案」App 都能取用的檔案夾。「檔案」App 無法使用 Fila 的 root 權限。"
+          }
+        }
+      }
+    },
+    "Choose a playable audio file without copy protection." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختر ملفًا صوتيًا قابلًا للتشغيل وغير محمي ضد النسخ."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle eine abspielbare Audiodatei ohne Kopierschutz."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un archivo de audio reproducible y sin protección anticopia."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un fichier audio lisible et sans protection contre la copie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli un file audio riproducibile e senza protezione anticopia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピー保護されていない、再生可能なオーディオファイルを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "복사 방지가 적용되지 않은 재생 가능한 오디오 파일을 선택하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha um arquivo de áudio reproduzível e sem proteção contra cópia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите воспроизводимый аудиофайл без защиты от копирования."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn tệp âm thanh có thể phát và không được bảo vệ chống sao chép."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择可以播放且没有拷贝保护的音频文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇可以播放且沒有拷貝保護的音訊檔案。"
+          }
+        }
+      }
+    },
+    "Choose Audio File" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختر ملفًا صوتيًا"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiodatei auswählen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir archivo de audio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir un fichier audio"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli file audio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オーディオファイルを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오디오 파일 선택"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher Arquivo de Áudio"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать аудиофайл"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chọn tệp âm thanh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择音频文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇音訊檔案"
           }
         }
       }
@@ -8398,7 +8624,11 @@
         }
       }
     },
+    "Clear Connections" : {
+
+    },
     "Clear History" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10007,6 +10237,9 @@
         }
       }
     },
+    "Continue in Tasks" : {
+
+    },
     "Copied" : {
       "comment" : "Past tense. Toast shown when a copy job has finished.",
       "localizations" : {
@@ -11004,6 +11237,7 @@
     },
     "Could not read the file: %@." : {
       "comment" : "%@ is strerror(3) text, which arrives already localized by the system.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11081,6 +11315,7 @@
     },
     "Could not write the file: %@." : {
       "comment" : "%@ is strerror(3) text, which arrives already localized by the system.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -13075,6 +13310,7 @@
     },
     "Deleted items are moved here so they can be put back. Create it now, or Fila creates it with your first delete." : {
       "comment" : "Empty state shown in the trash folder before the trash exists, offering a Create Trash action.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15377,6 +15613,7 @@
       }
     },
     "Enter a name for the new item in the current folder." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -15451,6 +15688,9 @@
           }
         }
       }
+    },
+    "Enter a name for the new item in this folder." : {
+
     },
     "Enter a name, then tap Search to include subfolders." : {
       "localizations" : {
@@ -16139,6 +16379,7 @@
       }
     },
     "Enter an http or https URL to save in the current folder." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16213,6 +16454,9 @@
           }
         }
       }
+    },
+    "Enter an http or https URL. The file is saved in this folder." : {
+
     },
     "Enter the password again." : {
       "extractionState" : "manual",
@@ -18281,8 +18525,12 @@
         }
       }
     },
+    "Fila could not read the list of installed apps. Pull down to refresh." : {
+
+    },
     "Fila could not read the list of installed apps. Try opening this screen again." : {
       "comment" : "Detail under \"No Apps Found\" on the installed apps screen.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18741,6 +18989,7 @@
       }
     },
     "Fila has no original location for “%@”. Move it out of the trash, or delete it permanently." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19041,6 +19290,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案"
+          }
+        }
+      }
+    },
+    "File Actions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File Actions"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件操作"
           }
         }
       }
@@ -21574,6 +21839,22 @@
         }
       }
     },
+    "Grid" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grid"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网格"
+          }
+        }
+      }
+    },
     "Group" : {
       "comment" : "The file's group: a permission section header, a properties row, and the title of the alert that sets the gid.",
       "localizations" : {
@@ -21954,6 +22235,160 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隱藏（hidden）"
+          }
+        }
+      }
+    },
+    "Hidden Files" : {
+      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الملفات المخفية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versteckte Dateien"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos ocultos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichiers masqués"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File nascosti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隠しファイル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "숨김 파일"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos ocultos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрытые файлы"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp ẩn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏檔案"
+          }
+        }
+      }
+    },
+    "Hide" : {
+      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إخفاء"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausblenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nascondi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "숨기기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрыть"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏"
           }
         }
       }
@@ -22341,6 +22776,86 @@
         }
       }
     },
+    "Import an audio file from the More menu to add it to this device’s music library." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استورد ملفًا صوتيًا من قائمة «المزيد» لإضافته إلى مكتبة الموسيقى على هذا الجهاز."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importiere eine Audiodatei über das Menü „Mehr“, um sie zur Musikmediathek dieses Geräts hinzuzufügen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importa un archivo de audio desde el menú Más para añadirlo a la biblioteca musical de este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importez un fichier audio depuis le menu Plus pour l’ajouter à la bibliothèque musicale de cet appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importa un file audio dal menu Altro per aggiungerlo alla libreria musicale di questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「その他」メニューからオーディオファイルを読み込むと、このデバイスのミュージックライブラリに追加されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 보기 메뉴에서 오디오 파일을 가져와 이 기기의 음악 보관함에 추가하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importe um arquivo de áudio pelo menu Mais para adicioná-lo à biblioteca de música deste dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортируйте аудиофайл через меню «Ещё», чтобы добавить его в музыкальную медиатеку устройства."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập tệp âm thanh từ menu Thêm để thêm vào thư viện nhạc của thiết bị này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从“更多”菜单导入音频文件，将其添加到此设备的音乐资料库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從「更多」選單匯入音訊檔案，將其加入此裝置的音樂資料庫。"
+          }
+        }
+      }
+    },
+    "Import an audio file to add it to this device’s music library." : {
+
+    },
     "Import Failed" : {
       "localizations" : {
         "ar" : {
@@ -22493,6 +23008,82 @@
         }
       }
     },
+    "Import Music" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استيراد الموسيقى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik importieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar música"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importer de la musique"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importa musica"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽を読み込む"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 가져오기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar Música"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импортировать музыку"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập nhạc"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入音乐"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入音樂"
+          }
+        }
+      }
+    },
     "Import Photos…" : {
       "localizations" : {
         "ar" : {
@@ -22565,6 +23156,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "匯入照片…"
+          }
+        }
+      }
+    },
+    "Importing Music…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "جارٍ استيراد الموسيقى…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik wird importiert…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importando música…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importation de la musique…"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importazione della musica…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽を読み込み中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 가져오는 중…"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importando Música…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Импорт музыки…"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đang nhập nhạc…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在导入音乐…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在匯入音樂…"
           }
         }
       }
@@ -23493,6 +24161,9 @@
         }
       }
     },
+    "Installation in Progress" : {
+
+    },
     "Installed" : {
       "comment" : "Row label on the app detail page: the date LaunchServices registered the app.",
       "localizations" : {
@@ -23953,6 +24624,82 @@
         }
       }
     },
+    "iOS could not open this app. It may be unavailable or may not have an interface." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذر على iOS فتح هذا التطبيق. قد يكون غير متاح أو لا يحتوي على واجهة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS konnte diese App nicht öffnen. Sie ist möglicherweise nicht verfügbar oder hat keine Benutzeroberfläche."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS no pudo abrir esta app. Puede que no esté disponible o que no tenga interfaz."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS n’a pas pu ouvrir cette app. Elle est peut-être indisponible ou ne possède pas d’interface."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS non ha potuto aprire questa app. Potrebbe non essere disponibile o non avere un’interfaccia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS はこのアプリを開けませんでした。利用できないか、画面を持たないアプリの可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS에서 이 앱을 열 수 없습니다. 앱을 사용할 수 없거나 인터페이스가 없을 수 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O iOS não conseguiu abrir este app. Ele pode estar indisponível ou não ter uma interface."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS не удалось открыть это приложение. Возможно, оно недоступно или не имеет интерфейса."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS không thể mở ứng dụng này. Ứng dụng có thể không khả dụng hoặc không có giao diện."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 无法打开此应用。它可能不可用，或没有可显示的界面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS 無法開啟此 App。它可能無法使用，或沒有可顯示的介面。"
+          }
+        }
+      }
+    },
     "Is Folder" : {
       "comment" : "Property title on a file handed to Shortcuts: true for a directory, or a link that resolves to one.",
       "localizations" : {
@@ -24409,6 +25156,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "跳至最新"
+          }
+        }
+      }
+    },
+    "Keep Fila open until the import finishes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أبقِ Fila مفتوحًا حتى ينتهي الاستيراد."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lass Fila geöffnet, bis der Import abgeschlossen ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén Fila abierto hasta que termine la importación."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gardez Fila ouvert jusqu’à la fin de l’importation."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tieni Fila aperto fino al termine dell’importazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "読み込みが完了するまで Fila を開いたままにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기가 완료될 때까지 Fila를 열어 두세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha o Fila aberto até a importação terminar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не закрывайте Fila до завершения импорта."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giữ Fila mở cho đến khi nhập xong."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请保持 Fila 打开，直到导入完成。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請保持 Fila 開啟，直到匯入完成。"
           }
         }
       }
@@ -25642,6 +26466,22 @@
         }
       }
     },
+    "List" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表"
+          }
+        }
+      }
+    },
     "List ${path}" : {
       "comment" : "How the List Folder shortcut reads in the Shortcuts editor. ${path} is a parameter name: reproduce it exactly, do not translate what is inside the braces.",
       "localizations" : {
@@ -26637,6 +27477,89 @@
         }
       }
     },
+    "Low Storage Space" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مساحة التخزين منخفضة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenig Speicherplatz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low Storage Space"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poco espacio de almacenamiento"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espace de stockage insuffisant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spazio di archiviazione insufficiente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストレージの空き容量が不足"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장 공간 부족"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pouco espaço de armazenamento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недостаточно места"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dung lượng lưu trữ thấp"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储空间不足"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存空間不足"
+          }
+        }
+      }
+    },
     "Mach-O" : {
       "comment" : "The Mach-O executable format, in the \"Open As\" menu. A format name, kept in Latin script.",
       "localizations" : {
@@ -27170,6 +28093,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更多"
+          }
+        }
+      }
+    },
+    "Mount Points" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نقاط التحميل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einhängepunkte"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntos de montaje"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Points de montage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punti di montaggio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マウントポイント"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마운트 지점"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pontos de montagem"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Точки монтирования"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Điểm gắn kết"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "挂载点"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "掛載點"
           }
         }
       }
@@ -28323,6 +29323,82 @@
         }
       }
     },
+    "Music Imported" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم استيراد الموسيقى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik importiert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Música importada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musique importée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musica importata"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽を読み込みました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악을 가져왔습니다"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Música Importada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Музыка импортирована"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã nhập nhạc"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐已导入"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂已匯入"
+          }
+        }
+      }
+    },
     "Music Unavailable" : {
       "localizations" : {
         "ar" : {
@@ -29165,6 +30241,7 @@
       }
     },
     "No apps in this filter. Choose All Apps, User Apps, or System Apps." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -29312,6 +30389,85 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有符合「%@」的 App。請嘗試其他搜尋內容。"
+          }
+        }
+      }
+    },
+    "No apps match this filter. Choose All Apps, User Apps, or System Apps." : {
+
+    },
+    "No Audio Files" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا توجد ملفات صوتية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Audiodateien"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay archivos de audio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun fichier audio"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun file audio"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オーディオファイルがありません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오디오 파일 없음"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum Arquivo de Áudio"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет аудиофайлов"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có tệp âm thanh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有音频文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有音訊檔案"
           }
         }
       }
@@ -30309,6 +31465,9 @@
           }
         }
       }
+    },
+    "Not all items shown" : {
+
     },
     "Not encrypted" : {
       "comment" : "Mach-O encryption row: the image has an encryption load command whose cryptid is 0.",
@@ -31460,6 +32619,23 @@
         }
       }
     },
+    "Only the first 50,000 items are shown." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only the first 50,000 items are shown."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅显示前 50,000 个项目。"
+          }
+        }
+      }
+    },
     "Only ZIP archives can be protected with a password." : {
       "comment" : "Footer under the compress form when a non-zip format is chosen.",
       "localizations" : {
@@ -32464,6 +33640,7 @@
     },
     "Opened in this tab instead." : {
       "comment" : "Toast detail under Too Many Tabs: the folder opened in the current tab because no new tab could be made.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -32922,6 +34099,83 @@
         }
       }
     },
+    "Operation History" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سجل العمليات"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktionsverlauf"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historial de operaciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historique des opérations"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cronologia operazioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作履歴"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 기록"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Histórico de Operações"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "История операций"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lịch sử thao tác"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "操作記錄"
+          }
+        }
+      }
+    },
     "Options" : {
       "comment" : "Header of the format / compression / password section of the compress form.",
       "localizations" : {
@@ -33151,10 +34405,6 @@
         }
       }
     },
-    "OwnGoal Studio × AI" : {
-      "comment" : "Studio credit. Do not translate.",
-      "shouldTranslate" : false
-    },
     "Owner" : {
       "comment" : "The file's owner: a permission section header, a properties row, and the title of the alert that sets the uid.",
       "localizations" : {
@@ -33309,6 +34559,10 @@
         }
       }
     },
+    "OwnGoal Studio × AI" : {
+      "comment" : "Studio credit. Do not translate.",
+      "shouldTranslate" : false
+    },
     "Page %lld of %lld" : {
       "localizations" : {
         "ar" : {
@@ -33381,6 +34635,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第 %1$lld 頁，共 %2$lld 頁"
+          }
+        }
+      }
+    },
+    "Part of the path is a file instead of a folder. Choose an existing destination folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路径中的某一部分是文件，无法作为文件夹访问。请选择已有的目标文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路徑中的某一部分是檔案，無法作為檔案夾存取。請選擇現有的目標檔案夾。"
           }
         }
       }
@@ -34001,6 +35271,7 @@
       }
     },
     "Places" : {
+      "comment" : "File system locations (paths and favorites), not geographic or GPS coordinates. Chinese: 位置.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -34074,8 +35345,7 @@
             "value" : "位置"
           }
         }
-      },
-      "comment" : "File system locations (paths and favorites), not geographic or GPS coordinates. Chinese: 位置."
+      }
     },
     "Platform" : {
       "comment" : "Row label in the Mach-O inspector: the platform from LC_BUILD_VERSION.",
@@ -37908,6 +39178,7 @@
     },
     "Run in Background" : {
       "comment" : "Button on the full-screen operation cover: dismiss the cover, keep the job running.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -39282,6 +40553,9 @@
           }
         }
       }
+    },
+    "Search In" : {
+
     },
     "Search Subfolders" : {
       "localizations" : {
@@ -40811,6 +42085,83 @@
         }
       }
     },
+    "Show" : {
+      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إظهار"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeigen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "표시"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示"
+          }
+        }
+      }
+    },
     "Show Applications" : {
       "comment" : "Settings toggle: whether the sidebar offers the Applications page and app folders draw their LaunchServices names and icons.",
       "localizations" : {
@@ -40889,6 +42240,7 @@
       }
     },
     "Show Applications is turned off in Settings, or Fila cannot see other apps on this device." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -40965,6 +42317,7 @@
       }
     },
     "Show as Grid" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -41041,6 +42394,7 @@
       }
     },
     "Show as List" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -42516,6 +43870,9 @@
           }
         }
       }
+    },
+    "Some scripts name an interpreter your jailbreak stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written." : {
+
     },
     "Song Details" : {
       "localizations" : {
@@ -44208,6 +45565,7 @@
       }
     },
     "Task stopped" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -44282,6 +45640,9 @@
           }
         }
       }
+    },
+    "Task Stopped" : {
+
     },
     "Tasks" : {
       "comment" : "Screen title and sidebar row: the list of running and finished copy, move, delete, compress and download jobs.",
@@ -44975,6 +46336,89 @@
         }
       }
     },
+    "The archive does not report all extracted file sizes. There may not be enough space to finish extracting." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يحدد الأرشيف أحجام جميع الملفات بعد الاستخراج. قد لا تتوفر مساحة كافية لإكمال الاستخراج."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Archiv enthält nicht alle entpackten Dateigrößen. Der Speicherplatz reicht möglicherweise nicht zum vollständigen Entpacken."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The archive does not report all extracted file sizes. There may not be enough space to finish extracting."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El archivo no indica el tamaño de todos los archivos extraídos. Es posible que no haya espacio suficiente para completar la extracción."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’archive n’indique pas la taille de tous les fichiers extraits. L’espace disponible risque de ne pas suffire pour terminer l’extraction."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’archivio non indica le dimensioni di tutti i file estratti. Lo spazio potrebbe non bastare per completare l’estrazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブに一部の展開後のサイズが記録されていません。展開を完了するための空き容量が不足する可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "압축 파일에 일부 파일의 압축 해제 후 크기가 없습니다. 압축 해제를 완료할 공간이 부족할 수 있습니다。"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O arquivo não informa o tamanho de todos os arquivos extraídos. Pode não haver espaço suficiente para concluir a extração."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В архиве указаны размеры не всех распакованных файлов. Для завершения распаковки может не хватить места."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp nén không cung cấp kích thước của tất cả tệp sau khi giải nén. Có thể không đủ dung lượng để hoàn tất giải nén."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "归档未提供所有解压文件的大小，剩余空间可能不足以完成解压。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封存檔未提供所有解壓縮檔案的大小，剩餘空間可能不足以完成解壓縮。"
+          }
+        }
+      }
+    },
     "The archive password is missing or incorrect. Enter the password and try again." : {
       "localizations" : {
         "ar" : {
@@ -45123,6 +46567,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "壓縮檔會建立在此檔案夾中。"
+          }
+        }
+      }
+    },
+    "The destination folder is not empty and cannot be replaced. Rename the item or choose another folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标文件夹不为空，无法替换。请重命名项目或选择其他文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標檔案夾不是空的，無法取代。請重新命名項目或選擇其他檔案夾。"
+          }
+        }
+      }
+    },
+    "The destination is read-only. Choose a writable folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标位置为只读。请选择可写入的文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標位置為唯讀。請選擇可寫入的檔案夾。"
           }
         }
       }
@@ -45353,6 +46829,89 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "裝置需要此項目才能啟動。刪除後無法復原，裝置可能需要回復。"
+          }
+        }
+      }
+    },
+    "The extracted files need approximately %@, more than 90%% of the %@ available at the destination." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحتاج الملفات المستخرجة إلى نحو %@، أي أكثر من 90%% من المساحة المتاحة في الوجهة والبالغة %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die entpackten Dateien benötigen etwa %@, mehr als 90%% der am Ziel verfügbaren %@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The extracted files need approximately %@, more than 90%% of the %@ available at the destination."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los archivos extraídos necesitan aproximadamente %@, más del 90%% de los %@ disponibles en el destino."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fichiers extraits nécessitent environ %@, soit plus de 90%% des %@ disponibles à destination."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I file estratti richiedono circa %@, oltre il 90%% dei %@ disponibili nella destinazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開後のファイルには約 %@ が必要です。これは展開先の空き容量 %@ の 90%% を超えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "압축을 푼 파일에는 약 %@가 필요하며, 대상 위치의 사용 가능한 공간 %@의 90%%를 초과합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os arquivos extraídos precisam de aproximadamente %@, mais de 90%% dos %@ disponíveis no destino."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распакованным файлам потребуется около %@ — более 90%% от %@, доступных в месте назначения."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các tệp sau khi giải nén cần khoảng %@, hơn 90%% dung lượng %@ còn trống tại đích."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压后的文件预计需要 %@，超过目标位置可用空间 %@ 的 90%%。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解壓縮後的檔案預計需要 %@，超過目的地可用空間 %@ 的 90%%。"
           }
         }
       }
@@ -45658,6 +47217,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安裝程式仍在執行中。請先查看「應用程式」，再重新嘗試。"
+          }
+        }
+      }
+    },
+    "The music library could not import this file. A backup is in Music Backups in Fila’s Documents folder." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذر على مكتبة الموسيقى استيراد هذا الملف. توجد نسخة احتياطية في Music Backups داخل مجلد Documents في Fila."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Musikmediathek konnte diese Datei nicht importieren. Ein Backup liegt unter Music Backups im Ordner Documents von Fila."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La biblioteca musical no pudo importar este archivo. Hay una copia de seguridad en Music Backups, dentro de la carpeta Documents de Fila."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La bibliothèque musicale n’a pas pu importer ce fichier. Une sauvegarde se trouve dans Music Backups, dans le dossier Documents de Fila."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La libreria musicale non ha potuto importare questo file. Un backup si trova in Music Backups nella cartella Documents di Fila."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ミュージックライブラリにこのファイルを読み込めませんでした。バックアップは Fila の Documents フォルダ内の Music Backups にあります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악 보관함에서 이 파일을 가져올 수 없습니다. 백업은 Fila의 Documents 폴더 안에 있는 Music Backups에 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A biblioteca de música não conseguiu importar este arquivo. Há um backup em Music Backups, na pasta Documents do Fila."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось импортировать этот файл в медиатеку. Резервная копия находится в Music Backups в папке Documents приложения Fila."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thư viện nhạc không thể nhập tệp này. Bản sao lưu nằm trong Music Backups thuộc thư mục Documents của Fila."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音乐资料库无法导入此文件。备份位于 Fila 的 Documents 文件夹中的 Music Backups。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音樂資料庫無法匯入此檔案。備份位於 Fila 的 Documents 資料夾中的 Music Backups。"
           }
         }
       }
@@ -45968,6 +47603,9 @@
         }
       }
     },
+    "The original location of “%@” was not recorded. It can only be deleted permanently." : {
+
+    },
     "The password was not changed." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -46041,6 +47679,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密碼未更改。"
+          }
+        }
+      }
+    },
+    "The selection includes the same item more than once, or both a folder and an item inside it. Select each item only once." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选项目存在重复，或同时包含文件夹及其内部项目。请调整选择，避免重复操作。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選項目存在重複，或同時包含檔案夾及其內部項目。請調整選擇，避免重複操作。"
           }
         }
       }
@@ -46274,6 +47928,22 @@
         }
       }
     },
+    "The source and destination refer to the same item, even though their paths differ. Choose another destination." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "源路径和目标路径虽然不同，但指向同一个项目。请选择其他目标位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來源路徑和目標路徑雖然不同，但指向同一個項目。請選擇其他目標位置。"
+          }
+        }
+      }
+    },
     "The system installer will install “%@” (%@), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified." : {
       "comment" : "Body of the Install App card. The first %@ is the app's display name, the second its bundle identifier; the key stays in the non-positional form Swift extracts.",
       "localizations" : {
@@ -46347,6 +48017,99 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系統安裝程式將會安裝「%@」（%@），並取代任何識別碼相同的 App。未針對此裝置簽署的 App 需要 AppSync Unified。"
+          }
+        }
+      }
+    },
+    "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن الكتابة إلى سلة المهملات. هل تريد حذف العناصر المحددة التي ما زالت في مساراتها الأصلية نهائيًا؟ ستبقى العناصر الموجودة في سلة المهملات هناك. لا يمكن التراجع عن هذا الإجراء."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Papierkorb ist nicht beschreibbar. Ausgewählte Objekte, die noch an ihren ursprünglichen Pfaden liegen, endgültig löschen? Objekte im Papierkorb bleiben dort. Dies kann nicht rückgängig gemacht werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede escribir en la papelera. ¿Eliminar permanentemente los elementos seleccionados que siguen en sus rutas originales? Los elementos que ya están en la papelera permanecerán allí. Esta acción no se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La corbeille est inaccessible en écriture. Supprimer définitivement les éléments sélectionnés encore à leur emplacement d’origine ? Les éléments déjà dans la corbeille y resteront. Cette action est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il Cestino non è scrivibile. Eliminare definitivamente gli elementi selezionati ancora nei percorsi originali? Gli elementi già nel Cestino vi rimarranno. Questa operazione non può essere annullata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゴミ箱に書き込みができません。元のパスに残っている選択項目を完全に削除しますか？すでにゴミ箱にある項目はそのまま残ります。この操作は取り消せません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "휴지통에 쓸 수 없습니다. 원래 경로에 남아 있는 선택한 항목을 영구 삭제할까요? 이미 휴지통에 있는 항목은 그대로 유지됩니다. 이 작업은 취소할 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Lixo não permite gravação. Apagar permanentemente os itens selecionados que ainda estão nos caminhos originais? Os itens já no Lixo permanecerão lá. Esta ação não pode ser desfeita."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Корзина недоступна для записи. Удалить безвозвратно выбранные объекты, которые остались по исходным путям? Объекты, уже находящиеся в корзине, останутся там. Это действие нельзя отменить."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể ghi vào Thùng rác. Xóa vĩnh viễn các mục đã chọn vẫn còn ở đường dẫn gốc? Các mục đã ở trong Thùng rác sẽ được giữ nguyên. Không thể hoàn tác thao tác này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法写入废纸篓。要永久删除仍在原路径的所选项目吗？已移入废纸篓的项目将保留。此操作无法撤销。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法寫入垃圾桶。要永久刪除仍在原始路徑的所選項目嗎？已移入垃圾桶的項目將保留。此操作無法復原。"
+          }
+        }
+      }
+    },
+    "There is not enough free space to finish this operation safely. Free up space or choose another destination." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用空间不足，无法安全完成操作。请释放空间或选择其他目标位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用空間不足，無法安全完成操作。請釋出空間或選擇其他目標位置。"
           }
         }
       }
@@ -46425,6 +48188,86 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此壓縮檔已加密。請輸入密碼以解壓縮。"
+          }
+        }
+      }
+    },
+    "This audio file could not be read. Choose another file." : {
+
+    },
+    "This audio file has no valid duration." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مدة هذا الملف الصوتي غير صالحة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Audiodatei hat keine gültige Dauer."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este archivo de audio no tiene una duración válida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La durée de ce fichier audio n’est pas valide."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo file audio non ha una durata valida."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このオーディオファイルの再生時間は無効です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 오디오 파일의 재생 시간이 유효하지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este arquivo de áudio não tem uma duração válida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У этого аудиофайла некорректная длительность."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp âm thanh này không có thời lượng hợp lệ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此音频文件的时长无效。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此音訊檔案的長度無效。"
           }
         }
       }
@@ -46962,7 +48805,11 @@
         }
       }
     },
+    "This folder opened in the current tab. Close a tab to open a new one." : {
+
+    },
     "This image format is not supported. Open it as hex to see its contents." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47038,6 +48885,9 @@
         }
       }
     },
+    "This image format is not supported. Open it as Hex to see its contents." : {
+
+    },
     "This item has no extended attributes." : {
       "comment" : "Empty state of the extended attributes section.",
       "localizations" : {
@@ -47111,6 +48961,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此項目沒有延伸屬性。"
+          }
+        }
+      }
+    },
+    "This item is already in the destination folder. Choose another folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此项目已在目标文件夹中，请选择其他文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此項目已在目標檔案夾中，請選擇其他檔案夾。"
           }
         }
       }
@@ -47345,6 +49211,7 @@
     },
     "This PDF could not be opened. Open it as hex to see its contents." : {
       "comment" : "Shown when PDFKit refused a file that looked like a PDF.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47416,6 +49283,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法打開此 PDF。請以十六進位打開來查看其內容。"
+          }
+        }
+      }
+    },
+    "This PDF has too many pages to preview." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This PDF has too many pages to preview."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 PDF 的页数过多，无法预览。"
           }
         }
       }
@@ -47569,6 +49452,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此屬性列表包含只能檢視、無法編輯的值。"
+          }
+        }
+      }
+    },
+    "This property list has too many values or nesting levels to preview." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This property list has too many values or nesting levels to preview."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此属性列表的项目或嵌套层级过多，无法预览。"
           }
         }
       }
@@ -48337,6 +50237,22 @@
         }
       }
     },
+    "Two selected items have the same name and would use the same destination. Rename one or transfer them separately." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选项目中有同名项目，会使用相同的目标路径。请先重命名，或分别传输。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選項目中有同名項目，會使用相同的目標路徑。請先重新命名，或分別傳輸。"
+          }
+        }
+      }
+    },
     "Type" : {
       "comment" : "Row label: the image's uniform type identifier, and the Mach-O header's file type.",
       "localizations" : {
@@ -48567,6 +50483,22 @@
         }
       }
     },
+    "Unable to Copy Items" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法拷贝项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法拷貝項目"
+          }
+        }
+      }
+    },
     "Unable to Create Folder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -48640,6 +50572,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法建立檔案夾"
+          }
+        }
+      }
+    },
+    "Unable to Import Music" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذر استيراد الموسيقى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik kann nicht importiert werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede importar música"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’importer la musique"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile importare la musica"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音楽を読み込めません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "음악을 가져올 수 없음"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não Foi Possível Importar Música"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось импортировать музыку"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể nhập nhạc"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法导入音乐"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法匯入音樂"
           }
         }
       }
@@ -48720,6 +50728,98 @@
         }
       }
     },
+    "Unable to Move Items" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法移动项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法搬移項目"
+          }
+        }
+      }
+    },
+    "Unable to Open App" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذر فتح التطبيق"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App kann nicht geöffnet werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede abrir la app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’ouvrir l’app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile aprire l’app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリを開けません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱을 열 수 없음"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não Foi Possível Abrir o App"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось открыть приложение"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể mở ứng dụng"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开应用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法開啟 App"
+          }
+        }
+      }
+    },
     "Unable to Open This File" : {
       "localizations" : {
         "ar" : {
@@ -48795,6 +50895,9 @@
           }
         }
       }
+    },
+    "Unable to open this PDF. Open it as Hex to see its contents." : {
+
     },
     "Unable to Play This File" : {
       "localizations" : {
@@ -49025,6 +51128,9 @@
         }
       }
     },
+    "Unable to read this file. Try opening it again." : {
+
+    },
     "Unable to Refresh" : {
       "localizations" : {
         "ar" : {
@@ -49176,6 +51282,9 @@
           }
         }
       }
+    },
+    "Unable to save this file. Try again." : {
+
     },
     "Unable to start sharing. Check the port number and try again." : {
       "localizations" : {
@@ -49942,6 +52051,9 @@
         }
       }
     },
+    "Use Trash" : {
+
+    },
     "User Apps" : {
       "comment" : "Applications scope: apps installed by the user, in bundle containers.",
       "localizations" : {
@@ -50475,6 +52587,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "影片"
+          }
+        }
+      }
+    },
+    "View" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "视图"
           }
         }
       }
@@ -51395,2042 +53523,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ZipCrypto 相容性廣泛，但密碼保護強度很弱。"
-          }
-        }
-      }
-    },
-    "Mount Points" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نقاط التحميل"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einhängepunkte"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Puntos de montaje"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Points de montage"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Punti di montaggio"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "マウントポイント"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "마운트 지점"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pontos de montagem"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Точки монтирования"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Điểm gắn kết"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "挂载点"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "掛載點"
-          }
-        }
-      }
-    },
-    "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا يمكن الكتابة إلى سلة المهملات. هل تريد حذف العناصر المحددة التي ما زالت في مساراتها الأصلية نهائيًا؟ ستبقى العناصر الموجودة في سلة المهملات هناك. لا يمكن التراجع عن هذا الإجراء."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Papierkorb ist nicht beschreibbar. Ausgewählte Objekte, die noch an ihren ursprünglichen Pfaden liegen, endgültig löschen? Objekte im Papierkorb bleiben dort. Dies kann nicht rückgängig gemacht werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede escribir en la papelera. ¿Eliminar permanentemente los elementos seleccionados que siguen en sus rutas originales? Los elementos que ya están en la papelera permanecerán allí. Esta acción no se puede deshacer."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La corbeille est inaccessible en écriture. Supprimer définitivement les éléments sélectionnés encore à leur emplacement d’origine ? Les éléments déjà dans la corbeille y resteront. Cette action est irréversible."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il Cestino non è scrivibile. Eliminare definitivamente gli elementi selezionati ancora nei percorsi originali? Gli elementi già nel Cestino vi rimarranno. Questa operazione non può essere annullata."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ゴミ箱に書き込みができません。元のパスに残っている選択項目を完全に削除しますか？すでにゴミ箱にある項目はそのまま残ります。この操作は取り消せません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "휴지통에 쓸 수 없습니다. 원래 경로에 남아 있는 선택한 항목을 영구 삭제할까요? 이미 휴지통에 있는 항목은 그대로 유지됩니다. 이 작업은 취소할 수 없습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Lixo não permite gravação. Apagar permanentemente os itens selecionados que ainda estão nos caminhos originais? Os itens já no Lixo permanecerão lá. Esta ação não pode ser desfeita."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Корзина недоступна для записи. Удалить безвозвратно выбранные объекты, которые остались по исходным путям? Объекты, уже находящиеся в корзине, останутся там. Это действие нельзя отменить."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể ghi vào Thùng rác. Xóa vĩnh viễn các mục đã chọn vẫn còn ở đường dẫn gốc? Các mục đã ở trong Thùng rác sẽ được giữ nguyên. Không thể hoàn tác thao tác này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法写入废纸篓。要永久删除仍在原路径的所选项目吗？已移入废纸篓的项目将保留。此操作无法撤销。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法寫入垃圾桶。要永久刪除仍在原始路徑的所選項目嗎？已移入垃圾桶的項目將保留。此操作無法復原。"
-          }
-        }
-      }
-    },
-    "Choose Audio File" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختر ملفًا صوتيًا"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audiodatei auswählen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elegir archivo de audio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir un fichier audio"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli file audio"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "オーディオファイルを選択"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "오디오 파일 선택"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolher Arquivo de Áudio"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбрать аудиофайл"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chọn tệp âm thanh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择音频文件"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選擇音訊檔案"
-          }
-        }
-      }
-    },
-    "Choose a playable audio file without copy protection." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختر ملفًا صوتيًا قابلًا للتشغيل وغير محمي ضد النسخ."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wähle eine abspielbare Audiodatei ohne Kopierschutz."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige un archivo de audio reproducible y sin protección anticopia."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez un fichier audio lisible et sans protection contre la copie."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli un file audio riproducibile e senza protezione anticopia."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コピー保護されていない、再生可能なオーディオファイルを選択してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "복사 방지가 적용되지 않은 재생 가능한 오디오 파일을 선택하세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha um arquivo de áudio reproduzível e sem proteção contra cópia."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выберите воспроизводимый аудиофайл без защиты от копирования."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chọn tệp âm thanh có thể phát và không được bảo vệ chống sao chép."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请选择可以播放且没有拷贝保护的音频文件。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請選擇可以播放且沒有拷貝保護的音訊檔案。"
-          }
-        }
-      }
-    },
-    "Import Music" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استيراد الموسيقى"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musik importieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importar música"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importer de la musique"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa musica"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音楽を読み込む"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악 가져오기"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importar Música"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импортировать музыку"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhập nhạc"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入音乐"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "匯入音樂"
-          }
-        }
-      }
-    },
-    "Import an audio file from the More menu to add it to this device’s music library." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استورد ملفًا صوتيًا من قائمة «المزيد» لإضافته إلى مكتبة الموسيقى على هذا الجهاز."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importiere eine Audiodatei über das Menü „Mehr“, um sie zur Musikmediathek dieses Geräts hinzuzufügen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa un archivo de audio desde el menú Más para añadirlo a la biblioteca musical de este dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importez un fichier audio depuis le menu Plus pour l’ajouter à la bibliothèque musicale de cet appareil."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa un file audio dal menu Altro per aggiungerlo alla libreria musicale di questo dispositivo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「その他」メニューからオーディオファイルを読み込むと、このデバイスのミュージックライブラリに追加されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "더 보기 메뉴에서 오디오 파일을 가져와 이 기기의 음악 보관함에 추가하세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importe um arquivo de áudio pelo menu Mais para adicioná-lo à biblioteca de música deste dispositivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импортируйте аудиофайл через меню «Ещё», чтобы добавить его в музыкальную медиатеку устройства."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhập tệp âm thanh từ menu Thêm để thêm vào thư viện nhạc của thiết bị này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从“更多”菜单导入音频文件，将其添加到此设备的音乐资料库。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "從「更多」選單匯入音訊檔案，將其加入此裝置的音樂資料庫。"
-          }
-        }
-      }
-    },
-    "Importing Music…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "جارٍ استيراد الموسيقى…"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musik wird importiert…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importando música…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importation de la musique…"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importazione della musica…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音楽を読み込み中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악 가져오는 중…"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importando Música…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импорт музыки…"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang nhập nhạc…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在导入音乐…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在匯入音樂…"
-          }
-        }
-      }
-    },
-    "Keep Fila open until the import finishes." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أبقِ Fila مفتوحًا حتى ينتهي الاستيراد."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lass Fila geöffnet, bis der Import abgeschlossen ist."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mantén Fila abierto hasta que termine la importación."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gardez Fila ouvert jusqu’à la fin de l’importation."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tieni Fila aperto fino al termine dell’importazione."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "読み込みが完了するまで Fila を開いたままにしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "가져오기가 완료될 때까지 Fila를 열어 두세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mantenha o Fila aberto até a importação terminar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не закрывайте Fila до завершения импорта."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Giữ Fila mở cho đến khi nhập xong."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请保持 Fila 打开，直到导入完成。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請保持 Fila 開啟，直到匯入完成。"
-          }
-        }
-      }
-    },
-    "Music Imported" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم استيراد الموسيقى"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musik importiert"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Música importada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musique importée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musica importata"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音楽を読み込みました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악을 가져왔습니다"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Música Importada"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Музыка импортирована"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã nhập nhạc"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音乐已导入"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音樂已匯入"
-          }
-        }
-      }
-    },
-    "No Audio Files" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا توجد ملفات صوتية"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Audiodateien"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay archivos de audio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun fichier audio"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun file audio"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "オーディオファイルがありません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "오디오 파일 없음"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhum Arquivo de Áudio"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет аудиофайлов"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không có tệp âm thanh"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有音频文件"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有音訊檔案"
-          }
-        }
-      }
-    },
-    "Operation History" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "سجل العمليات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktionsverlauf"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Historial de operaciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Historique des opérations"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cronologia operazioni"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "操作履歴"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "작업 기록"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Histórico de Operações"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "История операций"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lịch sử thao tác"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "操作记录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "操作記錄"
-          }
-        }
-      }
-    },
-    "The music library could not import this file. A backup is in Music Backups in Fila’s Documents folder." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذر على مكتبة الموسيقى استيراد هذا الملف. توجد نسخة احتياطية في Music Backups داخل مجلد Documents في Fila."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Musikmediathek konnte diese Datei nicht importieren. Ein Backup liegt unter Music Backups im Ordner Documents von Fila."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La biblioteca musical no pudo importar este archivo. Hay una copia de seguridad en Music Backups, dentro de la carpeta Documents de Fila."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La bibliothèque musicale n’a pas pu importer ce fichier. Une sauvegarde se trouve dans Music Backups, dans le dossier Documents de Fila."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La libreria musicale non ha potuto importare questo file. Un backup si trova in Music Backups nella cartella Documents di Fila."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ミュージックライブラリにこのファイルを読み込めませんでした。バックアップは Fila の Documents フォルダ内の Music Backups にあります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악 보관함에서 이 파일을 가져올 수 없습니다. 백업은 Fila의 Documents 폴더 안에 있는 Music Backups에 있습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A biblioteca de música não conseguiu importar este arquivo. Há um backup em Music Backups, na pasta Documents do Fila."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось импортировать этот файл в медиатеку. Резервная копия находится в Music Backups в папке Documents приложения Fila."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư viện nhạc không thể nhập tệp này. Bản sao lưu nằm trong Music Backups thuộc thư mục Documents của Fila."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音乐资料库无法导入此文件。备份位于 Fila 的 Documents 文件夹中的 Music Backups。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音樂資料庫無法匯入此檔案。備份位於 Fila 的 Documents 資料夾中的 Music Backups。"
-          }
-        }
-      }
-    },
-    "This audio file has no valid duration." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مدة هذا الملف الصوتي غير صالحة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Audiodatei hat keine gültige Dauer."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este archivo de audio no tiene una duración válida."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La durée de ce fichier audio n’est pas valide."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questo file audio non ha una durata valida."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このオーディオファイルの再生時間は無効です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 오디오 파일의 재생 시간이 유효하지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este arquivo de áudio não tem uma duração válida."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "У этого аудиофайла некорректная длительность."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp âm thanh này không có thời lượng hợp lệ."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此音频文件的时长无效。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此音訊檔案的長度無效。"
-          }
-        }
-      }
-    },
-    "Unable to Import Music" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذر استيراد الموسيقى"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Musik kann nicht importiert werden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede importar música"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’importer la musique"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile importare la musica"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音楽を読み込めません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악을 가져올 수 없음"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não Foi Possível Importar Música"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось импортировать музыку"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể nhập nhạc"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法导入音乐"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法匯入音樂"
-          }
-        }
-      }
-    },
-    "Unable to Open App" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذر فتح التطبيق"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App kann nicht geöffnet werden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede abrir la app"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’ouvrir l’app"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile aprire l’app"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アプリを開けません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "앱을 열 수 없음"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não Foi Possível Abrir o App"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось открыть приложение"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể mở ứng dụng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法打开应用"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法開啟 App"
-          }
-        }
-      }
-    },
-    "iOS could not open this app. It may be unavailable or may not have an interface." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذر على iOS فتح هذا التطبيق. قد يكون غير متاح أو لا يحتوي على واجهة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS konnte diese App nicht öffnen. Sie ist möglicherweise nicht verfügbar oder hat keine Benutzeroberfläche."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS no pudo abrir esta app. Puede que no esté disponible o que no tenga interfaz."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS n’a pas pu ouvrir cette app. Elle est peut-être indisponible ou ne possède pas d’interface."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS non ha potuto aprire questa app. Potrebbe non essere disponibile o non avere un’interfaccia."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS はこのアプリを開けませんでした。利用できないか、画面を持たないアプリの可能性があります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS에서 이 앱을 열 수 없습니다. 앱을 사용할 수 없거나 인터페이스가 없을 수 있습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O iOS não conseguiu abrir este app. Ele pode estar indisponível ou não ter uma interface."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS не удалось открыть это приложение. Возможно, оно недоступно или не имеет интерфейса."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS không thể mở ứng dụng này. Ứng dụng có thể không khả dụng hoặc không có giao diện."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS 无法打开此应用。它可能不可用，或没有可显示的界面。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS 無法開啟此 App。它可能無法使用，或沒有可顯示的介面。"
-          }
-        }
-      }
-    },
-    "File Actions" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File Actions"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件操作"
-          }
-        }
-      }
-    },
-    "Grid" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grid"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "网格"
-          }
-        }
-      }
-    },
-    "Hidden Files" : {
-      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الملفات المخفية"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Versteckte Dateien"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archivos ocultos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fichiers masqués"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File nascosti"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隠しファイル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "숨김 파일"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arquivos ocultos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скрытые файлы"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp ẩn"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隐藏文件"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隱藏檔案"
-          }
-        }
-      }
-    },
-    "Hide" : {
-      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إخفاء"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ausblenden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Masquer"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nascondi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "非表示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "숨기기"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocultar"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Скрыть"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ẩn"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隐藏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隱藏"
-          }
-        }
-      }
-    },
-    "List" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "List"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "列表"
-          }
-        }
-      }
-    },
-    "Low Storage Space" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مساحة التخزين منخفضة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wenig Speicherplatz"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Low Storage Space"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Poco espacio de almacenamiento"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Espace de stockage insuffisant"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spazio di archiviazione insufficiente"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ストレージの空き容量が不足"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "저장 공간 부족"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pouco espaço de armazenamento"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Недостаточно места"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dung lượng lưu trữ thấp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "存储空间不足"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "儲存空間不足"
-          }
-        }
-      }
-    },
-    "Only the first 50,000 items are shown." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only the first 50,000 items are shown."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅显示前 50,000 个项目。"
-          }
-        }
-      }
-    },
-    "Show" : {
-      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إظهار"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anzeigen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "表示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "표시"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiển thị"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示"
-          }
-        }
-      }
-    },
-    "The archive does not report all extracted file sizes. There may not be enough space to finish extracting." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا يحدد الأرشيف أحجام جميع الملفات بعد الاستخراج. قد لا تتوفر مساحة كافية لإكمال الاستخراج."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Archiv enthält nicht alle entpackten Dateigrößen. Der Speicherplatz reicht möglicherweise nicht zum vollständigen Entpacken."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The archive does not report all extracted file sizes. There may not be enough space to finish extracting."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El archivo no indica el tamaño de todos los archivos extraídos. Es posible que no haya espacio suficiente para completar la extracción."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archive n’indique pas la taille de tous les fichiers extraits. L’espace disponible risque de ne pas suffire pour terminer l’extraction."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’archivio non indica le dimensioni di tutti i file estratti. Lo spazio potrebbe non bastare per completare l’estrazione."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブに一部の展開後のサイズが記録されていません。展開を完了するための空き容量が不足する可能性があります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축 파일에 일부 파일의 압축 해제 후 크기가 없습니다. 압축 해제를 완료할 공간이 부족할 수 있습니다。"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O arquivo não informa o tamanho de todos os arquivos extraídos. Pode não haver espaço suficiente para concluir a extração."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В архиве указаны размеры не всех распакованных файлов. Для завершения распаковки может не хватить места."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp nén không cung cấp kích thước của tất cả tệp sau khi giải nén. Có thể không đủ dung lượng để hoàn tất giải nén."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "归档未提供所有解压文件的大小，剩余空间可能不足以完成解压。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "封存檔未提供所有解壓縮檔案的大小，剩餘空間可能不足以完成解壓縮。"
-          }
-        }
-      }
-    },
-    "The extracted files need approximately %@, more than 90%% of the %@ available at the destination." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تحتاج الملفات المستخرجة إلى نحو %@، أي أكثر من 90%% من المساحة المتاحة في الوجهة والبالغة %@."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die entpackten Dateien benötigen etwa %@, mehr als 90%% der am Ziel verfügbaren %@."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The extracted files need approximately %@, more than 90%% of the %@ available at the destination."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los archivos extraídos necesitan aproximadamente %@, más del 90%% de los %@ disponibles en el destino."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les fichiers extraits nécessitent environ %@, soit plus de 90%% des %@ disponibles à destination."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I file estratti richiedono circa %@, oltre il 90%% dei %@ disponibili nella destinazione."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "展開後のファイルには約 %@ が必要です。これは展開先の空き容量 %@ の 90%% を超えます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "압축을 푼 파일에는 약 %@가 필요하며, 대상 위치의 사용 가능한 공간 %@의 90%%를 초과합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os arquivos extraídos precisam de aproximadamente %@, mais de 90%% dos %@ disponíveis no destino."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Распакованным файлам потребуется около %@ — более 90%% от %@, доступных в месте назначения."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Các tệp sau khi giải nén cần khoảng %@, hơn 90%% dung lượng %@ còn trống tại đích."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解压后的文件预计需要 %@，超过目标位置可用空间 %@ 的 90%%。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "解壓縮後的檔案預計需要 %@，超過目的地可用空間 %@ 的 90%%。"
-          }
-        }
-      }
-    },
-    "This PDF has too many pages to preview." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This PDF has too many pages to preview."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此 PDF 的页数过多，无法预览。"
-          }
-        }
-      }
-    },
-    "This property list has too many values or nesting levels to preview." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This property list has too many values or nesting levels to preview."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此属性列表的项目或嵌套层级过多，无法预览。"
-          }
-        }
-      }
-    },
-    "View" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "视图"
-          }
-        }
-      }
-    },
-    "This item is already in the destination folder. Choose another folder." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此项目已在目标文件夹中，请选择其他文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此項目已在目標檔案夾中，請選擇其他檔案夾。"
-          }
-        }
-      }
-    },
-    "The source and destination refer to the same item, even though their paths differ. Choose another destination." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "源路径和目标路径虽然不同，但指向同一个项目。请选择其他目标位置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "來源路徑和目標路徑雖然不同，但指向同一個項目。請選擇其他目標位置。"
-          }
-        }
-      }
-    },
-    "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不能将文件夹拷贝或移动到自身或其子文件夹中。请选择此文件夹以外的位置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法將檔案夾拷貝或搬移至自身或其子檔案夾中。請選擇此檔案夾以外的位置。"
-          }
-        }
-      }
-    },
-    "The selection includes the same item more than once, or both a folder and an item inside it. Select each item only once." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所选项目存在重复，或同时包含文件夹及其内部项目。请调整选择，避免重复操作。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所選項目存在重複，或同時包含檔案夾及其內部項目。請調整選擇，避免重複操作。"
-          }
-        }
-      }
-    },
-    "Two selected items have the same name and would use the same destination. Rename one or transfer them separately." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所选项目中有同名项目，会使用相同的目标路径。请先重命名，或分别传输。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所選項目中有同名項目，會使用相同的目標路徑。請先重新命名，或分別傳輸。"
-          }
-        }
-      }
-    },
-    "A file and a folder have the same name at the destination. Rename one or choose another folder." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目标位置存在同名的文件或文件夹，类型不同，无法替换。请先重命名或选择其他文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目標位置存在同名的檔案或檔案夾，類型不同，無法取代。請先重新命名或選擇其他檔案夾。"
-          }
-        }
-      }
-    },
-    "There is not enough free space to finish this operation safely. Free up space or choose another destination." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可用空间不足，无法安全完成操作。请释放空间或选择其他目标位置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可用空間不足，無法安全完成操作。請釋出空間或選擇其他目標位置。"
-          }
-        }
-      }
-    },
-    "The destination is read-only. Choose a writable folder." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目标位置为只读。请选择可写入的文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目標位置為唯讀。請選擇可寫入的檔案夾。"
-          }
-        }
-      }
-    },
-    "The destination folder is not empty and cannot be replaced. Rename the item or choose another folder." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目标文件夹不为空，无法替换。请重命名项目或选择其他文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "目標檔案夾不是空的，無法取代。請重新命名項目或選擇其他檔案夾。"
-          }
-        }
-      }
-    },
-    "Part of the path is a file instead of a folder. Choose an existing destination folder." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "路径中的某一部分是文件，无法作为文件夹访问。请选择已有的目标文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "路徑中的某一部分是檔案，無法作為檔案夾存取。請選擇現有的目標檔案夾。"
-          }
-        }
-      }
-    },
-    "Unable to Move Items" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法移动项目"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法搬移項目"
-          }
-        }
-      }
-    },
-    "Unable to Copy Items" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法拷贝项目"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法拷貝項目"
-          }
-        }
-      }
-    },
-    "Check the source and destination folders before trying again. Some items may already have been transferred." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重试前请先检查源文件夹和目标文件夹，部分项目可能已完成传输。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重試前請先檢查來源檔案夾和目標檔案夾，部分項目可能已完成傳輸。"
-          }
-        }
-      }
-    },
-    "A symbolic link in this path cannot be followed for this operation. Choose a direct path to the item." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此路径中的符号链接无法用于当前操作。请选择项目的直接路径。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此路徑中的符號連結無法用於目前操作。請選擇項目的直接路徑。"
           }
         }
       }

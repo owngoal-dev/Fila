@@ -55,7 +55,7 @@ jobs:
           a TrollStore TIPA, and a standard IPA with its App Group entitlement.
 
           Native app and daemon retain physical filesystem paths. Destructive
-          operations are protected by FilaGuard on both jailbreak layouts. RootHide device
+          operations are protected by FilaGuard on both bootstrap layouts. RootHide device
           validation remains pending; CI verifies builds, host tests and archives.
           NOTES
           files=("build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64.deb"

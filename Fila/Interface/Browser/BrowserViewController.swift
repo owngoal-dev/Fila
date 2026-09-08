@@ -431,7 +431,7 @@ final class BrowserViewController: UIViewController {
                 return .message(
                     symbol: "trash", artwork: "trash-empty-large",
                     title: String(localized: "No Trash Yet"),
-                    detail: String(localized: "Deleted items are moved here so they can be put back. Create it now, or Fila creates it with your first delete."),
+                    detail: String(localized: "Deleted items are moved here so they can be put back."),
                     button: String(localized: "Create Trash")
                 )
             }
@@ -685,7 +685,7 @@ final class BrowserViewController: UIViewController {
         }
         var parts = [String(localized: "\(visible.count) items")]
         if listingTruncated {
-            parts.append(String(localized: "Only the first 50,000 items are shown."))
+            parts.append(String(localized: "Not all items shown"))
         }
         if let volume {
             let free = FilePresentation.byteLabel(volume.availableByteCount)

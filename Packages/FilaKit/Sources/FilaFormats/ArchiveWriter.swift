@@ -117,7 +117,7 @@ public final class ArchiveWriter: @unchecked Sendable {
                     .write(buffer, count: count)
             }, nil), output: output)
         } catch {
-            withExtendedLifetime(output) { archive_write_free(handle) }
+            _ = withExtendedLifetime(output) { archive_write_free(handle) }
             throw error
         }
         self.init(handle: handle, output: output)
@@ -128,7 +128,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         self.output = output
     }
 
-    deinit { withExtendedLifetime(output) { archive_write_free(handle) } }
+    deinit { _ = withExtendedLifetime(output) { archive_write_free(handle) } }
 
     public func addDirectory(_ path: String, mode: mode_t = 0o755, modified: Date = Date()) throws {
         try append(path, filetype: S_IFDIR, mode: mode, modified: modified, byteCount: 0, linkTarget: nil, progress: nil) { nil }

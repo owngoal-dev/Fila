@@ -187,7 +187,7 @@ final class AppListViewController: UIViewController {
                 symbol: "magnifyingglass",
                 title: String(localized: "No Matches"),
                 detail: filter.isEmpty
-                    ? String(localized: "No apps in this filter. Choose All Apps, User Apps, or System Apps.")
+                    ? String(localized: "No apps match this filter. Choose All Apps, User Apps, or System Apps.")
                     : String(localized: "No apps match “\(filter)”. Try a different search.")
             )
         }
@@ -206,7 +206,7 @@ final class AppListViewController: UIViewController {
         return .message(
             symbol: "questionmark.app.dashed",
             title: String(localized: "Unable to List Apps"),
-            detail: String(localized: "Fila could not read the list of installed apps. Try opening this screen again.")
+            detail: String(localized: "Fila could not read the list of installed apps. Pull down to refresh.")
         )
     }
 }

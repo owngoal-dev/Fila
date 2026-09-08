@@ -198,7 +198,7 @@ final class FileSharingViewController: UIViewController {
             content.text = String(localized: "No devices have connected yet.")
             content.textProperties.color = .secondaryLabel
         case .clearConnections:
-            content.text = String(localized: "Clear History")
+            content.text = String(localized: "Clear Connections")
             content.textProperties.color = .systemRed
         case .qrCode:
             return

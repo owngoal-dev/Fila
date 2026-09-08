@@ -57,7 +57,7 @@ final class PDFViewerViewController: UIViewController {
             let data = try file.readAll(limit: ViewerLimits.inMemoryDocumentByteCount)
             guard let document = PDFDocument(data: data) else {
                 throw ViewerFailure.unsupportedContent(
-                    String(localized: "This PDF could not be opened. Open it as hex to see its contents.")
+                    String(localized: "Unable to open this PDF. Open it as Hex to see its contents.")
                 )
             }
             guard document.pageCount <= 10_000 else {

@@ -233,7 +233,7 @@ final class ViewerContainerViewController: UIViewController {
                   let index = navigation.viewControllers.firstIndex(where: { $0 === self }), index > 0 else { return }
             navigation.popToViewController(navigation.viewControllers[index - 1], animated: true)
         }
-        return actions.menuElements(for: details.path, node: details.node, additional: additional, groupsFileOperations: true) { [weak self, weak presenter] action in
+        let confirmBlock: (@escaping () -> Void) -> Void = { [weak self, weak presenter] action in
             guard let self, self.menuItem.isEnabled else { return }
             let perform = { [weak self, weak presenter] in
                 guard let self, let presenter, let navigation = self.navigationController,
@@ -243,6 +243,13 @@ final class ViewerContainerViewController: UIViewController {
             if let confirm = self.confirmReplacement { confirm({}, perform) }
             else { perform() }
         }
+        return actions.menuElements(
+            for: details.path,
+            node: details.node,
+            additional: additional,
+            groupsFileOperations: true,
+            confirm: confirmBlock
+        )
     }
 
     private func reopen(as format: FileFormat) {

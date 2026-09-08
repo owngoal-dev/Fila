@@ -199,7 +199,7 @@ final class CompressViewController: UIViewController {
     private func promptPassword() {
         let first = AlertInputViewController(
             title: "Set Password",
-            message: "Enter a password for the archive. Leave it empty to remove the password.",
+            message: "Enter a password for the archive. Leave it empty for no password.",
             placeholder: "Password",
             text: "",
             doneButtonText: "Next"
@@ -219,7 +219,7 @@ final class CompressViewController: UIViewController {
             ) { [weak self] confirmed in
                 guard let self else { return }
                 guard confirmed == entered else {
-                    let alert = AlertViewController(title: "Passwords Do Not Match", message: "The password was not changed.") { context in
+                    let alert = AlertViewController(title: "Passwords Do Not Match", message: "The password was not changed. Try again.") { context in
                         context.allowSimpleDispose()
                         context.addAction(title: "OK", attribute: .accent) { context.dispose() }
                     }

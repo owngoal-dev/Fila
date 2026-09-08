@@ -5,13 +5,13 @@
 
 # Fila
 
-Browse, organize, and edit files on your iPhone or iPad. Install Fila on a supported jailbreak to access system files with root privileges.
+Browse, organize, and edit files on your iPhone or iPad. Install Fila on a supported system environment to access system files with root privileges.
 
 ![Preview](./Documents/screenshots.png)
 
 ## Install
 
-On a jailbroken device, add the OwnGoal Studio repository in Sileo, Zebra, or another package manager:
+On a supported device, add the OwnGoal Studio repository in Sileo, Zebra, or another package manager:
 
 **[Add to Sileo](sileo://source/https://apt.owngoal.dev)** · [apt.owngoal.dev](https://apt.owngoal.dev/)
 
@@ -19,12 +19,12 @@ Packages are also on [GitHub Releases](https://github.com/owngoal-dev/Fila/relea
 
 | Installation | Package | File access |
 | --- | --- | --- |
-| [roothide](https://github.com/roothide) jailbreak | `iphoneos-arm64e` `.deb` | Root access |
-| Rootless jailbreak (`/var/jb`) | `iphoneos-arm64` `.deb` | Root access |
+| [roothide](https://github.com/roothide) bootstrap | `iphoneos-arm64e` `.deb` | Root access |
+| Rootless bootstrap (`/var/jb`) | `iphoneos-arm64` `.deb` | Root access |
 | TrollStore | `Fila_<version>.tipa` | Files the `mobile` user can reach |
 | AltStore, SideStore, or Sideloadly | `Fila_<version>.ipa` | Fila’s own files and files you import |
 
-Requires iOS 15 or later. Root access needs the `.deb` on a supported jailbreak. The `.tipa` and `.ipa` do not include it.
+Requires iOS 15 or later. Root access needs the `.deb` on a supported system environment. The `.tipa` and `.ipa` do not include it.
 
 When sideloading, provision the same App Group for Fila and its Files extension.
 
@@ -37,7 +37,7 @@ When sideloading, provision the same App Group for Fila and its Files extension.
 - **Archives**: Browse and extract ZIP, TAR, 7z, and RAR. Create ZIP and TAR archives; ZIP can be password-protected.
 - **Share**: Import files and photos, download from a URL, share with other apps, or publish a folder over the network through a browser or WebDAV client.
 - **Files app**: On iOS 16 or later, open Fila documents from the Files app. Files cannot use Fila’s root access.
-- **Terminal**: On a jailbroken device, run an executable or open a shell in the current folder.
+- **Terminal**: On a supported device, run an executable or open a shell in the current folder.
 - **Deletion protection**: Fila blocks deletion of key system folders by default.
 
 Available folders and actions depend on how you install Fila.
@@ -87,6 +87,6 @@ Contributor notes are in [AGENTS.md](AGENTS.md).
 
 Fila is available under the [MIT License](LICENSE).
 
-Jailbreak packages are not for the App Store.
+The `.deb` packages are not for the App Store.
 
 Join the community on [Discord](https://discord.gg/vqhDEep2mN).

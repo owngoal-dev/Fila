@@ -80,7 +80,7 @@ final class ImageViewerViewController: UIViewController {
             let data = try file.readAll(limit: ViewerLimits.inMemoryDocumentByteCount)
             guard let raster = ImagePreview.make(data: data) else {
                 throw ViewerFailure.unsupportedContent(
-                    String(localized: "This image format is not supported. Open it as hex to see its contents.")
+                    String(localized: "This image format is not supported. Open it as Hex to see its contents.")
                 )
             }
             let image = UIImage(cgImage: raster)

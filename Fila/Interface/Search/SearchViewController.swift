@@ -147,7 +147,7 @@ final class SearchViewController: UIViewController {
                 self?.selectScope(option)
             }
         }
-        navigationItem.rightBarButtonItem?.menu = UIMenu(children: [FilaMenu.selection(title: String(localized: "Search"), actions: actions)])
+        navigationItem.rightBarButtonItem?.menu = UIMenu(children: [FilaMenu.selection(title: String(localized: "Search In"), actions: actions)])
     }
 
     private func selectScope(_ scope: Scope) {

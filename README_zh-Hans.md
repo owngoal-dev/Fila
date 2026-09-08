@@ -5,13 +5,13 @@
 
 # Fila
 
-在 iPhone 或 iPad 上浏览、整理和编辑文件。在受支持的越狱设备上安装 Fila，即可使用 root 权限访问系统文件。
+在 iPhone 或 iPad 上浏览、整理和编辑文件。在受支持的系统环境中安装 Fila，即可使用 root 权限访问系统文件。
 
 ![预览](./Documents/screenshots.png)
 
 ## 安装
 
-越狱设备上，在 Sileo、Zebra 或其他包管理器中添加 OwnGoal Studio 软件源：
+在受支持的设备上，在 Sileo、Zebra 或其他包管理器中添加 OwnGoal Studio 软件源：
 
 **[添加到 Sileo](sileo://source/https://apt.owngoal.dev)** · [apt.owngoal.dev](https://apt.owngoal.dev/)
 
@@ -19,12 +19,12 @@
 
 | 安装方式 | 软件包 | 文件访问 |
 | --- | --- | --- |
-| [roothide](https://github.com/roothide) 越狱 | `iphoneos-arm64e` `.deb` | Root 访问 |
-| Rootless 越狱（`/var/jb`） | `iphoneos-arm64` `.deb` | Root 访问 |
+| [roothide](https://github.com/roothide) 引导环境 | `iphoneos-arm64e` `.deb` | Root 访问 |
+| Rootless 引导环境（`/var/jb`） | `iphoneos-arm64` `.deb` | Root 访问 |
 | TrollStore | `Fila_<version>.tipa` | `mobile` 用户有权访问的文件 |
 | AltStore、SideStore 或 Sideloadly | `Fila_<version>.ipa` | Fila 自己的文件以及你导入的文件 |
 
-需要 iOS 15 或更高版本。要使用 root 权限，请在受支持的越狱设备上安装 `.deb` 软件包。`.tipa` 和 `.ipa` 不提供 root 权限。
+需要 iOS 15 或更高版本。要使用 root 权限，请在受支持的系统环境中安装 `.deb` 软件包。`.tipa` 和 `.ipa` 不提供 root 权限。
 
 侧载时，请为 Fila 及其「文件」扩展配置同一 App Group。
 
@@ -37,7 +37,7 @@
 - **归档**：浏览并解压 ZIP、TAR、7z 和 RAR。创建 ZIP 和 TAR 归档；ZIP 可设置密码。
 - **分享**：导入文件和照片，从 URL 下载，与其他应用共享，或通过浏览器、WebDAV 客户端在网络上发布文件夹。
 - **「文件」**：在 iOS 16 或更高版本上，可从「文件」打开 Fila 中的文稿。「文件」无法使用 Fila 的 Root 访问。
-- **终端**：在越狱设备上，运行可执行文件，或在当前文件夹打开 shell。
+- **终端**：在受支持的设备上，运行可执行文件，或在当前文件夹打开 shell。
 - **删除保护**：Fila 默认阻止删除关键系统文件夹。
 
 可用的文件夹和操作取决于 Fila 的安装方式。
@@ -87,6 +87,6 @@ make ipa
 
 Fila 使用 [MIT 许可证](LICENSE)。
 
-越狱软件包不适用于 App Store。
+`.deb` 软件包不适用于 App Store。
 
 欢迎加入 [Discord](https://discord.gg/vqhDEep2mN) 社区。

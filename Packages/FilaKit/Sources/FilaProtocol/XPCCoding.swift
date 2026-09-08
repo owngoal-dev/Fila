@@ -186,8 +186,12 @@ public extension MountPoint {
               let path = xpc_dictionary_get_string(dictionary, VolumeKey.mountPoint),
               let device = xpc_dictionary_get_string(dictionary, VolumeKey.device),
               let filesystem = xpc_dictionary_get_string(dictionary, VolumeKey.type) else { return nil }
-        self.init(path: String(cString: path), device: String(cString: device),
-                  filesystem: String(cString: filesystem), isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly))
+        self.init(
+            path: String(cString: path),
+            device: String(cString: device),
+            filesystem: String(cString: filesystem),
+            isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly)
+        )
     }
 }
 

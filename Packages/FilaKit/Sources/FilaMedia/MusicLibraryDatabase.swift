@@ -109,7 +109,7 @@ public struct MusicLibraryDatabase: Sendable {
     private func failure(_ database: OpaquePointer?, code: Int32? = nil) -> NSError {
         let code = code ?? sqlite3_errcode(database)
         return NSError(domain: "SQLite", code: Int(code), userInfo: [
-            NSLocalizedDescriptionKey: String(cString: sqlite3_errstr(code)),
+            NSLocalizedDescriptionKey: String(localized: "The music library is not available. Try again."),
         ])
     }
 }

@@ -121,7 +121,7 @@ extension RootSplitViewController {
             guard SystemCapabilities.showsApplications else {
                 self.alert(
                     title: String(localized: "Applications Unavailable"),
-                    message: String(localized: "Show Applications is turned off in Settings, or Fila cannot see other apps on this device.")
+                    message: String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
                 )
                 return
             }

@@ -202,16 +202,10 @@ enum ViewerFailure: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case let .readFailed(code):
-            return String(
-                format: String(localized: "Could not read the file: %@."),
-                String(cString: strerror(code))
-            )
-        case let .writeFailed(code):
-            return String(
-                format: String(localized: "Could not write the file: %@."),
-                String(cString: strerror(code))
-            )
+        case .readFailed:
+            return String(localized: "Unable to read this file. Try opening it again.")
+        case .writeFailed:
+            return String(localized: "Unable to save this file. Try again.")
         case let .tooLarge(byteCount, limit):
             return String(
                 format: String(localized: "This file is too large (%@). The viewer supports files up to %@."),

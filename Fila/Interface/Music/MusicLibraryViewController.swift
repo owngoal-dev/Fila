@@ -121,7 +121,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         tableView.reloadData()
         tableView.backgroundView = rows.isEmpty ? StatusView(content: .message(
             symbol: "music.note", title: query.isEmpty ? String(localized: "No Music") : String(localized: "No Matches"),
-            detail: query.isEmpty ? String(localized: "Import an audio file from the More menu to add it to this device’s music library.") : nil
+            detail: query.isEmpty ? String(localized: "Import an audio file to add it to this device’s music library.") : nil
         )) : nil
     }
 

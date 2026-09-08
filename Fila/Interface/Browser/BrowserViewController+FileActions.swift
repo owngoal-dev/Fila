@@ -60,7 +60,8 @@ extension BrowserViewController {
     /// would leave the rest with a confirmation that named the wrong count.
     func emptyTrashAction() -> UIAction {
         UIAction(
-            title: String(localized: "Empty Trash"), image: UIImage(systemName: "trash"),
+            title: String(localized: "Empty Trash"),
+            image: UIImage(systemName: "trash"),
             attributes: entries.isEmpty || isListing ? [.destructive, .disabled] : .destructive
         ) { [weak self] _ in
             guard let self else { return }
@@ -274,7 +275,7 @@ extension BrowserViewController {
         let initial = template == .directory ? "" : String(localized: "Untitled.txt")
         prompt(
             title: title,
-            message: "Enter a name for the new item in the current folder.",
+            message: "Enter a name for the new item in this folder.",
             initial: initial,
             confirm: "Create"
         ) { [weak self] name in
@@ -288,7 +289,9 @@ extension BrowserViewController {
     /// mode, then one name prompt already filled with the target's own name.
     func promptCreateLink() {
         let picker = SaveDestinationViewController(
-            directory: URL(fileURLWithPath: directory, isDirectory: true), picksFiles: true, link: session.link
+            directory: URL(fileURLWithPath: directory, isDirectory: true),
+            picksFiles: true,
+            link: session.link
         ) { [weak self] target in
             guard let self else { return }
             self.prompt(
@@ -313,7 +316,7 @@ extension BrowserViewController {
     func promptDownload() {
         prompt(
             title: "Download from URL",
-            message: "Enter an http or https URL to save in the current folder.",
+            message: "Enter an http or https URL. The file is saved in this folder.",
             initial: "https://",
             confirm: "Download"
         ) { [weak self] text in

@@ -392,7 +392,7 @@ final class PropertyListEditorViewController: UIViewController {
     }
 
     private func showError(_ message: String) {
-        let alert = AlertViewController(title: "Unable to Save", message: message) { context in
+        let alert = AlertViewController(title: "Unable to Make This Change", message: message) { context in
             context.allowSimpleDispose()
             context.addAction(title: "OK", attribute: .accent) {
                 context.dispose()

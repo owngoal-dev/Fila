@@ -180,11 +180,11 @@ final class SettingsViewController: UIViewController {
         case .sharing:
             configureDisclosure(cell, title: String(localized: "File Sharing"))
         case .tasks:
-            configureDisclosure(cell, title: String(localized: "Operation History"))
+            configureDisclosure(cell, title: String(localized: "Tasks"))
         case .recordsRecents:
             configureToggle(cell, title: String(localized: "Remember Recents"), keyPath: \.recordsRecents)
         case .usesTrash:
-            configureToggle(cell, title: String(localized: "Move to Trash"), keyPath: \.usesTrash)
+            configureToggle(cell, title: String(localized: "Use Trash"), keyPath: \.usesTrash)
         case .runsPrograms:
             configureToggle(cell, title: String(localized: "Run Programs"), keyPath: \.runsPrograms)
         case .redirectsScriptInterpreters:
@@ -335,7 +335,7 @@ final class SettingsViewController: UIViewController {
         case .systemFeatures:
             return String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
         case .scripts:
-            return String(localized: "A script's first line names the interpreter that runs it, usually /bin/sh or /bin/bash. Your jailbreak keeps its copy elsewhere, so the script fails to start. Fila finds that interpreter where the jailbreak installed it and runs the script with it. Turn this off to start scripts exactly as written.")
+            return String(localized: "Some scripts name an interpreter your jailbreak stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
         case .guardOverride:
             return String(localized: "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore.")
         case .diagnostics:
