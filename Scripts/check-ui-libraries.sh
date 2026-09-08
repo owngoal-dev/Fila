@@ -90,12 +90,17 @@ if [[ -n "$alert_message_hits" ]]; then
     echo "$alert_message_hits" >&2
 fi
 
-# Escape dismissal is not a visible action; an empty action closure leaves
-# touch-only users with no way to close the card.
+# Escape dismissal is not a visible action. Inspect the complete context
+# closure, including nested action handlers: mutating buttons alone do not
+# provide a way to cancel, even when they follow allowSimpleDispose().
 empty_alert_hits="$(perl -0777 -ne '
-    while (/allowSimpleDispose\(\)\s*\}/sg) {
-        my $line = 1 + (substr($_, 0, $-[0]) =~ tr/\n//);
-        print "$ARGV:$line: allowSimpleDispose needs a visible Close/OK action\n";
+    while (/\{\s*(?:\[[^\]]*\]\s*)?context\s+in(?<body>(?:[^{}"]+|"(?:\\.|[^"\\])*"|\{(?&body)\})*)\}/sg) {
+        my $body = $+{body};
+        my $offset = $-[0];
+        next unless $body =~ /context\.allowSimpleDispose\(\)/;
+        next if $body =~ /context\.addAction\(\s*title:\s*"(?:Cancel|Close|OK)"/s;
+        my $line = 1 + (substr($_, 0, $offset) =~ tr/\n//);
+        print "$ARGV:$line: allowSimpleDispose needs a visible Cancel/Close/OK action\n";
     }' $(find "${ui_roots[@]}" -name '*.swift'))"
 if [[ -n "$empty_alert_hits" ]]; then
     error "alert cards need a visible dismissal button:"
