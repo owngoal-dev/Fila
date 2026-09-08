@@ -152,6 +152,7 @@ final class StatusView: UIView {
             make.top.equalTo(snp.top)
             make.bottom.equalTo(followsKeyboard ? keyboardLayoutGuide.snp.top : snp.bottom)
             make.width.equalTo(self).priority(.low)
+            make.centerX.equalToSuperview()
         }
     }
 
@@ -194,6 +195,17 @@ final class StatusView: UIView {
         accessibilityLabel = [title, detail].compactMap(\.self).joined(separator: ", ")
         accessibilityTraits = isLoading ? .updatesFrequently : .staticText
     }
+
+    override func updateConstraints() {
+        super.updateConstraints()
+        let safeAreaGuide = findViewController()?.view.safeAreaLayoutGuide
+        band.snp.remakeConstraints { make in
+            make.top.equalTo(safeAreaGuide?.snp.top ?? snp.top)
+            make.bottom.equalTo(followsKeyboard ? keyboardLayoutGuide.snp.top : snp.bottom)
+            make.width.equalTo(self).priority(.low)
+            make.centerX.equalToSuperview()
+        }
+    }
 }
 
 extension UICollectionView {
@@ -220,5 +232,16 @@ extension UICollectionView {
         panel.action = action
         panel.content = content
         backgroundView = panel
+    }
+}
+
+fileprivate extension UIView {
+    func findViewController() -> UIViewController? {
+        if let nextResponder = self.next as? UIViewController {
+            return nextResponder
+        } else if let nextResponder = self.next as? UIView {
+            return nextResponder.findViewController()
+        }
+        return nil
     }
 }
