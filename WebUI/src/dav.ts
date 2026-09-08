@@ -15,7 +15,7 @@ export class DavError extends Error {
   status?: number;
 }
 
-export function canonical(raw: string, directory = false): string {
+export function canonical(raw: string, directory: boolean): string {
   const u = new URL(raw, location.origin);
   if (u.origin !== location.origin || u.username || u.password || u.search || u.hash) {
     throw new DavError(t('invalidListing'));
@@ -67,7 +67,7 @@ function errorFor(status: number): DavError {
     423: t('locked'),
     507: t('space'),
   };
-  const e = new DavError(known[status] || t('failed', status));
+  const e = new DavError(known[status] || t('failed'));
   e.status = status;
   return e;
 }

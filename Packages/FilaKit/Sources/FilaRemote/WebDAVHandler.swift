@@ -6,7 +6,7 @@ import NIOHTTP1
 /// the peer goes away.
 ///
 /// The routing, the authentication and the failure translation live here; the
-/// verbs themselves are in `WebDAVMethods.swift`.
+/// verbs themselves are in `WebDAVHandler+Methods.swift`.
 struct WebDAVHandler {
     let service: RemoteFileService
     let configuration: WebDAVServer.Configuration

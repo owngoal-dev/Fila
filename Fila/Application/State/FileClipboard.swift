@@ -38,23 +38,15 @@ final class FileClipboard {
         let isCut: Bool
     }
 
-    private enum PasteState {
-        case idle
-        case running(Paste)
-    }
-
     private var revision = UUID()
-    private var pasteState: PasteState = .idle
+    private var activePaste: Paste?
 
     var isEmpty: Bool {
         paths.isEmpty
     }
 
     var isPasting: Bool {
-        if case .running = pasteState {
-            return true
-        }
-        return false
+        activePaste != nil
     }
 
     private init() {}
@@ -96,7 +88,7 @@ final class FileClipboard {
     func beginPaste() -> Paste? {
         guard !isEmpty, !isPasting else { return nil }
         let paste = Paste(revision: revision, paths: paths, isCut: isCut)
-        pasteState = .running(paste)
+        activePaste = paste
         NotificationCenter.default.post(name: .filaClipboardChanged, object: self)
         return paste
     }
@@ -104,8 +96,8 @@ final class FileClipboard {
     /// Copy remains reusable. Only a successful move consumes its selection;
     /// a failed batch does not say which individual roots, if any, moved.
     func finishPaste(_ paste: Paste, succeeded: Bool) {
-        guard case let .running(active) = pasteState, active.id == paste.id else { return }
-        pasteState = .idle
+        guard let active = activePaste, active.id == paste.id else { return }
+        activePaste = nil
         if revision == paste.revision, paste.isCut, succeeded {
             clear()
             return

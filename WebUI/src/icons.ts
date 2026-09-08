@@ -39,19 +39,20 @@ const byFormat: Record<string, string> = {
   text: 'text',
 };
 
-export function extensionOf(name: string): string {
+function extensionOf(name: string): string {
   const dot = name.lastIndexOf('.');
   return dot > 0 ? name.slice(dot + 1).toLowerCase() : '';
 }
 
+const formatOf = (item: Item) => (formats as Record<string, string>)[extensionOf(item.name)];
+
 export function iconFor(item: Item): string {
   if (item.isFolder) return artwork[extensionOf(item.name) === 'app' ? 'application' : 'folder'];
-  const format = (formats as Record<string, string>)[extensionOf(item.name)];
-  return artwork[byFormat[format] ?? 'document'];
+  return artwork[byFormat[formatOf(item)] ?? 'document'];
 }
 
 /// What QuickLook can turn into a picture: images, video and PDF.
 export function hasThumbnail(item: Item): boolean {
-  const format = (formats as Record<string, string>)[extensionOf(item.name)];
+  const format = formatOf(item);
   return !item.isFolder && (format === 'image' || format === 'video' || format === 'pdf');
 }

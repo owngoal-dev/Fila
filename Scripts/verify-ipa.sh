@@ -67,7 +67,7 @@ done
 # writes is CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName, and reading the
 # top-level spelling fails on a bundle whose icon is perfectly fine.
 expect "App icon" \
-    "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$app/Info.plist" 2>/dev/null || true)" \
+    "$(plist_value CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName)" \
     "AppIcon"
 
 # Without these the sandboxed build has no way to reach a file at all: the app's
@@ -80,7 +80,6 @@ fi
 
 executable="$(plist_value CFBundleExecutable)"
 ldid -e "$app/$executable" >"$signed_entitlements" 2>/dev/null || : >"$signed_entitlements"
-entitlements="$(/usr/libexec/PlistBuddy -c 'Print' "$signed_entitlements" 2>/dev/null || true)"
 
 if [[ "$kind" == tipa ]]; then
     python3 "$(dirname "$0")/verify-icon-entitlements.py" "$signed_entitlements"
@@ -89,6 +88,7 @@ if [[ "$kind" == tipa ]]; then
             || fail "tipa executable is missing entitlement: $entitlement"
     done
 else
+    entitlements="$(/usr/libexec/PlistBuddy -c 'Print' "$signed_entitlements" 2>/dev/null || true)"
     for entitlement in platform-application com.apple.private.security.no-sandbox \
         com.apple.private.security.storage.AppBundles com.apple.private.security.storage.AppDataContainers \
         com.apple.private.InstallCoordination.allowed com.apple.private.InstallCoordination.uninstall \

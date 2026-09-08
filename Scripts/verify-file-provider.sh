@@ -20,16 +20,15 @@ group="$(value "$app/Info.plist" FilaAppGroupIdentifier)"
 [[ "$(value "$provider/Info.plist" NSExtension:NSExtensionPointIdentifier)" == com.apple.fileprovider-nonui ]] || fail 'provider extension point differs'
 signed="$(mktemp "${TMPDIR:-/tmp}/fila-provider-verify.XXXXXX")"
 trap 'rm -f "$signed"' EXIT
-for executable in "$app/$(value "$app/Info.plist" CFBundleExecutable)" "$provider/FilaFileProvider"; do
-    ldid -e "$executable" >"$signed"
-    python3 - "$signed" "$group" <<'PYTHON'
+ldid -e "$app/$(value "$app/Info.plist" CFBundleExecutable)" >"$signed"
+python3 - "$signed" "$group" <<'PYTHON'
 import plistlib, sys
 with open(sys.argv[1], "rb") as stream:
     value = plistlib.load(stream)
 if value.get("com.apple.security.application-groups") != [sys.argv[2]]:
     raise SystemExit("error: executable must carry exactly the configured App Group")
 PYTHON
-done
+ldid -e "$provider/FilaFileProvider" >"$signed"
 python3 - "$signed" "$kind" "$group" <<'PYTHON'
 import plistlib, sys
 with open(sys.argv[1], "rb") as stream:

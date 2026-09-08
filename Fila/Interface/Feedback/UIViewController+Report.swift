@@ -12,7 +12,7 @@ extension UIViewController {
     func report(_ failure: FilaFailure) {
         guard failure.code != .success, failure.code != .cancelled else { return }
         let alert = AlertViewController(
-            title: Self.failureTitle(for: failure),
+            title: FailureText.title(for: failure),
             message: Self.failureMessage(for: failure)
         ) { context in
             context.allowSimpleDispose()
@@ -21,17 +21,6 @@ extension UIViewController {
             }
         }
         present(alert, animated: true)
-    }
-
-    private static func failureTitle(for failure: FilaFailure) -> String {
-        switch failure.code {
-        case .protectedPath: String(localized: "Protected Item")
-        case .notPermitted: String(localized: "Not Permitted")
-        case .notFound: String(localized: "Not Found")
-        case .wrongPassword: String(localized: "Wrong Password")
-        case .invalidRequest: String(localized: "Unable to Complete Request")
-        default: String(localized: "Operation Failed")
-        }
     }
 
     private static func failureMessage(for failure: FilaFailure) -> String {

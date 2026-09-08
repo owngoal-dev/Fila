@@ -39,9 +39,9 @@ enum LaunchLocation: String, CaseIterable {
 final class AppPreferences {
     static let shared = AppPreferences()
 
-    static let recentLimit = 40
+    private static let recentLimit = 40
     /// How many folders may remember their own view. See `layout(for:)`.
-    static let folderLayoutLimit = 200
+    private static let folderLayoutLimit = 200
 
     private let defaults = UserDefaults.standard
 
@@ -72,7 +72,7 @@ final class AppPreferences {
     }
 
     /// The view a folder gets when it has no opinion of its own.
-    var layout: BrowserLayout {
+    private var layout: BrowserLayout {
         get { defaults.string(forKey: "layout").flatMap(BrowserLayout.init) ?? .list }
         set { defaults.set(newValue.rawValue, forKey: "layout") }
     }
@@ -292,7 +292,7 @@ final class AppPreferences {
         set { defaults.set(newValue, forKey: "serverRoot") }
     }
 
-    static var defaultServerRoot: String {
+    private static var defaultServerRoot: String {
         (try? FileManager.default.url(
             for: .documentDirectory,
             in: .userDomainMask,

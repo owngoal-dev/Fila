@@ -20,7 +20,6 @@ actor MusicLibraryEditor {
     }
 
     struct Details: Sendable {
-        let id: Int64
         var values: [Field: String]
         let editableFields: Set<Field>
     }
@@ -61,7 +60,7 @@ actor MusicLibraryEditor {
             native = try nativeLibrary()
             values = try native.values(forTrackID: id)
         } catch { throw unavailable() }
-        return Details(id: id, values: Dictionary(uniqueKeysWithValues: Field.allCases.map {
+        return Details(values: Dictionary(uniqueKeysWithValues: Field.allCases.map {
             ($0, values[$0.rawValue] ?? "")
         }), editableFields: Set(native.editableFields.compactMap(Field.init(rawValue:))))
     }
@@ -117,21 +116,17 @@ actor MusicLibraryEditor {
         } else {
             MPMediaLibrary.authorizationStatus()
         }
-        guard status == .authorized else {
-            throw error(String(
-                localized: "Fila does not have access to Music. Allow access in Settings, then try again."
-            ))
-        }
+        guard status == .authorized else { throw noAccess() }
     }
 
     func nativeLibrary() throws -> NativeMusicLibrary {
-        guard MPMediaLibrary.authorizationStatus() == .authorized else {
-            throw error(String(
-                localized: "Fila does not have access to Music. Allow access in Settings, then try again."
-            ))
-        }
+        guard MPMediaLibrary.authorizationStatus() == .authorized else { throw noAccess() }
         guard FileManager.default.isReadableFile(atPath: Self.databasePath) else { throw unavailable() }
         return try NativeMusicLibrary(expectedDatabasePath: Self.databasePath)
+    }
+
+    private func noAccess() -> NSError {
+        error(String(localized: "Fila does not have access to Music. Allow access in Settings, then try again."))
     }
 
     private func changed() -> NSError {

@@ -375,14 +375,12 @@ final class OperationCenter: ObservableObject {
             guard let self else { return }
             do {
                 try await startJob(request, kind: kind, title: kind.runningTitle, subtitle: subtitle, undo: undo)
-            } catch let failure as FilaFailure {
-                self.record(kind: kind, subtitle: subtitle, logSubject: logSubject, failure: failure)
             } catch {
                 record(
                     kind: kind,
                     subtitle: subtitle,
                     logSubject: logSubject,
-                    failure: FilaFailure(code: .operationFailed)
+                    failure: (error as? FilaFailure) ?? FilaFailure(code: .operationFailed)
                 )
             }
         }
@@ -688,15 +686,13 @@ final class OperationCenter: ObservableObject {
             return
         }
         guard operation.succeeded else { return }
-        if operation.undo != nil {
-            Toast.show(operation.kind.completionTitle)
-        } else if operation.feedback == .successOnly
+        guard operation.undo != nil
+            || operation.feedback == .successOnly
             || operation.kind.isInstant
             || operation.kind == .compress
             || operation.kind == .extract
-        {
-            Toast.show(operation.kind.completionTitle)
-        }
+        else { return }
+        Toast.show(operation.kind.completionTitle)
     }
 
     // MARK: - Dying with the app

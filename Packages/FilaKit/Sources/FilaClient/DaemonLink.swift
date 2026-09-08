@@ -342,16 +342,7 @@ public final class DaemonLink: @unchecked Sendable {
     }
 
     /// Change mode, owner, group, times, BSD flags or one extended attribute.
-    ///
-    /// **`overrideGuard` does nothing here, and there is nothing for it to do.**
-    /// Neither service consults `FilaGuard` for an attribute change and neither
-    /// is going to start: the guard's rule is that a protected node may not be
-    /// deleted, moved away or replaced, and a chmod does none of the three —
-    /// the node is still there afterwards, and editing the files inside
-    /// `/System` is the entire point of the app. The parameter is here because
-    /// callers already pass it and removing it would churn them; do not read it
-    /// as protection that exists.
-    public func setAttributes(_ change: AttributeChange, at path: String, overrideGuard _: Bool = false) async throws {
+    public func setAttributes(_ change: AttributeChange, at path: String) async throws {
         try await service().setAttributes(change, at: path)
     }
 

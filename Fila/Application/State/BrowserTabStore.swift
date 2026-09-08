@@ -102,12 +102,12 @@ final class BrowserTabStore {
 
     /// How many tabs may exist at once. Roughly what a switcher grid shows
     /// without becoming a scrolling archive of everywhere you have ever been.
-    static let limit = 16
+    private static let limit = 16
 
     /// How deep one tab's remembered history goes. Beyond this the oldest
     /// ancestors are dropped: the way *out* of a folder is the breadcrumb, not
     /// thirty Back taps, so the far end of a long walk is worth nothing.
-    static let depthLimit = 32
+    private static let depthLimit = 32
 
     private let defaults: UserDefaults
 

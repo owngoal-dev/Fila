@@ -4,28 +4,22 @@ set -Eeuo pipefail
 app="$1"
 kind="$2"
 scripts="$(cd "$(dirname "$0")" && pwd -P)"
-provider="$app/PlugIns/FilaFileProvider.appex"
-[[ -x "$provider/FilaFileProvider" ]] || { echo 'error: embedded File Provider is missing' >&2; exit 65; }
 resolved="$(mktemp "${TMPDIR:-/tmp}/fila-provider-sign.XXXXXX")"
 trap 'rm -f "$resolved"' EXIT
-case "$kind" in
-    ipa) template="$scripts/../Packaging/AppGroup.entitlements" ;;
-    deb|tipa) template="$scripts/../Packaging/FilaFileProvider.entitlements" ;;
-    *) exit 64 ;;
-esac
-python3 "$scripts/resolve-app-group-entitlements.py" "$template" "$app/Info.plist" "$resolved"
-rm -rf "$provider/_CodeSignature"
-rm -f "$provider/embedded.mobileprovision"
-ldid -S"$resolved" -Cadhoc "$provider/FilaFileProvider"
 
 # The share action has the same standard App Group and its own bundle identity.
-action="$app/PlugIns/FilaSaveAction.appex"
-[[ -x "$action/FilaSaveAction" ]] || { echo 'error: embedded Save action is missing' >&2; exit 65; }
-case "$kind" in
-    ipa) template="$scripts/../Packaging/AppGroup.entitlements" ;;
-    deb|tipa) template="$scripts/../Packaging/FilaSaveAction.entitlements" ;;
-esac
-python3 "$scripts/resolve-app-group-entitlements.py" "$template" "$app/Info.plist" "$resolved"
-rm -rf "$action/_CodeSignature"
-rm -f "$action/embedded.mobileprovision"
-ldid -S"$resolved" -Cadhoc "$action/FilaSaveAction"
+for entry in 'FilaFileProvider:File Provider' 'FilaSaveAction:Save action'; do
+    appex="${entry%%:*}"
+    label="${entry#*:}"
+    bundle="$app/PlugIns/$appex.appex"
+    [[ -x "$bundle/$appex" ]] || { echo "error: embedded $label is missing" >&2; exit 65; }
+    case "$kind" in
+        ipa) template="$scripts/../Packaging/AppGroup.entitlements" ;;
+        deb|tipa) template="$scripts/../Packaging/$appex.entitlements" ;;
+        *) exit 64 ;;
+    esac
+    python3 "$scripts/resolve-app-group-entitlements.py" "$template" "$app/Info.plist" "$resolved"
+    rm -rf "$bundle/_CodeSignature"
+    rm -f "$bundle/embedded.mobileprovision"
+    ldid -S"$resolved" -Cadhoc "$bundle/$appex"
+done

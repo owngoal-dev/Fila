@@ -88,13 +88,13 @@ def main():
         raise ValueError("Save action bundle identity is wrong")
     if action_info.get("NSExtension", {}).get("NSExtensionPointIdentifier") != "com.apple.ui-services":
         raise ValueError("Save action extension point is wrong")
-    for folder, minimum in ((app / "Frameworks", minimum), (provider / "Frameworks", "16.0"), (action / "Frameworks", minimum)):
+    for folder, folder_minimum in ((app / "Frameworks", minimum), (provider / "Frameworks", "16.0"), (action / "Frameworks", minimum)):
         for library in folder.glob("*.dylib"):
-            binary(library, {}, minimum)
+            binary(library, {}, folder_minimum)
         for framework in folder.glob("*.framework"):
-            binary(framework / framework.stem, {}, minimum)
+            binary(framework / framework.stem, {}, folder_minimum)
     for path in sys.argv[4:]:
-        binary(Path(path), plistlib.loads((ROOT / "Packaging/Filad.entitlements").read_bytes()), wanted["MinimumOSVersion"])
+        binary(Path(path), plistlib.loads((ROOT / "Packaging/Filad.entitlements").read_bytes()), minimum)
     print("Verified device platform, build number, signatures and exact entitlements.")
 
 

@@ -108,7 +108,7 @@ export function App() {
     });
 
   /// One mutation after another, then a refresh that keeps whatever survived.
-  const runBatch = async (names: string[], action: (index: number) => Promise<unknown>, done: (path: string) => void) => {
+  const runBatch = async (names: string[], action: (index: number) => Promise<unknown>, done: (index: number) => void) => {
     if (busyRef.current) return;
     listID.current++;
     listAbort.current?.abort();
@@ -121,7 +121,7 @@ export function App() {
         setNotice({ text: t('batch', i + 1, names.length, names[i]), error: false });
         await action(i);
         completed++;
-        done(names[i]);
+        done(i);
       }
     } catch (e) {
       failure = e as Error;
@@ -134,10 +134,7 @@ export function App() {
 
   const operate = async (key: 'rename' | 'copy' | 'move' | 'delete', targets: Item[]) => {
     if (busyRef.current || !targets.length || dialog) return;
-    const forget = (name: string) => {
-      const item = targets.find((i) => i.name === name);
-      if (item) setSelection((s) => (s.delete(item.path), new Set(s)));
-    };
+    const forget = (i: number) => setSelection((s) => (s.delete(targets[i].path), new Set(s)));
     const names = targets.map((i) => i.name);
     if (key === 'delete') {
       if (await ask<boolean>((resolve) => ({ kind: 'delete', items: targets, resolve }))) {

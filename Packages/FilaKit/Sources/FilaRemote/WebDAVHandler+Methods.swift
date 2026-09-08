@@ -51,8 +51,8 @@ extension WebDAVHandler {
             try await http.write(head(207, headers: [
                 ("Content-Type", "application/xml; charset=\"utf-8\""),
             ], contentLength: nil))
-            try await http.writeChunk(Data(DAVXML.multistatusOpen.utf8))
-            try await http.writeChunk(Data(DAVXML.response(
+            try await http.write(Data(DAVXML.multistatusOpen.utf8))
+            try await http.write(Data(DAVXML.response(
                 href: RemotePath.href(for: path, root: configuration.root, isCollection: isCollection),
                 node: details.node,
                 isCollection: isCollection
@@ -74,13 +74,13 @@ extension WebDAVHandler {
                     isCollection: entry.isNavigable
                 )
                 if batch.utf8.count >= 64 * 1024 {
-                    try await http.writeChunk(Data(batch.utf8))
+                    try await http.write(Data(batch.utf8))
                     batch = ""
                 }
             }
-            try await http.writeChunk(Data(batch.utf8))
-            try await http.writeChunk(Data(DAVXML.multistatusClose.utf8))
-            try await http.endChunks()
+            try await http.write(Data(batch.utf8))
+            try await http.write(Data(DAVXML.multistatusClose.utf8))
+            try await http.finishResponse()
         }
         return 207
     }
@@ -90,7 +90,7 @@ extension WebDAVHandler {
     func get(_ request: HTTPRequest, path: String, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
         let details = try await service.details(of: path)
         if details.node.isNavigable {
-            return try await index(path, on: http, includeBody: includeBody)
+            return try await index(on: http, includeBody: includeBody)
         }
 
         let kind = details.node.link?.resolvedKind ?? details.node.kind
@@ -168,7 +168,7 @@ extension WebDAVHandler {
     /// the URL — and it may load script and style only from `/_fila/`, its
     /// own origin: nothing inline, so a shared file's content can never become
     /// part of the page.
-    private func index(_: String, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
+    private func index(on http: HTTPConnection, includeBody: Bool) async throws -> Int {
         guard let webRoot = configuration.webRoot else {
             try await respond(http, 404)
             return 404

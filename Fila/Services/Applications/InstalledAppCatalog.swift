@@ -55,10 +55,7 @@ enum InstalledAppCatalog {
     @MainActor
     static func open(_ app: InstalledApp) -> Bool {
         guard SystemCapabilities.showsApplications,
-              let type = NSClassFromString("LSApplicationWorkspace") as? NSObject.Type,
-              type.responds(to: NSSelectorFromString("defaultWorkspace")),
-              let workspace = type.perform(NSSelectorFromString("defaultWorkspace"))?
-              .takeUnretainedValue() as? NSObject,
+              let workspace = defaultWorkspace(),
               workspace.responds(to: #selector(ApplicationOpening.openApplicationWithBundleID(_:)))
         else { return false }
         return unsafeBitCast(workspace, to: ApplicationOpening.self).openApplicationWithBundleID(app.bundleIdentifier)
@@ -81,10 +78,17 @@ enum InstalledAppCatalog {
         return scanned.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
+    /// The one place the private class is resolved: absent, or not answering
+    /// `defaultWorkspace`, is the same "no LaunchServices here" for both callers.
+    private static func defaultWorkspace() -> NSObject? {
+        guard let type = NSClassFromString("LSApplicationWorkspace") as? NSObject.Type,
+              type.responds(to: NSSelectorFromString("defaultWorkspace"))
+        else { return nil }
+        return type.perform(NSSelectorFromString("defaultWorkspace"))?.takeUnretainedValue() as? NSObject
+    }
+
     private static func workspaceApplications() -> [InstalledApp] {
-        guard let workspaceClass = NSClassFromString("LSApplicationWorkspace"),
-              let workspace = (workspaceClass as AnyObject)
-              .perform(Selector(("defaultWorkspace")))?.takeUnretainedValue(),
+        guard let workspace = defaultWorkspace(),
               let proxies = workspace
               .perform(Selector(("allInstalledApplications")))?.takeUnretainedValue() as? [NSObject]
         else { return [] }

@@ -289,10 +289,6 @@ extension BrowserViewController {
         fileActions.delete(paths, permanently: permanently)
     }
 
-    func compress(_ paths: [String]) {
-        fileActions.promptCompress(paths)
-    }
-
     func presentSearch() {
         recordDirectoryUse()
         navigationController?.pushViewController(SearchViewController(root: directory, scope: .folder), animated: true)
@@ -314,7 +310,7 @@ extension BrowserViewController {
             confirm: String.LocalizationValue("Create")
         ) { [weak self] name in
             guard let self, !name.isEmpty else { return }
-            let path = directory == "/" ? "/" + name : directory + "/" + name
+            let path = path(ofName: name)
             run { try await $0.create(template, at: path) }
         }
     }
@@ -334,7 +330,7 @@ extension BrowserViewController {
                 confirm: String.LocalizationValue("Create")
             ) { [weak self] name in
                 guard let self, !name.isEmpty else { return }
-                let path = directory == "/" ? "/" + name : directory + "/" + name
+                let path = path(ofName: name)
                 run { try await $0.create(.symbolicLink(target: target.path), at: path) }
             }
         }
@@ -411,10 +407,9 @@ extension BrowserViewController {
             message: message,
             placeholder: .noPlaceholder,
             text: initial,
-            doneButtonText: confirm
-        ) { name in
-            handler(name)
-        }
+            doneButtonText: confirm,
+            onConfirm: handler
+        )
         present(alert, animated: true)
     }
 

@@ -542,12 +542,6 @@ final class BrowserViewController: UIViewController {
 
     // MARK: - Loading
 
-    /// Reloads the directory, page by page.
-    ///
-    /// The first page lands on screen before the second is asked for, which is
-    /// the whole reason listings are paged: a directory with 100k entries has to
-    /// feel instant even though it is two hundred round trips. A refresh keeps
-    /// existing rows until the complete listing can replace them in one diff.
     /// Runs a held reload, if the menu that was closing took one with it.
     func endMenuDismissal() {
         isMenuDismissing = false
@@ -556,6 +550,12 @@ final class BrowserViewController: UIViewController {
         reload()
     }
 
+    /// Reloads the directory, page by page.
+    ///
+    /// The first page lands on screen before the second is asked for, which is
+    /// the whole reason listings are paged: a directory with 100k entries has to
+    /// feel instant even though it is two hundred round trips. A refresh keeps
+    /// existing rows until the complete listing can replace them in one diff.
     func reload() {
         // The tap that started a delete returns long before the delete does —
         // it is an XPC round trip away — so its result routinely lands while
@@ -935,12 +935,12 @@ final class BrowserViewController: UIViewController {
         )
         let copy = UIBarButtonItem(
             image: UIImage(systemName: "doc.on.doc"),
-            primaryAction: UIAction { [weak self] _ in self?.commandCopySelection() }
+            primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: false) }
         )
         copy.accessibilityLabel = String(localized: "Copy")
         let move = UIBarButtonItem(
             image: UIImage(systemName: "scissors"),
-            primaryAction: UIAction { [weak self] _ in self?.commandMoveSelection() }
+            primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: true) }
         )
         move.accessibilityLabel = String(localized: "Move")
         let compress = UIBarButtonItem(
@@ -960,7 +960,8 @@ final class BrowserViewController: UIViewController {
         )
         putBack.accessibilityLabel = String(localized: "Put Back")
         let delete = UIBarButtonItem(image: UIImage(systemName: "trash"), primaryAction: UIAction { [weak self] _ in
-            self?.commandDeleteSelection()
+            guard let self else { return }
+            self.delete(selectedPaths())
         })
         delete.tintColor = .systemRed
         if #available(iOS 26.0, *) {
@@ -1114,22 +1115,15 @@ final class BrowserViewController: UIViewController {
         updateChrome()
     }
 
-    @objc private func commandCopySelection() {
-        takeSelection(cut: false)
-    }
-
-    @objc private func commandMoveSelection() {
-        takeSelection(cut: true)
-    }
-
-    @objc private func commandDeleteSelection() {
-        delete(selectedPaths())
-    }
-
     // MARK: - Navigation
 
     func path(of node: FileNode) -> String {
-        directory == "/" ? "/" + node.name : directory + "/" + node.name
+        path(ofName: node.name)
+    }
+
+    /// How this browser names a child of the folder it is showing.
+    func path(ofName name: String) -> String {
+        directory == "/" ? "/" + name : directory + "/" + name
     }
 
     func selectedPaths() -> [String] {

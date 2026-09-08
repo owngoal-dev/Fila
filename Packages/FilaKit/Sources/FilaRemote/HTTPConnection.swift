@@ -92,14 +92,6 @@ final class HTTPConnection {
         try await send(.body(.byteBuffer(ByteBuffer(bytes: data))))
     }
 
-    func writeChunk(_ data: Data) async throws {
-        try await write(data)
-    }
-
-    func endChunks() async throws {
-        try await finishResponse()
-    }
-
     func finishResponse() async throws {
         guard responseStarted else { return }
         responseStarted = false

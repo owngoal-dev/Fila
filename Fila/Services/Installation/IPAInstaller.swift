@@ -92,14 +92,10 @@ enum IPAInstaller {
 
     private static func coordinateInstall(_ ipa: URL, packageType: String?) async -> Outcome {
         let viaCoordinator = await installViaCoordination(ipa, packageType: packageType)
-        if case .unsupported = viaCoordinator {
-            let viaWorkspace = await installViaWorkspace(ipa, packageType: packageType)
-            if case .unsupported = viaWorkspace {
-                return viaCoordinator
-            }
-            return viaWorkspace
-        }
-        return viaCoordinator
+        guard case .unsupported = viaCoordinator else { return viaCoordinator }
+        let viaWorkspace = await installViaWorkspace(ipa, packageType: packageType)
+        if case .unsupported = viaWorkspace { return viaCoordinator }
+        return viaWorkspace
     }
 
     /// What the Install… card says about a package, read from the package

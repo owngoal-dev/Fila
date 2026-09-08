@@ -1,6 +1,5 @@
 const en = {
   newfolder: 'New Folder',
-  folder: 'Folder',
   upload: 'Upload',
   copy: 'Copy',
   move: 'Move',
@@ -30,7 +29,6 @@ const en = {
   deleteTitle: 'Delete Permanently?',
   deleteWarning:
     'This permanently deletes everything listed below, including folder contents. This cannot be undone.',
-  destination: 'Destination',
   uploadName: 'Choose Another Name',
   exists: 'An item with this name already exists. Choose a different name, or cancel to skip this file.',
   network: 'The connection was interrupted. Refresh to see the result before trying again.',
@@ -39,7 +37,7 @@ const en = {
   conflict: 'The destination is unavailable or that name is in use. Choose a different name or folder.',
   locked: 'This item is locked. Try again later.',
   space: 'There is not enough space to complete this operation. Free up space on the device and try again.',
-  failed: (n: number) => `The operation could not be completed. Try again.`,
+  failed: 'The operation could not be completed. Try again.',
   invalidListing: 'This folder could not be read. Refresh and try again.',
   partial: (n: number) => `${n} completed before the operation stopped.`,
   same: 'The item is already in this folder, or this folder is inside the item. Choose a different folder.',
@@ -57,7 +55,6 @@ type Words = typeof en;
 
 const zh: Words = {
   newfolder: '新建文件夹',
-  folder: '文件夹',
   upload: '上传',
   copy: '复制',
   move: '移动',
@@ -86,7 +83,6 @@ const zh: Words = {
   invalid: '名称不能包含“/”，也不能为“.”或“..”。',
   deleteTitle: '永久删除？',
   deleteWarning: '这些项目及文件夹内的所有内容都将被永久删除。此操作无法撤销。',
-  destination: '目标位置',
   uploadName: '选择其他名称',
   exists: '已存在同名项目。请选择其他名称，或取消以跳过此文件。',
   network: '连接已中断。请先刷新查看结果，再重试。',
@@ -95,7 +91,7 @@ const zh: Words = {
   conflict: '目标不可用，或名称已被占用。请选择其他名称或文件夹。',
   locked: '此项目已锁定。请稍后再试。',
   space: '没有足够的空间来完成此操作。请在设备上腾出空间后再试。',
-  failed: (n) => `无法完成此操作。请重试。`,
+  failed: '无法完成此操作。请重试。',
   invalidListing: '无法读取此文件夹。请刷新后再试。',
   partial: (n) => `操作停止前已完成 ${n} 项。`,
   same: '此项目已在该文件夹中，或该文件夹位于此项目内。请选择其他文件夹。',

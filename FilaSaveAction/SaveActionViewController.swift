@@ -78,8 +78,9 @@ final class SaveActionViewController: UIViewController {
         guard let identifier = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
               let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier)
         else { throw POSIXError(.EINVAL) }
-        let type = provider.registeredTypeIdentifiers.first {
-            UTType($0)?.conforms(to: .data) == true && UTType($0)?.conforms(to: .url) != true
+        let type = provider.registeredTypeIdentifiers.first { candidate in
+            guard let type = UTType(candidate) else { return false }
+            return type.conforms(to: .data) && !type.conforms(to: .url)
         }
         // Provider URLs live only for the callback. Copy before it returns.
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in

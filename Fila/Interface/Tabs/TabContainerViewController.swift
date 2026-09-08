@@ -125,23 +125,20 @@ final class TabContainerViewController: UIViewController {
             return
         }
         let tab = BrowserTabStore.shared.current
-        showTab(tab.id) {
-            let navigation = TabNavigationController()
-            navigation.owner = shell
-            navigation.setViewControllers(Self.browsers(for: tab), animated: false)
-            return navigation
-        }
+        showTab(tab.id) { makeNavigation(Self.browsers(for: tab)) }
         removeClosedTabs()
     }
 
     func showCurrentTab(root: UIViewController) {
-        showTab(BrowserTabStore.shared.currentID) {
-            let navigation = TabNavigationController()
-            navigation.owner = shell
-            navigation.setViewControllers([root], animated: false)
-            return navigation
-        }
+        showTab(BrowserTabStore.shared.currentID) { makeNavigation([root]) }
         removeClosedTabs()
+    }
+
+    private func makeNavigation(_ stack: [UIViewController]) -> TabNavigationController {
+        let navigation = TabNavigationController()
+        navigation.owner = shell
+        navigation.setViewControllers(stack, animated: false)
+        return navigation
     }
 
     /// Removing a background tab does not install, lay out or snapshot a survivor.

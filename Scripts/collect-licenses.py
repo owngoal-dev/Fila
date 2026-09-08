@@ -15,6 +15,9 @@ import re
 import sys
 
 LICENSE_FILE = re.compile(r"^(LICEN[CS]E|COPYING|NOTICE)([-_.].*)?$", re.IGNORECASE)
+PACKAGE_RESOLVED = os.path.join(
+    "Fila.xcodeproj", "project.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"
+)
 SKIPPED_DIRECTORIES = {
     ".git", ".build", ".swiftpm", "Tests", "Test", "Example", "Examples",
     "docs", "Documentation", "node_modules", "Script", "Scripts", "Patches",
@@ -105,9 +108,7 @@ def vendored_entries(project, checkouts):
 
 
 def package_entries(project, checkouts):
-    resolved_path = os.path.join(
-        project, "Fila.xcodeproj", "project.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"
-    )
+    resolved_path = os.path.join(project, PACKAGE_RESOLVED)
     resolved = json.load(open(resolved_path, encoding="utf-8"))
     entries = []
     for pin in sorted(resolved["pins"], key=lambda pin: pin["identity"]):
@@ -170,7 +171,7 @@ def web_entries(project):
 def validate_review(project, entries):
     """Changed/new notices and binary upgrades require a fresh human review."""
     review = json.load(open(os.path.join(project, "Licenses", "review.json"), encoding="utf-8"))
-    pins = json.load(open(os.path.join(project, "Fila.xcodeproj", "project.xcworkspace", "xcshareddata", "swiftpm", "Package.resolved"), encoding="utf-8"))["pins"]
+    pins = json.load(open(os.path.join(project, PACKAGE_RESOLVED), encoding="utf-8"))["pins"]
     revisions = {pin["identity"]: pin["state"]["revision"] for pin in pins}
     for package, revision in review["binaryRevisions"].items():
         if revisions.get(package) != revision:

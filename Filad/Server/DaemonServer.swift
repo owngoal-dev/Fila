@@ -30,9 +30,9 @@ final class DaemonServer: @unchecked Sendable {
     /// stop.
     private final class Peer {
         let connection: xpc_connection_t
-        /// How `peers` is keyed, carried here so a job's completion can find
-        /// its way back without every call passing the pair around.
-        let key: ObjectIdentifier
+        /// How `peers` is keyed, so a job's completion can find its way back
+        /// without every call passing the pair around.
+        var key: ObjectIdentifier { ObjectIdentifier(connection as AnyObject) }
         let listings = ListingRegistry()
         var jobs: [UInt64: FileJob] = [:]
         /// The terminals this peer opened. A pid and a dispatch source each —
@@ -43,9 +43,8 @@ final class DaemonServer: @unchecked Sendable {
         var terminals: [UInt64: TerminalProcess] = [:]
         let terminalOwner = UUID().uuidString
 
-        init(connection: xpc_connection_t, key: ObjectIdentifier) {
+        init(connection: xpc_connection_t) {
             self.connection = connection
-            self.key = key
         }
     }
 
@@ -149,9 +148,8 @@ final class DaemonServer: @unchecked Sendable {
         }
         FilaLog.info("peer accepted pid \(peerProcessIdentifier)")
 
-        cancelIdleExit()
         let key = ObjectIdentifier(event as AnyObject)
-        peers[key] = Peer(connection: event, key: key)
+        peers[key] = Peer(connection: event)
         xpc_connection_set_target_queue(event, controlQueue)
         xpc_connection_set_event_handler(event) { [weak self] message in
             autoreleasepool { self?.handle(message, key: key) }
@@ -293,7 +291,7 @@ final class DaemonServer: @unchecked Sendable {
         case .mountPoints:
             let mounts = xpc_array_create(nil, 0)
             for mount in try operations.mountPoints() {
-                xpc_array_append_value(mounts, mount.encoded())
+                xpc_array_set_value(mounts, FilaXPC.arrayAppend, mount.encoded())
             }
             xpc_dictionary_set_value(reply, FilaWireKey.mounts, mounts)
 
@@ -342,7 +340,7 @@ final class DaemonServer: @unchecked Sendable {
             // processes rather than open screens — a client that closed eight
             // terminals and immediately opened eight more would otherwise have
             // sixteen shells running as root.
-            let owner = xpc_dictionary_get_string(message, FilaWireKey.terminalOwner).map { String(cString: $0) }
+            let owner = optionalString(FilaWireKey.terminalOwner, in: message)
             if let owner, owner != peer.terminalOwner {
                 throw FilaFailure(code: .invalidRequest)
             }
@@ -399,16 +397,15 @@ final class DaemonServer: @unchecked Sendable {
         // during which a listing waits. Moving it to a queue of its own is the
         // upgrade, and it needs `handle` to be able to answer a request later
         // than it read it, which nothing here can do yet.
-        let package = xpc_dictionary_get_string(message, FilaWireKey.package).map { String(cString: $0) }
+        let package = optionalString(FilaWireKey.package, in: message)
         let launch = try operations.openTerminal(TerminalRequest(
-            executable: xpc_dictionary_get_string(message, FilaWireKey.path).map { String(cString: $0) },
+            executable: optionalString(FilaWireKey.path, in: message),
             package: package,
             user: user,
             // Absent reads as false: a client that does not know about the
             // setting gets what every terminal got before it existed.
             redirectsScriptInterpreter: xpc_dictionary_get_bool(message, FilaWireKey.redirectsScriptInterpreter),
-            workingDirectory: xpc_dictionary_get_string(message, FilaWireKey.workingDirectory)
-                .map { String(cString: $0) },
+            workingDirectory: optionalString(FilaWireKey.workingDirectory, in: message),
             columns: UInt16(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.columns)),
             rows: UInt16(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.rows))
         ))
@@ -469,7 +466,12 @@ final class DaemonServer: @unchecked Sendable {
         // that started it may be gone by the time it ends.
         let connection = peer.connection
         let key = peer.key
-        let queue = request.kind == .search ? searchQueue : request.kind.isArchive ? archiveQueue : jobQueue
+        let queue: DispatchQueue
+        switch request.kind {
+        case .search: queue = searchQueue
+        case .compress, .extract: queue = archiveQueue
+        case .copy, .move, .delete, .restore: queue = jobQueue
+        }
         queue.async { [weak self] in
             let outcome = job.run { progress in
                 xpc_connection_send_message(connection, JobEvent.progress(progress).encoded(jobIdentifier: identifier))
@@ -511,11 +513,9 @@ final class DaemonServer: @unchecked Sendable {
         self.listener = nil
         xpc_connection_cancel(listener)
         FilaLog.info("filad stopping; cancelling owned work")
-        for key in Array(peers.keys) {
-            if let peer = peers[key] {
-                xpc_connection_cancel(peer.connection)
-            }
-            peerInvalidated(key)
+        for peer in Array(peers.values) {
+            xpc_connection_cancel(peer.connection)
+            peerInvalidated(peer.key)
         }
         // Completion callbacks keep the existing idle gate closed until jobs
         // have stopped and direct terminal children have been reaped.
@@ -540,13 +540,6 @@ final class DaemonServer: @unchecked Sendable {
             terminal.terminate()
         }
         scheduleIdleExit()
-    }
-
-    /// Nothing is idle any more. Invalidates whatever timer is pending without
-    /// arming another.
-    private func cancelIdleExit() {
-        dispatchPrecondition(condition: .onQueue(controlQueue))
-        idleGeneration &+= 1
     }
 
     /// The timer body is the only thing that decides whether to exit, so every
@@ -586,6 +579,10 @@ final class DaemonServer: @unchecked Sendable {
             throw FilaFailure(code: .invalidRequest)
         }
         return String(cString: value)
+    }
+
+    private func optionalString(_ key: String, in message: xpc_object_t) -> String? {
+        xpc_dictionary_get_string(message, key).map { String(cString: $0) }
     }
 
     /// Absent means "the default for this kind", which is not the same as zero.

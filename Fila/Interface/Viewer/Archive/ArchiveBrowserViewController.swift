@@ -592,7 +592,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         let entry = row.entry
         collectionView.isHidden = true
         progress.isHidden = false
-        progress.showFailure(String(localized: "Opening…"))
+        progress.showStatus(String(localized: "Opening…"))
         refreshActions()
         let openArchive = openArchive
         let name = title_

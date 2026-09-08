@@ -259,13 +259,11 @@ struct WriteTextFileIntent: AppIntent {
         }
 
         let session = try await IntentSupport.session()
-        do {
+        try await IntentSupport.mapping {
             // The app's one way of writing a file, unchanged: nothing here gets
             // its own `O_TRUNC` path, because a truncating write destroys a
             // file the user may have no copy of.
             try await AtomicSave.write(Data(text.utf8), to: path, link: session.link)
-        } catch let failure as FilaFailure {
-            throw IntentFailure.refused(failure)
         }
         IntentSupport.announceChange(in: [(path as NSString).deletingLastPathComponent])
         return try await .result(value: FileEntity(IntentSupport.details(of: path)))

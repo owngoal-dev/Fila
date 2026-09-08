@@ -222,7 +222,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         run({ tree in
             do { try tree.delete(identifier.rawValue, recursive: options.contains(.recursive)) }
             // Already gone is the outcome the caller asked for.
-            catch let failure as ProviderTree.Failure where failure == .missing {}
+            catch ProviderTree.Failure.missing {}
         }) { result in
             switch result {
             case .success: completionHandler(nil)
@@ -291,8 +291,6 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             case .noSpace: return CocoaError(.fileWriteOutOfSpace)
             case let .io(code): return NSError(domain: NSPOSIXErrorDomain, code: Int(code))
             }
-        case is NSFileProviderError, is CocoaError:
-            return error
         default:
             let nsError = error as NSError
             if nsError.domain == NSCocoaErrorDomain || nsError.domain == NSFileProviderErrorDomain {
@@ -365,12 +363,12 @@ private final class ProviderEnumerator: NSObject, NSFileProviderEnumerator {
         self.container = container
         self.provider = provider
         super.init()
-        let watched: String?? = switch container {
-        case .workingSet, .rootContainer: .some(nil)
-        case .trashContainer: nil
-        default: .some(container.rawValue)
+        let watched: String?
+        switch container {
+        case .workingSet, .rootContainer: watched = nil
+        case .trashContainer: return
+        default: watched = container.rawValue
         }
-        guard let watched else { return }
         provider.run({ tree -> String in
             let entry = try watched.map { try tree.entry($0) }
             guard entry?.isDirectory ?? true else { throw ProviderTree.Failure.unsupported }

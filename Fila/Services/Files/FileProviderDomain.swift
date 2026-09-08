@@ -20,7 +20,7 @@ enum FileProviderDomain {
         NSFileProviderDomain(identifier: NSFileProviderDomainIdentifier("wiki.qaq.fila.documents"), displayName: "Fila")
     }
 
-    private static var observers: [NSObjectProtocol] = []
+    private static var isObserving = false
 
     static func register() {
         guard #available(iOS 16.0, *) else {
@@ -35,11 +35,12 @@ enum FileProviderDomain {
             }
             signalChanges()
         }
-        guard observers.isEmpty else { return }
+        guard !isObserving else { return }
+        isObserving = true
         for name in [UIApplication.didBecomeActiveNotification, .filaJobFinished] {
-            observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
+            _ = NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
                 signalChanges()
-            })
+            }
         }
     }
 

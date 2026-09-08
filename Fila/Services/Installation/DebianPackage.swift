@@ -10,7 +10,6 @@ import Foundation
 enum DebianPackage {
     struct Manifest {
         var package: String
-        var version: String
     }
 
     static func manifest(ofDebAt path: String, session: FileSession) async throws -> Manifest {
@@ -46,7 +45,7 @@ enum DebianPackage {
                             .trimmingCharacters(in: .whitespaces)
                     }
                     guard let package = fields["Package"], !package.isEmpty else { throw notAPackage }
-                    return Manifest(package: package, version: fields["Version"] ?? "")
+                    return Manifest(package: package)
                 }
                 throw notAPackage
             }

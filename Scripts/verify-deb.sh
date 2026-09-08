@@ -70,23 +70,26 @@ fi
 payload_root="$(mktemp -d "${TMPDIR:-/tmp}/fila-verify.XXXXXX")"
 trap 'rm -rf "$payload_root"' EXIT
 dpkg-deb -x "$deb" "$payload_root"
-python3 "$(dirname "$0")/verify-payload.py" "$payload_root$install_prefix/Applications/Fila.app" deb "$version" "$payload_root$install_prefix/usr/libexec/filad" "$payload_root$install_prefix/usr/libexec/fila-archive"
-bash "$(dirname "$0")/verify-file-provider.sh" "$payload_root$install_prefix/Applications/Fila.app" deb
-ldid -e "$payload_root$install_prefix/Applications/Fila.app/Fila" >"$payload_root/icon-entitlements.plist"
+installed_root="$payload_root$install_prefix"
+installed_app="$installed_root/Applications/Fila.app"
+installed_launchd="$installed_root/Library/LaunchDaemons/wiki.qaq.filad.plist"
+python3 "$(dirname "$0")/verify-payload.py" "$installed_app" deb "$version" "$installed_root/usr/libexec/filad" "$installed_root/usr/libexec/fila-archive"
+bash "$(dirname "$0")/verify-file-provider.sh" "$installed_app" deb
+ldid -e "$installed_app/Fila" >"$payload_root/icon-entitlements.plist"
 python3 "$(dirname "$0")/verify-icon-entitlements.py" "$payload_root/icon-entitlements.plist"
 
 expect "LaunchDaemon program" \
-    "$(/usr/libexec/PlistBuddy -c 'Print :ProgramArguments:0' "$payload_root$install_prefix/Library/LaunchDaemons/wiki.qaq.filad.plist")" \
+    "$(/usr/libexec/PlistBuddy -c 'Print :ProgramArguments:0' "$installed_launchd")" \
     "$install_prefix/usr/libexec/filad"
 expect "LaunchDaemon user" \
-    "$(/usr/libexec/PlistBuddy -c 'Print :UserName' "$payload_root$install_prefix/Library/LaunchDaemons/wiki.qaq.filad.plist")" \
+    "$(/usr/libexec/PlistBuddy -c 'Print :UserName' "$installed_launchd")" \
     "root"
 
 # A missing app icon does not break the build the way a lost entitlement
 # does — the asset catalog still compiles, the app still launches — so the
 # only thing that catches it is Info.plist not naming what actool compiled.
 expect "App icon" \
-    "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$payload_root$install_prefix/Applications/Fila.app/Info.plist" 2>/dev/null || true)" \
+    "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$installed_app/Info.plist" 2>/dev/null || true)" \
     "AppIcon"
 
 for script in postinst prerm; do

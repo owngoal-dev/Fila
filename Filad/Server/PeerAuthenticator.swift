@@ -22,6 +22,8 @@ final class PeerAuthenticator {
         "com.apple.private.security.no-sandbox",
     ]
 
+    private static let mobileUserIdentifier: UInt32 = 501
+
     private lazy var clientPaths = FilaProtocol.clientPaths.compactMap {
         filaCanonicalPath(InstallRoot.current + $0)
     }
@@ -32,12 +34,13 @@ final class PeerAuthenticator {
         var token = audit_token_t()
         filaXPCConnectionGetAuditToken(connection, &token)
         let pid = Int32(bitPattern: token.val.5)
+        let effectiveUserIdentifier = token.val.1
 
         // Identity is the executable on disk, not the bundle id, and the file
         // at that path must be one no less privileged process could have
         // swapped out from under us.
         guard pid > 1,
-              token.val.1 == 0 || token.val.1 == 501,
+              effectiveUserIdentifier == 0 || effectiveUserIdentifier == Self.mobileUserIdentifier,
               hasRequiredEntitlements(token: &token),
               let clientPath = filaProcessPath(pid: pid),
               clientPaths.contains(clientPath),

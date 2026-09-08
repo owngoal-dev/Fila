@@ -79,9 +79,10 @@ enum FileSearch {
             guard let entries = try? await DirectoryReader.entries(in: directory, session: session) else { continue }
             for node in entries {
                 guard !Task.isCancelled else { return skippedLinks }
-                let path = directory == "/" ? "/" + node.name : directory + "/" + node.name
+                let hit = FileSearchResult(directory: directory, node: node)
+                let path = hit.path
                 if node.name.lowercased().contains(needle), emitted.insert(path).inserted {
-                    onHit(FileSearchResult(directory: directory, node: node))
+                    onHit(hit)
                     found += 1
                     if found >= resultLimit {
                         return skippedLinks

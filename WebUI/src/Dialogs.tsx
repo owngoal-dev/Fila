@@ -192,11 +192,3 @@ export function FolderIcon() {
     </svg>
   );
 }
-
-export function FileIcon() {
-  return (
-    <svg className="glyph" viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M3.5 2A1.5 1.5 0 0 1 5 .5h4.3L13.5 4.7V14A1.5 1.5 0 0 1 12 15.5H5A1.5 1.5 0 0 1 3.5 14zM9 1.5V5h3.5" />
-    </svg>
-  );
-}

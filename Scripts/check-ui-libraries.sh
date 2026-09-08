@@ -33,8 +33,8 @@ ui_roots=(
 # The floor the app promises. Two checks below are relative to it, and both stop
 # applying once it rises past the OS that caused them.
 minimum_ios="$(sed -n 's/^IPHONEOS_DEPLOYMENT_TARGET = \([0-9.]*\).*/\1/p' "$root/Configuration/Base.xcconfig")"
-minimum_ios_major="${minimum_ios%%.*}"
 : "${minimum_ios:?Configuration/Base.xcconfig has no IPHONEOS_DEPLOYMENT_TARGET}"
+minimum_ios_major="${minimum_ios%%.*}"
 
 layout_hits="$(search 'NSLayoutConstraint|translatesAutoresizingMaskIntoConstraints|[A-Za-z]+Anchor\.constraint\(' "${ui_roots[@]}")"
 if [[ -n "$layout_hits" ]]; then
@@ -127,19 +127,17 @@ fi
 # under a future macOS), which is what the `|| true` below is for. Under
 # `set -e` this assignment would otherwise abort the whole release gate with a
 # traceback instead of reporting the checks that did run.
-symbol_hits="$(python3 - "$root" <<'PY'
+symbol_hits="$(python3 - "$minimum_ios" "${ui_roots[@]}" <<'PY'
 import plistlib, re, subprocess, sys
-root = sys.argv[1]
 table = "/System/Library/CoreServices/CoreGlyphs.bundle/Contents/Resources/name_availability.plist"
 try:
     data = plistlib.load(open(table, "rb"))
 except OSError:
     sys.exit(0)
-minimum = re.search(r"IPHONEOS_DEPLOYMENT_TARGET = ([\d.]+)", open(f"{root}/Configuration/Base.xcconfig").read())
-floor = tuple(int(part) for part in minimum.group(1).split("."))
+floor = tuple(int(part) for part in sys.argv[1].split("."))
 uses = re.compile(r'system(?:Name|Image|ImageName|SymbolName)\s*:\s*"([^"]+)"')
 found = subprocess.run(
-    ["grep", "-rn", "--include=*.swift", "-E", 'system(Name|Image|ImageName|SymbolName)', f"{root}/Fila", f"{root}/Packages/FilaKit/Sources/FilaTerminal"],
+    ["grep", "-rn", "--include=*.swift", "-E", 'system(Name|Image|ImageName|SymbolName)', *sys.argv[2:]],
     capture_output=True, text=True).stdout
 for line in found.splitlines():
     for name in uses.findall(line):

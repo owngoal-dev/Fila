@@ -21,9 +21,11 @@ const hex = (c) =>
 const light = colorset.colors.find((c) => !c.appearances);
 const dark = colorset.colors.find((c) => c.appearances?.some((a) => a.value === 'dark'));
 if (!light || !dark) throw new Error('AccentColor.colorset needs a light and a dark colour');
+const accentLight = hex(light.color);
+const accentDark = hex(dark.color);
 fs.writeFileSync(
   path.join(out, 'accent.css'),
-  `/* generated from Assets.xcassets/AccentColor.colorset */\n:root { --accent: ${hex(light.color)}; }\n@media (prefers-color-scheme: dark) { :root { --accent: ${hex(dark.color)}; } }\n`,
+  `/* generated from Assets.xcassets/AccentColor.colorset */\n:root { --accent: ${accentLight}; }\n@media (prefers-color-scheme: dark) { :root { --accent: ${accentDark}; } }\n`,
 );
 
 // Row artwork: the 40 pt @2x PNGs the app draws in its own list.
@@ -57,4 +59,4 @@ for (const m of table.matchAll(/case\s+((?:"[^"]+",?\s*)+):\s*(?:return\s+)?\.(\
 if (!formats.plist || !formats.zip) throw new Error('could not read extensionMatch from FileFormat.swift');
 fs.writeFileSync(path.join(out, 'formats.json'), JSON.stringify(formats, null, 2) + '\n');
 
-console.log(`synced accent ${hex(light.color)}/${hex(dark.color)}, ${icons.length} icons, ${Object.keys(formats).length} extensions`);
+console.log(`synced accent ${accentLight}/${accentDark}, ${icons.length} icons, ${Object.keys(formats).length} extensions`);

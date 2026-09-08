@@ -239,7 +239,6 @@ final class RootSplitViewController: UISplitViewController {
             navigation.popViewController(animated: true)
             return
         }
-        guard navigation.viewControllers.count > 1 else { return }
         let destination = requested ?? navigation.viewControllers[navigation.viewControllers.count - 2]
         let perform = { [weak self, weak source, weak navigation, weak destination] in
             guard let self, let source, let navigation, let destination,
