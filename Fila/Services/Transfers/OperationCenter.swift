@@ -93,6 +93,15 @@ final class OperationCenter: ObservableObject {
         let title: String
         /// What it is doing it to: "3 items → /var/mobile".
         let subtitle: String
+        /// What the *log* calls it, when that cannot be the subtitle.
+        ///
+        /// `subtitle` is translated user-facing copy — `describe` says
+        /// "3 items" through `String(localized:)`, which on a Chinese device is
+        /// "3 个项目". A log line is not UI: it is shareable in one tap and it
+        /// is read by grep, so a caller that has the real paths puts them here
+        /// and the line says the same thing on every device. Nil where the
+        /// subtitle is already paths — a rename, a download.
+        var logSubject: String?
         var state: State
         /// Directories a finished operation should make reload.
         let affected: [String]
@@ -105,6 +114,12 @@ final class OperationCenter: ObservableObject {
         ///
         /// Resumes `awaitJob` callers only after the row holds the final result.
         var whenFinished: ((FilaFailure) -> Void)?
+
+        /// What a log line calls this operation. Never the localized subtitle
+        /// when real paths were recorded — see `logSubject`.
+        var logged: String {
+            logSubject ?? subtitle
+        }
 
         var isRunning: Bool {
             if case .running = state {
@@ -287,6 +302,7 @@ final class OperationCenter: ObservableObject {
             kind: kind,
             title: title,
             subtitle: subtitle,
+            logSubject: Self.describeForLog(request.sources, destination: request.destination),
             state: .running(nil),
             affected: Array(Set(directories)),
             control: .job(identifier),
@@ -354,14 +370,20 @@ final class OperationCenter: ObservableObject {
 
     private func begin(_ request: JobRequest, kind: Kind, subtitle: String, undo: Undo? = nil) {
         guard !request.sources.isEmpty else { return }
+        let logSubject = Self.describeForLog(request.sources, destination: request.destination)
         Task { [weak self] in
             guard let self else { return }
             do {
                 try await startJob(request, kind: kind, title: kind.runningTitle, subtitle: subtitle, undo: undo)
             } catch let failure as FilaFailure {
-                self.record(kind: kind, subtitle: subtitle, failure: failure)
+                self.record(kind: kind, subtitle: subtitle, logSubject: logSubject, failure: failure)
             } catch {
-                record(kind: kind, subtitle: subtitle, failure: FilaFailure(code: .operationFailed))
+                record(
+                    kind: kind,
+                    subtitle: subtitle,
+                    logSubject: logSubject,
+                    failure: FilaFailure(code: .operationFailed)
+                )
             }
         }
     }
@@ -462,7 +484,7 @@ final class OperationCenter: ObservableObject {
     /// a body that never checks is when it finishes — the button is honest
     /// about asking, not about arriving.
     func cancel(_ operation: Operation) {
-        FilaLog.info("cancel requested · \(operation.kind.rawValue) \(operation.subtitle)")
+        FilaLog.info("cancel requested · \(operation.kind.rawValue) \(operation.logged)")
         switch operation.control {
         case let .job(identifier):
             Task { [weak self] in
@@ -564,7 +586,7 @@ final class OperationCenter: ObservableObject {
         // daemon to report anything.
         FilaLog.log(
             FilaLog.level(for: failure.code),
-            "\(operations[index].kind.rawValue) \(operations[index].subtitle) \(FilaLog.describe(failure))"
+            "\(operations[index].kind.rawValue) \(operations[index].logged) \(FilaLog.describe(failure))"
         )
         var finished = operations[index]
         // Taken off the row that goes back in the list: it fires exactly once,
@@ -588,11 +610,12 @@ final class OperationCenter: ObservableObject {
     }
 
     /// A row for something that failed before it could start.
-    private func record(kind: Kind, subtitle: String, failure: FilaFailure) {
+    private func record(kind: Kind, subtitle: String, logSubject: String?, failure: FilaFailure) {
         let operation = Operation(
             kind: kind,
             title: kind.runningTitle,
             subtitle: subtitle,
+            logSubject: logSubject,
             state: .finished(failure),
             affected: [],
             control: nil,
@@ -609,12 +632,12 @@ final class OperationCenter: ObservableObject {
         // side that knows it was a user's tap rather than a job identifier.
         switch operation.state {
         case .running:
-            FilaLog.info("\(operation.kind.rawValue) \(operation.subtitle)")
+            FilaLog.info("\(operation.kind.rawValue) \(operation.logged)")
         case let .finished(failure):
             // Never started. `finish` is not coming, so the verdict is here.
             FilaLog.log(
                 FilaLog.level(for: failure.code),
-                "\(operation.kind.rawValue) \(operation.subtitle) \(FilaLog.describe(failure))"
+                "\(operation.kind.rawValue) \(operation.logged) \(FilaLog.describe(failure))"
             )
         case .interrupted:
             break
@@ -728,6 +751,19 @@ final class OperationCenter: ObservableObject {
     }
 
     // MARK: - Text
+
+    /// The same thing for a log line: real paths, never a translated count.
+    ///
+    /// Capped, because a record is truncated at
+    /// `FilaLogRing.maximumMessageByteCount` and a line that loses its tail
+    /// silently is worse than one that says how much it left out.
+    static func describeForLog(_ paths: [String], destination: String? = nil) -> String {
+        var line = paths.prefix(4).joined(separator: ", ")
+        if paths.count > 4 {
+            line += " +\(paths.count - 4) more"
+        }
+        return line + (destination.map { " → " + $0 } ?? "")
+    }
 
     static func describe(_ paths: [String], destination: String? = nil) -> String {
         let what = paths.count == 1

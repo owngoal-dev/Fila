@@ -567,9 +567,13 @@ final class DaemonServer: @unchecked Sendable {
             // reaped before this owner exits. This is not a descendant count.
             guard liveTerminalCount == 0 else { return }
 
-            // The last line of a run, and the one that explains the next
-            // `ECONNRESET` the app reports: the daemon did not crash, it went
-            // home because nobody was talking to it.
+            // The last line of a run: the daemon did not crash, it went home
+            // because nobody was talking to it.
+            //
+            // It reaches `log stream` and nowhere else — the ring dies with the
+            // process a statement later, and the app fetches the ring. That is
+            // the honest scope of this line, and it is still the one that
+            // explains an `ECONNRESET` to whoever is watching the unified log.
             FilaLog.info("filad idle, exiting")
             exit(EXIT_SUCCESS)
         }

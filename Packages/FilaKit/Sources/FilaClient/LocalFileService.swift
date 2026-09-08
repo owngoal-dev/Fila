@@ -257,6 +257,12 @@ final class LocalFileService: FileService, @unchecked Sendable {
             // writing the refusal down, so this line is the only record of it.
             FilaLog.log(FilaLog.level(for: failure.code), "\(what) \(FilaLog.describe(failure))")
             throw failure
+        } catch {
+            // Anything that is not a `FilaFailure` — something thrown from
+            // underneath `FileOperations` that never became one. Rarer, and for
+            // that reason the line worth having most.
+            FilaLog.error("\(what) \(error)")
+            throw error
         }
     }
 }

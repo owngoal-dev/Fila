@@ -35,11 +35,24 @@ extension FileActions {
         if overrideGuard {
             // The user was shown what the guard said and chose to delete
             // anyway. The one decision in this app that can leave a device
-            // needing a restore, and it is logged at a level nothing switches
+            // needing a restore, so it is logged at a level nothing switches
             // off — with the paths, because afterwards nothing else has them.
-            FilaLog.warning("guard overridden for delete: \(paths.joined(separator: ", "))")
+            //
+            // One line per path rather than one joined line: a record is
+            // truncated at `FilaLogRing.maximumMessageByteCount`, and a record
+            // of what was destroyed that loses its tail is not one.
+            for path in paths {
+                FilaLog.warning("guard overridden for delete: \(path)")
+            }
         } else if !useTrash {
             FilaLog.info("permanent delete of \(paths.count) item(s)")
+            // The names at verbose and not at info, because Empty Trash comes
+            // through here with everything in it — thousands of lines would
+            // evict the history that explains why they were deleted. Turn the
+            // log up first and the record is complete.
+            for path in paths {
+                FilaLog.verbose("permanent delete: \(path)")
+            }
         }
         presenter?.setEditing(false, animated: true)
         Task {

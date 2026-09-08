@@ -181,14 +181,10 @@ extension BrowserViewController {
     }
 
     private func goMenuElements() -> [UIMenuElement] {
-        FilaMenu.destinations(includesFiles: true) { [weak self] in
+        FilaMenu.destinations { [weak self] in
             self?.promptGoToPath()
-        } open: { [weak self] path, isFile in
-            if isFile {
-                self?.shell?.follow(.view(path))
-            } else {
-                self?.open(directory: path)
-            }
+        } open: { [weak self] path in
+            self?.open(directory: path)
         }
     }
 

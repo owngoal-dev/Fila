@@ -242,9 +242,9 @@ final class SaveDestinationViewController: UIViewController {
             UIMenu(
                 title: String(localized: "Go"),
                 image: UIImage(systemName: "arrow.right.circle"),
-                children: FilaMenu.destinations(includesFiles: false) { [weak self] in
+                children: FilaMenu.destinations { [weak self] in
                     self?.promptGoToPath()
-                } open: { [weak self] path, _ in
+                } open: { [weak self] path in
                     self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true))
                 }
             ),

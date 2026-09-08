@@ -58,6 +58,7 @@ extension MusicLibraryEditor {
         }
         let destination = Self.importDirectory + "/" + name
         let center = await session.operations
+        var preserveImportedFile = false
         do {
             let result = try await center.awaitJob(
                 JobRequest(kind: .copy, sources: [source.path], destination: Self.importDirectory),
@@ -68,10 +69,12 @@ extension MusicLibraryEditor {
             try await session.perform { try await $0.setAttributes(.newItemDefaults, at: destination) }
             do { _ = try native.importFile(atPath: destination, metadata: metadata) }
             catch {
+                preserveImportedFile = (error as NSError).userInfo["PreserveImportedFile"] as? Bool == true
                 FilaLog.error("Music library import failed: \(error)")
                 throw self.error(String(localized: "The music library could not import this file. Try again."))
             }
         } catch {
+            if preserveImportedFile { throw error }
             // No library record refers to this file unless the native call
             // returned success. Cleanup waits for the backend's final verdict.
             do {

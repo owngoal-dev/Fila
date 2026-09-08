@@ -6,71 +6,68 @@ enum FilaMenu {
         groups.filter { !$0.isEmpty }.map { UIMenu(options: .displayInline, children: $0) }
     }
 
-    /// Places, favorites and recents, then manual path entry: the *Go* menu.
-    /// Every entry is a path and the caller decides what going there means —
-    /// the browser re-roots its tab, the save panel walks its own stack.
-    /// `includesFiles` keeps the recent files that only a browser can open.
+    /// Navigation uses the same ordered folder destinations and previews as Places.
     static func destinations(
-        includesFiles: Bool,
         goToPath: @escaping () -> Void,
-        open: @escaping (_ path: String, _ isFile: Bool) -> Void
+        open: @escaping (String) -> Void
     ) -> [UIMenuElement] {
-        let preferences = AppPreferences.shared
-        func destination(
-            _ path: String,
-            title: String,
-            image: UIImage?,
-            subtitle: String? = nil,
-            isFile: Bool = false
-        ) -> UIAction {
-            UIAction(title: title, subtitle: subtitle, image: image) { _ in open(path, isFile) }
+        let places = SidebarLocation.orderedDestinations.compactMap { destination -> UIMenuElement? in
+            guard case let .directory(place) = destination else { return nil }
+            return UIAction(title: place.title, image: preview(for: place)) { _ in open(place.path) }
         }
-        func name(of path: String) -> String {
-            path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
-        }
-        let places = SidebarLocation.jumpList(backend: FileSession.shared.hello?.backend).map { place in
-            let image: UIImage? = switch place.icon {
-            case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-            case let .symbol(name): UIImage(systemName: name)
-            }
-            return destination(place.path, title: place.title, image: image)
-        }
-        let favorites = preferences.favorites.map {
-            destination($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
-        }
-        let recents: [UIMenuElement] = includesFiles ? preferences.recents.prefix(8).map {
-                destination(
-                    $0,
-                    title: name(of: $0),
-                    image: UIImage(systemName: "clock"),
-                    subtitle: $0,
-                    isFile: preferences.recentFiles.contains($0)
-                )
-            } : [UIDeferredMenuElement.uncached { completion in
-                Task { @MainActor in
-                    var directories: [UIMenuElement] = []
-                    for path in preferences.recents {
-                        // Cached file classifications may predate this feature,
-                        // or the node may have changed since it was visited.
-                        guard let details = try? await FileSession.shared.perform({ try await $0.details(of: path) }),
-                              details.node.isNavigable else { continue }
-                        directories.append(destination(path, title: name(of: path), image: UIImage(systemName: "clock"), subtitle: path))
-                        if directories.count == 8 { break }
-                    }
-                    completion(directories)
-                }
-            }]
-        let locations = [
-            UIMenu(title: String(localized: "Places"), image: UIImage(systemName: "folder"), children: places),
-            UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
-            UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
-        ].filter { !$0.children.isEmpty }
-        let path = UIAction(
-            title: String(localized: "Go to Path…"),
-            image: UIImage(systemName: "arrow.right.circle")
-        ) { _ in goToPath() }
-        // Named destinations come first; manual path entry stays last.
+        let locations = [UIMenu(title: String(localized: "Places"), image: UIImage(named: "FileIcons/folder"), children: places)]
+            + collections(open: open)
+        let path = UIAction(title: String(localized: "Go to Path…")) { _ in goToPath() }
         return groups(locations, [path])
+    }
+
+    static func preview(for place: SidebarLocation) -> UIImage? {
+        switch place.icon {
+        case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
+        case .symbol: FilePresentation.image(kind: .directory, name: place.title)
+        }
+    }
+
+    static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
+        let preferences = AppPreferences.shared
+        func folders(_ paths: [String], limit: Int? = nil) -> UIDeferredMenuElement {
+            UIDeferredMenuElement.uncached { completion in
+                Task { @MainActor in
+                    let session = FileSession.shared
+                    let apps = await InstalledAppCatalog.load(session: session)
+                    var actions: [UIMenuElement] = []
+                    for path in paths {
+                        guard let details = try? await session.perform({ try await $0.details(of: path) }),
+                              details.node.isNavigable else { continue }
+                        let presentation = AppFolderDisplay.presentation(for: path, apps: apps)
+                        var image = FilePresentation.image(for: details.node)
+                        if let identifier = presentation?.applicationIdentifier {
+                            image = await AppFolderDisplay.icon(for: identifier) ?? image
+                        }
+                        let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
+                        actions.append(UIAction(title: name, subtitle: path, image: image, attributes: attributes) { _ in open(path) })
+                        if let limit, actions.count == limit { break }
+                    }
+                    completion(actions)
+                }
+            }
+        }
+        let mounts = UIDeferredMenuElement.uncached { completion in
+            Task { @MainActor in
+                let mounts = (try? await FileSession.shared.perform { try await $0.mountPoints() }) ?? []
+                completion(mounts.map { mount in
+                    let name = mount.path == "/" ? String(localized: "Root") : (mount.path as NSString).lastPathComponent
+                    return UIAction(title: name, subtitle: mount.path,
+                                    image: UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal),
+                                    attributes: attributes) { _ in open(mount.path) }
+                })
+            }
+        }
+        return [
+            UIMenu(title: String(localized: "Favorites"), image: UIImage(named: "FileIcons/folder"), children: [folders(preferences.favorites)]),
+            UIMenu(title: String(localized: "Mount Points"), image: UIImage(named: "FileIcons/drive-internal"), children: [mounts]),
+            UIMenu(title: String(localized: "Recents"), image: UIImage(named: "FileIcons/folder"), children: [folders(preferences.recents, limit: 8)]),
+        ]
     }
 
     /// Palettes suit a small set of mutually exclusive, recognizable icons.

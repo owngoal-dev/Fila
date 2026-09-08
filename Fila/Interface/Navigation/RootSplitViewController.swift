@@ -325,10 +325,14 @@ final class RootSplitViewController: UISplitViewController {
     }
 
     func openMusicInNewTab() {
+        openInNewTab(MusicLibraryViewController(), directory: "/var/mobile/Media/iTunes_Control")
+    }
+
+    func openInNewTab(_ controller: UIViewController, directory: String) {
         guard !BrowserTabStore.shared.isFull else { return }
         content.captureCurrentTab()
-        guard BrowserTabStore.shared.open("/var/mobile/Media/iTunes_Control") != nil else { return }
-        content.showCurrentTab(root: MusicLibraryViewController())
+        guard BrowserTabStore.shared.open(directory) != nil else { return }
+        content.showCurrentTab(root: controller)
     }
 
     /// The `fila://open?path=…&tab=new` destination. `BrowserTabStore.openFromLink`

@@ -153,35 +153,22 @@ final class TabSwitcherViewController: UIViewController {
                 self?.shell?.openInNewTab(path)
             }
         }
-        func name(of path: String) -> String {
-            path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
-        }
-        let preferences = AppPreferences.shared
-        var places = SidebarLocation.jumpList(backend: FileSession.shared.hello?.backend).map { place in
-            let image: UIImage? = switch place.icon {
-            case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-            case let .symbol(name): UIImage(systemName: name)
+        let places = SidebarLocation.orderedDestinations.map { destination -> UIMenuElement in
+            switch destination {
+            case let .directory(place):
+                return open(place.path, title: place.title, image: FilaMenu.preview(for: place))
+            case .applications:
+                return UIAction(title: String(localized: "Applications"), image: UIImage(named: "FileIcons/application"),
+                                attributes: full ? .disabled : []) { [weak self] _ in
+                    self?.shell?.openInNewTab(AppListViewController(), directory: AppPreferences.shared.lastDirectory)
+                }
+            case .music:
+                return UIAction(title: String(localized: "Music"), image: UIImage(named: "FileIcons/music"),
+                                attributes: full ? .disabled : []) { [weak self] _ in self?.shell?.openMusicInNewTab() }
             }
-            return open(place.path, title: place.title, image: image)
         }
-        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") {
-            places.append(UIAction(
-                title: String(localized: "Music"),
-                image: UIImage(named: "FileIcons/music")?.withRenderingMode(.alwaysOriginal),
-                attributes: full ? .disabled : []
-            ) { [weak self] _ in self?.shell?.openMusicInNewTab() })
-        }
-        let favorites = preferences.favorites.map {
-            open($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
-        }
-        let recents = preferences.recents.prefix(8).map {
-            open($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0)
-        }
-        return [
-            UIMenu(title: String(localized: "Places"), options: .displayInline, children: places),
-            UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
-            UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
-        ].filter { !$0.children.isEmpty }
+        return [UIMenu(title: String(localized: "Places"), options: .displayInline, children: places)]
+            + FilaMenu.collections(attributes: full ? .disabled : []) { [weak self] path in self?.shell?.openInNewTab(path) }
     }
 
     static let cardCornerRadius = FilaUI.Spacing.large

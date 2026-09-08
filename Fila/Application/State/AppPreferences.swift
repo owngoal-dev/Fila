@@ -87,8 +87,7 @@ final class AppPreferences {
         set { defaults.set(newValue.rawValue, forKey: "launchLocation") }
     }
 
-    /// The last directory a browser opened. Deliberately not `recents.first`:
-    /// recents also records files, and a file is not somewhere to launch into.
+    /// The last visited directory, including when recent history is disabled.
     var lastDirectory: String {
         get { defaults.string(forKey: "lastDirectory") ?? "/" }
         set { defaults.set(newValue, forKey: "lastDirectory") }
