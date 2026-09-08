@@ -329,6 +329,7 @@ public extension JobRequest {
         xpc_dictionary_set_value(request, FilaWireKey.sources, array)
         if let destination { xpc_dictionary_set_string(request, FilaWireKey.destination, destination) }
         xpc_dictionary_set_bool(request, FilaWireKey.useTrash, useTrash)
+        if let trashID { xpc_dictionary_set_string(request, FilaWireKey.trashID, trashID.uuidString) }
         xpc_dictionary_set_bool(request, FilaWireKey.overwrite, overwrite)
         xpc_dictionary_set_bool(request, FilaWireKey.overrideGuard, overrideGuard)
         query?.encode(into: request)
@@ -344,11 +345,17 @@ public extension JobRequest {
             sources.append(String(cString: value))
         }
         guard !sources.isEmpty else { return nil }
+        var trashID: UUID?
+        if let text = xpc_dictionary_get_string(request, FilaWireKey.trashID) {
+            guard let identity = UUID(uuidString: String(cString: text)) else { return nil }
+            trashID = identity
+        }
         self.init(
             kind: kind,
             sources: sources,
             destination: xpc_dictionary_get_string(request, FilaWireKey.destination).map { String(cString: $0) },
             useTrash: xpc_dictionary_get_bool(request, FilaWireKey.useTrash),
+            trashID: trashID,
             overwrite: xpc_dictionary_get_bool(request, FilaWireKey.overwrite),
             overrideGuard: xpc_dictionary_get_bool(request, FilaWireKey.overrideGuard),
             query: SearchQuery(decoding: request),

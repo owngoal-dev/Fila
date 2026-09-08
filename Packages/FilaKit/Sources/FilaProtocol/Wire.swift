@@ -340,6 +340,7 @@ public enum FilaWireKey {
     public static let nodeKind = "nkind"
     public static let linkTarget = "ltarget"
     public static let useTrash = "trash"
+    public static let trashID = "trashID"
     public static let overwrite = "clobber"
     public static let recursive = "recursive"
     public static let exclusive = "excl"

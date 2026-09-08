@@ -76,10 +76,9 @@ final class OperationCenter: ObservableObject {
 
     /// The inverse of an operation, where one genuinely exists.
     ///
-    /// Trashing and renaming are a `rename(2)`, so undoing them is a `rename(2)`
-    /// back — instant, and by far the most valuable undo in a file manager. A
-    /// move that replaced nothing goes back the same way. Nothing else gets
-    /// one: the inverse of a copy, a creation or an extraction is a *delete*,
+    /// Renaming reverses with a rename; trashing restores the recorded item,
+    /// using a copy and removal when its origin is on another volume.
+    /// The inverse of a copy, a creation or an extraction is a *delete*,
     /// and destroying the user's files to undo is worse than not undoing.
     struct Undo {
         let title: String
@@ -186,35 +185,30 @@ final class OperationCenter: ObservableObject {
 
     func move(_ paths: [String], to destination: String, overwrite: Bool = false) {
         let request = JobRequest(kind: .move, sources: paths, destination: destination, overwrite: overwrite)
-        // No undo, deliberately. The inverse of a move is another move, which
-        // is easy — but a safe one has to know that the thing it is picking up
-        // is still the thing that was put down, and the only way to know that
-        // is `trash`'s trick of recording an inode per source *before* the
-        // work. That is one `stat` per item on the app's hottest operation,
-        // bought for an undo whose result the user can already see and drag
-        // back. Undoing by name alone would eventually carry off a stranger's
-        // file that happens to share it, which is worse than no undo.
+        // A safe inverse needs an identity that survives the move. Ordinary
+        // moves carry no recovery record, so undoing by name could move a
+        // different file that subsequently occupied the destination.
         begin(request, kind: .move, subtitle: Self.describe(paths, destination: destination))
     }
 
     /// Capture the identities before starting the delete so success can offer
     /// Put Back. Failures and cancellations discard this offer with the row.
     func trash(_ paths: [String], feedback: Feedback = .automatic) async throws -> FilaFailure {
-        var recorded: [TrashedItem] = []
+        let identity = UUID()
+        var recorded: [String] = []
         for path in paths {
             guard let details = try? await session.perform(retryOnDisconnect: true, {
                 try await $0.details(of: path)
             }) else { continue }
-            // Several names can share one inode; the trash result carries no
-            // per-source destination, so that snapshot cannot identify a link.
+            // Same-volume hard links cannot carry an independent origin note.
             guard details.node.kind == .directory || details.node.linkCount == 1 else { continue }
-            recorded.append(TrashedItem(originalPath: details.path, inode: details.node.inode))
+            recorded.append(details.path)
         }
         let undo = recorded.isEmpty || recorded.count != paths.count ? nil : Undo(title: String(localized: "Put Back")) { [weak self] in
-            try await self?.putBack(recorded)
+            try await self?.putBack(recorded, identity: identity)
         }
         return try await awaitJob(
-            JobRequest(kind: .delete, sources: paths, useTrash: true),
+            JobRequest(kind: .delete, sources: paths, useTrash: true, trashID: identity),
             kind: .trash, subtitle: Self.describe(paths), undo: undo, feedback: feedback
         )
     }
@@ -343,7 +337,7 @@ final class OperationCenter: ObservableObject {
             subtitle: Self.describe([path], destination: destination),
             affected: [directory, (destination as NSString).deletingLastPathComponent],
             undo: Undo(title: String(localized: "Undo")) { [weak self] in
-                try await self?.renameBack(destination, to: path)
+                try await self?.session.perform { try await $0.rename(destination, to: path, exclusive: true) }
             }
         ) { try await $0.rename(path, to: destination) }
     }
@@ -657,67 +651,50 @@ final class OperationCenter: ObservableObject {
 
     // MARK: - Inverses
 
-    private struct TrashedItem {
-        let originalPath: String
-        /// Survives the rename; matched together with the origin attribute.
-        let inode: UInt64
-    }
-
-    /// Matches inode and recorded origin, then renames each item back.
-    ///
-    /// The search is scoped to the source volume's trash and requires the
-    /// canonical origin attribute as well as the inode. An exclusive rename refuses a destination
-    /// occupied again. Any missing item or refused restore fails the operation,
-    /// so a partial restore is never announced as successful.
-    private func putBack(_ items: [TrashedItem]) async throws {
-        var byVolume: [String: [TrashedItem]] = [:]
-        for item in items {
-            let directory = (item.originalPath as NSString).deletingLastPathComponent
+    /// The job identity and canonical origin survive cross-volume copying.
+    /// Matching both keeps an old Undo from picking up a later deletion.
+    private func putBack(_ origins: [String], identity: UUID) async throws {
+        var byVolume: [String: [String]] = [:]
+        for origin in origins {
+            let directory = (origin as NSString).deletingLastPathComponent
             let volume = try await session.perform(retryOnDisconnect: true) {
                 try await $0.volumeInfo(for: directory)
             }
-            byVolume[volume.mountPoint, default: []].append(item)
+            byVolume[volume.mountPoint, default: []].append(origin)
         }
-
         for (mountPoint, group) in byVolume {
-            var found = try await locate(group, inTrashOf: mountPoint)
-            for item in group {
-                guard let source = found[item.inode] else {
-                    throw FilaFailure(code: .notFound, path: item.originalPath)
-                }
-                try await session.perform { try await $0.rename(source, to: item.originalPath, exclusive: true) }
-                // Home again, so the origin note comes off — best effort, as
-                // the restore itself has already happened.
-                _ = try? await session.perform {
-                    try await $0.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.originAttribute, nil)), at: item.originalPath)
-                }
-                // A repeated identity must never reuse a path already restored.
-                found[item.inode] = nil
+            let found = try await locate(group, identity: identity, inTrashOf: mountPoint)
+            for origin in group {
+                guard let source = found[origin] else { throw FilaFailure(code: .notFound, path: origin) }
+                try await restore(source, to: origin, identity: identity)
             }
         }
     }
 
-    private func locate(_ items: [TrashedItem], inTrashOf mountPoint: String) async throws -> [UInt64: String] {
+    private func locate(_ origins: [String], identity: UUID, inTrashOf mountPoint: String) async throws -> [String: String] {
         guard let backend = session.hello?.backend else { return [:] }
         let directory = SidebarLocation.trashDirectory(backend: backend, volume: mountPoint)
-        let wanted = Set(items.map(\.inode))
-        var found: [UInt64: String] = [:]
+        let wanted = Set(origins)
+        var found: [String: String] = [:]
         for try await page in DirectoryReader.pages(in: directory, session: session) {
-            for node in page where wanted.contains(node.inode) {
+            for node in page {
                 let path = Self.join(directory, node.name)
-                let data: Data
                 do {
-                    data = try await session.perform(retryOnDisconnect: true) {
+                    let recorded = try await session.perform(retryOnDisconnect: true) {
+                        try await $0.extendedAttribute(FilaTrash.jobAttribute, at: path)
+                    }
+                    guard recorded == Data(identity.uuidString.utf8) else { continue }
+                    let data = try await session.perform(retryOnDisconnect: true) {
                         try await $0.extendedAttribute(FilaTrash.originAttribute, at: path)
                     }
+                    guard let origin = String(data: data, encoding: .utf8), wanted.contains(origin) else { continue }
+                    // Ambiguous records must never pick an arbitrary file.
+                    guard found[origin] == nil else { throw FilaFailure(code: .invalidRequest, path: path) }
+                    found[origin] = path
                 } catch let failure as FilaFailure where failure.systemError == ENOATTR || failure.code == .notFound {
                     continue
                 }
-                guard let origin = String(data: data, encoding: .utf8),
-                      items.contains(where: { $0.inode == node.inode && $0.originalPath == origin }) else { continue }
-                found[node.inode] = path
             }
-            if found.count == wanted.count { return found }
         }
         return found
     }
@@ -739,12 +716,7 @@ final class OperationCenter: ObservableObject {
                 guard let origin = String(data: data, encoding: .utf8), origin.hasPrefix("/") else {
                     throw FilaFailure(code: .operationFailed, systemError: ENOATTR, path: path)
                 }
-                try await renameBack(path, to: origin)
-                // Home; the note comes off best effort, as the restore itself
-                // has already happened.
-                _ = try? await session.perform {
-                    try await $0.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.originAttribute, nil)), at: origin)
-                }
+                try await restore(path, to: origin)
             } catch {
                 if firstFailure == nil { firstFailure = error }
             }
@@ -752,8 +724,12 @@ final class OperationCenter: ObservableObject {
         if let firstFailure { throw firstFailure }
     }
 
-    private func renameBack(_ path: String, to original: String) async throws {
-        try await session.perform { try await $0.rename(path, to: original, exclusive: true) }
+    private func restore(_ path: String, to original: String, identity: UUID? = nil) async throws {
+        let outcome = try await awaitJob(
+            JobRequest(kind: .restore, sources: [path], destination: (original as NSString).deletingLastPathComponent, trashID: identity),
+            kind: .move, subtitle: Self.describe([path], destination: original), feedback: .silent
+        )
+        guard outcome.code == .success else { throw outcome }
     }
 
     // MARK: - Text

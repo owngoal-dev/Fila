@@ -439,6 +439,13 @@ final class FileActions {
                     try await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000))
                 } catch { return }
                 guard !Task.isCancelled, let presenter = activePresenter else { return }
+                // Cross-volume trash can take minutes. Its existing task page
+                // provides progress and cancellation without trapping the user
+                // behind the non-interactive progress card used for deletion.
+                if useTrash {
+                    TransfersViewController.presentAsSheet()
+                    return
+                }
                 // Wait for presentation to finish before a job that completes
                 // during the animation asks this same alert to dismiss.
                 await withCheckedContinuation { continuation in
@@ -503,11 +510,11 @@ final class FileActions {
 
     private func reportDeleteFailure(_ failure: FilaFailure, paths: [String], useTrash: Bool) {
         guard failure.code != .success, failure.code != .cancelled else { return }
-        guard useTrash, failure.systemError == EXDEV || failure.systemError == EROFS,
+        guard useTrash, failure.systemError == EROFS,
               let presenter = activePresenter else { return report(failure) }
         PermanentDeleteConfirmation.present(
             from: presenter, title: String(localized: "Cannot Move to Trash"),
-            message: String(localized: "The trash is on another volume or cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone.")
+            message: String(localized: "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone.")
         ) { self.deleteRemainingItems(at: paths) }
     }
 

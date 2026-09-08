@@ -76,5 +76,16 @@ struct SearchWireTests {
         plain.encode(into: other)
         #expect(JobRequest(decoding: other)?.query == nil)
     }
+    @Test("Trash identities and restore jobs survive the wire and JSON")
+    func trashIdentityRoundTrip() throws {
+        for kind: FilaJobKind in [.delete, .restore] {
+            let request = JobRequest(kind: kind, sources: ["/tmp/item"], useTrash: kind == .delete, trashID: UUID())
+            let message = xpc_dictionary_create(nil, nil, 0)
+            request.encode(into: message)
+            #expect(JobRequest(decoding: message) == request)
+            #expect(try JSONDecoder().decode(JobRequest.self, from: JSONEncoder().encode(request)) == request)
+        }
+    }
+
 }
 #endif

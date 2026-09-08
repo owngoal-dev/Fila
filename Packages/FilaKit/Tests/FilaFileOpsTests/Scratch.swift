@@ -16,9 +16,9 @@ final class Scratch {
     /// wrong thing.
     let root: String
 
-    init() {
+    init(parent: String = "/private/tmp") {
         let name = "fila-tests-\(getpid())-\(UInt32.random(in: 0 ..< .max))"
-        let created = "/private/tmp/" + name
+        let created = parent + "/" + name
         precondition(mkdir(created, 0o755) == 0, "scratch directory: \(String(cString: strerror(errno)))")
         root = (try? FilaPath.resolve(created)) ?? created
     }

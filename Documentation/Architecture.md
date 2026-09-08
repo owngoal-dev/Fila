@@ -148,13 +148,15 @@ flags and sparseness. Every one of those is something a hand-written copy loses
 silently, and a file manager that silently changes files is worse than one that
 refuses to copy them.
 
-Same-volume move is `renameat(2)` — which is also how the trash works: a
-delete renames into `<volume mount point>/.fila-trash` instead of unlinking,
-so it is instant and reversible. The job writes the item's canonical origin
-onto it as the `wiki.qaq.fila.origin` extended attribute, which is what *Put
-Back* inside the trash reads and then removes; there is no index file to
-drift from the directory. A read-only volume or a cross-volume rename fails
-with the real errno, and the app offers a permanent delete instead.
+Same-volume move and trash use an exclusive rename. A relocated daemon keeps
+its trash at `<install root>/.fila-trash`; other backends use the source volume.
+When those locations are on different volumes, the job publishes a complete
+`copyfile` copy before removing the source. The trash copy carries the canonical
+origin in `wiki.qaq.fila.origin` before source removal, so even a failed or
+cancelled removal leaves a recoverable copy. Put Back runs the same cross-volume
+move as a daemon job, refusing occupied origins. Undo matches origin and
+`wiki.qaq.fila.trash-job`, a batch UUID that survives copying, rather than inode.
+A read-only trash fails with the real errno and the app offers permanent deletion.
 
 ## Atomic writes
 
@@ -262,7 +264,7 @@ it off in Settings → System Features. The environment side reads the live
 |---|---|---|---|
 | Applications page, `.app` names and icons | hidden (`.local(.container)`) | LaunchServices, scan fallback | same |
 | Run submenu / terminal | hidden | hidden (daemon only) | offered |
-| Trash | `<volume>/.fila-trash` — cross-volume or read-only fails with the real errno | same | `<install root>/.fila-trash` on rootless and roothide, `<volume>/.fila-trash` rootful |
+| Trash | `<volume>/.fila-trash` — cross-volume copy then remove; read-only reports errno | same | `<install root>/.fila-trash` on rootless and roothide, `<volume>/.fila-trash` rootful |
 | Compress / extract | `ArchiveJob` in-process | same | `fila-archive`, spawned by `filad` per job; progress over the helper's stdout, then XPC |
 | WebDAV | fine on a bound port ≥ 1024; publishes what the process can read | same | same |
 | Temporary workspace | the app's own `tmp/wiki.qaq.fila/<UUID>` (`FileSession`) | same | `<installRoot>/.fila-tmp/<UUID>` |

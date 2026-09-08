@@ -97,9 +97,13 @@ between the app and the kernel with nothing in between.
   item's origin onto it as the `wiki.qaq.fila.origin` xattr; *Put Back* inside
   the trash reads it and then removes it, so there is no index to drift. Inside
   the trash the browser offers Put Back, Delete Permanently and Empty Trash,
-  and opens nothing. A read-only volume or a cross-volume rename fails with
-  the real errno, and the app offers a permanent delete instead of pretending
-  the trash always works.
+  and opens nothing. Across volumes, publish a complete `copyfile` copy with
+  its origin before removing the source; a relocated bootstrap may be on
+  Preboot while the source is on a data volume. Put Back uses the same
+  cross-volume move and never replaces an occupied origin. Undo matches a
+  trash-job UUID plus origin, because inode numbers do not survive copying.
+  A read-only trash fails with the real errno and the app offers permanent
+  deletion. Cancellation or failed removal retains any published trash copy.
 - **iOS 15 is a promise the SDK will break for you.** The floor in
   `Base.xcconfig` says nothing about whether the build runs there: the linker
   believes the SDK's availability metadata, and where that is wrong the app dies

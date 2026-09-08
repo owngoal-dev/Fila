@@ -32,8 +32,8 @@ public struct FileOperations: Sendable {
     }
 
     /// Where the trash lives: inside the bootstrap of a relocated daemon —
-    /// roothide hides the jailbreak's files there, and the data volume is one
-    /// volume either way — or at the volume's own root otherwise.
+    /// roothide hides the jailbreak's files there — or at the volume's own
+    /// root otherwise. The bootstrap and source can be on different volumes.
     func trashBase(volumeMountPoint: String) throws -> String {
         if let writableRoot { return try FilaPath.resolve(writableRoot) }
         return bootstrapRoot.isEmpty ? volumeMountPoint : try FilaPath.resolve(bootstrapRoot)

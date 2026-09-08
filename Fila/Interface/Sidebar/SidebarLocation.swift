@@ -64,10 +64,8 @@ extension SidebarLocation {
         return inbox
     }
 
-    /// Where `FileJob` renames deleted items: `FilaTrash.directoryName` under
-    /// the writable root of a relocated daemon, otherwise under `volume` — the
-    /// data volume by default, which is where every file a user deletes on a
-    /// device actually lives, or the item's own mount point for a put-back.
+    /// Matches the backend's trash: under a relocated bootstrap, otherwise
+    /// under the requested volume (the data volume for the sidebar).
     static func trashDirectory(backend: DaemonLink.Backend, volume: String = "/private/var") -> String {
         if case let .daemon(root) = backend, !root.isEmpty { return FilaTrash.directory(under: root) }
         return FilaTrash.directory(under: volume)

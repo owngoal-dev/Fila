@@ -135,9 +135,8 @@ public final class FileJob: @unchecked Sendable {
         // costs nothing if it comes first.
         let sources = try request.sources.map { source -> String in
             switch request.kind {
-            case .move, .delete:
-                // The two that destroy what they name, and the two the guard is
-                // asked about.
+            case .move, .delete, .restore:
+                // Moving, deleting and restoring all remove the source name.
                 return try operations.resolveForDestruction(source, overrideGuard: request.overrideGuard)
             case .copy, .search:
                 // A copy destroys nothing at the source and a search touches
@@ -173,7 +172,12 @@ public final class FileJob: @unchecked Sendable {
         }
 
         var targets: [String] = []
-        if request.kind != .delete {
+        if request.kind == .restore {
+            targets = try sources.map { try restoreTarget(for: $0) }
+            guard Set(targets).count == targets.count else {
+                throw FilaFailure(code: .invalidRequest, systemError: EINVAL)
+            }
+        } else if request.kind != .delete {
             let directory = try destinationDirectory()
             targets = try sources.map { try target(in: directory, for: $0) }
             guard Set(targets).count == targets.count else {
@@ -186,8 +190,11 @@ public final class FileJob: @unchecked Sendable {
             tally.beginItem(source)
             if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
             switch request.kind {
-            case .copy: try copy(source, to: targets[index], tally: tally)
-            case .move: try move(source, to: targets[index], tally: tally)
+            case .copy: try copy(source, to: targets[index], overwrite: request.overwrite, tally: tally)
+            case .move: try move(source, to: targets[index], overwrite: request.overwrite, tally: tally)
+            case .restore:
+                try move(source, to: targets[index], overwrite: false, tally: tally)
+                clearTrashRecord(at: targets[index])
             case .delete: try delete(source, tally: tally)
             case .search, .compress, .extract: break // Returned above.
             }
@@ -269,7 +276,7 @@ public final class FileJob: @unchecked Sendable {
         return target
     }
 
-    private func copy(_ source: String, to target: String, tally: JobTally) throws {
+    private func copy(_ source: String, to target: String, overwrite: Bool, tally: JobTally, prepare: (String) throws -> Void = { _ in }) throws {
         // Publish only a complete copy. Cancellation or a failed read leaves
         // the previous destination intact, including when overwrite was approved.
         let temporary = try operations.resolveForWrite(
@@ -290,7 +297,9 @@ public final class FileJob: @unchecked Sendable {
                 _ = try operations.resolveForWrite(temporary, changesInode: true)
                 try filaCheck(temporary) { lchflags(temporary, metadata.st_flags & ~immovable) }
             }
-            try filaCheck(target) { renamex_np(temporary, target, request.overwrite ? 0 : UInt32(RENAME_EXCL)) }
+            try prepare(temporary)
+            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            try filaCheck(target) { renamex_np(temporary, target, overwrite ? 0 : UInt32(RENAME_EXCL)) }
             if metadata.st_flags & immovable != 0 {
                 try filaCheck(target) { lchflags(target, metadata.st_flags) }
             }
@@ -313,23 +322,21 @@ public final class FileJob: @unchecked Sendable {
         }
     }
 
-    private func move(_ source: String, to target: String, tally: JobTally) throws {
-        if filaSameVolume(source, FilaPath.directory(of: target)) {
-            try filaCheck(target) { renamex_np(source, target, request.overwrite ? 0 : UInt32(RENAME_EXCL)) }
+    private func move(_ source: String, to target: String, overwrite: Bool, tally: JobTally) throws {
+        if renamex_np(source, target, overwrite ? 0 : UInt32(RENAME_EXCL)) == 0 {
             tally.finishedItem()
             return
         }
-        // Across volumes there is no rename. Copy the whole thing, and remove
-        // the original only once the copy has come back clean.
-        try copy(source, to: target, tally: tally)
+        guard Darwin.errno == EXDEV else { throw FilaFailure(errno: Darwin.errno, path: target) }
+        // Across volumes publish the complete copy before removing the source.
+        try copy(source, to: target, overwrite: overwrite, tally: tally)
         if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
         try removeTree(source, tally: tally)
     }
 
     private func delete(_ source: String, tally: JobTally) throws {
         guard request.useTrash else { return try removeTree(source, tally: tally) }
-        try moveIntoTrash(source, at: try trashDirectory(for: source))
-        tally.finishedItem()
+        try moveIntoTrash(source, at: try trashDirectory(for: source), tally: tally)
     }
 
     // MARK: - libSystem
@@ -379,16 +386,8 @@ public final class FileJob: @unchecked Sendable {
 
     // MARK: - Trash
 
-    /// `FilaTrash.directoryName` beneath the writable root, or the volume
-    /// mount point for an unrestricted backend, created 0700 if it is not there.
-    ///
-    /// Reaching it is a `rename(2)`, which is why moving to the trash is
-    /// instant and reversible — and also why the trash is per volume, because
-    /// rename does not cross one. A read-only volume, or a source on a
-    /// different volume from its trash, fails here with the errno the kernel
-    /// gave, and the app turns that into the offer of a permanent delete. There
-    /// is deliberately no fallback to a copy: a "move to trash" that quietly
-    /// duplicates gigabytes is not what anybody asked for.
+    /// A relocated backend keeps its trash under its bootstrap, even when
+    /// that bootstrap is on Preboot and the source is on a data volume.
     private func trashDirectory(for path: String) throws -> String {
         // The *directory* the item is in, not the item: `statfs` follows
         // symlinks, and a dangling one — a normal thing to want to delete —
@@ -412,55 +411,95 @@ public final class FileJob: @unchecked Sendable {
         return trash
     }
 
-    /// Renames the item into the trash under a name nothing else is using.
-    ///
-    /// Two deletes of the same name must both survive: the trash is the undo,
-    /// and an undo that overwrote the previous one is not an undo. Picking a
-    /// free name and then renaming into it does not achieve that, because the
-    /// two are separate steps and POSIX `rename(2)` replaces what it finds —
-    /// so a second delete landing in the gap destroys the first, silently and
-    /// with no trash left to recover it from.
-    ///
-    /// `renamex_np(..., RENAME_EXCL)` closes the gap: the kernel checks and
-    /// moves under one lock, and a name taken in the meantime comes back as
-    /// `EEXIST` for the next suffix to try rather than as a lost file.
-    private func moveIntoTrash(_ source: String, at directory: String) throws {
+    /// Exclusive publication keeps both items when two deletions share a name.
+    /// Cross-volume copies carry their recovery record before the source is removed.
+    private func moveIntoTrash(_ source: String, at directory: String, tally: JobTally) throws {
+        guard source != directory, !FilaGuard.isAncestor(source, of: directory) else {
+            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: source)
+        }
         let name = FilaPath.name(of: source)
         for suffix in 0 ..< 1_000 {
+            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
             let candidate = try operations.resolveForWrite(
                 FilaPath.join(directory, suffix == 0 ? name : "\(name)-\(suffix)")
             )
             if renamex_np(source, candidate, UInt32(RENAME_EXCL)) == 0 {
-                recordOrigin(source, on: candidate, keepingExisting: FilaPath.directory(of: source) == directory)
+                // A same-volume rename already preserved the item. Files with
+                // shared inodes or unsupported xattrs remain recoverable by hand.
+                try? recordOrigin(source, on: candidate, keepingExisting: FilaPath.directory(of: source) == directory)
+                tally.finishedItem()
                 return
             }
-            // Anything else — a read-only volume, a cross-volume rename, an
-            // immutable flag — is the real reason the delete failed, and the
-            // app turns it into the offer of a permanent delete.
-            guard Darwin.errno == EEXIST else { throw FilaFailure(errno: Darwin.errno, path: candidate) }
+            let failure = Darwin.errno
+            if failure == EEXIST { continue }
+            guard failure == EXDEV else { throw FilaFailure(errno: failure, path: candidate) }
+            // EXDEV may precede the kernel's collision check. Avoid recopying
+            // a large tree for every occupied suffix; publication still uses EXCL.
+            var existing = stat()
+            if lstat(candidate, &existing) == 0 { continue }
+            guard Darwin.errno == ENOENT else { throw FilaFailure(errno: Darwin.errno, path: candidate) }
+            do {
+                try copy(source, to: candidate, overwrite: false, tally: tally) { temporary in
+                    try self.recordOrigin(source, on: temporary, keepingExisting: false)
+                }
+            } catch let error as FilaFailure where error.systemError == EEXIST {
+                continue
+            }
+            // If cancellation or removal fails, retain the complete, recorded
+            // trash copy. Never roll it back after source removal has begun.
+            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            try removeTree(source, tally: tally)
+            return
         }
         throw FilaFailure(code: .operationFailed, systemError: EEXIST, path: FilaPath.join(directory, name))
     }
 
-    /// Writes where the item came from onto the item itself, so Put Back needs
-    /// no index that could drift from the directory. Best effort: the rename
-    /// already succeeded, and an item that cannot carry the note is still in
-    /// the trash — it just cannot be put back from there.
-    ///
-    /// Skipped for a file with another name: the attribute lives on the inode,
-    /// and the other name may be outside the writable root.
-    ///
-    /// A note left from an earlier stay in the trash is replaced: the item was
-    /// moved out by hand and deleted again from wherever it went, and that is
-    /// where it belongs now. The one exception is an item trashed from inside
-    /// the trash — it only moved within it, and its real origin is kept.
-    private func recordOrigin(_ source: String, on trashed: String, keepingExisting: Bool) {
+    private func recordOrigin(_ source: String, on trashed: String, keepingExisting: Bool) throws {
         var metadata = stat()
-        guard lstat(trashed, &metadata) == 0,
-              metadata.st_mode & S_IFMT == S_IFDIR || metadata.st_nlink == 1 else { return }
-        let options = XATTR_NOFOLLOW | (keepingExisting ? XATTR_CREATE : 0)
-        _ = source.withCString { origin in
-            setxattr(trashed, FilaTrash.originAttribute, origin, strlen(origin), 0, options)
+        try filaCheck(trashed) { lstat(trashed, &metadata) }
+        guard metadata.st_mode & S_IFMT == S_IFDIR || metadata.st_nlink == 1 else {
+            throw FilaFailure(errno: EMLINK, path: trashed)
+        }
+        if keepingExisting { return }
+        try operations.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.originAttribute, Data(source.utf8))), at: trashed)
+        if let identity = request.trashID {
+            try operations.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, Data(identity.uuidString.utf8))), at: trashed)
+        } else {
+            try? operations.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, nil)), at: trashed)
+        }
+    }
+
+    /// Origins are untrusted path metadata. Resolve them and apply the same
+    /// write boundary as a move; never overwrite a newly occupied original name.
+    private func restoreTarget(for source: String) throws -> String {
+        var volume = statfs()
+        let parent = FilaPath.directory(of: source)
+        try filaCheck(parent) { statfs(parent, &volume) }
+        let base = try operations.trashBase(volumeMountPoint: filaText(volume.f_mntonname))
+        let directory = try operations.resolveForWrite(FilaTrash.directory(under: base))
+        guard parent == directory else { throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: source) }
+        if let identity = request.trashID {
+            let recorded = try operations.extendedAttribute(FilaTrash.jobAttribute, at: source)
+            guard recorded == Data(identity.uuidString.utf8) else { throw FilaFailure(code: .notFound, path: source) }
+        }
+        let data = try operations.extendedAttribute(FilaTrash.originAttribute, at: source)
+        guard let origin = String(data: data, encoding: .utf8), origin.hasPrefix("/") else {
+            throw FilaFailure(errno: ENOATTR, path: source)
+        }
+        let target = try operations.resolveForWrite(origin)
+        guard target != directory, !FilaGuard.isAncestor(directory, of: target),
+              !FilaGuard.isAncestor(source, of: target) else {
+            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: target)
+        }
+        var metadata = stat()
+        if lstat(target, &metadata) == 0 { throw FilaFailure(errno: EEXIST, path: target) }
+        guard Darwin.errno == ENOENT else { throw FilaFailure(errno: Darwin.errno, path: target) }
+        return target
+    }
+
+    private func clearTrashRecord(at path: String) {
+        for name in [FilaTrash.originAttribute, FilaTrash.jobAttribute] {
+            try? operations.setAttributes(AttributeChange(extendedAttribute: (name, nil)), at: path)
         }
     }
 }

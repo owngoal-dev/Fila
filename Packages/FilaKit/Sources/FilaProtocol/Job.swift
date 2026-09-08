@@ -27,6 +27,9 @@ public enum FilaJobKind: UInt64, Sendable, Codable {
     case compress = 5
     case extract = 6
 
+    /// Put a trashed item back at its recorded origin, without replacing anything.
+    case restore = 7
+
     public var isArchive: Bool { self == .compress || self == .extract }
 }
 
@@ -35,12 +38,15 @@ public struct JobRequest: Sendable, Hashable, Codable {
     public var kind: FilaJobKind
     /// Absolute paths. Multi-select is the normal case, not the exception.
     public var sources: [String]
-    /// The directory the sources land in. Ignored by `.delete`.
+    /// The directory the sources land in. Ignored by `.delete` and `.restore`;
+    /// restore reads each exact destination from its origin record.
     public var destination: String?
-    /// `.delete` only: rename into the volume's trash instead of unlinking.
+    /// `.delete` only: move into the backend's trash instead of unlinking.
     /// The daemon owns where the trash is; the client only says whether it
     /// wants one.
     public var useTrash: Bool
+    /// Identifies a trash batch across copies. Restore may require this identity.
+    public var trashID: UUID?
     /// Replace what is already at the destination. When false a collision fails
     /// the job with `EEXIST` and the client asks the user what to do.
     public var overwrite: Bool
@@ -61,6 +67,7 @@ public struct JobRequest: Sendable, Hashable, Codable {
         sources: [String],
         destination: String? = nil,
         useTrash: Bool = false,
+        trashID: UUID? = nil,
         overwrite: Bool = false,
         overrideGuard: Bool = false,
         query: SearchQuery? = nil,
@@ -70,6 +77,7 @@ public struct JobRequest: Sendable, Hashable, Codable {
         self.sources = sources
         self.destination = destination
         self.useTrash = useTrash
+        self.trashID = trashID
         self.overwrite = overwrite
         self.overrideGuard = overrideGuard
         self.query = query
