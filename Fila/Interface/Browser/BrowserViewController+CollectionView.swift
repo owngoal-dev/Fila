@@ -4,18 +4,6 @@ import UIKit
 // MARK: - Collection view
 
 extension BrowserViewController: UICollectionViewDelegate {
-    func scrollViewWillBeginDragging(_: UIScrollView) {
-        DirectoryPrefetch.shared.cancelPending()
-    }
-
-    func scrollViewDidEndDragging(_: UIScrollView, willDecelerate decelerate: Bool) {
-        if !decelerate { prefetchVisibleDirectories() }
-    }
-
-    func scrollViewDidEndDecelerating(_: UIScrollView) {
-        prefetchVisibleDirectories()
-    }
-
     func collectionView(_: UICollectionView, shouldBeginMultipleSelectionInteractionAt indexPath: IndexPath) -> Bool {
         dataSource.itemIdentifier(for: indexPath) != nil
     }

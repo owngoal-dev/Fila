@@ -44,7 +44,6 @@ final class TabNavigationController: UINavigationController {
     }
 
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        (viewController as? BrowserViewController)?.prepareForNavigation()
         owner?.prepareNavigationItems(for: viewController, in: self, ancestors: viewControllers)
         prepareToolbar(for: viewController)
         super.pushViewController(viewController, animated: animated)
@@ -55,7 +54,6 @@ final class TabNavigationController: UINavigationController {
             owner?.prepareNavigationItems(for: controller, in: self, ancestors: Array(viewControllers.prefix(index)))
             prepareToolbar(for: controller)
         }
-        (viewControllers.last as? BrowserViewController)?.prepareForNavigation()
         super.setViewControllers(viewControllers, animated: animated)
     }
 

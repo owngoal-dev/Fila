@@ -176,7 +176,6 @@ final class SidebarViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        DirectoryPrefetch.shared.prefetchSidebar()
         loadRecentImages(refresh: true)
         probeTrash()
         loadMounts()
@@ -338,16 +337,6 @@ final class SidebarViewController: UIViewController {
             (.mounts, mounts.map { Item.mount($0.path) }),
             (.recents, recents.filter { recentItems[$0]?.isDirectory == true }.map(Item.recent)),
         ].filter { !$0.1.isEmpty }
-        if viewIfLoaded?.window != nil {
-            let paths = sections.flatMap(\.1).compactMap { item -> String? in
-                switch item {
-                case let .place(place): place.path
-                case let .favorite(path), let .recent(path), let .mount(path): path
-                case .header, .apps, .music: nil
-                }
-            }
-            DirectoryPrefetch.shared.prefetch(paths)
-        }
         let previous = dataSource.snapshot()
         let collapsed = Set(previous.sectionIdentifiers.filter { section in
             let outline = dataSource.snapshot(for: section)

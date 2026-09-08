@@ -28,13 +28,11 @@ final class BrowserViewController: UIViewController {
     private(set) var entries: [FileNode] = []
     private var visible: [FileNode] = []
     private var loadTask: Task<Void, Never>?
-    private var hasPrefetchedListing = false
-    private var preparedForNavigation = false
     var appFolders: [String: AppFolderPresentation] = [:]
     private var volume: VolumeInfo?
     /// The directory listing has not finished yet. Only the first load replaces
     /// the initial empty view with a loading panel.
-    private(set) var isListing = false
+    private(set) var isListing = true
     /// A context menu is animating shut. Its own cell is part of that
     /// animation, so a listing must not replace it until the menu is gone.
     var isMenuDismissing = false
@@ -156,19 +154,6 @@ final class BrowserViewController: UIViewController {
             object: nil
         )
 
-        prepareForNavigation()
-    }
-
-    /// Called before push/replace, so UIKit captures an already populated destination.
-    func prepareForNavigation() {
-        loadViewIfNeeded()
-        guard !preparedForNavigation else { return }
-        preparedForNavigation = true
-        if let cached = DirectoryPrefetch.shared.entries(in: directory) {
-            entries = cached
-            hasPrefetchedListing = true
-        }
-        isListing = !hasPrefetchedListing
         applySnapshot(animated: false)
     }
 
@@ -187,7 +172,6 @@ final class BrowserViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateChrome()
-        prepareForNavigation()
         // Initialize the shared operation observer when a browser first appears.
         _ = session.operations
     }
@@ -203,7 +187,6 @@ final class BrowserViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         loadTask?.cancel()
-        DirectoryPrefetch.shared.cancelPending()
     }
 
     /// Only explicit use records a directory; appearing or dwelling never does.
@@ -594,7 +577,7 @@ final class BrowserViewController: UIViewController {
         }
         // A completed task remains here, so a loaded empty folder also keeps
         // its current presentation when another request starts.
-        let keepsContent = loadTask != nil || hasPrefetchedListing
+        let keepsContent = loadTask != nil
         loadTask?.cancel()
         listingFailure = nil
         isListing = true
@@ -602,12 +585,7 @@ final class BrowserViewController: UIViewController {
             appFolders = [:]
             applySnapshot(animated: false)
         }
-        let foregroundRead = DirectoryPrefetch.shared.beginForegroundRead()
         loadTask = Task { [weak self] in
-            defer {
-                DirectoryPrefetch.shared.endForegroundRead(foregroundRead)
-                if !Task.isCancelled { self?.prefetchVisibleDirectories() }
-            }
             guard let self else { return }
             var pending: [FileNode] = []
             var received = 0
@@ -645,7 +623,6 @@ final class BrowserViewController: UIViewController {
                 } else {
                     entries.append(contentsOf: pending)
                 }
-                if !truncated { DirectoryPrefetch.shared.store(entries, in: directory) }
                 // What the user is looking at, and how long it took to get
                 // there. Verbose, because it is one line per folder opened and
                 // browsing is what this app mostly does — but it is also the
@@ -764,10 +741,7 @@ final class BrowserViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Int, FileNode>()
         snapshot.appendSections([0])
         snapshot.appendItems(visible)
-        dataSource.apply(snapshot, animatingDifferences: animated) { [weak self] in
-            completion?()
-            self?.prefetchVisibleDirectories()
-        }
+        dataSource.apply(snapshot, animatingDifferences: animated, completion: completion)
         collectionView.showStatus(status) { [weak self] in self?.createTrash() }
         revealPendingSelectionIfArrived()
         restoreScrollOffsetIfArrived()
@@ -778,21 +752,6 @@ final class BrowserViewController: UIViewController {
         if isEditing {
             updateChrome()
         }
-    }
-
-    func prefetchVisibleDirectories() {
-        guard !isListing, !collectionView.isDragging, !collectionView.isDecelerating,
-              viewIfLoaded?.window != nil, navigationController?.topViewController === self else { return }
-        var paths = collectionView.indexPathsForVisibleItems.sorted().compactMap { index -> String? in
-            guard !isTrash, let node = dataSource.itemIdentifier(for: index), node.isNavigable else { return nil }
-            return path(of: node)
-        }
-        var ancestor = directory
-        while ancestor != "/", !ancestor.isEmpty {
-            ancestor = (ancestor as NSString).deletingLastPathComponent
-            paths.append(ancestor)
-        }
-        DirectoryPrefetch.shared.prefetch(paths)
     }
 
     private func arrange(_ nodes: [FileNode]) -> [FileNode] {
