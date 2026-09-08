@@ -406,11 +406,7 @@ final class TextViewerViewController: UIViewController {
 
     // MARK: - Saving
 
-    /// `then` runs only if the write actually succeeded — it is how "Save"
-    /// in the leaving confirmation gets to leave. A failed save must keep the
-    /// editor on screen with the text still in it, because the text is now the
-    /// only copy.
-    private func save(then continuation: (() -> Void)? = nil) {
+    private func save() {
         guard canEdit, !isSaving else { return }
         let text = textView.text
         guard let data = text.data(using: encoding) else {
@@ -435,7 +431,6 @@ final class TextViewerViewController: UIViewController {
                     self?.isSaving = false
                     self?.hasUnsavedChanges = false
                     self?.leaveEditing()
-                    continuation?()
                 }
             } catch {
                 await MainActor.run {
@@ -459,14 +454,11 @@ final class TextViewerViewController: UIViewController {
         let alert = AlertViewController(
             title: "Unsaved Changes",
             message: "Leaving now discards what you typed. The file on disk is unchanged."
-        ) { [weak self] context in
+        ) { context in
             context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: "Save", attribute: .accent) {
-                context.dispose { self?.save(then: leave) }
-            }
-            context.addAction(title: "Discard Changes", attribute: .accent) {
+            context.addAction(title: "Discard", attribute: .accent) {
                 context.dispose { leave() }
             }
         }

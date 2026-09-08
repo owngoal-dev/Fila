@@ -49,11 +49,11 @@ final class FileActions {
         return resolved.hasPrefix("/private/") ? String(resolved.dropFirst("/private".count)) : resolved
     }
 
-    /// Editors provide their existing save/discard boundary. Reading a path or
+    /// Editors provide their existing unsaved-changes boundary. Reading a path or
     /// opening metadata does not leave editing; file-content actions do.
     func menuElements(
         for path: String, node: FileNode, additional: [UIMenuElement] = [], includesProperties: Bool = true,
-        confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
+        preview: (() -> Void)? = nil, confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
     ) -> [UIMenuElement] {
         if Self.isInTrash(path) { return trashMenuElements(for: path, additional: additional, confirm: confirm) }
         let run: [UIMenuElement] = SystemCapabilities.runsPrograms && Self.canRun(node) ? [UIMenu(
@@ -66,23 +66,32 @@ final class FileActions {
             UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in showProperties(path) },
         ] : []
         let install = installAction(path, node: node, confirm: confirm).map { [$0] } ?? []
-        let file: [UIMenuElement] = properties + run + install + additional + [
-            UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
+        let previewActions: [UIMenuElement] = preview.map { open in
+            [UIAction(title: String(localized: "Preview"), image: UIImage(systemName: "eye")) { _ in confirm(open) }]
+        } ?? []
+        let inspection = properties + previewActions + additional
+        let copy = UIMenu(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc"), children: [
+            UIAction(title: String(localized: "File"), image: UIImage(systemName: "doc.on.doc")) { _ in
                 confirm { FileClipboard.shared.take([path], cut: false) }
             },
-            UIAction(title: String(localized: "Move"), image: UIImage(systemName: "scissors")) { _ in
-                confirm { FileClipboard.shared.take([path], cut: true) }
+            UIAction(title: String(localized: "File Name"), image: UIImage(systemName: "textformat")) { _ in
+                UIPasteboard.general.string = (path as NSString).lastPathComponent
+                Toast.show(String(localized: "Copied"))
             },
-            UIAction(title: String(localized: "Copy Path"), image: UIImage(systemName: "text.quote")) { _ in
+            UIAction(title: String(localized: "Path"), image: UIImage(systemName: "text.quote")) { _ in
                 UIPasteboard.general.string = path
                 Toast.show(String(localized: "Copied"))
             },
-            UIAction(title: String(localized: "Rename…"), image: UIImage(systemName: "pencil")) { [self] _ in confirm { self.promptRename(path) } },
-        ]
-        let tools = UIMenu(options: .displayInline, children: [
-            UIAction(title: String(localized: "Open With…"), image: UIImage(systemName: "square.and.arrow.up")) { [self] _ in confirm { self.share([path]) } },
-            compressAction(paths: { [path] }, confirm: confirm),
         ])
+        let operations: [UIMenuElement] = [
+            copy,
+            UIAction(title: String(localized: "Move"), image: UIImage(systemName: "scissors")) { _ in
+                confirm { FileClipboard.shared.take([path], cut: true) }
+            },
+            compressAction(paths: { [path] }, confirm: confirm),
+            UIAction(title: String(localized: "Rename…"), image: UIImage(systemName: "pencil")) { [self] _ in confirm { self.promptRename(path) } },
+            UIAction(title: String(localized: "Open With…"), image: UIImage(systemName: "square.and.arrow.up")) { [self] _ in confirm { self.share([path]) } },
+        ] + run + install
         var destructive: [UIMenuElement] = [
             UIAction(title: Self.deleteTitle, image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in confirm { self.delete([path]) } },
         ]
@@ -91,7 +100,7 @@ final class FileActions {
                 confirm { self.promptOverriddenDelete([path]) }
             })
         }
-        return [UIMenu(options: .displayInline, children: file), tools, UIMenu(options: .displayInline, children: destructive)]
+        return [inspection, operations, destructive].filter { !$0.isEmpty }.map { UIMenu(options: .displayInline, children: $0) }
     }
 
     /// A trashed item's menu: back where it came from, or gone for good.

@@ -17,11 +17,7 @@ extension BrowserViewController {
 
     func contextMenu(for node: FileNode) -> UIMenu {
         let path = path(of: node)
-        var file: [UIMenuElement] = [
-            UIAction(title: String(localized: "Select"), image: UIImage(systemName: "checkmark.circle")) { [weak self] _ in
-                self?.select(node)
-            },
-        ]
+        var file: [UIMenuElement] = []
         // Only folders: a tab is somewhere to be, and "open this PNG in a new
         // tab" has no answer that is not a viewer with no way back. Not in the
         // trash, where `FileActions` hands back Put Back and little else.
@@ -56,7 +52,7 @@ extension BrowserViewController {
             })
         }
 
-        return UIMenu(title: node.name, children: fileActions.menuElements(for: path, node: node, additional: file))
+        return UIMenu(title: node.name, children: fileActions.menuElements(for: path, node: node, additional: file, preview: { [weak self] in self?.open(node) }))
     }
 
     /// Takes the trash's place in the folder menu, where New would be. Not

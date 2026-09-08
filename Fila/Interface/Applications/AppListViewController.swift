@@ -17,6 +17,7 @@ final class AppListViewController: UIViewController {
     /// nothing returns nothing — so this always ends in rows or in a stated
     /// reason there are none.
     private var isLoading = true
+    private var loadTask: Task<Void, Never>?
 
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Int, InstalledApp>!
@@ -113,17 +114,45 @@ final class AppListViewController: UIViewController {
             collection.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: app)
         }
 
+        collectionView.refreshControl = UIRefreshControl().then {
+            $0.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        }
+        collectionView.alwaysBounceVertical = true
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshIfVisible), name: UIApplication.didBecomeActiveNotification, object: nil)
+
         apply()
-        Task { [weak self] in
-            guard let self else { return }
-            self.apps = await InstalledAppCatalog.load(session: self.session)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refresh()
+    }
+
+    @objc private func refreshIfVisible() {
+        guard viewIfLoaded?.window != nil, navigationController?.topViewController === self else { return }
+        refresh()
+    }
+
+    @objc private func refresh() {
+        loadTask?.cancel()
+        let session = session
+        loadTask = Task { [weak self] in
+            let apps = await InstalledAppCatalog.load(session: session)
+            guard let self, !Task.isCancelled else { return }
+            let wasLoaded = !self.isLoading
+            self.apps = apps
             self.isLoading = false
-            self.apply()
+            self.apply(animatingDifferences: wasLoaded)
+            self.collectionView.refreshControl?.endRefreshing()
+            self.loadTask = nil
         }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        loadTask?.cancel()
+        loadTask = nil
+        collectionView.refreshControl?.endRefreshing()
         if isMovingFromParent || isBeingDismissed || navigationController?.isBeingDismissed == true {
             navigationItem.searchController?.isActive = false
         }
@@ -142,11 +171,11 @@ final class AppListViewController: UIViewController {
         }
     }
 
-    private func apply() {
+    private func apply(animatingDifferences: Bool = false) {
         var snapshot = NSDiffableDataSourceSnapshot<Int, InstalledApp>()
         snapshot.appendSections([0])
         snapshot.appendItems(visible)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: animatingDifferences)
         collectionView.showStatus(status)
     }
 

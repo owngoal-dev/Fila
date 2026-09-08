@@ -357,6 +357,10 @@ extension SearchViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let hit = dataSource.itemIdentifier(for: indexPath) else { return }
+        open(hit)
+    }
+
+    private func open(_ hit: FileSearchResult) {
         if hit.node.isNavigable {
             navigationController?.pushViewController(BrowserViewController(directory: hit.path), animated: true)
         } else {
@@ -364,8 +368,7 @@ extension SearchViewController: UICollectionViewDelegate {
         }
     }
 
-    /// The same file menu as the browser row, with where-is-it in place of
-    /// Select: a hit is a file the user has not seen in its folder yet.
+    /// The shared file menu also lets a search result reveal its location.
     func collectionView(_: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
         guard let hit = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -386,7 +389,7 @@ extension SearchViewController: UICollectionViewDelegate {
                 self.folderEntries?.removeAll { $0 == hit.node }
                 self.apply()
             }
-            return UIMenu(title: hit.node.name, children: actions.menuElements(for: hit.path, node: hit.node, additional: additional))
+            return UIMenu(title: hit.node.name, children: actions.menuElements(for: hit.path, node: hit.node, additional: additional, preview: { [weak self] in self?.open(hit) }))
         }
     }
 }

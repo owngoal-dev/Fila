@@ -236,8 +236,8 @@ final class PropertyListEditorViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
 
-    /// Save and discard finish editing; a failed save retains the only current
-    /// copy and never invokes the requested navigation.
+    /// Leaving offers cancellation or discarding. Saving stays in the editor,
+    /// so dismissing this prompt never writes the document.
     private func confirmLeaving(_ leave: @escaping () -> Void) {
         if let visible = navigationController?.topViewController as? PropertyListEditorViewController,
            visible !== self, visible.document === document {
@@ -258,10 +258,7 @@ final class PropertyListEditorViewController: UIViewController {
             context.addAction(title: "Cancel") {
                 context.dispose()
             }
-            context.addAction(title: "Save", attribute: .accent) {
-                context.dispose { self?.save(then: leave) }
-            }
-            context.addAction(title: "Discard Changes", attribute: .accent) {
+            context.addAction(title: "Discard", attribute: .accent) {
                 context.dispose {
                     guard let self else { return }
                     if let (root, format) = self.document.saved {
@@ -416,7 +413,7 @@ final class PropertyListEditorViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    private func save(then continuation: (() -> Void)? = nil) {
+    private func save() {
         guard document.canEdit, !document.isSaving, let root = document.root, case let .file(details, _, link) = document.source else { return }
         document.isSaving = true
         refresh()
@@ -430,7 +427,6 @@ final class PropertyListEditorViewController: UIViewController {
                 self.document.hasUnsavedChanges = false
                 self.document.isSaving = false
                 self.refresh()
-                continuation?()
             } catch {
                 self.document.isSaving = false
                 self.refresh()
