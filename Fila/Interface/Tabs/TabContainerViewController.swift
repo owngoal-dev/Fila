@@ -285,10 +285,14 @@ final class TabContainerViewController: UIViewController {
     private func capturePreview() {
         guard settled, transition == nil, let id = installedTabID, let navigation, displayed === navigation,
               let surface = navigation.topViewController?.viewIfLoaded, surface.window != nil else { return }
-        let bounds = surface.bounds.inset(by: surface.safeAreaInsets)
-        guard bounds.width > 0, bounds.height > 0 else { return }
+        // The capture is cropped to the card thumbnail's aspect, so what a
+        // card shows of this page under `.scaleAspectFill` is the whole image
+        // — the zoom can land on the same pixels in any geometry.
+        let full = surface.bounds.inset(by: surface.safeAreaInsets)
+        guard full.width > 0, full.height > 0 else { return }
+        let bounds = TabSwitcherViewController.thumbnailRegion(in: full)
         let scale = min(1, 360 / bounds.width)
-        let size = CGSize(width: bounds.width * scale, height: min(306, bounds.height * scale))
+        let size = CGSize(width: bounds.width * scale, height: bounds.height * scale)
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         format.opaque = true
@@ -404,12 +408,13 @@ final class TabContainerViewController: UIViewController {
     }
 
     /// The part of a tab's page that its card thumbnail shows — the top
-    /// screen's view inside its safe area, which is what `capturePreview`
-    /// draws — in the container's coordinates.
+    /// screen's view cropped to the thumbnail's aspect, which is what
+    /// `capturePreview` draws — in the container's coordinates.
     private func contentRect(of controller: UIViewController?) -> CGRect {
         guard let page = (controller as? UINavigationController)?.topViewController?.viewIfLoaded
         else { return view.bounds }
-        return page.convert(page.bounds.inset(by: page.safeAreaInsets), to: view)
+        let full = page.convert(page.bounds.inset(by: page.safeAreaInsets), to: view)
+        return TabSwitcherViewController.thumbnailRegion(in: full)
     }
 
     /// Scales `page` so that its `content` region lands exactly on `card` —

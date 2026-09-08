@@ -203,6 +203,29 @@ final class TabSwitcherViewController: UIViewController {
 
     static let cardCornerRadius = FilaUI.Spacing.large
 
+    /// The card thumbnail's height over width. `TabCardCell` sizes its image
+    /// view with it, and the container crops both the capture and the zoom
+    /// window to it, so a page shrinks onto exactly the pixels the thumbnail
+    /// shows of it.
+    static let thumbnailAspect: CGFloat = 0.85
+
+    /// The largest `thumbnailAspect` rectangle inside `bounds`, anchored to
+    /// its top and leading edges: the region of the page a card's thumbnail
+    /// displays of it. Leading rather than centred because the safe-area rect
+    /// is horizontally asymmetric exactly where something sits beside the
+    /// page — a sidebar column on one side, a home-indicator inset on the
+    /// other — and landscape constrains the height, so a centred crop there
+    /// starts mid-content and reads as the preview sitting offset.
+    static func thumbnailRegion(in bounds: CGRect) -> CGRect {
+        var width = bounds.width
+        var height = width * thumbnailAspect
+        if height > bounds.height {
+            height = bounds.height
+            width = height / thumbnailAspect
+        }
+        return CGRect(x: bounds.minX, y: bounds.minY, width: width, height: height)
+    }
+
     /// The frame of the card's page thumbnail — not the whole card, whose
     /// header sits above it — in `target`'s coordinates, for the container's
     /// zoom. Nil when the card is off screen — or, with `scrollingIntoView`,
@@ -395,7 +418,8 @@ private final class TabCardCell: UICollectionViewCell {
             make.edges.equalToSuperview()
         }
         imageView.snp.makeConstraints { make in
-            make.height.equalTo(imageView.snp.width).multipliedBy(0.85)
+            make.height.equalTo(imageView.snp.width)
+                .multipliedBy(TabSwitcherViewController.thumbnailAspect)
         }
         closeButton.snp.makeConstraints { make in
             make.size.equalTo(FilaUI.minimumTapTarget)
