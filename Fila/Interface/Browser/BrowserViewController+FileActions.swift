@@ -338,13 +338,15 @@ extension BrowserViewController {
     func promptCreate(_ template: NodeTemplate) {
         guard !isTrash else { return }
         recordDirectoryUse()
-        let title: String.LocalizationValue = template == .directory ? "New Folder" : "New Text File"
+        let title = template == .directory
+            ? String.LocalizationValue("New Folder")
+            : String.LocalizationValue("New Text File")
         let initial = template == .directory ? "" : String(localized: "Untitled.txt")
         prompt(
             title: title,
-            message: "Enter a name for the new item in this folder.",
+            message: String.LocalizationValue("Enter a name for the new item in this folder."),
             initial: initial,
-            confirm: "Create"
+            confirm: String.LocalizationValue("Create")
         ) { [weak self] name in
             guard let self, !name.isEmpty else { return }
             let path = self.directory == "/" ? "/" + name : self.directory + "/" + name
@@ -362,10 +364,10 @@ extension BrowserViewController {
         ) { [weak self] target in
             guard let self else { return }
             self.prompt(
-                title: "New Symbolic Link",
-                message: "Enter a name for the link to the item you chose.",
+                title: String.LocalizationValue("New Symbolic Link"),
+                message: String.LocalizationValue("Enter a name for the link to the item you chose."),
                 initial: target.lastPathComponent,
-                confirm: "Create"
+                confirm: String.LocalizationValue("Create")
             ) { [weak self] name in
                 guard let self, !name.isEmpty else { return }
                 let path = self.directory == "/" ? "/" + name : self.directory + "/" + name
@@ -382,10 +384,10 @@ extension BrowserViewController {
     /// does not have.
     func promptDownload() {
         prompt(
-            title: "Download from URL",
-            message: "Enter an http or https URL. The file is saved in this folder.",
+            title: String.LocalizationValue("Download from URL"),
+            message: String.LocalizationValue("Enter an http or https URL. The file is saved in this folder."),
             initial: "https://",
-            confirm: "Download"
+            confirm: String.LocalizationValue("Download")
         ) { [weak self] text in
             guard let self,
                   let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
@@ -401,10 +403,10 @@ extension BrowserViewController {
 
     func promptGoToPath() {
         prompt(
-            title: "Go to Path",
-            message: "Enter an absolute path, starting with a slash.",
+            title: String.LocalizationValue("Go to Path"),
+            message: String.LocalizationValue("Enter an absolute path, starting with a slash."),
             initial: directory,
-            confirm: "Go"
+            confirm: String.LocalizationValue("Go")
         ) { [weak self] path in
             guard let self, path.hasPrefix("/") else { return }
             self.open(directory: path)

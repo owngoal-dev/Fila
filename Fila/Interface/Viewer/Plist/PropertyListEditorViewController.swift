@@ -332,11 +332,13 @@ final class PropertyListEditorViewController: UIViewController {
         let alert = AlertInputViewController(
             title: row.label,
             message: row.value.typeName,
-            // The computed title takes the plain-`String` overload, so this
-            // literal is not a catalogue lookup and no empty key comes of it.
+            // The computed title takes the plain-`String` overload, so the
+            // empty placeholder is not a catalogue lookup and no empty key
+            // comes of it. The button title still is one, and `String(localized:)`
+            // is both the right overload here and visible to the extractor.
             placeholder: "",
             text: row.value.editableText ?? "",
-            doneButtonText: "Done"
+            doneButtonText: String(localized: "Done")
         ) { [weak self] text in
             guard let self else { return }
             guard let value = Self.reinterpret(text, like: row.value) else {
@@ -424,7 +426,10 @@ final class PropertyListEditorViewController: UIViewController {
     }
 
     private func showError(_ message: String) {
-        let alert = AlertViewController(title: "Unable to Make This Change", message: message) { context in
+        let alert = AlertViewController(
+            title: String(localized: "Unable to Make This Change"),
+            message: message
+        ) { context in
             context.allowSimpleDispose()
             context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()

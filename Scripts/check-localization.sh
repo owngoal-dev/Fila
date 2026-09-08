@@ -23,7 +23,10 @@ error() {
     fail=1
 }
 
-# 1. No extraction markers anywhere in any catalogue.
+# 1. No extraction markers in a catalogue whose keys come from source.
+#
+# `InfoPlist.xcstrings` is exempt: its keys are Info.plist entries, Xcode marks
+# them `extracted_with_value`, and no call site exists to fix.
 while IFS= read -r catalogue; do
     [ -n "$catalogue" ] || continue
     if grep -q '"extractionState"' "$catalogue"; then
@@ -35,7 +38,7 @@ while IFS= read -r catalogue; do
     Do not add \"extractionState\" back to silence this."
     fi
 done < <(find "$root/Fila" "$root/Packages" "$root/FilaFileProvider" "$root/FilaArchive" \
-    -name '*.xcstrings' -not -path '*/.build/*' 2>/dev/null || true)
+    -name 'Localizable.xcstrings' -not -path '*/.build/*' 2>/dev/null || true)
 
 # 2. No bare literal at a `String.LocalizationValue` parameter.
 #

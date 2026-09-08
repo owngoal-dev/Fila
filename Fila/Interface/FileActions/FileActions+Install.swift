@@ -126,7 +126,7 @@ extension FileActions {
                 return
             }
             let alert = AlertViewController(
-                title: "Install App?",
+                title: String(localized: "Install App?"),
                 message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleID)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified.")
             ) { context in
                 context.addAction(title: String.LocalizationValue("Cancel")) {
@@ -216,7 +216,10 @@ extension FileActions {
             FeedbackAlert.show(String(localized: "Cannot Install"), message: message)
             return
         }
-        let alert = AlertViewController(title: "Cannot Install", message: message) { context in
+        let alert = AlertViewController(
+            title: String(localized: "Cannot Install"),
+            message: message
+        ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
             }

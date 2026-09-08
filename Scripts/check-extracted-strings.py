@@ -41,6 +41,11 @@ TARGETS = [
         "FilaKit.build/*/FilaMedia-t.build",
         "Packages/FilaKit/Sources/FilaMedia/Resources/Localizable.xcstrings",
     ),
+    (
+        "FilaTerminal",
+        "FilaKit.build/*/FilaTerminal-t.build",
+        "Packages/FilaKit/Sources/FilaTerminal/Resources/Localizable.xcstrings",
+    ),
 ]
 
 

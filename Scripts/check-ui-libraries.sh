@@ -93,12 +93,17 @@ fi
 # Escape dismissal is not a visible action. Inspect the complete context
 # closure, including nested action handlers: mutating buttons alone do not
 # provide a way to cancel, even when they follow allowSimpleDispose().
+#
+# The title arrives in one of three shapes, and all three are the same button:
+# a bare literal is gone from `Fila/` because Xcode's extractor cannot see one
+# there, so it is now `String.LocalizationValue("OK")`, or `String(localized:)`
+# where a sibling argument forces the plain-String overload.
 empty_alert_hits="$(perl -0777 -ne '
     while (/\{\s*(?:\[[^\]]*\]\s*)?context\s+in(?<body>(?:[^{}"]+|"(?:\\.|[^"\\])*"|\{(?&body)\})*)\}/sg) {
         my $body = $+{body};
         my $offset = $-[0];
         next unless $body =~ /context\.allowSimpleDispose\(\)/;
-        next if $body =~ /context\.addAction\(\s*title:\s*"(?:Cancel|Close|OK)"/s;
+        next if $body =~ /context\.addAction\(\s*title:\s*(?:String\.LocalizationValue\(\s*|String\(\s*localized:\s*)?"(?:Cancel|Close|OK)"/s;
         my $line = 1 + (substr($_, 0, $offset) =~ tr/\n//);
         print "$ARGV:$line: allowSimpleDispose needs a visible Cancel/Close/OK action\n";
     }' $(find "${ui_roots[@]}" -name '*.swift'))"

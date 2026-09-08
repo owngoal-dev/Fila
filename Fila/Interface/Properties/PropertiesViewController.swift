@@ -503,7 +503,7 @@ final class PropertiesViewController: UIViewController {
 
     private func editOwner() {
         promptForIdentifier(
-            title: "Owner",
+            title: String.LocalizationValue("Owner"),
             current: details.node.ownerID
         ) { [weak self] value in
             self?.apply(AttributeChange(ownerID: uid_t(value)))
@@ -512,7 +512,7 @@ final class PropertiesViewController: UIViewController {
 
     private func editGroup() {
         promptForIdentifier(
-            title: "Group",
+            title: String.LocalizationValue("Group"),
             current: details.node.groupID
         ) { [weak self] value in
             self?.apply(AttributeChange(groupID: gid_t(value)))

@@ -699,10 +699,16 @@ declares `defaultLocalization`, the target takes
 `resources: [.process("Resources")]`, and the call site names its bundle —
 `String(localized: "…", bundle: .module)`. It then emits its own `.stringsdata`
 under `FilaKit.build/…/<Target>-t.build/`, and is diffed like any other target
-rather than scraped. `FilaFormats` and `FilaMedia` are set up this way, and the
-app carries `CFBundleAllowMixedLocalizations` so it resolves strings out of
-those resource bundles. Add a new target to the table in
-`Scripts/check-extracted-strings.py` when it grows its first string.
+rather than scraped. `FilaFormats`, `FilaMedia` and `FilaTerminal` are set up
+this way, and the app carries `CFBundleAllowMixedLocalizations` so it resolves
+strings out of those resource bundles. Add a new target to the table in
+`Scripts/check-extracted-strings.py` when it grows its first string; a target
+missing from that table is not checked at all.
+
+`String(localized:)` defaults to `Bundle.main`, which is why the FilaTerminal
+strings *worked* while sitting in the app catalogue and were still wrong: the
+lookup found them, and the extractor never put them there, so the first prune
+would have taken all ten.
 
 Two rules the catalogue enforces on itself: a translation keeps every format
 specifier with the same type and count, and uses positional forms (`%1$@`,

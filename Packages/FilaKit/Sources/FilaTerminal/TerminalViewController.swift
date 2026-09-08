@@ -69,7 +69,7 @@ public final class TerminalViewController: UIViewController {
             image: UIImage(systemName: "ellipsis"),
             menu: UIMenu(children: [
                 UIAction(
-                    title: String(localized: "End Session"),
+                    title: String(localized: "End Session", bundle: .module),
                     image: UIImage(systemName: "stop"),
                     attributes: .destructive
                 ) { [weak self] _ in
@@ -77,7 +77,7 @@ public final class TerminalViewController: UIViewController {
                 },
             ])
         )
-        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
+        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More", bundle: .module)
         navigationItem.rightBarButtonItem?.isEnabled = false
     }
 
@@ -211,7 +211,7 @@ public final class TerminalViewController: UIViewController {
 
     private func start() {
         hasStarted = true
-        statusLabel.text = String(localized: "Starting…")
+        statusLabel.text = String(localized: "Starting…", bundle: .module)
         navigationItem.rightBarButtonItem?.isEnabled = true
         authenticateAndOpen()
     }
@@ -233,7 +233,7 @@ public final class TerminalViewController: UIViewController {
         authentication = context
         context.evaluatePolicy(
             .deviceOwnerAuthentication,
-            localizedReason: String(localized: "Authenticate to run a terminal session as root.")
+            localizedReason: String(localized: "Authenticate to run a terminal session as root.", bundle: .module)
         ) { [weak self] success, error in
             Task { @MainActor [weak self] in
                 guard let self, !self.isFinished else { return }
@@ -247,7 +247,7 @@ public final class TerminalViewController: UIViewController {
     private func authenticationFailed(_ error: Error?) {
         isFinished = true
         navigationItem.rightBarButtonItem?.isEnabled = false
-        statusLabel.text = error?.localizedDescription ?? String(localized: "Authentication failed.")
+        statusLabel.text = error?.localizedDescription ?? String(localized: "Authentication failed.", bundle: .module)
         // No launch request was sent, so staged input can be released now.
         onProcessExit?.run()
     }
@@ -375,8 +375,8 @@ public final class TerminalViewController: UIViewController {
         // exhaustive because `TerminalUser` is: uid 0 is the root session, and
         // the only other user this daemon will ever spawn as is `mobile`.
         showSessionNotice(terminal.isRoot
-            ? String(localized: "Running as root")
-            : String(localized: "Running as mobile"))
+            ? String(localized: "Running as root", bundle: .module)
+            : String(localized: "Running as mobile", bundle: .module))
         // The keyboard is not raised for the user. A session often starts by
         // printing rather than by asking, and a screen that opens with half of
         // itself covered hides the output that says what happened. Tapping the
@@ -401,7 +401,7 @@ public final class TerminalViewController: UIViewController {
         guardAgainstDismissal(false)
         terminalView.resignFirstResponder()
         statusLabel.text = nil
-        showSessionNotice(String(localized: "Session ended"))
+        showSessionNotice(String(localized: "Session ended", bundle: .module))
         navigationItem.rightBarButtonItem?.isEnabled = false
         // The terminal keeps what the program printed on screen — the last
         // lines are usually the reason it ended.
@@ -425,7 +425,7 @@ public final class TerminalViewController: UIViewController {
         guardAgainstDismissal(false)
         terminalView.resignFirstResponder()
         statusLabel.text = nil
-        showSessionNotice(String(localized: "Session ended"))
+        showSessionNotice(String(localized: "Session ended", bundle: .module))
         navigationItem.rightBarButtonItem?.isEnabled = false
     }
 
@@ -487,14 +487,17 @@ public final class TerminalViewController: UIViewController {
 
     private static func name(of program: TerminalProgram) -> String {
         switch program {
-        case .loginShell: String(localized: "Terminal")
+        case .loginShell: String(localized: "Terminal", bundle: .module)
         case let .executable(path), let .installPackage(path): (path as NSString).lastPathComponent
         }
     }
 
 
     private static func message(for failure: Error) -> String {
-        let summary = String(localized: "This program could not be started. Check that it exists and can be run.")
+        let summary = String(
+            localized: "This program could not be started. Check that it exists and can be run.",
+            bundle: .module
+        )
         // The system's own reason stays in the message: on a jailbroken device
         // "Operation not permitted" (a binary AMFI refused) and "No such file
         // or directory" are the two likely answers, and only one of them is
