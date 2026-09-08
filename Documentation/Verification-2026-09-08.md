@@ -5,8 +5,10 @@ Tested on the vphone running iOS 26.6.1, using SSH through the verified local
 19:00:07 JST on September 8, 2026. After a separate session finished using
 the device, testing resumed at 19:50 with exclusive access.
 
-The final installed payload was **0.3.8 (66)**. This is a development build;
-no release or version tag was created for these changes.
+The final installed payload was **0.3.8 (67)**. This is a development build;
+no release or version tag was created for these changes. Feature flows ran on
+builds 65–66; build 67 additionally verified the merged navigation, executable
+properties artwork, and cancellation of the remote Close All confirmation.
 
 | Area | Device verification |
 | --- | --- |

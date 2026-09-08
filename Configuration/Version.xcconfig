@@ -6,4 +6,4 @@
 // rejects that, keep it that way.
 
 MARKETING_VERSION = 0.3.8
-CURRENT_PROJECT_VERSION = 66
+CURRENT_PROJECT_VERSION = 67
