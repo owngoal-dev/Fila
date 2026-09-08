@@ -10,6 +10,10 @@ import PackageDescription
 // FilaClient + FilaFormats + FilaMedia. Nothing here imports UIKit.
 let package = Package(
     name: "FilaKit",
+    // A target that shows the user a sentence owns its own catalogue: Xcode's
+    // extractor only walks the app target, so a `String(localized:)` here is
+    // invisible to it and an app-catalogue entry for it is pruned as stale.
+    defaultLocalization: "en",
     platforms: [.iOS(.v15), .macOS(.v13), .macCatalyst(.v15)],
     products: [
         .library(name: "FilaProtocol", targets: ["FilaProtocol"]),
@@ -100,6 +104,7 @@ let package = Package(
                 .product(name: "LibArchive", package: "libarchive.xcframework", moduleAliases: ["LibArchive": "FilaLibArchive"]),
                 .product(name: "MachOKit", package: "MachOKit"),
             ],
+            resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
@@ -107,7 +112,12 @@ let package = Package(
         // the daemon must never link this. Both frameworks are told to read
         // through a callback rather than a path, which is the only way a file
         // `mobile` cannot open ever reaches a player or a thumbnail.
-        .target(name: "FilaMedia", dependencies: ["FilaFormats"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(
+            name: "FilaMedia",
+            dependencies: ["FilaFormats"],
+            resources: [.process("Resources")],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
 
         // The terminal: the pseudo-terminal pump, and the screen libghostty
         // draws it on. The pump is here rather than in the daemon because the

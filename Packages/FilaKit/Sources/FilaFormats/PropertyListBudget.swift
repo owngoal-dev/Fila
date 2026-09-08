@@ -11,7 +11,7 @@ public enum PropertyListBudget {
         do {
             object = try PropertyListSerialization.propertyList(from: data, options: [], format: &format)
         } catch {
-            throw FormatFailure.damaged(String(localized: "it is not a property list"))
+            throw FormatFailure.damaged(String(localized: "it is not a property list", bundle: .module))
         }
         try validate(object)
         return object
@@ -37,7 +37,7 @@ public enum PropertyListBudget {
         }
         func visit(_ value: Any, depth: Int) throws {
             guard depth <= 64, remainingNodes > 0 else {
-                throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels"))
+                throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels", bundle: .module))
             }
             remainingNodes -= 1
             switch value {
@@ -45,12 +45,12 @@ public enum PropertyListBudget {
             case let data as Data: try consume(data.count)
             case let values as [Any]:
                 guard values.count <= remainingNodes else {
-                    throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels"))
+                    throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels", bundle: .module))
                 }
                 for child in values { try visit(child, depth: depth + 1) }
             case let values as [String: Any]:
                 guard values.count <= remainingNodes else {
-                    throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels"))
+                    throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels", bundle: .module))
                 }
                 for (key, child) in values {
                     try consume(key.utf8.count)
