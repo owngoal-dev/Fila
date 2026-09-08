@@ -37,9 +37,6 @@ final class StatusView: UIView {
     /// reads as the app working, a blank screen reads as it hanging.
     static let revealDelay: TimeInterval = 0.35
 
-    /// How long the panel takes to hand the screen over to what replaces it.
-    static let crossfadeDuration: TimeInterval = 0.25
-
     var content: Content {
         didSet {
             guard content != oldValue else { return }
@@ -68,7 +65,7 @@ final class StatusView: UIView {
     // MARK: - Hierarchy
 
     private func build() {
-        spinner.startAnimating()
+        spinner.hidesWhenStopped = true
 
         symbolView.do {
             $0.contentMode = .scaleAspectFit
@@ -92,7 +89,7 @@ final class StatusView: UIView {
             label.adjustsFontForContentSizeCategory = true
         }
 
-        let stack = UIStackView(arrangedSubviews: [spinner, symbolView, titleLabel, detailLabel, button]).then {
+        let stack = UIStackView(arrangedSubviews: [symbolView, titleLabel, detailLabel, button]).then {
             $0.axis = .vertical
             $0.alignment = .center
             $0.spacing = FilaUI.Spacing.small
@@ -100,6 +97,11 @@ final class StatusView: UIView {
             $0.setCustomSpacing(FilaUI.Spacing.large, after: detailLabel)
         }
         addSubview(stack)
+        addSubview(spinner)
+        spinner.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.bottom.equalTo(stack.snp.top).offset(-FilaUI.Spacing.small)
+        }
         // Artwork comes at the properties page's 192 points; here it is a
         // glyph, not a preview. A symbol is smaller than this and unaffected.
         symbolView.snp.makeConstraints { make in
@@ -137,7 +139,13 @@ final class StatusView: UIView {
             symbolView.image = artwork.flatMap { UIImage(named: "FileIcons/\($0)") }?.withRenderingMode(.alwaysOriginal)
                 ?? UIImage(systemName: symbol)
         }
-        spinner.isHidden = !isLoading
+        // Stopping owns visibility too. A hidden but still-running indicator
+        // can reappear when UIKit resumes its animation after backgrounding.
+        if isLoading {
+            spinner.startAnimating()
+        } else {
+            spinner.stopAnimating()
+        }
         symbolView.isHidden = isLoading
         titleLabel.text = title
         detailLabel.text = detail
@@ -159,47 +167,23 @@ extension UICollectionView {
     /// Puts a `StatusView` behind the rows, or takes it away. Nil means the
     /// list has content and needs no explanation.
     ///
-    /// Same content twice is a no-op rather than a new view, because every page
-    /// of a long listing lands here and rebuilding the panel per page would
-    /// restart its reveal animation on every one of them.
+    /// Reuse the panel across listing pages; unchanged content is a no-op.
     ///
     /// A list section's background decoration is drawn *over* `backgroundView`,
     /// so a list layout that has one hides this panel completely. The browser's
     /// list configuration clears its section background for that reason; a new
     /// caller that finds this panel invisible should check the same thing
     /// before assuming the panel is broken.
-    /// Leaving a spinner cross-dissolves instead of cutting. The wait and what
-    /// ends it are the same rectangle, so a hard swap reads as a glitch —
-    /// `UIView.transition` keeps the old rendering on top for the fade and the
-    /// rows arriving underneath show through it.
+    /// State changes are immediate; the indicator only animates its rotation.
     func showStatus(_ content: StatusView.Content?, action: (() -> Void)? = nil) {
-        let existing = backgroundView as? StatusView
-        var wasLoading = false
-        if case .loading? = existing?.content { wasLoading = true }
         guard let content else {
-            guard existing != nil else { return }
-            if wasLoading {
-                UIView.transition(
-                    with: self,
-                    duration: StatusView.crossfadeDuration,
-                    options: [.transitionCrossDissolve, .allowUserInteraction]
-                ) { self.backgroundView = nil }
-            } else {
-                backgroundView = nil
-            }
+            guard backgroundView is StatusView else { return }
+            backgroundView = nil
             return
         }
-        let panel = existing ?? StatusView(content: content)
+        let panel = backgroundView as? StatusView ?? StatusView(content: content)
         panel.action = action
-        if wasLoading, content != existing?.content {
-            UIView.transition(
-                with: panel,
-                duration: StatusView.crossfadeDuration,
-                options: [.transitionCrossDissolve, .allowUserInteraction]
-            ) { panel.content = content }
-        } else {
-            panel.content = content
-        }
+        panel.content = content
         backgroundView = panel
     }
 }
