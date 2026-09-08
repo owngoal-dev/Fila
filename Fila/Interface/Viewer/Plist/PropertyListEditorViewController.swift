@@ -161,7 +161,9 @@ final class PropertyListEditorViewController: UIViewController {
         if let container = parent as? ViewerContainerViewController {
             navigationItem.rightBarButtonItem = nil
             container.childMenuElements = menuElements()
-            container.confirmReplacement = { [weak self] replace in self?.confirmLeaving(replace) }
+            container.confirmReplacement = { [weak self] prepareToPresent, replace in
+                self?.confirmLeaving(replace, prepareToPresent: prepareToPresent)
+            }
             container.refreshBarItems()
         } else {
             let owner = document.rootController?.parent as? ViewerContainerViewController
@@ -238,10 +240,10 @@ final class PropertyListEditorViewController: UIViewController {
 
     /// Leaving offers cancellation or discarding. Saving stays in the editor,
     /// so dismissing this prompt never writes the document.
-    private func confirmLeaving(_ leave: @escaping () -> Void) {
+    private func confirmLeaving(_ leave: @escaping () -> Void, prepareToPresent: () -> Void = {}) {
         if let visible = navigationController?.topViewController as? PropertyListEditorViewController,
            visible !== self, visible.document === document {
-            visible.confirmLeaving(leave)
+            visible.confirmLeaving(leave, prepareToPresent: prepareToPresent)
             return
         }
         guard !document.isSaving else { return }
@@ -251,6 +253,7 @@ final class PropertyListEditorViewController: UIViewController {
             leave()
             return
         }
+        prepareToPresent()
         let alert = AlertViewController(
             title: "Unsaved Changes",
             message: "Leaving now discards your changes. The file on disk is unchanged."

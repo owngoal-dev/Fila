@@ -72,8 +72,9 @@ final class ViewerContainerViewController: UIViewController {
     /// one: two ellipses in one navigation bar is how a screen ends up with the
     /// same action in two places.
     var childMenuElements: [UIMenuElement] = []
-    /// Editors decide whether a replacement may discard their current work.
-    var confirmReplacement: ((@escaping () -> Void) -> Void)?
+    /// Editors request a visible presenter only when a save/discard prompt is
+    /// needed. Closing a clean background tab never needs to display its page.
+    var confirmReplacement: ((_ prepareToPresent: () -> Void, _ replace: @escaping () -> Void) -> Void)?
 
     private let details: FileDetails
     private let link: DaemonLink
@@ -239,7 +240,7 @@ final class ViewerContainerViewController: UIViewController {
                       navigation.topViewController === presenter else { return }
                 action()
             }
-            if let confirm = self.confirmReplacement { confirm(perform) }
+            if let confirm = self.confirmReplacement { confirm({}, perform) }
             else { perform() }
         }
     }
@@ -247,7 +248,7 @@ final class ViewerContainerViewController: UIViewController {
     private func reopen(as format: FileFormat) {
         guard format != detectedFormat, menuItem.isEnabled else { return }
         let replace: () -> Void = { [weak self] in self?.open(as: format) }
-        if let confirmReplacement { confirmReplacement(replace) }
+        if let confirmReplacement { confirmReplacement({}, replace) }
         else { replace() }
     }
 

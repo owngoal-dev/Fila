@@ -55,7 +55,7 @@ final class MediaPlayerViewController: UIViewController {
             return
         }
 
-        container?.confirmReplacement = { [weak self] perform in
+        container?.confirmReplacement = { [weak self] _, perform in
             self?.nowPlaying?.stop()
             self?.player?.player?.pause()
             perform()
