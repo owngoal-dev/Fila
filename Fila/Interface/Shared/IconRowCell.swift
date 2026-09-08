@@ -207,9 +207,16 @@ final class IconRowCell: UICollectionViewListCell {
             $0.accessibilityLabel = String(localized: "Properties")
             $0.addAction(UIAction { _ in action() }, for: .touchUpInside)
         }
-        button.snp.makeConstraints { $0.size.equalTo(FilaUI.minimumTapTarget) }
+        // UIKit positions the accessory container itself; constraints belong
+        // inside it, where they also establish the button's 44-point target.
+        let container = UIView()
+        container.addSubview(button)
+        button.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.size.equalTo(FilaUI.minimumTapTarget)
+        }
         let info = UICellAccessory.customView(configuration: .init(
-            customView: button,
+            customView: container,
             placement: .trailing(displayed: .whenNotEditing, at: { _ in 0 }),
             reservedLayoutWidth: .custom(FilaUI.minimumTapTarget)
         ))
