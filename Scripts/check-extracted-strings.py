@@ -20,7 +20,7 @@ Two traps this script exists to avoid:
     package target never reaches the app's `.stringsdata`, so each target that
     shows the user a sentence owns its own catalogue and is diffed separately.
 
-Usage: check-extracted-strings.py <derived-data-path>
+Usage: check-extracted-strings.py <derived-data-path> [configuration-platform]
 """
 
 import json
@@ -30,23 +30,30 @@ import sys
 
 # Each target that ships user-facing strings, and where its two halves live.
 TARGETS = [
-    ("Fila", "Fila.build/*/Fila.build", "Fila/Resources/Localizable.xcstrings"),
+    ("Fila", "Fila.build", "Fila/Resources/Localizable.xcstrings"),
     (
         "FilaFormats",
-        "FilaKit.build/*/FilaFormats-t.build",
+        "FilaKit.build",
         "Packages/FilaKit/Sources/FilaFormats/Resources/Localizable.xcstrings",
     ),
     (
         "FilaMedia",
-        "FilaKit.build/*/FilaMedia-t.build",
+        "FilaKit.build",
         "Packages/FilaKit/Sources/FilaMedia/Resources/Localizable.xcstrings",
     ),
     (
         "FilaTerminal",
-        "FilaKit.build/*/FilaTerminal-t.build",
+        "FilaKit.build",
         "Packages/FilaKit/Sources/FilaTerminal/Resources/Localizable.xcstrings",
     ),
 ]
+
+
+def target_build_dirs(intermediates: pathlib.Path, project: str, configuration: str, name: str) -> list[pathlib.Path]:
+    # Xcode 26 uses Target.build; Xcode 27 adds -t for package code targets.
+    # Match exact names so resource bundle and similarly named targets stay out.
+    parent = intermediates / project / configuration
+    return [path for suffix in (".build", "-t.build") if (path := parent / f"{name}{suffix}").is_dir()]
 
 
 def extracted_keys(build_dir: pathlib.Path) -> set[str]:
@@ -73,8 +80,8 @@ def extracted_keys(build_dir: pathlib.Path) -> set[str]:
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        print("usage: check-extracted-strings.py <derived-data-path>", file=sys.stderr)
+    if len(sys.argv) not in (2, 3):
+        print("usage: check-extracted-strings.py <derived-data-path> [configuration-platform]", file=sys.stderr)
         return 64
     root = pathlib.Path(__file__).resolve().parent.parent
     intermediates = pathlib.Path(sys.argv[1]) / "Build/Intermediates.noindex"
@@ -82,18 +89,19 @@ def main() -> int:
         print(f"error: no build products under {intermediates}", file=sys.stderr)
         return 66
 
+    configuration = sys.argv[2] if len(sys.argv) == 3 else "Release-iphoneos"
     failed = False
-    for name, pattern, catalogue_path in TARGETS:
+    for name, project, catalogue_path in TARGETS:
         catalogue = root / catalogue_path
         if not catalogue.is_file():
             print(f"error: {catalogue_path} is missing", file=sys.stderr)
             failed = True
             continue
-        build_dirs = list(intermediates.glob(pattern))
+        build_dirs = target_build_dirs(intermediates, project, configuration, name)
         if not build_dirs:
             print(
-                f"error: {name} produced no .stringsdata — its sources did not "
-                f"compile in this build, so the catalogue cannot be checked",
+                f"error: no build directory for {name} in {project}/{configuration}; "
+                f"the catalogue cannot be checked",
                 file=sys.stderr,
             )
             failed = True

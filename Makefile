@@ -106,7 +106,7 @@ endif
 
 .PHONY: all help print-version print-build-number print-deb-path print-tipa-path \
 	print-ipa-path print-flavor \
-	set-version bump-build check harness build sim vphone _build-ios _package-deb \
+	set-version bump-build check harness build compile sim vphone _build-ios _package-deb _packages \
 	deb deb-roothide deb-rootless deb-all tipa ipa packages install clean
 
 all: packages
@@ -116,6 +116,7 @@ help:
 	@echo "  harness     Run the FilaKit tests on macOS (no device, no simulator)"
 	@echo "  check       Validate the Xcode project and packaging inputs"
 	@echo "  build       Build the unsigned Fila.app, filad and fila-archive for iPhoneOS"
+	@echo "  compile     Check and compile iPhoneOS products; CI runs harness separately"
 	@echo "  sim         Build Debug and launch the app on the booted simulator"
 	@echo "  deb         Build, ad-hoc sign, package, and verify the .deb for FLAVOR"
 	@echo "  deb-all     Package both the roothide and the rootless .deb"
@@ -201,7 +202,10 @@ check:
 harness:
 	swift test --package-path "$(PACKAGE_DIR)"
 
-build: check harness
+build: harness compile
+
+# CI runs harness on its own runner; publication waits for both jobs.
+compile: check
 	@$(MAKE) --no-print-directory _build-ios
 
 # The browser frontend served by the WebDAV server: React + webpack in WebUI/,
@@ -217,7 +221,7 @@ _build-ios: bump-build
 		-scheme "$(SCHEME)" \
 		-destination "generic/platform=iOS" \
 		build
-	@python3 "$(EXTRACTED_STRINGS)" "$(DERIVED_DATA)"
+	@python3 "$(EXTRACTED_STRINGS)" "$(DERIVED_DATA)" "$(CONFIGURATION)-iphoneos"
 
 # The simulator exercises the shell through the local backend. The real
 # daemon and its privileges are verified on vphone.
@@ -275,6 +279,9 @@ ipa: build
 	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
 
 packages: build
+	@$(MAKE) --no-print-directory _packages
+
+_packages:
 	@$(MAKE) --no-print-directory _package-deb FLAVOR=roothide
 	@$(MAKE) --no-print-directory _package-deb FLAVOR=rootless
 	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" tipa "$(TIPA_OUTPUT)" "$(APP_VERSION)" "$(ENTITLEMENTS)"
