@@ -1,4 +1,3 @@
-import AlertController
 import FilaProtocol
 import Then
 import UIKit
@@ -10,26 +9,6 @@ extension UIViewController {
     /// sidebar is in on a phone.
     var shell: RootSplitViewController? {
         view.window?.rootViewController as? RootSplitViewController
-    }
-
-    /// The one place a `FilaFailure` becomes something a person can read.
-    ///
-    /// `.cancelled` is not shown: the user cancelled it, they know. Everything
-    /// else gets the daemon's reason plus the `errno` behind it, because on a
-    /// jailbroken filesystem "Operation not permitted" as root almost always
-    /// means an immutable flag, and that is only guessable from the number.
-    func report(_ failure: FilaFailure) {
-        guard failure.code != .success, failure.code != .cancelled else { return }
-        let alert = AlertViewController(
-            title: Self.failureTitle(for: failure),
-            message: Self.failureMessage(for: failure)
-        ) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
-                context.dispose()
-            }
-        }
-        present(alert, animated: true)
     }
 
     /// Points a sheet or share controller at something on iPad, where a popover
@@ -81,22 +60,5 @@ extension UIViewController {
         } else {
             shell?.push(viewer)
         }
-    }
-
-    private static func failureTitle(for failure: FilaFailure) -> String {
-        switch failure.code {
-        case .protectedPath: return String(localized: "Protected Item")
-        case .notPermitted: return String(localized: "Not Permitted")
-        case .notFound: return String(localized: "Not Found")
-        case .wrongPassword: return String(localized: "Wrong Password")
-        case .invalidRequest: return String(localized: "Unable to Complete Request")
-        default: return String(localized: "Operation Failed")
-        }
-    }
-
-    private static func failureMessage(for failure: FilaFailure) -> String {
-        var lines = [FailureMessage.text(for: failure)]
-        if let path = failure.path { lines.append(path) }
-        return lines.joined(separator: "\n\n")
     }
 }
