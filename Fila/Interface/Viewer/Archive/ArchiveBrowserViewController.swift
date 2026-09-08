@@ -392,8 +392,12 @@ final class ArchiveBrowserViewController: UIViewController {
                        estimate.needsWarning(availableByteCount: available) {
                         let message = estimate.hasUnknownSize
                             ? String(localized: "The archive does not report all extracted file sizes. There may not be enough space to finish extracting.")
-                            : String(format: String(localized: "The extracted files need approximately %@, more than 90%% of the %@ available at the destination."),
-                                     FilePresentation.byteLabel(estimate.byteCount), FilePresentation.byteLabel(available))
+                            : String(
+                                format: String(localized: "The extracted files need approximately %1$@, more than %2$@ of the %3$@ available at the destination."),
+                                FilePresentation.byteLabel(estimate.byteCount),
+                                ArchiveSpaceEstimate.warningFraction.formatted(.percent),
+                                FilePresentation.byteLabel(available)
+                            )
                         let alert = AlertViewController(title: "Low Storage Space", message: message) { [weak self] context in
                             context.addAction(title: "Close") { context.dispose() }
                             context.addAction(title: "Extract", attribute: .accent) {

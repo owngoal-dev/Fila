@@ -25,7 +25,7 @@ final class BrowserViewController: UIViewController {
     private(set) var entries: [FileNode] = []
     private var visible: [FileNode] = []
     private var loadTask: Task<Void, Never>?
-    private var appFolders: [String: AppFolderPresentation] = [:]
+    var appFolders: [String: AppFolderPresentation] = [:]
     private var volume: VolumeInfo?
     /// The directory listing has not finished yet. Only the first load replaces
     /// the initial empty view with a loading panel.
@@ -37,7 +37,7 @@ final class BrowserViewController: UIViewController {
     private var listingFailure: FilaFailure?
 
     private var collectionView: UICollectionView!
-    private var dataSource: UICollectionViewDiffableDataSource<Int, FileNode>!
+    var dataSource: UICollectionViewDiffableDataSource<Int, FileNode>!
     private let pathBar = PathBarView()
     private lazy var pathBarItem = UIBarButtonItem(customView: pathBar)
     private var pathBarWidth: Constraint?
@@ -721,7 +721,7 @@ final class BrowserViewController: UIViewController {
     private var borrowedLeftItems: [UIBarButtonItem]?
 
     /// Selection actions borrow the left item and replace the normal toolbar.
-    private func updateChrome(animated: Bool = false) {
+    func updateChrome(animated: Bool = false) {
         guard isViewLoaded, navigationController?.topViewController === self else { return }
         navigationController?.setNavigationBarHidden(false, animated: false)
         navigationController?.setToolbarHidden(false, animated: false)
@@ -1044,131 +1044,5 @@ final class BrowserViewController: UIViewController {
         recordDirectoryUse()
         AppPreferences.shared.showsHidden.toggle()
         applySnapshot(animated: true)
-    }
-}
-
-// MARK: - Collection view
-
-extension BrowserViewController: UICollectionViewDelegate {
-    func collectionView(_: UICollectionView, shouldBeginMultipleSelectionInteractionAt indexPath: IndexPath) -> Bool {
-        dataSource.itemIdentifier(for: indexPath) != nil
-    }
-
-    func collectionView(_: UICollectionView, didBeginMultipleSelectionInteractionAt _: IndexPath) {
-        setEditing(true, animated: true)
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard !isEditing else {
-            recordDirectoryUse()
-            updateChrome()
-            return
-        }
-        collectionView.deselectItem(at: indexPath, animated: true)
-        guard let node = dataSource.itemIdentifier(for: indexPath) else { return }
-        open(node)
-    }
-
-    func collectionView(_: UICollectionView, didDeselectItemAt _: IndexPath) {
-        if isEditing { updateChrome() }
-    }
-
-    func collectionView(
-        _: UICollectionView,
-        contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point _: CGPoint
-    ) -> UIContextMenuConfiguration? {
-        guard let node = dataSource.itemIdentifier(for: indexPath) else { return nil }
-        let path = path(of: node)
-        let presentation = node.kind == .directory ? appFolders[node.name] : nil
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: {
-            presentation.map { AppFolderPreviewViewController(path: path, presentation: $0) }
-        }) { [weak self] _ in
-            self?.contextMenu(for: node)
-        }
-    }
-
-    func collectionView(
-        _: UICollectionView,
-        willDisplayContextMenu _: UIContextMenuConfiguration,
-        animator _: UIContextMenuInteractionAnimating?
-    ) {
-        recordDirectoryUse()
-    }
-
-    func collectionView(
-        _: UICollectionView,
-        willPerformPreviewActionForMenuWith _: UIContextMenuConfiguration,
-        animator: UIContextMenuInteractionCommitAnimating
-    ) {
-        guard let preview = animator.previewViewController as? AppFolderPreviewViewController else { return }
-        animator.addCompletion { [weak self] in
-            guard let self, self.viewIfLoaded?.window != nil,
-                  self.navigationController?.topViewController === self else { return }
-            self.open(directory: preview.path)
-        }
-    }
-}
-
-// MARK: - Drag and drop
-
-extension BrowserViewController: UICollectionViewDragDelegate {
-    func collectionView(_: UICollectionView, itemsForBeginning _: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        // A trashed item leaves the trash by Put Back, which knows where it
-        // belongs; a drag would carry its origin note along as junk.
-        guard !isTrash, let node = dataSource.itemIdentifier(for: indexPath) else { return [] }
-        recordDirectoryUse()
-        let path = path(of: node)
-        let item = UIDragItem(itemProvider: NSItemProvider(object: path as NSString))
-        // The local object is what a drop inside the app actually acts on: only
-        // this process can open these paths, so nothing useful crosses the app
-        // boundary and there is no point promising it.
-        item.localObject = path
-        return [item]
-    }
-}
-
-extension BrowserViewController: UICollectionViewDropDelegate {
-    func collectionView(
-        _: UICollectionView,
-        dropSessionDidUpdate session: UIDropSession,
-        withDestinationIndexPath indexPath: IndexPath?
-    ) -> UICollectionViewDropProposal {
-        guard session.localDragSession != nil else { return UICollectionViewDropProposal(operation: .cancel) }
-        // Nothing enters the trash but a delete: a dropped item would have no
-        // origin to be put back to.
-        guard !isTrash else { return UICollectionViewDropProposal(operation: .forbidden) }
-        // The same rule the drop applies, shown while the finger is still
-        // down: a selection dragged around its own folder, or onto itself,
-        // has nowhere to go, and the badge must say so rather than promise a
-        // copy that the drop then silently declines.
-        let sources = session.items.compactMap { $0.localObject as? String }
-        guard !droppable(sources, into: dropTarget(at: indexPath)).isEmpty else {
-            return UICollectionViewDropProposal(operation: .forbidden)
-        }
-        return UICollectionViewDropProposal(operation: .copy, intent: .insertIntoDestinationIndexPath)
-    }
-
-    func collectionView(_: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
-        let sources = coordinator.items.compactMap { $0.dragItem.localObject as? String }
-        let target = dropTarget(at: coordinator.destinationIndexPath)
-        let moved = droppable(sources, into: target)
-        guard !moved.isEmpty else { return }
-        recordDirectoryUse()
-        promptDrop(sources: moved, target: target)
-    }
-
-    /// The folder under the pointer, or this one.
-    private func dropTarget(at indexPath: IndexPath?) -> String {
-        if let indexPath, let node = dataSource.itemIdentifier(for: indexPath), node.isNavigable { return path(of: node) }
-        return directory
-    }
-
-    /// Per item, not for the whole drop: dragging a folder together with
-    /// three files onto that folder is a real request for the three, and
-    /// dropping the rest of a selection must not be cancelled by the one
-    /// item that happens to be the destination.
-    private func droppable(_ sources: [String], into target: String) -> [String] {
-        sources.filter { $0 != target && ($0 as NSString).deletingLastPathComponent != target }
     }
 }

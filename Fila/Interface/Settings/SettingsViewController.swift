@@ -335,7 +335,7 @@ final class SettingsViewController: UIViewController {
         case .systemFeatures:
             return String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
         case .scripts:
-            return String(localized: "Some scripts name an interpreter your jailbreak stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
+            return String(localized: "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
         case .guardOverride:
             return String(localized: "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore.")
         case .diagnostics:
@@ -352,9 +352,9 @@ final class SettingsViewController: UIViewController {
             case .none, .daemon:
                 return nil
             case .local(.user):
-                return String(localized: "Fila is running without root access. It can read most of the device, but it can only change files that belong to it. Install the Fila .deb on a jailbroken device for full access.")
+                return String(localized: "Fila is running without root access. It can read most of the device, but it can only change files that belong to it. Install the Fila .deb on a supported device for full access.")
             case .local(.container):
-                return String(localized: "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a jailbroken device for full access.")
+                return String(localized: "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access.")
             }
         case .groups, .browsing, .branding:
             return nil

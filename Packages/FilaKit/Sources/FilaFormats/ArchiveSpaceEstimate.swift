@@ -17,10 +17,20 @@ public struct ArchiveSpaceEstimate {
         }
     }
 
+    private static let warningNumerator: Int64 = 9
+    private static let warningDenominator: Int64 = 10
+
+    /// The same ratio `needsWarning` applies, for the message that reports it.
+    /// The warning text must not spell the percentage itself: `%` is not the
+    /// percent sign in every locale, and its placement varies.
+    public static let warningFraction = Double(warningNumerator) / Double(warningDenominator)
+
     public func needsWarning(availableByteCount: Int64) -> Bool {
         let available = max(0, availableByteCount)
-        // floor(available * 0.9), without overflow or floating-point rounding.
-        let threshold = available / 10 * 9 + available % 10 * 9 / 10
-        return byteCount > threshold
+        // floor(available * warningFraction), without overflow or
+        // floating-point rounding.
+        let whole = available / Self.warningDenominator * Self.warningNumerator
+        let remainder = available % Self.warningDenominator * Self.warningNumerator / Self.warningDenominator
+        return byteCount > whole + remainder
     }
 }

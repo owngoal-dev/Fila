@@ -459,84 +459,6 @@
         }
       }
     },
-    "“%@” is not a valid Debian package." : {
-      "comment" : "Error shown when Install… is used on a .deb whose archive has no control member. %@ is the file name.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "”%@“ ليس حزمة Debian صالحة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„%@“ ist kein gültiges Debian-Paket."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” no es un paquete Debian válido."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« %@ » n’est pas un paquet Debian valide."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” non è un pacchetto Debian valido."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」は有効なDebianパッケージではありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@”은(는) 올바른 Debian 패키지가 아닙니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” não é um pacote Debian válido."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«%@» не является допустимым пакетом Debian."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” không phải là gói Debian hợp lệ."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@”不是有效的 Debian 软件包。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」不是有效的 Debian 套件。"
-          }
-        }
-      }
-    },
     "“%@” is not a valid Debian package. Choose another file." : {
       "localizations" : {
         "ar" : {
@@ -2950,161 +2872,6 @@
         }
       }
     },
-    "a property list with this many values or nesting levels" : {
-      "comment" : "Fills “Fila does not support this: %@.” — a sentence fragment, lowercase, no full stop.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "قائمة خصائص بهذا العدد من القيم أو مستويات التداخل"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "eine Property List mit so vielen Werten oder Verschachtelungsebenen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "una lista de propiedades con tantos valores o niveles de anidamiento"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "une liste de propriétés comportant autant de valeurs ou de niveaux d’imbrication"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "un property list con questo numero di valori o livelli di annidamento"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "これほど多くの値またはネスト階層を持つプロパティリスト"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "값 또는 중첩 단계가 이렇게 많은 속성 목록"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "uma Property List com esta quantidade de valores ou níveis de aninhamento"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "список свойств с таким количеством значений или уровней вложенности"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "một Property List có nhiều giá trị hoặc cấp lồng nhau đến vậy"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "包含如此多值或嵌套层级的属性列表"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "包含如此多值或巢狀層級的屬性列表"
-          }
-        }
-      }
-    },
-    "A script's first line names the interpreter that runs it, usually /bin/sh or /bin/bash. Your jailbreak keeps its copy elsewhere, so the script fails to start. Fila finds that interpreter where the jailbreak installed it and runs the script with it. Turn this off to start scripts exactly as written." : {
-      "comment" : "Settings section footer explaining the Redirect Script Interpreters toggle.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يحدد السطر الأول من النص البرمجي المفسّر الذي يشغّله، وهو عادةً ‏/bin/sh‏ أو ‏/bin/bash‏. يحتفظ الجيلبريك بنسخته في مكان آخر، لذا يفشل تشغيل النص البرمجي. يعثر Fila على ذلك المفسّر حيث ثبّته الجيلبريك ويشغّل النص البرمجي به. أوقف هذا الخيار لتشغيل النصوص البرمجية كما هي مكتوبة تمامًا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die erste Zeile eines Skripts nennt den Interpreter, der es ausführt, meist /bin/sh oder /bin/bash. Dein Jailbreak legt seine Kopie woanders ab, deshalb startet das Skript nicht. Fila findet diesen Interpreter dort, wo der Jailbreak ihn installiert hat, und führt das Skript damit aus. Schalte dies aus, um Skripte genau so zu starten, wie sie geschrieben sind."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La primera línea de un script indica el intérprete que lo ejecuta, normalmente /bin/sh o /bin/bash. Tu jailbreak guarda su copia en otro lugar, así que el script no llega a iniciarse. Fila busca ese intérprete donde el jailbreak lo instaló y ejecuta el script con él. Desactiva esta opción para iniciar los scripts exactamente como están escritos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La première ligne d'un script nomme l'interpréteur qui l'exécute, généralement /bin/sh ou /bin/bash. Votre jailbreak range sa copie ailleurs, le script ne démarre donc pas. Fila trouve cet interpréteur là où le jailbreak l'a installé et exécute le script avec. Désactivez cette option pour lancer les scripts exactement tels qu'ils sont écrits."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La prima riga di uno script indica l'interprete che lo esegue, di solito /bin/sh o /bin/bash. Il tuo jailbreak tiene la propria copia altrove, quindi lo script non si avvia. Fila trova quell'interprete dove il jailbreak lo ha installato ed esegue lo script con quello. Disattiva questa opzione per avviare gli script esattamente come sono scritti."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スクリプトの1行目には、それを実行するインタプリタが書かれています。通常は /bin/sh か /bin/bash です。脱獄環境はそのコピーを別の場所に置いているため、スクリプトは起動できません。Fila は脱獄環境がインストールした場所からそのインタプリタを見つけ、それでスクリプトを実行します。書かれたとおりに起動するには、これをオフにしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "스크립트의 첫 줄에는 이를 실행할 인터프리터가 적혀 있으며, 보통 /bin/sh 또는 /bin/bash입니다. 탈옥 환경은 해당 사본을 다른 곳에 두므로 스크립트가 시작되지 않습니다. Fila는 탈옥 환경이 설치한 위치에서 그 인터프리터를 찾아 스크립트를 실행합니다. 적힌 그대로 실행하려면 이 옵션을 끄십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A primeira linha de um script indica o interpretador que o executa, normalmente /bin/sh ou /bin/bash. Seu jailbreak guarda a cópia dele em outro lugar, então o script não inicia. O Fila encontra esse interpretador onde o jailbreak o instalou e executa o script com ele. Desative esta opção para iniciar os scripts exatamente como estão escritos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В первой строке скрипта указан интерпретатор, который его запускает, обычно /bin/sh или /bin/bash. Джейлбрейк хранит свою копию в другом месте, поэтому скрипт не запускается. Fila находит этот интерпретатор там, куда его установил джейлбрейк, и запускает скрипт с ним. Отключите этот параметр, чтобы запускать скрипты в точности так, как они написаны."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dòng đầu tiên của tập lệnh cho biết trình thông dịch chạy nó, thường là /bin/sh hoặc /bin/bash. Bản jailbreak giữ bản sao của nó ở nơi khác, nên tập lệnh không khởi chạy được. Fila tìm trình thông dịch đó ở nơi bản jailbreak đã cài và chạy tập lệnh bằng nó. Tắt tùy chọn này để khởi chạy tập lệnh đúng như đã viết."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "脚本的第一行会写明运行它的执行器，通常是 /bin/sh 或 /bin/bash。越狱环境把自己的那份放在别处，脚本因此无法启动。Fila 会到越狱环境的安装位置找到该执行器，并用它运行脚本。关闭后将完全按脚本写明的方式启动。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指令碼的第一行會寫明執行它的直譯器，通常是 /bin/sh 或 /bin/bash。越獄環境把自己的那份放在別處，指令碼因此無法啟動。Fila 會到越獄環境的安裝位置找到該直譯器，並用它執行指令碼。關閉後將完全按指令碼寫明的方式啟動。"
-          }
-        }
-      }
-    },
     "A symbolic link in this path cannot be followed for this operation. Choose a direct path to the item." : {
       "localizations" : {
         "ar" : {
@@ -4632,83 +4399,6 @@
         }
       }
     },
-    "App Installation Pending" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تثبيت التطبيق قيد الانتظار"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App-Installation ausstehend"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instalación de app pendiente"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installation de l’app en attente"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installazione dell’app in attesa"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appのインストール待ち"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "앱 설치 대기 중"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instalação do App Pendente"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Установка приложения ожидается"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang chờ cài đặt ứng dụng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App 安装尚未结束"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App 安裝尚未完成"
-          }
-        }
-      }
-    },
     "App Installed" : {
       "comment" : "Toast title after installd accepted an .ipa. The detail line carries the app name.",
       "localizations" : {
@@ -5702,83 +5392,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "遞增"
-          }
-        }
-      }
-    },
-    "Attributes changed" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم تغيير السمات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attribute geändert"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atributos modificados"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attributs modifiés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attributi modificati"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "属性を変更しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "속성 변경됨"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atributos alterados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Атрибуты изменены"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã thay đổi thuộc tính"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更改属性"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "屬性已更改"
           }
         }
       }
@@ -9163,83 +8776,6 @@
         }
       }
     },
-    "Clear History" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مسح السجل"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verlauf löschen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Borrar historial"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Effacer l’historique"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancella cronologia"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "履歴を消去"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기록 지우기"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar Histórico"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очистить историю"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Xóa lịch sử"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除历史记录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除記錄"
-          }
-        }
-      }
-    },
     "Clipboard" : {
       "comment" : "Screen title: what a Copy or Move is holding, waiting to be pasted.",
       "localizations" : {
@@ -11844,162 +11380,6 @@
         }
       }
     },
-    "Could not read the file: %@." : {
-      "comment" : "%@ is strerror(3) text, which arrives already localized by the system.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّرت قراءة الملف: %@."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Datei konnte nicht gelesen werden: %@."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha podido leer el archivo: %@."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de lire le fichier : %@."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile leggere il file: %@."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルを読み込めませんでした: %@。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일을 읽을 수 없습니다: %@."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível ler o arquivo: %@."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось прочитать файл: %@."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể đọc tệp: %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法读取文件：%@。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法讀取檔案：%@。"
-          }
-        }
-      }
-    },
-    "Could not write the file: %@." : {
-      "comment" : "%@ is strerror(3) text, which arrives already localized by the system.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّرت كتابة الملف: %@."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Datei konnte nicht geschrieben werden: %@."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha podido escribir el archivo: %@."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’écrire le fichier : %@."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile scrivere il file: %@."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルを書き込めませんでした: %@。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일을 쓸 수 없습니다: %@."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível gravar o arquivo: %@."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось записать файл: %@."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể ghi tệp: %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法写入文件：%@。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法寫入檔案：%@。"
-          }
-        }
-      }
-    },
     "Create" : {
       "localizations" : {
         "ar" : {
@@ -13913,84 +13293,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除的項目會移到這裡，之後可以放回原處。"
-          }
-        }
-      }
-    },
-    "Deleted items are moved here so they can be put back. Create it now, or Fila creates it with your first delete." : {
-      "comment" : "Empty state shown in the trash folder before the trash exists, offering a Create Trash action.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تُنقل العناصر المحذوفة إلى هنا ليتسنى إعادتها. أنشئ المهملات الآن، أو سينشئها Fila عند أول عملية حذف."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gelöschte Objekte werden hierher bewegt, damit sie zurückgelegt werden können. Erstelle ihn jetzt, oder Fila erstellt ihn beim ersten Löschen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los elementos eliminados se mueven aquí para poder devolverlos a su sitio. Créala ahora o Fila la creará la primera vez que elimines algo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les éléments supprimés sont déplacés ici afin de pouvoir être remis en place. Créez-la maintenant, ou Fila la créera à votre première suppression."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gli elementi eliminati vengono spostati qui per poter essere rimessi a posto. Crealo ora, oppure Fila lo crea alla tua prima eliminazione."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "削除した項目は、元に戻せるようにここへ移動されます。今すぐ作成することも、最初の削除時にFilaに作成させることもできます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "삭제한 항목은 되돌려 놓을 수 있도록 여기로 이동됩니다. 지금 생성하거나, 처음 삭제할 때 Fila가 생성합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Os itens apagados são movidos para cá para que possam ser recolocados. Crie a Lixeira agora ou o Fila a cria quando você apagar algo pela primeira vez."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалённые объекты перемещаются сюда, чтобы их можно было положить на место. Создайте Корзину сейчас, или Fila создаст её при первом удалении."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Các mục đã xóa được chuyển vào đây để có thể trả lại chỗ cũ. Hãy tạo ngay bây giờ, hoặc Fila sẽ tạo khi bạn xóa lần đầu."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除的项目会移到这里，以便放回原处。你可以现在创建废纸篓，也可以让 Fila 在第一次删除时创建。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刪除的項目會移到這裡，之後可以放回原處。你可以立即建立垃圾桶，或由 Fila 在你第一次刪除時建立。"
           }
         }
       }
@@ -16221,83 +15523,6 @@
         }
       }
     },
-    "Enter a name for the new item in the current folder." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أدخل اسمًا للعنصر الجديد في المجلد الحالي."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gib einen Namen für das neue Objekt im aktuellen Ordner ein."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introduce un nombre para el nuevo elemento de la carpeta actual."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisissez un nom pour le nouvel élément dans le dossier actuel."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inserisci un nome per il nuovo elemento nella cartella attuale."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "現在のフォルダに作成する項目の名前を入力してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "현재 폴더에 만들 새로운 항목의 이름을 입력하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Digite um nome para o novo item na pasta atual."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите имя нового объекта в текущей папке."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy nhập tên cho mục mới trong thư mục hiện tại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为当前文件夹中的新项目输入名称。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請為目前檔案夾中的新項目輸入名稱。"
-          }
-        }
-      }
-    },
     "Enter a name for the new item in this folder." : {
       "localizations" : {
         "ar" : {
@@ -16598,82 +15823,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請輸入數字 ID。0 是 root，501 是 mobile。"
-          }
-        }
-      }
-    },
-    "Enter a password for the archive. Leave it empty for no password." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أدخل كلمة سر للأرشيف. اتركها فارغة لعدم استخدام كلمة سر."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gib ein Passwort für das Archiv ein. Lass es leer, um kein Passwort zu verwenden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introduce una contraseña para el archivo comprimido. Déjala vacía para no usar contraseña."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisissez un mot de passe pour l’archive. Laissez le champ vide pour ne pas en utiliser."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inserisci una password per l’archivio. Lasciala vuota per non usarne nessuna."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アーカイブのパスワードを入力してください。空欄にするとパスワードなしになります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "아카이브의 암호를 입력하십시오. 비워 두면 암호를 사용하지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Digite uma senha para o arquivo compactado. Deixe em branco para não usar senha."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите пароль для архива. Оставьте поле пустым, чтобы обойтись без пароля."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy nhập mật khẩu cho kho lưu trữ. Để trống nếu không dùng mật khẩu."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入压缩包的密码。留空即为不设密码。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請為壓縮檔輸入密碼。留空即為不設密碼。"
           }
         }
       }
@@ -17136,83 +16285,6 @@
         }
       }
     },
-    "Enter an http or https URL to save in the current folder." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أدخل عنوان http أو https للحفظ في المجلد الحالي."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gib eine http- oder https-URL ein, die im aktuellen Ordner gesichert wird."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introduce una URL http o https para guardarla en la carpeta actual."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisissez une URL http ou https à enregistrer dans le dossier actuel."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inserisci un URL http o https da salvare nella cartella attuale."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "現在のフォルダに保存する http または https のURLを入力してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "현재 폴더에 저장할 http 또는 https URL을 입력하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Digite um URL http ou https para salvar na pasta atual."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите адрес http или https, чтобы сохранить файл в текущей папке."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy nhập URL http hoặc https để lưu vào thư mục hiện tại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入要保存到当前文件夹的 http 或 https 网址。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請輸入 http 或 https URL，以儲存到目前的檔案夾。"
-          }
-        }
-      }
-    },
     "Enter an http or https URL. The file is saved in this folder." : {
       "localizations" : {
         "ar" : {
@@ -17285,83 +16357,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請輸入 http 或 https URL。檔案會儲存到此檔案夾。"
-          }
-        }
-      }
-    },
-    "Enter Password" : {
-      "comment" : "Title of the alert that asks for an encrypted archive’s password.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أدخل كلمة السر"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passwort eingeben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introducir contraseña"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisir le mot de passe"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inserisci la password"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パスワードを入力"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "암호 입력"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Digite a Senha"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите пароль"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhập mật khẩu"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入密码"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "輸入密碼"
           }
         }
       }
@@ -17520,7 +16515,7 @@
       }
     },
     "Entitlements" : {
-      "comment" : "The entitlements property list embedded in a Mach-O code signature. Kept in Latin script: it is the name of the blob, and every jailbreak tool spells it this way.",
+      "comment" : "The entitlements property list embedded in a Mach-O code signature. Kept in Latin script: it is the name of the blob, and every tool that inspects it spells it this way.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19357,78 +18352,78 @@
         }
       }
     },
-    "Fila could not get root access. Install the Fila .deb on a jailbroken device, or check that the jailbreak is running." : {
+    "Fila could not get root access. Install the Fila .deb on a supported device, or check that the system environment is active." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذّر على Fila الحصول على صلاحية الجذر. ثبّت ملف Fila بصيغة .deb على جهاز مكسور الحماية، أو تحقق من أن الجيلبريك قيد التشغيل."
+            "value" : "تعذّر على Fila الحصول على صلاحية الجذر. ثبّت ملف Fila بصيغة .deb على جهاز مدعوم، أو تحقق من أن بيئة النظام نشطة."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila konnte keinen Root-Zugriff erhalten. Installiere die Fila-.deb auf einem Gerät mit Jailbreak oder prüfe, ob der Jailbreak läuft."
+            "value" : "Fila konnte keinen Root-Zugriff erhalten. Installiere die Fila-.deb auf einem unterstützten Gerät oder prüfe, ob die Systemumgebung aktiv ist."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila no ha podido obtener acceso root. Instala el .deb de Fila en un dispositivo con jailbreak, o comprueba que el jailbreak esté activo."
+            "value" : "Fila no ha podido obtener acceso root. Instala el .deb de Fila en un dispositivo compatible, o comprueba que el entorno del sistema esté activo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila n’a pas pu obtenir l’accès root. Installez le .deb de Fila sur un appareil jailbreaké, ou vérifiez que le jailbreak est actif."
+            "value" : "Fila n’a pas pu obtenir l’accès root. Installez le .deb de Fila sur un appareil pris en charge, ou vérifiez que l’environnement système est actif."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila non ha ottenuto l’accesso root. Installa il .deb di Fila su un dispositivo con jailbreak, oppure verifica che il jailbreak sia attivo."
+            "value" : "Fila non ha ottenuto l’accesso root. Installa il .deb di Fila su un dispositivo supportato, oppure verifica che l’ambiente di sistema sia attivo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Filaはroot権限を取得できませんでした。脱獄済みのデバイスにFilaの.debをインストールするか、脱獄が動作しているか確認してください。"
+            "value" : "Filaはroot権限を取得できませんでした。対応デバイスにFilaの.debをインストールするか、システム環境が動作しているか確認してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila가 루트 권한을 얻지 못했습니다. 탈옥된 기기에 Fila .deb를 설치하거나, 탈옥이 실행 중인지 확인하십시오."
+            "value" : "Fila가 루트 권한을 얻지 못했습니다. 지원되는 기기에 Fila .deb를 설치하거나, 시스템 환경이 활성화되어 있는지 확인하십시오."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Fila não conseguiu obter acesso root. Instale o .deb do Fila em um dispositivo com jailbreak ou verifique se o jailbreak está em execução."
+            "value" : "O Fila não conseguiu obter acesso root. Instale o .deb do Fila em um dispositivo compatível ou verifique se o ambiente do sistema está ativo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila не удалось получить root-доступ. Установите .deb-пакет Fila на устройство с джейлбрейком или проверьте, что джейлбрейк работает."
+            "value" : "Fila не удалось получить root-доступ. Установите .deb-пакет Fila на поддерживаемое устройство или проверьте, что системное окружение активно."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila không lấy được quyền root. Hãy cài tệp .deb của Fila trên thiết bị đã jailbreak, hoặc kiểm tra xem jailbreak có đang chạy không."
+            "value" : "Fila không lấy được quyền root. Hãy cài tệp .deb của Fila trên thiết bị được hỗ trợ, hoặc kiểm tra xem môi trường hệ thống có đang hoạt động không."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 无法获得 root 权限。在已越狱的设备上安装 Fila .deb，或检查越狱是否已启用。"
+            "value" : "Fila 无法获得 root 权限。在受支持的设备上安装 Fila .deb，或检查系统环境是否已启用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 無法取得 root 權限。請在已越獄的裝置上安裝 Fila 的 .deb，或確認越獄環境正在運作。"
+            "value" : "Fila 無法取得 root 權限。請在受支援的裝置上安裝 Fila 的 .deb，或確認系統環境正在運作。"
           }
         }
       }
@@ -19505,84 +18500,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fila 無法讀取已安裝的 App 列表。請下拉以重新整理。"
-          }
-        }
-      }
-    },
-    "Fila could not read the list of installed apps. Try opening this screen again." : {
-      "comment" : "Detail under \"No Apps Found\" on the installed apps screen.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر على Fila قراءة قائمة التطبيقات المثبّتة. حاول فتح هذه الشاشة مرة أخرى."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila konnte die Liste der installierten Apps nicht lesen. Öffne diese Seite erneut."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila no ha podido leer la lista de apps instaladas. Prueba a abrir esta pantalla de nuevo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila n’a pas pu lire la liste des apps installées. Essayez de rouvrir cet écran."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila non è riuscito a leggere l’elenco delle app installate. Prova ad aprire di nuovo questa schermata."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filaはインストール済みAppの一覧を読み込めませんでした。この画面をもう一度開いてみてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila가 설치된 앱 목록을 읽지 못했습니다. 이 화면을 다시 열어 보십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Fila não conseguiu ler a lista de apps instalados. Tente abrir esta tela novamente."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila не удалось прочитать список установленных приложений. Попробуйте открыть этот экран ещё раз."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila không đọc được danh sách ứng dụng đã cài. Hãy thử mở lại màn hình này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 无法读取已安装应用的列表。请重新打开此屏幕。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 無法讀取已安裝 App 的列表。請重新打開此畫面。"
           }
         }
       }
@@ -19969,232 +18886,155 @@
         }
       }
     },
-    "Fila has no original location for “%@”. Move it out of the trash, or delete it permanently." : {
-      "extractionState" : "stale",
+    "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "لا يعرف Fila الموقع الأصلي لـ ”%@“. انقله خارج المهملات، أو احذفه نهائيًا."
+            "value" : "يعمل Fila بدون صلاحية الجذر. يقصره iOS على ملفاته الخاصة والملفات التي تفتحها فيه. ثبّت ملف Fila بصيغة .deb على جهاز مدعوم للحصول على وصول كامل."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila kennt den ursprünglichen Ort von „%@“ nicht. Bewege es aus dem Papierkorb oder lösche es endgültig."
+            "value" : "Fila läuft ohne Root-Zugriff. iOS beschränkt es auf seine eigenen Dateien und die Dateien, die du darin öffnest. Installiere die Fila-.deb auf einem unterstützten Gerät für vollen Zugriff."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila no tiene registrada la ubicación original de “%@”. Sácalo de la papelera o elimínalo permanentemente."
+            "value" : "Fila se está ejecutando sin acceso root. iOS la limita a sus propios archivos y a los que abras en ella. Instala el .deb de Fila en un dispositivo compatible para tener acceso completo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila ne connaît aucun emplacement d’origine pour « %@ ». Sortez-le de la corbeille, ou supprimez-le définitivement."
+            "value" : "Fila fonctionne sans accès root. iOS le limite à ses propres fichiers et à ceux que vous y ouvrez. Installez le .deb de Fila sur un appareil pris en charge pour un accès complet."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila non conosce la posizione originale di “%@”. Spostalo fuori dal Cestino, oppure eliminalo definitivamente."
+            "value" : "Fila è in esecuzione senza accesso root. iOS lo limita ai propri file e a quelli che apri al suo interno. Installa il .deb di Fila su un dispositivo supportato per l’accesso completo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Filaには「%@」の元の場所の記録がありません。ゴミ箱の外に移動するか、完全に削除してください。"
+            "value" : "Filaはroot権限なしで動作しています。iOSにより、Fila自身のファイルとFilaで開いたファイルだけに制限されます。すべてにアクセスするには、対応デバイスにFilaの.debをインストールしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila에 “%@”의 원래 위치 기록이 없습니다. 휴지통 밖으로 옮기거나 완전히 삭제하십시오."
+            "value" : "Fila가 루트 권한 없이 실행 중입니다. iOS는 Fila를 자신의 파일과 Fila에서 연 파일로만 제한합니다. 전체 접근 권한을 얻으려면 지원되는 기기에 Fila .deb를 설치하십시오."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Fila não tem o local de origem de “%@”. Mova o item para fora da Lixeira ou apague-o definitivamente."
+            "value" : "O Fila está em execução sem acesso root. O iOS o limita aos próprios arquivos e aos arquivos que você abre nele. Instale o .deb do Fila em um dispositivo compatível para ter acesso completo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila не знает исходное расположение «%@». Переместите объект из Корзины или удалите его безвозвратно."
+            "value" : "Fila работает без root-доступа. iOS ограничивает её собственными файлами и теми, которые вы в ней открываете. Для полного доступа установите .deb-пакет Fila на поддерживаемое устройство."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila không có thông tin vị trí gốc của “%@”. Hãy di chuyển mục này ra khỏi thùng rác, hoặc xóa vĩnh viễn."
+            "value" : "Fila đang chạy mà không có quyền root. iOS chỉ cho phép Fila truy cập các tệp của chính nó và các tệp bạn mở trong đó. Hãy cài tệp .deb của Fila trên thiết bị được hỗ trợ để có toàn quyền truy cập."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 没有“%@”的原始位置。将其移出废纸篓，或永久删除。"
+            "value" : "Fila 正在以非 root 权限运行。iOS 只允许它访问自身文件以及你在其中打开的文件。要获得完整访问权限，在受支持的设备上安装 Fila .deb。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 沒有「%@」的原始位置記錄。請將它移出垃圾桶，或永久刪除。"
+            "value" : "Fila 目前沒有 root 權限。iOS 將它限制在自身的檔案，以及你在其中打開的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
           }
         }
       }
     },
-    "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a jailbroken device for full access." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يعمل Fila بدون صلاحية الجذر. يقصره iOS على ملفاته الخاصة والملفات التي تفتحها فيه. ثبّت ملف Fila بصيغة .deb على جهاز مكسور الحماية للحصول على وصول كامل."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila läuft ohne Root-Zugriff. iOS beschränkt es auf seine eigenen Dateien und die Dateien, die du darin öffnest. Installiere die Fila-.deb auf einem Gerät mit Jailbreak für vollen Zugriff."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila se está ejecutando sin acceso root. iOS la limita a sus propios archivos y a los que abras en ella. Instala el .deb de Fila en un dispositivo con jailbreak para tener acceso completo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila fonctionne sans accès root. iOS le limite à ses propres fichiers et à ceux que vous y ouvrez. Installez le .deb de Fila sur un appareil jailbreaké pour un accès complet."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila è in esecuzione senza accesso root. iOS lo limita ai propri file e a quelli che apri al suo interno. Installa il .deb di Fila su un dispositivo con jailbreak per l’accesso completo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filaはroot権限なしで動作しています。iOSにより、Fila自身のファイルとFilaで開いたファイルだけに制限されます。すべてにアクセスするには、脱獄済みのデバイスにFilaの.debをインストールしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila가 루트 권한 없이 실행 중입니다. iOS는 Fila를 자신의 파일과 Fila에서 연 파일로만 제한합니다. 전체 접근 권한을 얻으려면 탈옥된 기기에 Fila .deb를 설치하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Fila está em execução sem acesso root. O iOS o limita aos próprios arquivos e aos arquivos que você abre nele. Instale o .deb do Fila em um dispositivo com jailbreak para ter acesso completo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila работает без root-доступа. iOS ограничивает её собственными файлами и теми, которые вы в ней открываете. Для полного доступа установите .deb-пакет Fila на устройство с джейлбрейком."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila đang chạy mà không có quyền root. iOS chỉ cho phép Fila truy cập các tệp của chính nó và các tệp bạn mở trong đó. Hãy cài tệp .deb của Fila trên thiết bị đã jailbreak để có toàn quyền truy cập."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 正在以非 root 权限运行。iOS 只允许它访问自身文件以及你在其中打开的文件。要获得完整访问权限，在已越狱的设备上安装 Fila .deb。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 目前沒有 root 權限。iOS 將它限制在自身的檔案，以及你在其中打開的檔案。請在已越獄的裝置上安裝 Fila 的 .deb 以取得完整權限。"
-          }
-        }
-      }
-    },
-    "Fila is running without root access. It can read most of the device, but it can only change files that belong to it. Install the Fila .deb on a jailbroken device for full access." : {
+    "Fila is running without root access. It can read most of the device, but it can only change files that belong to it. Install the Fila .deb on a supported device for full access." : {
       "comment" : "Settings footer for the TrollStore .tipa: unsandboxed, running as mobile, so most of the filesystem is readable and very little of it writable.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يعمل Fila بدون صلاحية الجذر. يمكنه قراءة معظم محتويات الجهاز، لكنه لا يستطيع تغيير سوى الملفات التي تخصه. ثبّت ملف Fila بصيغة .deb على جهاز مكسور الحماية للحصول على وصول كامل."
+            "value" : "يعمل Fila بدون صلاحية الجذر. يمكنه قراءة معظم محتويات الجهاز، لكنه لا يستطيع تغيير سوى الملفات التي تخصه. ثبّت ملف Fila بصيغة .deb على جهاز مدعوم للحصول على وصول كامل."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila läuft ohne Root-Zugriff. Es kann den größten Teil des Geräts lesen, aber nur Dateien ändern, die ihm gehören. Installiere die Fila-.deb auf einem Gerät mit Jailbreak für vollen Zugriff."
+            "value" : "Fila läuft ohne Root-Zugriff. Es kann den größten Teil des Geräts lesen, aber nur Dateien ändern, die ihm gehören. Installiere die Fila-.deb auf einem unterstützten Gerät für vollen Zugriff."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila se está ejecutando sin acceso root. Puede leer casi todo el dispositivo, pero solo puede modificar los archivos que le pertenecen. Instala el .deb de Fila en un dispositivo con jailbreak para tener acceso completo."
+            "value" : "Fila se está ejecutando sin acceso root. Puede leer casi todo el dispositivo, pero solo puede modificar los archivos que le pertenecen. Instala el .deb de Fila en un dispositivo compatible para tener acceso completo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila fonctionne sans accès root. Il peut lire la majeure partie de l’appareil, mais il ne peut modifier que les fichiers qui lui appartiennent. Installez le .deb de Fila sur un appareil jailbreaké pour un accès complet."
+            "value" : "Fila fonctionne sans accès root. Il peut lire la majeure partie de l’appareil, mais il ne peut modifier que les fichiers qui lui appartiennent. Installez le .deb de Fila sur un appareil pris en charge pour un accès complet."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila è in esecuzione senza accesso root. Può leggere gran parte del dispositivo, ma può modificare solo i file che gli appartengono. Installa il .deb di Fila su un dispositivo con jailbreak per l’accesso completo."
+            "value" : "Fila è in esecuzione senza accesso root. Può leggere gran parte del dispositivo, ma può modificare solo i file che gli appartengono. Installa il .deb di Fila su un dispositivo supportato per l’accesso completo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Filaはroot権限なしで動作しています。デバイスの大部分を読み取れますが、変更できるのはFila自身のファイルだけです。すべてにアクセスするには、脱獄済みのデバイスにFilaの.debをインストールしてください。"
+            "value" : "Filaはroot権限なしで動作しています。デバイスの大部分を読み取れますが、変更できるのはFila自身のファイルだけです。すべてにアクセスするには、対応デバイスにFilaの.debをインストールしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila가 루트 권한 없이 실행 중입니다. 기기의 대부분을 읽을 수 있지만, 변경은 자신에게 속한 파일에만 할 수 있습니다. 전체 접근 권한을 얻으려면 탈옥된 기기에 Fila .deb를 설치하십시오."
+            "value" : "Fila가 루트 권한 없이 실행 중입니다. 기기의 대부분을 읽을 수 있지만, 변경은 자신에게 속한 파일에만 할 수 있습니다. 전체 접근 권한을 얻으려면 지원되는 기기에 Fila .deb를 설치하십시오."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Fila está em execução sem acesso root. Ele pode ler a maior parte do dispositivo, mas só pode alterar os arquivos que pertencem a ele. Instale o .deb do Fila em um dispositivo com jailbreak para ter acesso completo."
+            "value" : "O Fila está em execução sem acesso root. Ele pode ler a maior parte do dispositivo, mas só pode alterar os arquivos que pertencem a ele. Instale o .deb do Fila em um dispositivo compatível para ter acesso completo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila работает без root-доступа. Она может читать большую часть устройства, но изменять только собственные файлы. Для полного доступа установите .deb-пакет Fila на устройство с джейлбрейком."
+            "value" : "Fila работает без root-доступа. Она может читать большую часть устройства, но изменять только собственные файлы. Для полного доступа установите .deb-пакет Fila на поддерживаемое устройство."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila đang chạy mà không có quyền root. Nó đọc được phần lớn thiết bị, nhưng chỉ thay đổi được các tệp thuộc về nó. Hãy cài tệp .deb của Fila trên thiết bị đã jailbreak để có toàn quyền truy cập."
+            "value" : "Fila đang chạy mà không có quyền root. Nó đọc được phần lớn thiết bị, nhưng chỉ thay đổi được các tệp thuộc về nó. Hãy cài tệp .deb của Fila trên thiết bị được hỗ trợ để có toàn quyền truy cập."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 正在以非 root 权限运行。它可以读取设备上的大部分文件，但只能修改属于它自己的文件。要获得完整访问权限，在已越狱的设备上安装 Fila .deb。"
+            "value" : "Fila 正在以非 root 权限运行。它可以读取设备上的大部分文件，但只能修改属于它自己的文件。要获得完整访问权限，在受支持的设备上安装 Fila .deb。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 目前沒有 root 權限。它可以讀取裝置上大部分的內容，但只能更改屬於自己的檔案。請在已越獄的裝置上安裝 Fila 的 .deb 以取得完整權限。"
+            "value" : "Fila 目前沒有 root 權限。它可以讀取裝置上大部分的內容，但只能更改屬於自己的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
           }
         }
       }
@@ -23889,83 +22729,6 @@
         }
       }
     },
-    "Import an audio file from the More menu to add it to this device’s music library." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استورد ملفًا صوتيًا من قائمة «المزيد» لإضافته إلى مكتبة الموسيقى على هذا الجهاز."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importiere eine Audiodatei über das Menü „Mehr“, um sie zur Musikmediathek dieses Geräts hinzuzufügen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa un archivo de audio desde el menú Más para añadirlo a la biblioteca musical de este dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importez un fichier audio depuis le menu Plus pour l’ajouter à la bibliothèque musicale de cet appareil."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importa un file audio dal menu Altro per aggiungerlo alla libreria musicale di questo dispositivo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「その他」メニューからオーディオファイルを読み込むと、このデバイスのミュージックライブラリに追加されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "더 보기 메뉴에서 오디오 파일을 가져와 이 기기의 음악 보관함에 추가하세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Importe um arquivo de áudio pelo menu Mais para adicioná-lo à biblioteca de música deste dispositivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Импортируйте аудиофайл через меню «Ещё», чтобы добавить его в музыкальную медиатеку устройства."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nhập tệp âm thanh từ menu Thêm để thêm vào thư viện nhạc của thiết bị này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从“更多”菜单导入音频文件，将其添加到此设备的音乐资料库。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "從「更多」選單匯入音訊檔案，將其加入此裝置的音樂資料庫。"
-          }
-        }
-      }
-    },
     "Import an audio file to add it to this device’s music library." : {
       "localizations" : {
         "ar" : {
@@ -25577,79 +24340,79 @@
         }
       }
     },
-    "Installs “%@” as root with dpkg. A faulty package can damage the jailbreak or leave the device unable to start. This cannot be undone." : {
-      "comment" : "Body of the Install Package card. %@ is the file name. Deliberately blunt: dpkg as root can break the jailbreak.",
+    "Installs “%@” as root with dpkg. A faulty package can damage the system environment or leave the device unable to start. This cannot be undone." : {
+      "comment" : "Body of the Install Package card. %@ is the file name. Deliberately blunt: dpkg as root can break the system environment.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يثبّت ”%@“ بصلاحية الجذر باستخدام dpkg. قد تُتلف الحزمة المعطوبة الجيلبريك أو تجعل الجهاز غير قادر على بدء التشغيل. لا يمكن التراجع عن هذا."
+            "value" : "يثبّت ”%@“ بصلاحية الجذر باستخدام dpkg. قد تُتلف الحزمة المعطوبة بيئة النظام أو تجعل الجهاز غير قادر على بدء التشغيل. لا يمكن التراجع عن هذا."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installiert „%@“ als Root mit dpkg. Ein fehlerhaftes Paket kann den Jailbreak beschädigen oder dazu führen, dass das Gerät nicht mehr startet. Das kann nicht widerrufen werden."
+            "value" : "Installiert „%@“ als Root mit dpkg. Ein fehlerhaftes Paket kann die Systemumgebung beschädigen oder dazu führen, dass das Gerät nicht mehr startet. Das kann nicht widerrufen werden."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instala “%@” como root con dpkg. Un paquete defectuoso puede dañar el jailbreak o dejar el dispositivo sin poder arrancar. Esto no se puede deshacer."
+            "value" : "Instala “%@” como root con dpkg. Un paquete defectuoso puede dañar el entorno del sistema o dejar el dispositivo sin poder arrancar. Esto no se puede deshacer."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installe « %@ » en tant que root avec dpkg. Un paquet défectueux peut endommager le jailbreak ou empêcher l’appareil de démarrer. Cette action est irréversible."
+            "value" : "Installe « %@ » en tant que root avec dpkg. Un paquet défectueux peut endommager l’environnement système ou empêcher l’appareil de démarrer. Cette action est irréversible."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Installa “%@” come root con dpkg. Un pacchetto difettoso può danneggiare il jailbreak o rendere il dispositivo non più avviabile. Questa operazione non può essere annullata."
+            "value" : "Installa “%@” come root con dpkg. Un pacchetto difettoso può danneggiare l’ambiente di sistema o rendere il dispositivo non più avviabile. Questa operazione non può essere annullata."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「%@」をrootとしてdpkgでインストールします。不正なパッケージは脱獄を壊したり、デバイスを起動できなくしたりすることがあります。この操作は取り消せません。"
+            "value" : "「%@」をrootとしてdpkgでインストールします。不正なパッケージはシステム環境を壊したり、デバイスを起動できなくしたりすることがあります。この操作は取り消せません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "dpkg로 “%@”을(를) 루트 권한으로 설치합니다. 잘못된 패키지는 탈옥을 손상시키거나 기기를 시동할 수 없게 만들 수 있습니다. 이 작업은 되돌릴 수 없습니다."
+            "value" : "dpkg로 “%@”을(를) 루트 권한으로 설치합니다. 잘못된 패키지는 시스템 환경을 손상시키거나 기기를 시동할 수 없게 만들 수 있습니다. 이 작업은 되돌릴 수 없습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instala “%@” como root com o dpkg. Um pacote defeituoso pode danificar o jailbreak ou deixar o dispositivo sem conseguir iniciar. Isso não pode ser desfeito."
+            "value" : "Instala “%@” como root com o dpkg. Um pacote defeituoso pode danificar o ambiente do sistema ou deixar o dispositivo sem conseguir iniciar. Isso não pode ser desfeito."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Устанавливает «%@» от имени root с помощью dpkg. Неисправный пакет может повредить джейлбрейк или лишить устройство возможности запускаться. Это нельзя отменить."
+            "value" : "Устанавливает «%@» от имени root с помощью dpkg. Неисправный пакет может повредить системное окружение или лишить устройство возможности запускаться. Это нельзя отменить."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cài đặt “%@” với quyền root bằng dpkg. Một gói lỗi có thể phá hỏng jailbreak hoặc khiến thiết bị không khởi động được. Việc này không thể hoàn tác."
+            "value" : "Cài đặt “%@” với quyền root bằng dpkg. Một gói lỗi có thể phá hỏng môi trường hệ thống hoặc khiến thiết bị không khởi động được. Việc này không thể hoàn tác."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将以 root 身份使用 dpkg 安装“%@”。损坏的软件包可能破坏越狱，或导致设备无法启动。此操作无法撤销。"
+            "value" : "将以 root 身份使用 dpkg 安装“%@”。损坏的软件包可能破坏系统环境，或导致设备无法启动。此操作无法撤销。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將以 root 權限使用 dpkg 安裝「%@」。有問題的套件可能損壞越獄環境，或導致裝置無法啟動。此操作無法復原。"
+            "value" : "將以 root 權限使用 dpkg 安裝「%@」。有問題的套件可能損壞系統環境，或導致裝置無法啟動。此操作無法復原。"
           }
         }
       }
@@ -26109,83 +24872,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ISO"
-          }
-        }
-      }
-    },
-    "it is not a property list" : {
-      "comment" : "Fills “This file is damaged: %@.” — a sentence fragment, lowercase, no full stop.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إنه ليس قائمة خصائص"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "es ist keine Property List"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "no es una lista de propiedades"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ce n’est pas une liste de propriétés"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "non è un property list"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プロパティリストではありません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "속성 목록이 아닙니다"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "não é uma Property List"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "это не список свойств"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "đây không phải Property List"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "它不是属性列表"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "它不是屬性列表"
           }
         }
       }
@@ -31642,83 +30328,6 @@
         }
       }
     },
-    "No apps in this filter. Choose All Apps, User Apps, or System Apps." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا توجد تطبيقات ضمن هذه التصفية. اختر كل التطبيقات أو تطبيقات المستخدم أو تطبيقات النظام."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Apps in diesem Filter. Wähle „Alle Apps“, „Benutzer-Apps“ oder „System-Apps“."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay apps con este filtro. Elige Todas las apps, Apps de usuario o Apps del sistema."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune app dans ce filtre. Choisissez Toutes les apps, Apps utilisateur ou Apps système."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessuna app in questo filtro. Scegli Tutte le app, App utente o App di sistema."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このフィルタに該当するAppはありません。「すべてのApp」「ユーザApp」「システムApp」のいずれかを選択してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 필터에 해당하는 앱이 없습니다. 모든 앱, 사용자 앱 또는 시스템 앱을 선택하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhum app neste filtro. Escolha Todos os Apps, Apps do Usuário ou Apps do Sistema."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В этом фильтре нет приложений. Выберите «Все приложения», «Приложения пользователя» или «Системные приложения»."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không có ứng dụng nào trong bộ lọc này. Hãy chọn Tất cả ứng dụng, Ứng dụng người dùng hoặc Ứng dụng hệ thống."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此筛选条件下没有应用。选择“全部应用”、“用户应用”或“系统应用”。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此篩選條件下沒有 App。請選擇「所有 App」、「使用者 App」或「系統 App」。"
-          }
-        }
-      }
-    },
     "No apps match “%@”. Try a different search." : {
       "localizations" : {
         "ar" : {
@@ -34167,89 +32776,6 @@
         }
       }
     },
-    "Only the first 50,000 items are shown." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يتم عرض أول 50,000 عنصر فقط."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Es werden nur die ersten 50.000 Objekte angezeigt."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only the first 50,000 items are shown."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo se muestran los primeros 50.000 elementos."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seuls les 50 000 premiers éléments sont affichés."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vengono mostrati solo i primi 50.000 elementi."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "先頭の50,000項目のみ表示しています。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "처음 50,000개 항목만 표시됩니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apenas os primeiros 50.000 itens são exibidos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показаны только первые 50 000 объектов."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chỉ hiển thị 50.000 mục đầu tiên."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仅显示前 50,000 个项目。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "僅顯示前 50,000 個項目。"
-          }
-        }
-      }
-    },
     "Only ZIP archives can be protected with a password." : {
       "comment" : "Footer under the compress form when a non-zip format is chosen.",
       "localizations" : {
@@ -35252,84 +33778,6 @@
         }
       }
     },
-    "Opened in this tab instead." : {
-      "comment" : "Toast detail under Too Many Tabs: the folder opened in the current tab because no new tab could be made.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم الفتح في علامة التبويب هذه بدلًا من ذلك."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stattdessen in diesem Tab geöffnet."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se ha abierto en esta pestaña."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvert dans cet onglet à la place."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "È stata aperta in questo pannello."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "代わりにこのタブで開きました。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "대신 현재 탭에서 열었습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aberto nesta aba."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Вместо этого открыто в текущей вкладке."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã mở trong tab hiện tại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已改为在当前标签页中打开。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已改為在目前的標籤頁中打開。"
-          }
-        }
-      }
-    },
     "Opening…" : {
       "comment" : "Loading line in the viewer while a file is being read. The name and size follow as the detail.",
       "localizations" : {
@@ -35709,83 +34157,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "操作失敗"
-          }
-        }
-      }
-    },
-    "Operation History" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "سجل العمليات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktionsverlauf"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Historial de operaciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Historique des opérations"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cronologia operazioni"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "操作履歴"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "작업 기록"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Histórico de Operações"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "История операций"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lịch sử thao tác"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "操作记录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "操作記錄"
           }
         }
       }
@@ -40850,84 +39221,6 @@
         }
       }
     },
-    "Run in Background" : {
-      "comment" : "Button on the full-screen operation cover: dismiss the cover, keep the job running.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "التشغيل في الخلفية"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Im Hintergrund ausführen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ejecutar en segundo plano"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exécuter en arrière-plan"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esegui in background"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バックグラウンドで実行"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "백그라운드에서 실행"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Executar em Segundo Plano"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выполнять в фоне"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chạy ở nền"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在后台运行"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在背景執行"
-          }
-        }
-      }
-    },
     "Run Programs" : {
       "comment" : "Settings toggle: whether executables offer the Run submenu (terminal through the daemon).",
       "localizations" : {
@@ -43986,237 +42279,6 @@
         }
       }
     },
-    "Show Applications is turned off in Settings, or Fila cannot see other apps on this device." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "خيار إظهار التطبيقات موقوف في الإعدادات، أو أن Fila لا يستطيع رؤية التطبيقات الأخرى على هذا الجهاز."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„Apps anzeigen“ ist in den Einstellungen deaktiviert, oder Fila kann andere Apps auf diesem Gerät nicht sehen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Aplicaciones está desactivado en Ajustes, o Fila no puede ver otras apps en este dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher les applications est désactivé dans Réglages, ou Fila ne peut pas voir les autres apps de cet appareil."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra Applicazioni è disattivato in Impostazioni, oppure Fila non riesce a vedere le altre app su questo dispositivo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「設定」で「アプリケーションを表示」がオフになっているか、FilaがこのデバイスのほかのAppを認識できません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정에서 응용 프로그램 표시가 꺼져 있거나, Fila가 이 기기의 다른 앱을 볼 수 없습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Aplicativos está desativado em Ajustes, ou o Fila não consegue ver outros apps neste dispositivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Параметр «Показывать приложения» выключен в Настройках, или Fila не видит другие приложения на этом устройстве."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiển thị Ứng dụng đang tắt trong Cài đặt, hoặc Fila không thấy được các ứng dụng khác trên thiết bị này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“显示应用程序”已在设置中关闭，或者 Fila 无法查看此设备上的其他应用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「設定」中的「顯示應用程式」已關閉，或 Fila 無法看到此裝置上的其他 App。"
-          }
-        }
-      }
-    },
-    "Show as Grid" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "العرض كشبكة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Als Raster"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver como cuadrícula"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher en grille"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra come griglia"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "グリッド表示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "그리드로 보기"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exibir em Grade"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать сеткой"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiển thị dạng lưới"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "以图标显示"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "以格狀顯示"
-          }
-        }
-      }
-    },
-    "Show as List" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "العرض كقائمة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Als Liste"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ver como lista"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher en liste"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra come elenco"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "リスト表示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "목록으로 보기"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exibir em Lista"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показать списком"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiển thị dạng danh sách"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "以列表显示"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "以列表顯示"
-          }
-        }
-      }
-    },
     "Show Hidden Files" : {
       "localizations" : {
         "ar" : {
@@ -45618,78 +43680,78 @@
         }
       }
     },
-    "Some scripts name an interpreter your jailbreak stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written." : {
+    "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "بعض النصوص البرمجية تشير إلى مفسّر يخزّنه الجيلبريك في مكان آخر. يعثر Fila عليه ويشغّل النص. أوقف هذا الخيار لتشغيل النصوص كما هي مكتوبة تمامًا."
+            "value" : "بعض النصوص البرمجية تشير إلى مفسّر تخزّنه بيئة النظام في مكان آخر. يعثر Fila عليه ويشغّل النص. أوقف هذا الخيار لتشغيل النصوص كما هي مكتوبة تمامًا."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manche Skripte nennen einen Interpreter, den dein Jailbreak woanders ablegt. Fila findet ihn und führt das Skript aus. Deaktiviere dies, um Skripte genau wie geschrieben zu starten."
+            "value" : "Manche Skripte nennen einen Interpreter, den deine Systemumgebung woanders ablegt. Fila findet ihn und führt das Skript aus. Deaktiviere dies, um Skripte genau wie geschrieben zu starten."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Algunos scripts indican un intérprete que tu jailbreak guarda en otro lugar. Fila lo busca y ejecuta el script. Desactiva esta opción para iniciar los scripts exactamente como están escritos."
+            "value" : "Algunos scripts indican un intérprete que tu entorno del sistema guarda en otro lugar. Fila lo busca y ejecuta el script. Desactiva esta opción para iniciar los scripts exactamente como están escritos."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Certains scripts nomment un interpréteur que votre jailbreak range ailleurs. Fila le trouve et exécute le script. Désactivez cette option pour lancer les scripts exactement tels qu’ils sont écrits."
+            "value" : "Certains scripts nomment un interpréteur que votre environnement système range ailleurs. Fila le trouve et exécute le script. Désactivez cette option pour lancer les scripts exactement tels qu’ils sont écrits."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alcuni script indicano un interprete che il tuo jailbreak conserva altrove. Fila lo trova ed esegue lo script. Disattiva questa opzione per avviare gli script esattamente come sono scritti."
+            "value" : "Alcuni script indicano un interprete che il tuo ambiente di sistema conserva altrove. Fila lo trova ed esegue lo script. Disattiva questa opzione per avviare gli script esattamente come sono scritti."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "スクリプトによっては、脱獄環境が別の場所に置いているインタプリタを指定しています。Filaはそれを見つけてスクリプトを実行します。書かれたとおりに起動するには、これをオフにしてください。"
+            "value" : "スクリプトによっては、システム環境が別の場所に置いているインタプリタを指定しています。Filaはそれを見つけてスクリプトを実行します。書かれたとおりに起動するには、これをオフにしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "일부 스크립트는 탈옥 환경이 다른 곳에 두는 인터프리터를 지정합니다. Fila는 그 인터프리터를 찾아 스크립트를 실행합니다. 적힌 그대로 실행하려면 이 옵션을 끄십시오."
+            "value" : "일부 스크립트는 시스템 환경이 다른 곳에 두는 인터프리터를 지정합니다. Fila는 그 인터프리터를 찾아 스크립트를 실행합니다. 적힌 그대로 실행하려면 이 옵션을 끄십시오."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alguns scripts indicam um interpretador que seu jailbreak guarda em outro lugar. O Fila o encontra e executa o script. Desative esta opção para iniciar os scripts exatamente como estão escritos."
+            "value" : "Alguns scripts indicam um interpretador que seu ambiente do sistema guarda em outro lugar. O Fila o encontra e executa o script. Desative esta opção para iniciar os scripts exatamente como estão escritos."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Некоторые скрипты указывают интерпретатор, который в вашем джейлбрейке находится в другом месте. Fila находит его и запускает скрипт. Отключите этот параметр, чтобы запускать скрипты в точности так, как они написаны."
+            "value" : "Некоторые скрипты указывают интерпретатор, который в вашем системном окружении находится в другом месте. Fila находит его и запускает скрипт. Отключите этот параметр, чтобы запускать скрипты в точности так, как они написаны."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Một số tập lệnh chỉ định trình thông dịch mà bản jailbreak giữ ở nơi khác. Fila tìm trình thông dịch đó và chạy tập lệnh. Tắt tùy chọn này để khởi chạy tập lệnh đúng như đã viết."
+            "value" : "Một số tập lệnh chỉ định trình thông dịch mà môi trường hệ thống giữ ở nơi khác. Fila tìm trình thông dịch đó và chạy tập lệnh. Tắt tùy chọn này để khởi chạy tập lệnh đúng như đã viết."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有些脚本写明的执行器被越狱环境放在别处。Fila 会找到它并用它运行脚本。关闭后将完全按脚本写明的方式启动。"
+            "value" : "有些脚本写明的执行器被系统环境放在别处。Fila 会找到它并用它运行脚本。关闭后将完全按脚本写明的方式启动。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有些指令碼指定的直譯器，被越獄環境放在別處。Fila 會找到它並用它執行指令碼。關閉後將完全按指令碼寫明的方式啟動。"
+            "value" : "有些指令碼指定的直譯器，被系統環境放在別處。Fila 會找到它並用它執行指令碼。關閉後將完全按指令碼寫明的方式啟動。"
           }
         }
       }
@@ -47384,83 +45446,6 @@
         }
       }
     },
-    "Task stopped" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "توقفت المهمة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aufgabe gestoppt"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tarea detenida"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tâche arrêtée"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attività interrotta"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "タスクを停止しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "작업 중단됨"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tarefa interrompida"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Задача остановлена"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tác vụ đã dừng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "任务已停止"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "工作已停止"
-          }
-        }
-      }
-    },
     "Task Stopped" : {
       "localizations" : {
         "ar" : {
@@ -48846,88 +46831,92 @@
         }
       }
     },
-    "The extracted files need approximately %@, more than 90%% of the %@ available at the destination." : {
+    "The extracted files need approximately %1$@, more than %2$@ of the %3$@ available at the destination." : {
+      "comment" : "Low-space warning before extracting. %1$@ is the size needed, %2$@ the share of free space it crosses (formatted per locale, never a literal %), %3$@ the space available. Several languages put %2$@ last.",
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تحتاج الملفات المستخرجة إلى نحو %@، أي أكثر من 90%% من المساحة المتاحة في الوجهة والبالغة %@."
+            "value" : "تحتاج الملفات المستخرجة إلى نحو %1$@، أي أكثر من %2$@ من المساحة المتاحة في الوجهة والبالغة %3$@."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die entpackten Dateien benötigen etwa %@, mehr als 90%% der am Ziel verfügbaren %@."
+            "value" : "Die entpackten Dateien benötigen etwa %1$@, mehr als %2$@ der am Ziel verfügbaren %3$@."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The extracted files need approximately %@, more than 90%% of the %@ available at the destination."
+            "value" : "The extracted files need approximately %1$@, more than %2$@ of the %3$@ available at the destination."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los archivos extraídos necesitan aproximadamente %@, más del 90%% de los %@ disponibles en el destino."
+            "value" : "Los archivos extraídos necesitan aproximadamente %1$@, más del %2$@ de los %3$@ disponibles en el destino."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les fichiers extraits nécessitent environ %@, soit plus de 90%% des %@ disponibles à destination."
+            "value" : "Les fichiers extraits nécessitent environ %1$@, soit plus de %2$@ des %3$@ disponibles à destination."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I file estratti richiedono circa %@, oltre il 90%% dei %@ disponibili nella destinazione."
+            "value" : "I file estratti richiedono circa %1$@, oltre il %2$@ dei %3$@ disponibili nella destinazione."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "展開後のファイルには約 %@ が必要です。これは展開先の空き容量 %@ の 90%% を超えます。"
+            "value" : "展開後のファイルには約 %1$@ が必要です。これは展開先の空き容量 %3$@ の %2$@ を超えます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "압축을 푼 파일에는 약 %@가 필요하며, 대상 위치의 사용 가능한 공간 %@의 90%%를 초과합니다."
+            "value" : "압축을 푼 파일에는 약 %1$@가 필요하며, 대상 위치의 사용 가능한 공간 %3$@의 %2$@를 초과합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os arquivos extraídos precisam de aproximadamente %@, mais de 90%% dos %@ disponíveis no destino."
+            "value" : "Os arquivos extraídos precisam de aproximadamente %1$@, mais de %2$@ dos %3$@ disponíveis no destino."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Распакованным файлам потребуется около %@ — более 90%% от %@, доступных в месте назначения."
+            "value" : "Распакованным файлам потребуется около %1$@ — более %2$@ от %3$@, доступных в месте назначения."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Các tệp sau khi giải nén cần khoảng %@, hơn 90%% dung lượng %@ còn trống tại đích."
+            "value" : "Các tệp sau khi giải nén cần khoảng %1$@, hơn %2$@ dung lượng %3$@ còn trống tại đích."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解压后的文件预计需要 %@，超过目标位置可用空间 %@ 的 90%%。"
+            "value" : "解压后的文件预计需要 %1$@，超过目标位置可用空间 %3$@ 的 %2$@。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解壓縮後的檔案預計需要 %@，超過目的地可用空間 %@ 的 90%%。"
+            "value" : "解壓縮後的檔案預計需要 %1$@，超過目的地可用空間 %3$@ 的 %2$@。"
           }
         }
       }
+    },
+    "The extracted files need approximately %1$@, more than %2$@ of the %3$@ available at the destination." : {
+
     },
     "The Files app folder could not be loaded. Reinstall Fila and try again." : {
       "localizations" : {
@@ -49386,82 +47375,6 @@
         }
       }
     },
-    "The music library is not available. Try again." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مكتبة الموسيقى غير متوفرة. حاول مرة أخرى."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Musikmediathek ist nicht verfügbar. Versuch es erneut."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La biblioteca de música no está disponible. Inténtalo de nuevo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La bibliothèque musicale n’est pas disponible. Réessayez."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La libreria musicale non è disponibile. Riprova."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ミュージックライブラリを利用できません。もう一度お試しください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악 보관함을 사용할 수 없습니다. 다시 시도하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A biblioteca de música não está disponível. Tente novamente."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Медиатека недоступна. Попробуйте ещё раз."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư viện nhạc không khả dụng. Hãy thử lại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音乐资料库不可用。请重试。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音樂資料庫無法使用。請再試一次。"
-          }
-        }
-      }
-    },
     "The operation failed: %@." : {
       "comment" : "Failure message where %@ is the system's own reason.",
       "localizations" : {
@@ -49841,82 +47754,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "密碼未更改。"
-          }
-        }
-      }
-    },
-    "The password was not changed. Try again." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لم تُغيَّر كلمة السر. حاول مرة أخرى."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Passwort wurde nicht geändert. Versuch es erneut."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La contraseña no se ha cambiado. Inténtalo de nuevo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le mot de passe n’a pas été modifié. Réessayez."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La password non è stata cambiata. Riprova."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "パスワードは変更されていません。もう一度お試しください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "암호가 변경되지 않았습니다. 다시 시도하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A senha não foi alterada. Tente novamente."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пароль не изменён. Попробуйте ещё раз."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mật khẩu chưa được thay đổi. Hãy thử lại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密码未更改。请重试。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "密碼未變更。請再試一次。"
           }
         }
       }
@@ -50686,83 +48523,6 @@
         }
       }
     },
-    "This audio file has no valid duration." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مدة هذا الملف الصوتي غير صالحة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Audiodatei hat keine gültige Dauer."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este archivo de audio no tiene una duración válida."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La durée de ce fichier audio n’est pas valide."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questo file audio non ha una durata valida."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このオーディオファイルの再生時間は無効です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 오디오 파일의 재생 시간이 유효하지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este arquivo de áudio não tem uma duração válida."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "У этого аудиофайла некорректная длительность."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp âm thanh này không có thời lượng hợp lệ."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此音频文件的时长无效。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此音訊檔案的長度無效。"
-          }
-        }
-      }
-    },
     "This entry is no longer in the archive. Open it again." : {
       "localizations" : {
         "ar" : {
@@ -51372,83 +49132,6 @@
         }
       }
     },
-    "This image format is not supported. Open it as hex to see its contents." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تنسيق الصورة هذا غير مدعوم. افتحه بصيغة ست عشرية لرؤية محتوياته."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieses Bildformat wird nicht unterstützt. Öffne die Datei als Hex, um ihren Inhalt zu sehen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este formato de imagen no es compatible. Ábrelo como hex para ver su contenido."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce format d’image n’est pas pris en charge. Ouvrez le fichier en hexadécimal pour voir son contenu."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questo formato di immagine non è supportato. Aprilo come hex per vederne il contenuto."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このイメージ形式には対応していません。内容を見るにはHexとして開いてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "지원되지 않는 이미지 포맷입니다. 내용을 보려면 Hex로 여십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este formato de imagem não é suportado. Abra o arquivo como hex para ver o conteúdo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Этот формат изображения не поддерживается. Откройте файл как hex, чтобы увидеть содержимое."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Định dạng hình ảnh này không được hỗ trợ. Hãy mở dạng hex để xem nội dung."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不支持此图像格式。请以十六进制打开以查看内容。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "不支援此影像格式。請以十六進位打開來查看其內容。"
-          }
-        }
-      }
-    },
     "This image format is not supported. Open it as Hex to see its contents." : {
       "localizations" : {
         "ar" : {
@@ -51906,84 +49589,6 @@
         }
       }
     },
-    "This PDF could not be opened. Open it as hex to see its contents." : {
-      "comment" : "Shown when PDFKit refused a file that looked like a PDF.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر فتح ملف PDF هذا. افتحه بصيغة ست عشرية لرؤية محتوياته."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieses PDF konnte nicht geöffnet werden. Öffne es als Hex, um seinen Inhalt zu sehen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha podido abrir este PDF. Ábrelo como hex para ver su contenido."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce PDF n’a pas pu être ouvert. Ouvrez-le en hexadécimal pour voir son contenu."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non è stato possibile aprire questo PDF. Aprilo come hex per vederne il contenuto."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このPDFは開けませんでした。内容を見るにはHexとして開いてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 PDF를 열 수 없습니다. 내용을 보려면 Hex로 여십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível abrir este PDF. Abra-o como hex para ver o conteúdo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось открыть этот PDF. Откройте его как hex, чтобы увидеть содержимое."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể mở tệp PDF này. Hãy mở dạng hex để xem nội dung."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法打开此 PDF。以十六进制打开可查看其中的内容。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法打開此 PDF。請以十六進位打開來查看其內容。"
-          }
-        }
-      }
-    },
     "This PDF has too many pages to preview." : {
       "localizations" : {
         "ar" : {
@@ -52215,89 +49820,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此屬性列表包含只能檢視、無法編輯的值。"
-          }
-        }
-      }
-    },
-    "This property list has too many values or nesting levels to preview." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تحتوي قائمة الخصائص هذه على قيم أو مستويات تداخل أكثر من أن تُعرض معاينتها."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Property List hat zu viele Werte oder Verschachtelungsebenen für eine Vorschau."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This property list has too many values or nesting levels to preview."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta lista de propiedades tiene demasiados valores o niveles de anidamiento para la vista previa."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cette liste de propriétés contient trop de valeurs ou de niveaux d’imbrication pour en afficher un aperçu."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questa property list ha troppi valori o livelli di annidamento per l’anteprima."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このプロパティリストは値または階層が多すぎてプレビューできません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 속성 목록은 값이나 중첩 단계가 너무 많아 미리 볼 수 없습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta property list tem valores ou níveis de aninhamento demais para pré-visualizar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "В этом списке свойств слишком много значений или уровней вложенности для просмотра."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Property list này có quá nhiều giá trị hoặc cấp lồng nhau để xem trước."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此属性列表的项目或嵌套层级过多，无法预览。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此屬性列表的值或巢狀層級過多，無法預覽。"
           }
         }
       }
@@ -53673,83 +51195,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法列出 App"
-          }
-        }
-      }
-    },
-    "Unable to Make This Change" : {
-      "comment" : "Title of the alert shown when a property list edit is refused.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر إجراء هذا التغيير"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Änderung nicht möglich"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha podido hacer este cambio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’effectuer cette modification"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile apportare questa modifica"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "この変更を行えません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 변경을 적용할 수 없음"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não Foi Possível Fazer Esta Alteração"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось внести изменение"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể thực hiện thay đổi này"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法进行此更改"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法進行此變更"
           }
         }
       }

@@ -8,10 +8,10 @@ import UIKit
 /// File menus share one implementation; the presenting screen owns navigation.
 @MainActor
 final class FileActions {
-    private weak var presenter: UIViewController?
+    weak var presenter: UIViewController?
     private let directory: String
-    private let didRemove: () -> Void
-    private var session: FileSession { .shared }
+    let didRemove: () -> Void
+    var session: FileSession { .shared }
 
     init(presenter: UIViewController, directory: String, didRemove: @escaping () -> Void = {}) {
         self.presenter = presenter
@@ -198,7 +198,7 @@ final class FileActions {
     }
 
     @discardableResult
-    private func openTerminal(
+    func openTerminal(
         _ program: TerminalProgram,
         user: TerminalUser,
         onProcessExit: (@MainActor @Sendable () -> Void)? = nil
@@ -221,358 +221,12 @@ final class FileActions {
         return true
     }
 
-    /// One Install… entry, routed by format, each behind a card that says what
-    /// is about to happen. A `.deb` runs the bootstrap's `dpkg -i` on a
-    /// terminal as root, so it needs the daemon and the Run setting like the
-    /// Run menu does. A `.tipa` is TrollStore's format and goes to TrollStore
-    /// through the share sheet: installd refuses a fake-signed bundle every
-    /// time, so there is nothing to try first (Roadmap → IPA installation).
-    /// An `.ipa` goes to installd through `IPAInstaller`, which is the route
-    /// AppSync Unified opens; without it the refusal is reported as such.
-    private func installAction(_ path: String, node: FileNode, confirm: @escaping (@escaping () -> Void) -> Void) -> UIAction? {
-        guard node.kind == .regular else { return nil }
-        let name = (path as NSString).lastPathComponent
-        let install: () -> Void
-        switch (path as NSString).pathExtension.lowercased() {
-        case "deb":
-            guard SystemCapabilities.runsPrograms else { return nil }
-            install = { [self] in promptInstallPackage(path) }
-        case "tipa":
-            install = { [self] in
-                confirmDestruction(
-                    title: String(localized: "Open in TrollStore?"),
-                    message: String(localized: "Choose TrollStore to install “\(name)” without the system installer."),
-                    confirm: String(localized: "Open")
-                ) { self.share([path]) }
-            }
-        case "ipa":
-            // A sandboxed build has no InstallCoordination entitlement and
-            // would copy the whole package only to be refused; the handshake
-            // says which build this is, so the entry waits for it.
-            guard let backend = session.hello?.backend, backend != .local(reach: .container) else { return nil }
-            install = { [self] in promptInstallApp(path) }
-        default:
-            return nil
-        }
-        return UIAction(title: String(localized: "Install…"), image: UIImage(systemName: "arrow.down.app")) { _ in confirm(install) }
-    }
-
-    /// Reads the package's identity first, and refuses Fila's own: its postinst
-    /// restarts `filad`, and a stopping daemon hangs up every terminal it
-    /// spawned — dpkg included, between unpack and configure. That package
-    /// goes through the system package manager or the device updater, never a
-    /// terminal this daemon owns.
-    private func promptInstallPackage(_ path: String) {
-        let name = (path as NSString).lastPathComponent
-        Task {
-            let staged: URL
-            do { staged = try await session.stage(path) }
-            catch { report(error); return }
-            let cleanup: @MainActor @Sendable () -> Void = { [self] in
-                do { try FileManager.default.removeItem(at: staged.deletingLastPathComponent()) }
-                catch { report(error) }
-            }
-            do {
-                let manifest = try await DebianPackage.manifest(ofDebAt: staged.path, session: session)
-                guard manifest.package != Bundle.main.bundleIdentifier else {
-                    throw ViewerFailure.unsupportedContent(String(localized: "“\(name)” is Fila itself and cannot be installed from here. Install it with your package manager."))
-                }
-                guard let presenter = activePresenter else { cleanup(); return }
-                let alert = AlertViewController(
-                    title: String(localized: "Install Package?"),
-                    message: String(localized: "Installs “\(name)” as root with dpkg. A faulty package can damage the jailbreak or leave the device unable to start. This cannot be undone.")
-                ) { context in
-                    context.addAction(title: "Cancel") { context.dispose { cleanup() } }
-                    context.addAction(title: "Install", attribute: .accent) {
-                        context.dispose {
-                            if !self.openTerminal(.installPackage(path: staged.path), user: .root, onProcessExit: cleanup) {
-                                cleanup()
-                            }
-                        }
-                    }
-                }
-                presenter.present(alert, animated: true)
-            } catch { cleanup(); report(error) }
-        }
-    }
-
-    /// Keep package confirmations and installs serial across all file screens.
-    /// Different paths can contain packages for the same application.
-    private static var appInstallInFlight = false
-
-    /// Stages the copy first — the installer consumes what it is handed — and
-    /// reads the manifest from that copy, so the card, the install and any
-    /// cleanup all describe the same bytes even if the original is replaced
-    /// while the card is up.
-    private func promptInstallApp(_ path: String) {
-        guard !Self.appInstallInFlight else {
-            FeedbackAlert.show(String(localized: "Installation in Progress"), message: String(localized: "Wait for the current installation to finish, then try again."))
-            return
-        }
-        Self.appInstallInFlight = true
-        Task {
-            let progress = await presentProgress(title: "Reading App…")
-            let staged: URL
-            let manifest: IPAInstaller.Manifest
-            do {
-                staged = try await session.stage(path)
-                do { manifest = try await IPAInstaller.manifest(ofIPAAt: staged) } catch {
-                    try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
-                    throw error
-                }
-            } catch {
-                await dismiss(progress)
-                Self.appInstallInFlight = false
-                report(error)
-                return
-            }
-            await dismiss(progress)
-            guard let presenter = activePresenter else {
-                try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
-                Self.appInstallInFlight = false
-                return
-            }
-            let alert = AlertViewController(
-                title: "Install App?",
-                message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleID)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified.")
-            ) { context in
-                context.addAction(title: "Cancel") {
-                    context.dispose {
-                        try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
-                        Self.appInstallInFlight = false
-                    }
-                }
-                context.addAction(title: "Install", attribute: .accent) {
-                    context.dispose { Task { await self.installApp(path, staged: staged, manifest: manifest) } }
-                }
-            }
-            presenter.present(alert, animated: true)
-        }
-    }
-
-    /// A failure does not establish ownership of anything now registered under
-    /// the identifier. The system or another installer may have changed it, so
-    /// uninstall remains an explicit user action in Applications.
-    private func installApp(_ path: String, staged: URL, manifest: IPAInstaller.Manifest) async {
-        let progress = await presentProgress(title: "Installing App…")
-        let outcome = await IPAInstaller.install(ipaAt: staged, packageType: "Developer")
-        // An unanswered request may still be reading its source. Preserve the
-        // workspace and keep further requests disabled for this session.
-        switch outcome {
-        case .timedOut: break
-        default:
-            try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
-            Self.appInstallInFlight = false
-        }
-        await dismiss(progress)
-        switch outcome {
-        case .installed:
-            Toast.show(String(localized: "App Installed"))
-        case .unsupported:
-            reportInstallRefusal(
-                path,
-                message: String(localized: "Fila cannot use the system installer. Open “\(manifest.displayName)” with another installer.")
-            )
-        case .timedOut:
-            report(NSError(
-                domain: "IPAInstaller",
-                code: -1,
-                userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "The installer is still working. Check Applications before trying again.")
-                ]
-            ))
-        case let .failed(domain, code, message):
-            if outcome.isSignatureRefusal {
-                reportInstallRefusal(
-                    path,
-                    message: String(localized: "The signature of “\(manifest.displayName)” was rejected. Install AppSync Unified on this device or open the file in TrollStore.")
-                )
-            } else {
-                report(NSError(domain: domain, code: code, userInfo: [NSLocalizedDescriptionKey: message]))
-            }
-        }
-    }
-
-    /// Copying and installing a package is never a blink, so the card shows at
-    /// once rather than after the delete path's reveal delay.
-    private func presentProgress(title: String.LocalizationValue) async -> AlertProgressIndicatorViewController? {
-        guard let presenter = activePresenter else { return nil }
-        let progress = AlertProgressIndicatorViewController(title: title, message: "Large packages take time.")
-        await withCheckedContinuation { continuation in
-            presenter.present(progress, animated: true) { continuation.resume() }
-        }
-        return progress
-    }
-
-    private func dismiss(_ progress: AlertProgressIndicatorViewController?) async {
-        guard let progress else { return }
-        await withCheckedContinuation { continuation in
-            progress.dismiss(animated: true) { continuation.resume() }
-        }
-    }
-
-    /// A refusal with a way out: the same share sheet the `.tipa` route uses,
-    /// where TrollStore (or another installer) is one tap away.
-    private func reportInstallRefusal(_ path: String, message: String) {
-        guard let presenter = activePresenter else {
-            FeedbackAlert.show(String(localized: "Cannot Install"), message: message)
-            return
-        }
-        let alert = AlertViewController(title: "Cannot Install", message: message) { context in
-            context.addAction(title: "Cancel") {
-                context.dispose()
-            }
-            context.addAction(title: "Open With…", attribute: .accent) {
-                context.dispose { self.share([path]) }
-            }
-        }
-        presenter.present(alert, animated: true)
-    }
-
     func showProperties(_ path: String) {
         Task {
             do {
                 let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
                 guard let presenter = activePresenter else { return }
                 presenter.presentAsSheet(UINavigationController(rootViewController: PropertiesViewController(details: details, link: session.link)))
-            } catch { report(error) }
-        }
-    }
-
-    func delete(_ paths: [String], permanently: Bool = false) {
-        guard !paths.isEmpty else { return }
-        // Inside the trash every delete is final, whichever control asked:
-        // trashing a trashed item would only move it within the trash.
-        if AppPreferences.shared.usesTrash, !permanently, !paths.allSatisfy(Self.isInTrash) {
-            startDelete(paths, useTrash: true)
-        } else {
-            guard let presenter = activePresenter else { return }
-            PermanentDeleteConfirmation.present(
-                from: presenter,
-                title: String(localized: "Delete Permanently?"),
-                message: String(localized: "\(paths.count) items will be deleted and cannot be recovered.")
-            ) { self.startDelete(paths) }
-        }
-    }
-
-    func promptOverriddenDelete(_ paths: [String]) {
-        guard !paths.isEmpty else { return }
-        guard let presenter = activePresenter else { return }
-        PermanentDeleteConfirmation.present(
-            from: presenter,
-            title: String(localized: "Override Protection?"),
-            message: String(localized: "The device needs this item to start up. Deleting it cannot be undone, and the device may need to be restored."),
-            confirmTitle: String(localized: "Delete Anyway")
-        ) { self.startDelete(paths, overrideGuard: true) }
-    }
-
-    private func startDelete(_ paths: [String], useTrash: Bool = false, overrideGuard: Bool = false) {
-        presenter?.setEditing(false, animated: true)
-        Task {
-            let kind: OperationCenter.Kind = useTrash ? .trash : .delete
-            let description = OperationCenter.describe(paths, destination: nil)
-            let progress = AlertProgressIndicatorViewController(title: kind.runningTitle, message: description)
-            let reveal = Task { @MainActor in
-                do {
-                    try await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000))
-                } catch { return }
-                guard !Task.isCancelled, let presenter = activePresenter else { return }
-                // Cross-volume trash can take minutes. Its existing task page
-                // provides progress and cancellation without trapping the user
-                // behind the non-interactive progress card used for deletion.
-                if useTrash {
-                    TransfersViewController.presentAsSheet()
-                    return
-                }
-                // Wait for presentation to finish before a job that completes
-                // during the animation asks this same alert to dismiss.
-                await withCheckedContinuation { continuation in
-                    presenter.present(progress, animated: true) { continuation.resume() }
-                }
-            }
-            let result: Result<FilaFailure, Error>
-            do {
-                let outcome = try await withSourceLocked {
-                    if useTrash { return try await session.operations.trash(paths, feedback: .successOnly) }
-                    return try await session.operations.awaitJob(
-                        JobRequest(kind: .delete, sources: paths, useTrash: useTrash, overrideGuard: overrideGuard),
-                        kind: kind,
-                        subtitle: description,
-                        feedback: .successOnly
-                    )
-                }
-                result = .success(outcome)
-            } catch { result = .failure(error) }
-
-            reveal.cancel()
-            await reveal.value
-            let complete = {
-                switch result {
-                case let .success(outcome):
-                    if outcome.code == .success { self.didRemove() }
-                    else if outcome.code != .cancelled {
-                        self.reportDeleteFailure(outcome, paths: paths, useTrash: useTrash)
-                    }
-                case let .failure(failure as FilaFailure):
-                    self.reportDeleteFailure(failure, paths: paths, useTrash: useTrash)
-                case let .failure(error): self.report(error)
-                }
-            }
-            // Background work may outlive this screen or a newer sheet. Only
-            // close the alert this operation presented, then report its result.
-            if progress.presentingViewController?.presentedViewController === progress,
-               progress.presentedViewController == nil, !progress.isBeingDismissed {
-                progress.dismiss(animated: true, completion: complete)
-            } else {
-                // A toast can present Transfers above this alert. Keep that
-                // sheet and leave a truthful result underneath it.
-                if progress.presentedViewController != nil {
-                    switch result {
-                    case let .success(outcome):
-                        switch outcome.code {
-                        case .success: progress.progressContext.purpose(message: kind.completionTitle)
-                        case .cancelled: progress.progressContext.purpose(message: String(localized: "Cancelled"))
-                        default: progress.progressContext.purpose(message: FailureText.title(for: outcome))
-                        }
-                    case let .failure(error):
-                        progress.progressContext.purpose(
-                            message: error is CancellationError || (error as? FilaFailure)?.code == .cancelled
-                                ? String(localized: "Cancelled") : String(localized: "Operation Failed")
-                        )
-                    }
-                }
-                complete()
-            }
-        }
-    }
-
-    private func reportDeleteFailure(_ failure: FilaFailure, paths: [String], useTrash: Bool) {
-        guard failure.code != .success, failure.code != .cancelled else { return }
-        guard useTrash, failure.systemError == EROFS,
-              let presenter = activePresenter else { return report(failure) }
-        PermanentDeleteConfirmation.present(
-            from: presenter,
-            title: String(localized: "Cannot Move to Trash"),
-            message: String(localized: "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone.")
-        ) { self.deleteRemainingItems(at: paths) }
-    }
-
-    /// A new, explicitly confirmed deletion of the items currently at these
-    /// paths. Missing names are skipped, never treated as proof of a trash move.
-    private func deleteRemainingItems(at paths: [String]) {
-        Task {
-            do {
-                var remaining: [String] = []
-                for path in paths {
-                    do {
-                        _ = try await session.perform { try await $0.details(of: path) }
-                        remaining.append(path)
-                    } catch let failure as FilaFailure where failure.code == .notFound || failure.systemError == ENOENT {
-                        continue
-                    }
-                }
-                guard !remaining.isEmpty else { didRemove(); return }
-                startDelete(remaining)
             } catch { report(error) }
         }
     }
@@ -687,7 +341,7 @@ final class FileActions {
 
     /// Keep an editor from accepting new changes while its file is renamed or
     /// deleted. Navigation may continue; completion never owns a newer screen.
-    private func withSourceLocked<T>(_ body: () async throws -> T) async rethrows -> T {
+    func withSourceLocked<T>(_ body: () async throws -> T) async rethrows -> T {
         let presenter = presenter
         let enabled = presenter?.view.isUserInteractionEnabled ?? true
         let buttons = (presenter?.navigationItem.rightBarButtonItems ?? []).map { ($0, $0.isEnabled) }
@@ -701,7 +355,7 @@ final class FileActions {
         return try await body()
     }
 
-    private var activePresenter: UIViewController? {
+    var activePresenter: UIViewController? {
         guard let presenter, presenter.viewIfLoaded?.window != nil,
               presenter.navigationController?.topViewController === presenter else { return nil }
         var ancestor: UIViewController? = presenter
@@ -712,7 +366,7 @@ final class FileActions {
         return presenter
     }
 
-    private func confirmDestruction(title: String, message: String, confirm: String, handler: @escaping () -> Void) {
+    func confirmDestruction(title: String, message: String, confirm: String, handler: @escaping () -> Void) {
         guard let presenter = activePresenter else { return }
         let alert = AlertViewController(title: title, message: message) { context in
             context.addAction(title: "Cancel") {
@@ -725,7 +379,7 @@ final class FileActions {
         presenter.present(alert, animated: true)
     }
 
-    private func report(_ error: Error) {
+    func report(_ error: Error) {
         if let failure = error as? FilaFailure, failure.code == .success || failure.code == .cancelled { return }
         if error is CancellationError { return }
         guard let presenter = activePresenter else {

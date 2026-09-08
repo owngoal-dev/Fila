@@ -95,6 +95,16 @@ struct ArchiveSpaceEstimateTests {
         #expect(!ArchiveSpaceEstimate(entries: []).needsWarning(availableByteCount: 0))
     }
 
+    /// The warning message reports this fraction instead of spelling a percent
+    /// sign, so it has to be the same ratio `needsWarning` actually applies.
+    @Test("The published fraction is the threshold the warning uses")
+    func publishedFractionMatchesThreshold() {
+        let available: Int64 = 1000
+        let boundary = Int64(Double(available) * ArchiveSpaceEstimate.warningFraction)
+        #expect(!ArchiveSpaceEstimate(entries: [entry(boundary)]).needsWarning(availableByteCount: available))
+        #expect(ArchiveSpaceEstimate(entries: [entry(boundary + 1)]).needsWarning(availableByteCount: available))
+    }
+
     @Test("Unknown lengths do not imply low storage; known overflowing sizes still warn")
     func unknownAndOverflow() {
         let unknown = ArchiveSpaceEstimate(entries: [entry(nil)])
