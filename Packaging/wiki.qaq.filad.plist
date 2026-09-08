@@ -11,7 +11,7 @@
 	<key>UserName</key>
 	<string>root</string>
 	<key>ProcessType</key>
-	<string>Background</string>
+	<string>Adaptive</string>
 	<!-- 0022: files the daemon creates are not group- or world-writable. -->
 	<key>Umask</key>
 	<integer>18</integer>
