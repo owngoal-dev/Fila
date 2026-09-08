@@ -21,6 +21,7 @@
 + (id)sharedLibrary;
 - (NSString *)databasePath;
 - (void)notifyEntitiesAddedOrRemoved;
+- (BOOL)importOriginalArtworkFromImageData:(NSData *)data withArtworkToken:(NSString *)token artworkType:(int64_t)artworkType sourceType:(int64_t)sourceType mediaType:(uint32_t)mediaType;
 - (id)checkoutWriterConnection;
 - (void)checkInDatabaseConnection:(id)connection;
 @end
@@ -277,7 +278,8 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             || !Signature(class_getInstanceMethod(_trackClass, @selector(populateLocationPropertiesWithPath:)), "v", @[@"@", @":", @"@"], error)
             || (metadata[@"Lyrics"] && !Signature(class_getInstanceMethod(_trackClass, @selector(setValue:forProperty:)), "B", @[@"@", @":", @"@", @"@"], error))
             || !Signature(class_getInstanceMethod(_trackClass, @selector(absoluteFilePath)), "@", @[@"@", @":"], error)
-            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod(_trackClass, @selector(populateArtworkCacheWithArtworkData:)), "B", @[@"@", @":", @"@"], error))) return nil;
+            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod(_trackClass, @selector(populateArtworkCacheWithArtworkData:)), "B", @[@"@", @":", @"@"], error))
+            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod([_library class], @selector(importOriginalArtworkFromImageData:withArtworkToken:artworkType:sourceType:mediaType:)), "B", @[@"@", @":", @"@", @"@", @"q", @"q", @"I"], error))) return nil;
 
         id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
             @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath], @"shouldLibraryAdd": @YES
@@ -356,6 +358,13 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         }
         if (metadata[@"Artwork"] && ![track populateArtworkCacheWithArtworkData:metadata[@"Artwork"]]) {
             FailedStep(error, 3, @"import cover artwork");
+            return nil;
+        }
+        // MIPAlbum registers album artwork as type 6, independently of the
+        // track's type 1 entry. Both must have an original image in the cache.
+        if (artworkToken && ![(id<MusicLibraryAPI>)_library importOriginalArtworkFromImageData:metadata[@"Artwork"]
+            withArtworkToken:artworkToken artworkType:6 sourceType:500 mediaType:1]) {
+            FailedStep(error, 3, @"import album artwork");
             return nil;
         }
         [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
