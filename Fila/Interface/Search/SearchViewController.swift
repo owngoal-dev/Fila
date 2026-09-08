@@ -68,6 +68,7 @@ final class SearchViewController: UIViewController {
         definesPresentationContext = true
 
         let search = UISearchController(searchResultsController: nil)
+        search.delegate = self
         search.searchBar.delegate = self
         search.searchBar.placeholder = String(localized: "Search file names")
         search.obscuresBackgroundDuringPresentation = false
@@ -126,13 +127,17 @@ final class SearchViewController: UIViewController {
 
     /// An empty search page has one thing to do; put the caret in the field.
     /// Only the first time: coming Back to results keeps the keyboard down.
+    private var hasActivatedSearch = false
     private var hasOfferedKeyboard = false
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        guard !hasOfferedKeyboard else { return }
-        hasOfferedKeyboard = true
+        guard !hasActivatedSearch else { return }
+        hasActivatedSearch = true
         if (initialQuery ?? "").isEmpty {
+            // Focus is taken in `didPresentSearchController` once the bar is
+            // presented; activation is what presents it.
+            navigationItem.searchController?.isActive = true
             navigationItem.searchController?.searchBar.becomeFirstResponder()
         }
     }
@@ -372,6 +377,21 @@ final class SearchViewController: UIViewController {
             ? String(localized: "Nothing in this folder matches “\(query)”.")
             : String(localized: "Nothing in this folder or its subfolders matches “\(query)”.")
         return .message(symbol: "magnifyingglass", title: String(localized: "No Matches"), detail: detail)
+    }
+}
+
+extension SearchViewController: UISearchControllerDelegate {
+    /// The keyboard does not follow activation on its own, and at callback
+    /// time the presentation transition is still running — a direct
+    /// `becomeFirstResponder()` is refused. One runloop turn later the field
+    /// accepts the focus. A user-activated bar is already focused, making
+    /// this a harmless no-op there.
+    func didPresentSearchController(_ searchController: UISearchController) {
+        guard !hasOfferedKeyboard else { return }
+        hasOfferedKeyboard = true
+        DispatchQueue.main.async {
+            searchController.searchBar.becomeFirstResponder()
+        }
     }
 }
 
