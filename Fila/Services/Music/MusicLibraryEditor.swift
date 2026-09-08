@@ -36,8 +36,12 @@ actor MusicLibraryEditor {
         try Task.checkCancellation()
         FilaLog.info("Music library query returned \(items.count) songs")
         return items.map {
-            MusicLibraryTrack(id: Int64(bitPattern: $0.persistentID), title: $0.title ?? "",
-                              artist: $0.artist ?? "", album: $0.albumTitle ?? "")
+            MusicLibraryTrack(
+                id: Int64(bitPattern: $0.persistentID),
+                title: $0.title ?? "",
+                artist: $0.artist ?? "",
+                album: $0.albumTitle ?? ""
+            )
         }.sorted {
             let order = $0.title.localizedStandardCompare($1.title)
             return order == .orderedSame ? $0.id < $1.id : order == .orderedAscending
@@ -60,9 +64,12 @@ actor MusicLibraryEditor {
             native = try nativeLibrary()
             values = try native.values(forTrackID: id)
         } catch { throw unavailable() }
-        return Details(values: Dictionary(uniqueKeysWithValues: Field.allCases.map {
-            ($0, values[$0.rawValue] ?? "")
-        }), editableFields: Set(native.editableFields.compactMap(Field.init(rawValue:))))
+        return Details(
+            values: Dictionary(uniqueKeysWithValues: Field.allCases.map {
+                ($0, values[$0.rawValue] ?? "")
+            }),
+            editableFields: Set(native.editableFields.compactMap(Field.init(rawValue:)))
+        )
     }
 
     /// Each action changes one field. A failed field cannot leave unrelated
@@ -99,7 +106,8 @@ actor MusicLibraryEditor {
             if failure.domain == "MusicLibrary", failure.code == 2 {
                 throw changed()
             }
-            throw error(String(localized: "The music library could not save this change. Reopen the song’s details and try again."))
+            throw error(String(localized:
+                "The music library could not save this change. Reopen the song’s details and try again."))
         }
         let saved = try details(id: id)
         guard saved.values[field] == expected else {

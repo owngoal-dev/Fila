@@ -15,7 +15,11 @@ enum FilaMenu {
             guard case let .directory(place) = destination else { return nil }
             return UIAction(title: place.title, image: preview(for: place)) { _ in open(place.path) }
         }
-        let locations = [UIMenu(title: String(localized: "Places"), image: UIImage(named: "FileIcons/folder"), children: places)]
+        let locations = [UIMenu(
+            title: String(localized: "Places"),
+            image: UIImage(named: "FileIcons/folder"),
+            children: places
+        )]
             + collections(open: open)
         let path = UIAction(title: String(localized: "Go to Path…")) { _ in goToPath() }
         return groups(locations, [path])
@@ -45,7 +49,12 @@ enum FilaMenu {
                             image = await AppFolderDisplay.icon(for: identifier) ?? image
                         }
                         let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
-                        actions.append(UIAction(title: name, subtitle: path, image: image, attributes: attributes) { _ in open(path) })
+                        actions.append(UIAction(
+                            title: name,
+                            subtitle: path,
+                            image: image,
+                            attributes: attributes
+                        ) { _ in open(path) })
                         if let limit, actions.count == limit { break }
                     }
                     completion(actions)
@@ -56,17 +65,34 @@ enum FilaMenu {
             Task { @MainActor in
                 let mounts = (try? await FileSession.shared.perform { try await $0.mountPoints() }) ?? []
                 completion(mounts.map { mount in
-                    let name = mount.path == "/" ? String(localized: "Root") : (mount.path as NSString).lastPathComponent
-                    return UIAction(title: name, subtitle: mount.path,
-                                    image: UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal),
-                                    attributes: attributes) { _ in open(mount.path) }
+                    let name = mount.path == "/"
+                        ? String(localized: "Root")
+                        : (mount.path as NSString).lastPathComponent
+                    return UIAction(
+                        title: name,
+                        subtitle: mount.path,
+                        image: UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal),
+                        attributes: attributes
+                    ) { _ in open(mount.path) }
                 })
             }
         }
         return [
-            UIMenu(title: String(localized: "Favorites"), image: UIImage(named: "FileIcons/folder"), children: [folders(preferences.favorites)]),
-            UIMenu(title: String(localized: "Mount Points"), image: UIImage(named: "FileIcons/drive-internal"), children: [mounts]),
-            UIMenu(title: String(localized: "Recents"), image: UIImage(named: "FileIcons/folder"), children: [folders(preferences.recents, limit: 8)]),
+            UIMenu(
+                title: String(localized: "Favorites"),
+                image: UIImage(named: "FileIcons/folder"),
+                children: [folders(preferences.favorites)]
+            ),
+            UIMenu(
+                title: String(localized: "Mount Points"),
+                image: UIImage(named: "FileIcons/drive-internal"),
+                children: [mounts]
+            ),
+            UIMenu(
+                title: String(localized: "Recents"),
+                image: UIImage(named: "FileIcons/folder"),
+                children: [folders(preferences.recents, limit: 8)]
+            ),
         ]
     }
 

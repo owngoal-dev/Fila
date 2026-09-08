@@ -14,7 +14,9 @@ public enum SharedInbox {
             do { try operations.create(.directory, at: inbox.path, mode: 0o700) }
             catch let error as FilaFailure where error.systemError == EEXIST {}
         }
-        guard lstat(inbox.path, &status) == 0, status.st_mode & S_IFMT == S_IFDIR else { throw FilaFailure(errno: EINVAL) }
+        guard lstat(inbox.path, &status) == 0, status.st_mode & S_IFMT == S_IFDIR else {
+            throw FilaFailure(errno: EINVAL)
+        }
         return inbox
     }
 
@@ -22,10 +24,15 @@ public enum SharedInbox {
     @discardableResult
     public static func save(_ source: URL, suggestedName: String?, in inbox: URL) throws -> URL {
         var status = stat()
-        guard lstat(inbox.path, &status) == 0, status.st_mode & S_IFMT == S_IFDIR else { throw FilaFailure(errno: EINVAL) }
+        guard lstat(inbox.path, &status) == 0, status.st_mode & S_IFMT == S_IFDIR else {
+            throw FilaFailure(errno: EINVAL)
+        }
         var name = (suggestedName ?? source.lastPathComponent) as NSString
         guard name.lastPathComponent == name as String, name.length > 0,
-              name as String != ".", name as String != "..", !(name as String).utf8.contains(0) else { throw FilaFailure(errno: EINVAL) }
+              name as String != ".", name as String != "..", !(name as String).utf8.contains(0)
+        else {
+            throw FilaFailure(errno: EINVAL)
+        }
         if name.pathExtension.isEmpty, !source.pathExtension.isEmpty {
             name = ((name as String) + "." + source.pathExtension) as NSString
         }

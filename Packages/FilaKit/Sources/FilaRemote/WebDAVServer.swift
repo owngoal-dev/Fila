@@ -325,7 +325,9 @@ public final class WebDAVServer: @unchecked Sendable {
         let peer = channel.remoteAddress?.ipAddress ?? "A device"
         note("\(peer) connected.")
         let handler = WebDAVHandler(
-            service: service, configuration: configuration, nonces: nonces,
+            service: service,
+            configuration: configuration,
+            nonces: nonces,
             log: { [weak self] line in self?.note("\(peer) \(line)") }
         )
         let ioTimeout = ioTimeout

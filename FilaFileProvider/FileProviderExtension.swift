@@ -51,7 +51,11 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             guard watchers[container] == nil else { return }
             let descriptor = open(path, O_EVTONLY | O_DIRECTORY)
             guard descriptor >= 0 else { return }
-            let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete, .attrib], queue: queue)
+            let source = DispatchSource.makeFileSystemObjectSource(
+                fileDescriptor: descriptor,
+                eventMask: [.write, .rename, .delete, .attrib],
+                queue: queue
+            )
             source.setEventHandler { [weak self] in
                 guard let self else { return }
                 NSFileProviderManager(for: domain)?.signalEnumerator(for: container) { [weak self] error in
@@ -88,7 +92,11 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
     /// Every request runs here, in order, and reports through `completion`
     /// with an error the system accepts.
     @discardableResult
-    fileprivate func run<T>(_ body: @escaping (ProviderTree) throws -> T, label: String = #function, then completion: @escaping (Result<T, Error>) -> Void) -> Progress {
+    fileprivate func run<T>(
+        _ body: @escaping (ProviderTree) throws -> T,
+        label: String = #function,
+        then completion: @escaping (Result<T, Error>) -> Void
+    ) -> Progress {
         queue.async {
             let result = Result { try body(self.openTree()) }.mapError(Self.mapped)
             if case let .failure(error) = result {
@@ -111,9 +119,11 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
 
     // MARK: - Items
 
-    func item(for identifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest,
-              completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress
-    {
+    func item(
+        for identifier: NSFileProviderItemIdentifier,
+        request _: NSFileProviderRequest,
+        completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void
+    ) -> Progress {
         run({ tree -> NSFileProviderItem in
             switch identifier {
             case .rootContainer: return ProviderItem.root
@@ -128,16 +138,20 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version _: NSFileProviderItemVersion?,
-                       request _: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress
-    {
+    func fetchContents(
+        for itemIdentifier: NSFileProviderItemIdentifier,
+        version _: NSFileProviderItemVersion?,
+        request _: NSFileProviderRequest,
+        completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void
+    ) -> Progress {
         let domain = domain
         return run({ tree -> (URL, ProviderItem) in
             let entry = try tree.entry(itemIdentifier.rawValue)
             // The system clones and unlinks what it is handed, so it has to be
             // a file of its own in its own temporary directory.
             guard let manager = NSFileProviderManager(for: domain) else { throw NSFileProviderError(.providerNotFound) }
-            let temporary = try manager.temporaryDirectoryURL().appendingPathComponent(UUID().uuidString, isDirectory: false)
+            let temporary = try manager.temporaryDirectoryURL()
+                .appendingPathComponent(UUID().uuidString, isDirectory: false)
             try tree.exportContents(of: entry.id, to: temporary)
             return (temporary, ProviderItem(entry))
         }) { result in
@@ -148,10 +162,14 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func createItem(basedOn itemTemplate: NSFileProviderItem, fields: NSFileProviderItemFields, contents url: URL?,
-                    options: NSFileProviderCreateItemOptions, request _: NSFileProviderRequest,
-                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
-    {
+    func createItem(
+        basedOn itemTemplate: NSFileProviderItem,
+        fields: NSFileProviderItemFields,
+        contents url: URL?,
+        options: NSFileProviderCreateItemOptions,
+        request _: NSFileProviderRequest,
+        completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void
+    ) -> Progress {
         run({ tree -> ProviderItem in
             let parent = try Self.parent(itemTemplate.parentItemIdentifier)
             let type = itemTemplate.contentType as UTType?
@@ -167,7 +185,8 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             } catch ProviderTree.Failure.collision where options.contains(.mayAlreadyExist) {
                 // A re-import after a crash or a merge: the item is the one
                 // already there, whatever it holds.
-                guard let existing = try tree.existing(name: itemTemplate.filename, parent: parent) else { throw ProviderTree.Failure.collision }
+                guard let existing = try tree.existing(name: itemTemplate.filename, parent: parent)
+                else { throw ProviderTree.Failure.collision }
                 entry = existing
             }
             if fields.contains(.contentModificationDate), let date = itemTemplate.contentModificationDate ?? nil {
@@ -182,17 +201,24 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func modifyItem(_ item: NSFileProviderItem, baseVersion _: NSFileProviderItemVersion, changedFields: NSFileProviderItemFields,
-                    contents newContents: URL?, options _: NSFileProviderModifyItemOptions, request _: NSFileProviderRequest,
-                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
-    {
+    func modifyItem(
+        _ item: NSFileProviderItem,
+        baseVersion _: NSFileProviderItemVersion,
+        changedFields: NSFileProviderItemFields,
+        contents newContents: URL?,
+        options _: NSFileProviderModifyItemOptions,
+        request _: NSFileProviderRequest,
+        completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void
+    ) -> Progress {
         run({ tree -> (ProviderItem, NSFileProviderItemFields) in
             var entry = try tree.entry(item.itemIdentifier.rawValue)
             // Whatever is not applied here stays pending; the system stops
             // sending a field the provider never takes.
             var pending = changedFields
             if changedFields.contains(.filename) || changedFields.contains(.parentItemIdentifier) {
-                let parent = changedFields.contains(.parentItemIdentifier) ? try Self.parent(item.parentItemIdentifier) : entry.parent
+                let parent = changedFields.contains(.parentItemIdentifier)
+                    ? try Self.parent(item.parentItemIdentifier)
+                    : entry.parent
                 let name = changedFields.contains(.filename) ? item.filename : entry.name
                 entry = try tree.move(entry.id, name: name, parent: parent)
                 pending.remove(.filename)
@@ -215,10 +241,13 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion _: NSFileProviderItemVersion,
-                    options: NSFileProviderDeleteItemOptions, request _: NSFileProviderRequest,
-                    completionHandler: @escaping (Error?) -> Void) -> Progress
-    {
+    func deleteItem(
+        identifier: NSFileProviderItemIdentifier,
+        baseVersion _: NSFileProviderItemVersion,
+        options: NSFileProviderDeleteItemOptions,
+        request _: NSFileProviderRequest,
+        completionHandler: @escaping (Error?) -> Void
+    ) -> Progress {
         run({ tree in
             do { try tree.delete(identifier.rawValue, recursive: options.contains(.recursive)) }
             // Already gone is the outcome the caller asked for.
@@ -231,7 +260,10 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest) throws -> NSFileProviderEnumerator {
+    func enumerator(
+        for containerItemIdentifier: NSFileProviderItemIdentifier,
+        request _: NSFileProviderRequest
+    ) throws -> NSFileProviderEnumerator {
         ProviderEnumerator(container: containerItemIdentifier, provider: self)
     }
 
@@ -239,14 +271,18 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
 
     /// Pictures only, downsampled from the file itself. Everything else gets
     /// the system's icon for its type.
-    func fetchThumbnails(for itemIdentifiers: [NSFileProviderItemIdentifier], requestedSize size: CGSize,
-                         perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void,
-                         completionHandler: @escaping (Error?) -> Void) -> Progress
-    {
+    func fetchThumbnails(
+        for itemIdentifiers: [NSFileProviderItemIdentifier],
+        requestedSize size: CGSize,
+        perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void,
+        completionHandler: @escaping (Error?) -> Void
+    ) -> Progress {
         queue.async {
             let tree = try? self.openTree()
             for identifier in itemIdentifiers {
-                let data = tree.flatMap { Self.thumbnail(of: identifier.rawValue, in: $0, maxPixelSize: Int(max(size.width, size.height))) }
+                let data = tree.flatMap {
+                    Self.thumbnail(of: identifier.rawValue, in: $0, maxPixelSize: Int(max(size.width, size.height)))
+                }
                 perThumbnailCompletionHandler(identifier, data, nil)
             }
             completionHandler(nil)
@@ -268,8 +304,13 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         ]
         guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
         let data = NSMutableData()
-        guard let destination = CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil) else { return nil }
-        CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary)
+        guard let destination = CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil)
+        else { return nil }
+        CGImageDestinationAddImage(
+            destination,
+            image,
+            [kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary
+        )
         return CGImageDestinationFinalize(destination) ? data as Data : nil
     }
 
@@ -296,7 +337,11 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             if nsError.domain == NSCocoaErrorDomain || nsError.domain == NSFileProviderErrorDomain {
                 return error
             }
-            return NSError(domain: NSCocoaErrorDomain, code: NSXPCConnectionReplyInvalid, userInfo: [NSUnderlyingErrorKey: nsError])
+            return NSError(
+                domain: NSCocoaErrorDomain,
+                code: NSXPCConnectionReplyInvalid,
+                userInfo: [NSUnderlyingErrorKey: nsError]
+            )
         }
     }
 }
@@ -343,7 +388,10 @@ private final class ProviderItem: NSObject, NSFileProviderItem {
         documentSize = entry.isDirectory ? nil : NSNumber(value: entry.size)
         creationDate = entry.created
         contentModificationDate = entry.modified
-        itemVersion = NSFileProviderItemVersion(contentVersion: Data(entry.contentVersion.utf8), metadataVersion: Data(entry.metadataVersion.utf8))
+        itemVersion = NSFileProviderItemVersion(
+            contentVersion: Data(entry.contentVersion.utf8),
+            metadataVersion: Data(entry.metadataVersion.utf8)
+        )
         super.init()
     }
 }
@@ -402,7 +450,9 @@ private final class ProviderEnumerator: NSObject, NSFileProviderEnumerator {
             case .rootContainer: return try tree.children(of: nil).map(ProviderItem.init)
             default:
                 let entry = try tree.entry(container.rawValue)
-                return entry.isDirectory ? try tree.children(of: entry.id).map(ProviderItem.init) : [ProviderItem(entry)]
+                return entry.isDirectory
+                    ? try tree.children(of: entry.id).map(ProviderItem.init)
+                    : [ProviderItem(entry)]
             }
         }, label: "enumerateItems \(container.rawValue)") { result in
             switch result {
@@ -423,7 +473,8 @@ private final class ProviderEnumerator: NSObject, NSFileProviderEnumerator {
 
     func enumerateChanges(for observer: NSFileProviderChangeObserver, from anchor: NSFileProviderSyncAnchor) {
         provider.run({ tree -> ProviderTree.Changes in
-            guard let changes = try tree.changes(since: anchor.rawValue) else { throw NSFileProviderError(.syncAnchorExpired) }
+            guard let changes = try tree.changes(since: anchor.rawValue)
+            else { throw NSFileProviderError(.syncAnchorExpired) }
             return changes
         }, label: "enumerateChanges \(container.rawValue)") { result in
             switch result {

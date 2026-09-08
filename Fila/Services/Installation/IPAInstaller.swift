@@ -195,8 +195,10 @@ enum IPAInstaller {
            let optionsClass = NSClassFromString("MIInstallOptions") as? NSObject.Type,
            let instance = optionsClass.perform(NSSelectorFromString("alloc"))?.takeUnretainedValue() as? NSObject
         {
-            options = instance.perform(NSSelectorFromString("initWithLegacyOptionsDictionary:"),
-                                       with: ["PackageType": packageType])?.takeUnretainedValue()
+            options = instance.perform(
+                NSSelectorFromString("initWithLegacyOptionsDictionary:"),
+                with: ["PackageType": packageType]
+            )?.takeUnretainedValue()
         }
         let capturedOptions = options
         return await withCheckedContinuation { continuation in

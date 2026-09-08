@@ -80,9 +80,16 @@ let icons: [(name: String, source: Source)] = [
 func render(_ image: NSImage, points: CGFloat, scale: Int) -> Data? {
     let pixels = Int(points) * scale
     guard let bitmap = NSBitmapImageRep(
-        bitmapDataPlanes: nil, pixelsWide: pixels, pixelsHigh: pixels,
-        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        bitmapDataPlanes: nil,
+        pixelsWide: pixels,
+        pixelsHigh: pixels,
+        bitsPerSample: 8,
+        samplesPerPixel: 4,
+        hasAlpha: true,
+        isPlanar: false,
+        colorSpaceName: .deviceRGB,
+        bytesPerRow: 0,
+        bitsPerPixel: 0
     ) else { return nil }
     bitmap.size = NSSize(width: points, height: points)
     NSGraphicsContext.saveGraphicsState()

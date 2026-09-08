@@ -37,10 +37,13 @@
         ///     than read, because this package is not the app and has no
         ///     preferences of its own.
         ///   - link: the app's connection to `filad`.
-        public init(program: TerminalProgram, user: TerminalUser,
-                    redirectsScriptInterpreter: Bool = false, link: DaemonLink,
-                    onProcessExit: (@MainActor @Sendable () -> Void)? = nil)
-        {
+        public init(
+            program: TerminalProgram,
+            user: TerminalUser,
+            redirectsScriptInterpreter: Bool = false,
+            link: DaemonLink,
+            onProcessExit: (@MainActor @Sendable () -> Void)? = nil
+        ) {
             self.program = program
             requestedUser = user
             self.redirectsScriptInterpreter = redirectsScriptInterpreter
@@ -236,7 +239,8 @@
         private func authenticationFailed(_ error: Error?) {
             isFinished = true
             navigationItem.rightBarButtonItem?.isEnabled = false
-            statusLabel.text = error?.localizedDescription ?? String(localized: "Authentication failed.", bundle: .module)
+            statusLabel.text = error?.localizedDescription
+                ?? String(localized: "Authentication failed.", bundle: .module)
             // No launch request was sent, so staged input can be released now.
             onProcessExit?.run()
         }

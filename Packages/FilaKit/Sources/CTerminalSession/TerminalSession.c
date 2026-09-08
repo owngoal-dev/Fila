@@ -50,7 +50,8 @@ void fila_terminal_session_if_requested(int argc, char *const argv[]) {
         uid_t uid = identifier(argv[2]);
         gid_t gid = identifier(argv[3]);
         if (getuid() != 0 || uid == 0) failed(EPERM);
-        if (fchown(STDIN_FILENO, uid, gid) < 0 || setgroups(1, &gid) < 0 || setgid(gid) < 0 || setuid(uid) < 0) failed(errno);
+        if (fchown(STDIN_FILENO, uid, gid) < 0 || setgroups(1, &gid) < 0 || setgid(gid) < 0
+            || setuid(uid) < 0) failed(errno);
         if (getuid() != uid || geteuid() != uid || getgid() != gid || getegid() != gid || setuid(0) == 0) failed(EPERM);
     }
     // Enter directories with the session's credentials, never the daemon's.
@@ -64,7 +65,8 @@ void fila_terminal_session_if_requested(int argc, char *const argv[]) {
     struct sigaction action = {0};
     action.sa_handler = notified;
     sigemptyset(&action.sa_mask);
-    if (sigaction(SIGCHLD, &action, NULL) < 0 || sigaction(SIGHUP, &action, NULL) < 0 || sigaction(SIGTERM, &action, NULL) < 0
+    if (sigaction(SIGCHLD, &action, NULL) < 0 || sigaction(SIGHUP, &action, NULL) < 0
+        || sigaction(SIGTERM, &action, NULL) < 0
         || sigprocmask(SIG_BLOCK, &watched, &previous) < 0) failed(errno);
 
     posix_spawn_file_actions_t files;

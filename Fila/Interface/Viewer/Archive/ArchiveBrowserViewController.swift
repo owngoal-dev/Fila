@@ -388,7 +388,10 @@ final class ArchiveBrowserViewController: UIViewController {
         guard !selected.isEmpty else { return }
 
         let form = SaveDestinationViewController(
-            message: String(format: String(localized: "%lld items will be extracted here. A folder is created only when needed. Existing items are kept."), Int64(selected.count)),
+            message: String(
+                format: String(localized: "%lld items will be extracted here. A folder is created only when needed. Existing items are kept."),
+                Int64(selected.count)
+            ),
             link: link
         ) { [weak self] destination in
             self?.extract(selected, to: destination.path)
@@ -424,7 +427,9 @@ final class ArchiveBrowserViewController: UIViewController {
             destination: destination,
             archive: ArchiveOptions(
                 password: password,
-                members: selection.map { ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath) },
+                members: selection.map {
+                    ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath)
+                },
                 organizeExtraction: true
             )
         )

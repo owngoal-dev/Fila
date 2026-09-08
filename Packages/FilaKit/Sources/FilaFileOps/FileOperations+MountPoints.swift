@@ -17,8 +17,12 @@ public extension FileOperations {
         }
         guard copied >= 0 else { throw FilaFailure(errno: errno) }
         return mounts.prefix(min(Int(copied), mounts.count)).map {
-            MountPoint(path: filaText($0.f_mntonname), device: filaText($0.f_mntfromname),
-                       filesystem: filaText($0.f_fstypename), isReadOnly: $0.f_flags & UInt32(MNT_RDONLY) != 0)
+            MountPoint(
+                path: filaText($0.f_mntonname),
+                device: filaText($0.f_mntfromname),
+                filesystem: filaText($0.f_fstypename),
+                isReadOnly: $0.f_flags & UInt32(MNT_RDONLY) != 0
+            )
         }.sorted { $0.path < $1.path }
     }
 }

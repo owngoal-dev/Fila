@@ -20,8 +20,11 @@ public struct FileMediaInformation: Sendable {
         var result = Self()
         if format == .image {
             guard let provider = DescriptorImage.provider(descriptor: descriptor, byteCount: Int64(status.st_size)),
-                  let source = CGImageSourceCreateWithDataProvider(provider, [kCGImageSourceShouldCache: false] as CFDictionary),
-                  let values = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else { return result }
+                  let source = CGImageSourceCreateWithDataProvider(
+                      provider, [kCGImageSourceShouldCache: false] as CFDictionary
+                  ),
+                  let values = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+            else { return result }
             let width = (values[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue
             let height = (values[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue
             let orientation = (values[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1

@@ -25,7 +25,9 @@ func emit(_ line: ArchiveHelperLine) {
     output.write(data)
 }
 
-guard let task = try? JSONDecoder().decode(ArchiveHelperTask.self, from: FileHandle.standardInput.readDataToEndOfFile()) else {
+guard let task = try? JSONDecoder()
+    .decode(ArchiveHelperTask.self, from: FileHandle.standardInput.readDataToEndOfFile())
+else {
     emit(.completed(FilaFailure(code: .invalidRequest, systemError: EINVAL)))
     exit(EX_DATAERR)
 }

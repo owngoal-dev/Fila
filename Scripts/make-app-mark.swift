@@ -38,7 +38,9 @@ func srgb(_ text: String) -> NSColor {
     return NSColor(srgbRed: parts[0], green: parts[1], blue: parts[2], alpha: parts[3])
 }
 
-let json = try JSONSerialization.jsonObject(with: Data(contentsOf: document.appendingPathComponent("icon.json"))) as? [String: Any] ?? [:]
+let json = try JSONSerialization.jsonObject(
+    with: Data(contentsOf: document.appendingPathComponent("icon.json"))
+) as? [String: Any] ?? [:]
 let fill = (json["fill"] as? [String: Any])?["automatic-gradient"] as? String ?? "srgb:1,1,1,1"
 guard let group = (json["groups"] as? [[String: Any]])?.first,
       let layerInfo = (group["layers"] as? [[String: Any]])?.first,
@@ -56,9 +58,16 @@ let layer = Layer(
 /// One square PNG. `dark` swaps the document fill for the dark icon ground.
 func render(side: Int, dark: Bool) -> Data? {
     guard let bitmap = NSBitmapImageRep(
-        bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side,
-        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
-        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        bitmapDataPlanes: nil,
+        pixelsWide: side,
+        pixelsHigh: side,
+        bitsPerSample: 8,
+        samplesPerPixel: 4,
+        hasAlpha: true,
+        isPlanar: false,
+        colorSpaceName: .deviceRGB,
+        bytesPerRow: 0,
+        bitsPerPixel: 0
     ) else { return nil }
     NSGraphicsContext.saveGraphicsState()
     defer { NSGraphicsContext.restoreGraphicsState() }
@@ -70,8 +79,10 @@ func render(side: Int, dark: Bool) -> Data? {
     let shape = NSBezierPath(roundedRect: canvas, xRadius: s * 0.2237, yRadius: s * 0.2237)
     shape.addClip()
     if dark {
-        NSGradient(starting: NSColor(srgbRed: 0.18, green: 0.18, blue: 0.19, alpha: 1),
-                   ending: NSColor(srgbRed: 0.10, green: 0.10, blue: 0.11, alpha: 1))?
+        NSGradient(
+            starting: NSColor(srgbRed: 0.18, green: 0.18, blue: 0.19, alpha: 1),
+            ending: NSColor(srgbRed: 0.10, green: 0.10, blue: 0.11, alpha: 1)
+        )?
             .draw(in: canvas, angle: -90)
     } else {
         srgb(fill).setFill()

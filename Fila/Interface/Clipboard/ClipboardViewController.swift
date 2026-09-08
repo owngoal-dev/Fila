@@ -188,7 +188,8 @@ final class ClipboardViewController: UIViewController {
         snapshot.reloadSections(snapshot.sectionIdentifiers.filter(existing.contains))
         dataSource.apply(snapshot, animatingDifferences: true)
         table.backgroundView = paths.isEmpty ? StatusView(content: .message(
-            symbol: "doc.on.clipboard", title: String(localized: "Clipboard Is Empty"),
+            symbol: "doc.on.clipboard",
+            title: String(localized: "Clipboard Is Empty"),
             detail: String(localized: "Items you copy or move wait here until you paste them.")
         )) : nil
     }

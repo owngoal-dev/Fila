@@ -172,10 +172,12 @@ final class MachOInspectorViewController: UIViewController {
         dataSource.header = { [weak self] slice in self?.names[slice] }
     }
 
-    private static func rows(for architecture: FilaFormats.MachOImage.Slice,
-                             inspection: FilaFormats.MachOImage.Inspection,
-                             entitlements: PropertyListValue?, isUniversal: Bool) -> [Row]
-    {
+    private static func rows(
+        for architecture: FilaFormats.MachOImage.Slice,
+        inspection: FilaFormats.MachOImage.Inspection,
+        entitlements: PropertyListValue?,
+        isUniversal: Bool
+    ) -> [Row] {
         var rows: [Row] = [
             .fact(String(localized: "Type"), fileType(architecture.fileType)),
             .fact(String(localized: "Signature"), architecture.isCodeSigned
@@ -233,8 +235,11 @@ final class MachOInspectorViewController: UIViewController {
             details.append(String(localized: "Flags") + ": " + inspection.flags.joined(separator: ", "))
         }
         let encryption = if let method = inspection.encryptionMethod, method != 0 {
-            String(format: String(localized: "Encrypted, method %u, %@ region"), method,
-                   FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0)))
+            String(
+                format: String(localized: "Encrypted, method %u, %@ region"),
+                method,
+                FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0))
+            )
         } else {
             String(localized: "Not encrypted")
         }

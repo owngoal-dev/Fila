@@ -96,8 +96,11 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
     private static func transaction<T>(in groupURL: URL, _ body: (URL, FileOperations) throws -> T) throws -> T {
         let group = try URL(fileURLWithPath: FilaPath.resolve(groupURL.path), isDirectory: true)
         let operations = FileOperations(bootstrapRoot: group.path, writableRoot: group.path)
-        let descriptor = try operations.open(group.appendingPathComponent(".fila-provider-location.lock").path,
-                                             flags: O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC, mode: 0o600)
+        let descriptor = try operations.open(
+            group.appendingPathComponent(".fila-provider-location.lock").path,
+            flags: O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC,
+            mode: 0o600
+        )
         defer { Darwin.close(descriptor) }
         var info = stat()
         guard fstat(descriptor, &info) == 0, info.st_mode & S_IFMT == S_IFREG,

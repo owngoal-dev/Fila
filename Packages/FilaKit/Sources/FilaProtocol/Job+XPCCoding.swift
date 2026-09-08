@@ -86,7 +86,8 @@
             let identifier = xpc_dictionary_get_uint64(message, FilaWireKey.jobIdentifier)
             let path = xpc_dictionary_get_string(message, FilaWireKey.path).map { String(cString: $0) }
             if xpc_dictionary_get_bool(message, FilaWireKey.jobPhase) {
-                let code = FilaReplyCode(rawValue: xpc_dictionary_get_int64(message, FilaWireKey.code)) ?? .operationFailed
+                let code = FilaReplyCode(rawValue: xpc_dictionary_get_int64(message, FilaWireKey.code))
+                    ?? .operationFailed
                 return (identifier, .completed(FilaFailure(
                     code: code,
                     systemError: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(message, FilaWireKey.errno)),

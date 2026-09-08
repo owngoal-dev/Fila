@@ -20,7 +20,14 @@ type Notice = { text: string; error: boolean };
 function Thumb({ item }: { item: Item }) {
   const [failed, setFailed] = useState(false);
   if (failed || !hasThumbnail(item)) return <img className="fileicon" src={iconFor(item)} alt="" />;
-  return <img className="thumb" src={item.path + '?thumbnail=64'} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
+  return <img
+    className="thumb"
+    src={item.path + '?thumbnail=64'}
+    alt=""
+    loading="lazy"
+    decoding="async"
+    onError={() => setFailed(true)}
+  />;
 }
 
 export function App() {
@@ -71,7 +78,10 @@ export function App() {
       setPath(target);
       setItems(entries);
       setLoaded(true);
-      setSelection((s) => (same && options.preserve ? new Set([...s].filter((p) => entries.some((i) => i.path === p))) : new Set()));
+      setSelection((s) =>
+        (same && options.preserve
+          ? new Set([...s].filter((p) => entries.some((i) => i.path === p)))
+          : new Set()));
       if (!same) setFilter('');
       if (options.history !== false && location.pathname !== target) history.pushState(null, '', target);
     } catch (e) {
@@ -108,7 +118,11 @@ export function App() {
     });
 
   /// One mutation after another, then a refresh that keeps whatever survived.
-  const runBatch = async (names: string[], action: (index: number) => Promise<unknown>, done: (index: number) => void) => {
+  const runBatch = async (
+    names: string[],
+    action: (index: number) => Promise<unknown>,
+    done: (index: number) => void
+  ) => {
     if (busyRef.current) return;
     listID.current++;
     listAbort.current?.abort();
@@ -128,7 +142,10 @@ export function App() {
     } finally {
       setBusyState(false);
       await navigate(pathRef.current, { preserve: true });
-      setNotice({ text: failure ? `${t('partial', completed)} ${failure.message}` : t('done', completed), error: !!failure });
+      setNotice({
+        text: failure ? `${t('partial', completed)} ${failure.message}` : t('done', completed),
+        error: !!failure
+      });
     }
   };
 
@@ -144,26 +161,43 @@ export function App() {
     }
     if (key === 'rename') {
       const item = targets[0];
-      const name = await ask<string | null>((resolve) => ({ kind: 'name', title: t('rename'), label: t('filename'), value: item.name, resolve }));
+      const name = await ask<string | null>((resolve) => ({
+        kind: 'name',
+        title: t('rename'),
+        label: t('filename'),
+        value: item.name,
+        resolve
+      }));
       if (name === null || name === item.name) return;
       await runBatch(
         [item.name],
         () =>
           request(item.path, 'MOVE', {
-            headers: { Destination: new URL(child(parent(item.path), name, item.isFolder), location.origin).href, Overwrite: 'F' },
+            headers: {
+              Destination: new URL(child(parent(item.path), name, item.isFolder), location.origin).href,
+              Overwrite: 'F'
+            },
           }),
         forget,
       );
       return;
     }
-    const destination = await ask<Destination | null>((resolve) => ({ kind: 'destination', items: targets, action: t(key), resolve }));
+    const destination = await ask<Destination | null>((resolve) => ({
+      kind: 'destination',
+      items: targets,
+      action: t(key),
+      resolve
+    }));
     if (!destination) return;
     await runBatch(
       names,
       (i) =>
         request(targets[i].path, key === 'copy' ? 'COPY' : 'MOVE', {
           headers: {
-            Destination: new URL(child(destination.path, destination.name ?? targets[i].name, targets[i].isFolder), location.origin).href,
+            Destination: new URL(
+              child(destination.path, destination.name ?? targets[i].name, targets[i].isFolder),
+              location.origin
+            ).href,
             Overwrite: 'F',
             Depth: 'infinity',
           },
@@ -175,7 +209,13 @@ export function App() {
   const newFolder = async () => {
     if (busyRef.current || dialog) return;
     const where = pathRef.current;
-    const name = await ask<string | null>((resolve) => ({ kind: 'name', title: t('newfolder'), label: t('foldername'), value: '', resolve }));
+    const name = await ask<string | null>((resolve) => ({
+      kind: 'name',
+      title: t('newfolder'),
+      label: t('foldername'),
+      value: '',
+      resolve
+    }));
     if (name !== null) await runBatch([name], () => request(child(where, name, true), 'MKCOL'), () => {});
   };
 
@@ -202,7 +242,14 @@ export function App() {
           } catch (e) {
             if ((e as DavError).status !== 412) throw e;
             const taken: string = name;
-            name = await ask<string | null>((resolve) => ({ kind: 'name', title: t('uploadName'), label: t('filename'), value: taken, message: t('exists'), resolve }));
+            name = await ask<string | null>((resolve) => ({
+              kind: 'name',
+              title: t('uploadName'),
+              label: t('filename'),
+              value: taken,
+              message: t('exists'),
+              resolve
+            }));
           }
         }
       }
@@ -211,7 +258,10 @@ export function App() {
     } finally {
       setBusyState(false);
       await navigate(where, { preserve: true });
-      setNotice({ text: failure ? `${t('partial', completed)} ${failure.message}` : t('done', completed), error: !!failure });
+      setNotice({
+        text: failure ? `${t('partial', completed)} ${failure.message}` : t('done', completed),
+        error: !!failure
+      });
     }
   };
 
@@ -242,7 +292,8 @@ export function App() {
   const selected = items.filter((i) => selection.has(i.path));
   const allShown = shown.length > 0 && shown.every((i) => selection.has(i.path));
   const someShown = shown.some((i) => selection.has(i.path));
-  const toggle = (item: Item) => setSelection((s) => (s.has(item.path) ? s.delete(item.path) : s.add(item.path), new Set(s)));
+  const toggle = (item: Item) =>
+    setSelection((s) => (s.has(item.path) ? s.delete(item.path) : s.add(item.path), new Set(s)));
   const toggleAll = () =>
     setSelection((s) => {
       for (const i of shown) allShown ? s.delete(i.path) : s.add(i.path);
@@ -279,8 +330,21 @@ export function App() {
               </Fragment>
             ))}
           </nav>
-          <input className="filter" placeholder={t('filter')} aria-label={t('filter')} value={filter} onChange={(e) => setFilter(e.target.value)} />
-          <button type="button" className="btn icon" aria-label={t('refresh')} title={t('refresh')} disabled={busy} onClick={() => (setNotice(null), navigate(path, { preserve: true }))}>
+          <input
+            className="filter"
+            placeholder={t('filter')}
+            aria-label={t('filter')}
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn icon"
+            aria-label={t('refresh')}
+            title={t('refresh')}
+            disabled={busy}
+            onClick={() => (setNotice(null), navigate(path, { preserve: true }))}
+          >
             ↻
           </button>
           <button type="button" className="btn" disabled={busy} onClick={newFolder}>
@@ -289,7 +353,13 @@ export function App() {
           <button type="button" className="btn primary" disabled={busy} onClick={() => fileInput.current?.click()}>
             {t('upload')}
           </button>
-          <input ref={fileInput} type="file" multiple hidden onChange={(e) => (upload(Array.from(e.target.files || [])), (e.target.value = ''))} />
+          <input
+            ref={fileInput}
+            type="file"
+            multiple
+            hidden
+            onChange={(e) => (upload(Array.from(e.target.files || [])), (e.target.value = ''))}
+          />
         </div>
 
         {notice && (
@@ -315,15 +385,27 @@ export function App() {
             <thead>
               <tr>
                 <th className="col-check">
-                  <input type="checkbox" aria-label={t('selectall')} checked={allShown} ref={(el) => {
+                  <input
+                    type="checkbox"
+                    aria-label={t('selectall')}
+                    checked={allShown}
+                    ref={(el) => {
                       if (el) el.indeterminate = someShown && !allShown;
-                    }} disabled={busy || !shown.length} onChange={toggleAll} />
+                    }}
+                    disabled={busy || !shown.length}
+                    onChange={toggleAll}
+                  />
                 </th>
                 {selected.length ? (
                   <th colSpan={4}>
                     <div className="bulk">
                       <span className="count">{t('selected', selected.length)}</span>
-                      <button type="button" className="btn" disabled={busy || !selected.some((i) => !i.isFolder)} onClick={() => download(selected)}>
+                      <button
+                        type="button"
+                        className="btn"
+                        disabled={busy || !selected.some((i) => !i.isFolder)}
+                        onClick={() => download(selected)}
+                      >
                         {t('download')}
                       </button>
                       <button type="button" className="btn" disabled={busy} onClick={() => operate('copy', selected)}>
@@ -332,7 +414,12 @@ export function App() {
                       <button type="button" className="btn" disabled={busy} onClick={() => operate('move', selected)}>
                         {t('move')}
                       </button>
-                      <button type="button" className="btn danger" disabled={busy} onClick={() => operate('delete', selected)}>
+                      <button
+                        type="button"
+                        className="btn danger"
+                        disabled={busy}
+                        onClick={() => operate('delete', selected)}
+                      >
                         {t('delete')}
                       </button>
                     </div>
@@ -351,7 +438,13 @@ export function App() {
               {shown.map((item) => (
                 <tr key={item.path} className={selection.has(item.path) ? 'selected' : undefined}>
                   <td className="col-check">
-                    <input type="checkbox" aria-label={t('select', item.name)} checked={selection.has(item.path)} disabled={busy} onChange={() => toggle(item)} />
+                    <input
+                      type="checkbox"
+                      aria-label={t('select', item.name)}
+                      checked={selection.has(item.path)}
+                      disabled={busy}
+                      onChange={() => toggle(item)}
+                    />
                   </td>
                   <td>
                     <div className="name">
@@ -371,7 +464,13 @@ export function App() {
                   <td className="col-date muted">{date(item.modified)}</td>
                   <td className="col-more">
                     <span className="menu-anchor" onClick={(e) => e.stopPropagation()}>
-                      <button type="button" className="btn plain" aria-label={t('more', item.name)} aria-expanded={menuFor === item.path} onClick={() => setMenuFor(menuFor === item.path ? null : item.path)}>
+                      <button
+                        type="button"
+                        className="btn plain"
+                        aria-label={t('more', item.name)}
+                        aria-expanded={menuFor === item.path}
+                        onClick={() => setMenuFor(menuFor === item.path ? null : item.path)}
+                      >
                         ⋯
                       </button>
                       {menuFor === item.path && (
@@ -387,7 +486,12 @@ export function App() {
                             </button>
                           ))}
                           <hr />
-                          <button type="button" className="danger" disabled={busy} onClick={() => operate('delete', [item])}>
+                          <button
+                            type="button"
+                            className="danger"
+                            disabled={busy}
+                            onClick={() => operate('delete', [item])}
+                          >
                             {t('delete')}
                           </button>
                         </div>
@@ -398,14 +502,23 @@ export function App() {
               ))}
             </tbody>
           </table>
-          {shown.length === 0 && <div className="empty">{!loaded ? t('loading') : items.length ? t('nomatch') : t('empty')}</div>}
+          {shown.length === 0 &&
+            <div className="empty">{!loaded ? t('loading') : items.length ? t('nomatch') : t('empty')}</div>}
           <div className="footer">{t('items', items.length)}</div>
         </section>
       </main>
 
-      {dialog?.kind === 'name' && <NameDialog title={dialog.title} label={dialog.label} value={dialog.value} message={dialog.message} onDone={dialog.resolve} />}
+      {dialog?.kind === 'name' &&
+        <NameDialog
+          title={dialog.title}
+          label={dialog.label}
+          value={dialog.value}
+          message={dialog.message}
+          onDone={dialog.resolve}
+        />}
       {dialog?.kind === 'delete' && <DeleteDialog items={dialog.items} onDone={dialog.resolve} />}
-      {dialog?.kind === 'destination' && <DestinationDialog items={dialog.items} action={dialog.action} start={path} onDone={dialog.resolve} />}
+      {dialog?.kind === 'destination' &&
+        <DestinationDialog items={dialog.items} action={dialog.action} start={path} onDone={dialog.resolve} />}
     </>
   );
 }

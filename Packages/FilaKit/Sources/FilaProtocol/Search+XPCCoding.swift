@@ -56,7 +56,8 @@
         /// Returns nil when the message is not a search result.
         static func decode(_ message: xpc_object_t) -> (jobIdentifier: UInt64, batch: SearchBatch)? {
             guard xpc_get_type(message) == FilaXPC.typeDictionary else { return nil }
-            guard xpc_dictionary_get_uint64(message, FilaWireKey.operation) == FilaOperation.searchResult.rawValue else {
+            guard xpc_dictionary_get_uint64(message, FilaWireKey.operation) == FilaOperation.searchResult.rawValue
+            else {
                 return nil
             }
             var matches: [SearchMatch] = []

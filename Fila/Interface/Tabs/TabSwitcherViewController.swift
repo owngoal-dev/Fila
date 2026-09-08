@@ -180,17 +180,25 @@ final class TabSwitcherViewController: UIViewController {
             case let .directory(place):
                 return open(place.path, title: place.title, image: FilaMenu.preview(for: place))
             case .applications:
-                return UIAction(title: String(localized: "Applications"), image: UIImage(named: "FileIcons/application"),
-                                attributes: full ? .disabled : []) { [weak self] _ in
+                return UIAction(
+                    title: String(localized: "Applications"),
+                    image: UIImage(named: "FileIcons/application"),
+                    attributes: full ? .disabled : []
+                ) { [weak self] _ in
                     self?.shell?.openInNewTab(AppListViewController(), directory: AppPreferences.shared.lastDirectory)
                 }
             case .music:
-                return UIAction(title: String(localized: "Music"), image: UIImage(named: "FileIcons/music"),
-                                attributes: full ? .disabled : []) { [weak self] _ in self?.shell?.openMusicInNewTab() }
+                return UIAction(
+                    title: String(localized: "Music"),
+                    image: UIImage(named: "FileIcons/music"),
+                    attributes: full ? .disabled : []
+                ) { [weak self] _ in self?.shell?.openMusicInNewTab() }
             }
         }
         return [UIMenu(title: String(localized: "Places"), options: .displayInline, children: places)]
-            + FilaMenu.collections(attributes: full ? .disabled : []) { [weak self] path in self?.shell?.openInNewTab(path) }
+            + FilaMenu.collections(attributes: full ? .disabled : []) { [weak self] path in
+                self?.shell?.openInNewTab(path)
+            }
     }
 
     static let cardCornerRadius = FilaUI.Spacing.large

@@ -184,7 +184,8 @@ final class RootSplitViewController: UISplitViewController {
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
         let tabs = self.item(in: tabButtons, for: controller, make: makeTabButton)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
-        var buttons = (leadingItems ?? item.leftBarButtonItems ?? []).filter { $0 !== toggle && $0 !== back && $0 !== tabs }
+        var buttons = (leadingItems ?? item.leftBarButtonItems ?? [])
+            .filter { $0 !== toggle && $0 !== back && $0 !== tabs }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
         // exit intact, rather than creating another route around its save guard.
         if !controller.isEditing, !item.hidesBackButton {

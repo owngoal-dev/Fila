@@ -148,7 +148,10 @@ final class PropertiesViewController: UIViewController {
                 }
             } catch {
                 guard !Task.isCancelled else { return }
-                FeedbackAlert.show(String(localized: "Unable to Read This File"), message: FailureMessage.text(for: error))
+                FeedbackAlert.show(
+                    String(localized: "Unable to Read This File"),
+                    message: FailureMessage.text(for: error)
+                )
             }
         }
     }
@@ -355,17 +358,29 @@ final class PropertiesViewController: UIViewController {
                 if let mediaInformation {
                     var rows: [Row] = []
                     if let width = mediaInformation.width, let height = mediaInformation.height, width > 0, height > 0 {
-                        rows.append(.fact(label: String(localized: "Resolution"), value: "\(width.formatted(.number.precision(.fractionLength(0)))) × \(height.formatted(.number.precision(.fractionLength(0))))", isMonospaced: false))
+                        rows.append(.fact(
+                            label: String(localized: "Resolution"),
+                            value: "\(width.formatted(.number.precision(.fractionLength(0)))) × \(height.formatted(.number.precision(.fractionLength(0))))",
+                            isMonospaced: false
+                        ))
                     }
                     if let duration = mediaInformation.duration {
                         let formatter = DateComponentsFormatter()
                         formatter.allowedUnits = [.hour, .minute, .second]
                         formatter.unitsStyle = .positional
                         formatter.zeroFormattingBehavior = .pad
-                        rows.append(.fact(label: String(localized: "Duration"), value: formatter.string(from: duration) ?? "", isMonospaced: false))
+                        rows.append(.fact(
+                            label: String(localized: "Duration"),
+                            value: formatter.string(from: duration) ?? "",
+                            isMonospaced: false
+                        ))
                     }
                     if let rate = mediaInformation.frameRate {
-                        rows.append(.fact(label: String(localized: "Frame Rate"), value: String(localized: "\(rate.formatted(.number.precision(.fractionLength(0 ... 3)))) fps"), isMonospaced: false))
+                        rows.append(.fact(
+                            label: String(localized: "Frame Rate"),
+                            value: String(localized: "\(rate.formatted(.number.precision(.fractionLength(0 ... 3)))) fps"),
+                            isMonospaced: false
+                        ))
                     }
                     if !rows.isEmpty {
                         summary.insert((.media, rows), at: 2)
@@ -379,7 +394,9 @@ final class PropertiesViewController: UIViewController {
                     ]))
                 } else {
                     summary.append((.checksums, [.disclosure(
-                        label: checksumTask == nil ? String(localized: "Calculate Checksums") : String(localized: "Cancel Calculation"),
+                        label: checksumTask == nil
+                            ? String(localized: "Calculate Checksums")
+                            : String(localized: "Cancel Calculation"),
                         value: checksumTask == nil ? "MD5, SHA-1, SHA-256" : String(localized: "Calculating…"),
                         action: checksumTask == nil ? .calculateChecksums : .cancelChecksums
                     )]))

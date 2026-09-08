@@ -89,7 +89,13 @@ export function NameDialog({
 
 export function DeleteDialog({ items, onDone }: { items: Item[]; onDone: (confirmed: boolean) => void }) {
   return (
-    <Modal title={t('deleteTitle')} submit={t('delete')} danger onSubmit={() => onDone(true)} onCancel={() => onDone(false)}>
+    <Modal
+      title={t('deleteTitle')}
+      submit={t('delete')}
+      danger
+      onSubmit={() => onDone(true)}
+      onCancel={() => onDone(false)}
+    >
       <p>{t('deleteWarning')}</p>
       <ul className="namelist">
         {items.map((i) => (
@@ -156,10 +162,23 @@ export function DestinationDialog({
   };
 
   return (
-    <Modal title={t('choose')} submit={action} disabled={!folders} error={error} onSubmit={submit} onCancel={() => onDone(null)}>
+    <Modal
+      title={t('choose')}
+      submit={action}
+      disabled={!folders}
+      error={error}
+      onSubmit={submit}
+      onCancel={() => onDone(null)}
+    >
       <div className="picker">
         <div className="picker-path">
-          <button type="button" className="btn icon" aria-label={t('up')} disabled={current === '/'} onClick={() => setCurrent(parent(current))}>
+          <button
+            type="button"
+            className="btn icon"
+            aria-label={t('up')}
+            disabled={current === '/'}
+            onClick={() => setCurrent(parent(current))}
+          >
             ↑
           </button>
           <span className="mono">{display(current)}</span>

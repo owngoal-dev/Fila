@@ -74,7 +74,11 @@ let package = Package(
         // dispatcher over this module and holds no file logic of its own,
         // which is what lets the tests reach every destructive path.
         .target(name: "CTerminalSession"),
-        .target(name: "FilaFileOps", dependencies: ["FilaProtocol", "CRemoveFile", "CTerminalSession"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(
+            name: "FilaFileOps",
+            dependencies: ["FilaProtocol", "CRemoveFile", "CTerminalSession"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
 
         // The app's side of the link: async XPC, one request per call, job
         // events as a stream — and, when there is no daemon to talk to, the
@@ -104,7 +108,11 @@ let package = Package(
                 "FilaProtocol", "FilaFileOps",
                 // The Swift wrapper and its C framework differ only by case.
                 // Give the wrapper a distinct module name for Xcode's loader.
-                .product(name: "LibArchive", package: "libarchive.xcframework", moduleAliases: ["LibArchive": "FilaLibArchive"]),
+                .product(
+                    name: "LibArchive",
+                    package: "libarchive.xcframework",
+                    moduleAliases: ["LibArchive": "FilaLibArchive"]
+                ),
                 .product(name: "MachOKit", package: "MachOKit"),
             ],
             resources: [.process("Resources")],
@@ -166,23 +174,56 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        .target(name: "FilaProvider", dependencies: ["FilaFileOps", "FilaProtocol"], swiftSettings: [.swiftLanguageMode(.v5)]),
-        .testTarget(name: "FilaProviderTests", dependencies: ["FilaProvider"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(
+            name: "FilaProvider",
+            dependencies: ["FilaFileOps", "FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaProviderTests",
+            dependencies: ["FilaProvider"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
 
-        .testTarget(name: "FilaProtocolTests", dependencies: ["FilaProtocol"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .testTarget(
+            name: "FilaProtocolTests",
+            dependencies: ["FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .target(name: "FilaTestSupport", path: "Tests/Support", swiftSettings: [.swiftLanguageMode(.v5)]),
-        .testTarget(name: "FilaFileOpsTests", dependencies: ["FilaFileOps", "CRemoveFile", "FilaTestSupport"], swiftSettings: [.swiftLanguageMode(.v5)]),
-        .testTarget(name: "FilaFormatsTests", dependencies: ["FilaFormats", "FilaFileOps"], swiftSettings: [.swiftLanguageMode(.v5)]),
-        .testTarget(name: "FilaLogTests", dependencies: ["FilaLog", "FilaProtocol"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .testTarget(
+            name: "FilaFileOpsTests",
+            dependencies: ["FilaFileOps", "CRemoveFile", "FilaTestSupport"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaFormatsTests",
+            dependencies: ["FilaFormats", "FilaFileOps"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaLogTests",
+            dependencies: ["FilaLog", "FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .testTarget(name: "FilaMediaTests", dependencies: ["FilaMedia"], swiftSettings: [.swiftLanguageMode(.v5)]),
-        .testTarget(name: "FilaClientTests", dependencies: ["FilaClient", "CRemoveFile"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .testTarget(
+            name: "FilaClientTests",
+            dependencies: ["FilaClient", "CRemoveFile"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         // FilaFileOps as well as FilaRemote: the harness's `RemoteFileService`
         // is the daemon's own file layer with the XPC hop taken out, so the
         // server is exercised against real `copyfile`/`removefile` calls and a
         // real `FilaGuard` rather than against a mock that cannot be wrong.
         .testTarget(
             name: "FilaRemoteTests",
-            dependencies: ["FilaRemote", "FilaFileOps", "CRemoveFile", .product(name: "NIOEmbedded", package: "swift-nio")],
+            dependencies: [
+                "FilaRemote",
+                "FilaFileOps",
+                "CRemoveFile",
+                .product(name: "NIOEmbedded", package: "swift-nio")
+            ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // Depends on FilaFileOps so the pump can be driven against a real

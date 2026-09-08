@@ -66,7 +66,9 @@
 
         static func decodeRequest(_ request: xpc_object_t) -> (sequence: UInt64, level: FilaLog.Level?) {
             let level = xpc_dictionary_get_value(request, FilaWireKey.logLevel).flatMap { _ in
-                FilaLog.Level(rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(request, FilaWireKey.logLevel)))
+                FilaLog.Level(
+                    rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(request, FilaWireKey.logLevel))
+                )
             }
             return (xpc_dictionary_get_uint64(request, FilaWireKey.logCursor), level)
         }

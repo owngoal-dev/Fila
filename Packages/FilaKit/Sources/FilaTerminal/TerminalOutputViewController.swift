@@ -10,7 +10,9 @@
         public init() {
             super.init(nibName: nil, bundle: nil)
             navigationItem.rightBarButtonItem = UIBarButtonItem(
-                barButtonSystemItem: .action, target: self, action: #selector(share)
+                barButtonSystemItem: .action,
+                target: self,
+                action: #selector(share)
             )
             navigationItem.rightBarButtonItem?.isEnabled = false
         }

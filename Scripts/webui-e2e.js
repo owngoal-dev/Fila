@@ -28,8 +28,11 @@ let page;
   const problems = [];
   // The test deliberately triggers a duplicate upload (412), a fake HEIC and a
   // missing file (404); those are the feature working, not problems.
-  const expectedFail = (url) => /\/hello\.txt$|\/hello2\.txt$|\/renamed\.txt$|\/Sub\/$|missing\.png|IMG_0001\.HEIC|\/_fila\/mark-/.test(url);
-  page.on('console', (m) => { if (m.type() === 'error' && !/40[04]|412/.test(m.text())) problems.push('console: ' + m.text()); });
+  const expectedFail = (url) =>
+    /\/hello\.txt$|\/hello2\.txt$|\/renamed\.txt$|\/Sub\/$|missing\.png|IMG_0001\.HEIC|\/_fila\/mark-/.test(url);
+  page.on('console', (m) => {
+    if (m.type() === 'error' && !/40[04]|412/.test(m.text())) problems.push('console: ' + m.text());
+  });
   page.on('pageerror', (e) => problems.push('pageerror: ' + e.message));
   page.on('requestfailed', (r) => { if (!expectedFail(r.url())) problems.push('requestfailed: ' + r.url()); });
 
@@ -51,10 +54,17 @@ let page;
     await el.type(text);
   };
   const waitNotice = async (substr) => {
-    await page.waitForFunction((s) => document.querySelector('.notice span')?.textContent.includes(s), { timeout: 10000 }, substr);
+    await page.waitForFunction(
+      (s) => document.querySelector('.notice span')?.textContent.includes(s),
+      { timeout: 10000 },
+      substr
+    );
     return page.$eval('.notice span', (e) => e.textContent);
   };
-  const idle = () => page.waitForFunction(() => !document.querySelector('.progress') && !document.querySelector('dialog[open]'), { timeout: 10000 });
+  const idle = () => page.waitForFunction(
+    () => !document.querySelector('.progress') && !document.querySelector('dialog[open]'),
+    { timeout: 10000 }
+  );
   const step = (name) => console.log('✓', name);
 
   // 1. Root listing
@@ -72,7 +82,10 @@ let page;
   await page.waitForFunction(() => location.pathname === '/Documents/');
   await idle();
   assert(includesAll(await rows(), ['config.plist', 'notes.txt']));
-  assert.deepStrictEqual(await page.$$eval('.crumbs button', (b) => b.map((x) => x.textContent)), ['Root', 'Documents']);
+  assert.deepStrictEqual(
+    await page.$$eval('.crumbs button', (b) => b.map((x) => x.textContent)),
+    ['Root', 'Documents']
+  );
   step('navigate into Documents');
 
   // 3. New folder
@@ -101,7 +114,10 @@ let page;
   await clearNotice();
   await input.uploadFile(local);
   await page.waitForSelector('dialog[open] input');
-  const selected = await page.$eval('dialog[open] input', (i) => document.activeElement === i && i.selectionEnd - i.selectionStart === i.value.length);
+  const selected = await page.$eval(
+    'dialog[open] input',
+    (i) => document.activeElement === i && i.selectionEnd - i.selectionStart === i.value.length
+  );
   assert(selected, 'prefilled name is selected on open');
   await page.waitForSelector('dialog[open]');
   assert((await page.$eval('dialog[open] h2', (e) => e.textContent)).includes('Choose Another Name'));
@@ -144,7 +160,9 @@ let page;
   await click('Copy');
   await page.waitForSelector('dialog[open] .picker-list button');
   await (await page.waitForSelector('dialog[open] .picker-list button::-p-text(Sub)')).click();
-  await page.waitForFunction(() => document.querySelector('dialog[open] .picker-path .mono')?.textContent === '/Documents/Sub/');
+  await page.waitForFunction(
+    () => document.querySelector('dialog[open] .picker-path .mono')?.textContent === '/Documents/Sub/'
+  );
   await page.screenshot({ path: path.join(shots, '3-picker.png') });
   await dialogSubmit();
   await waitNotice('2 completed.');
@@ -158,7 +176,9 @@ let page;
   await (await page.$('input[aria-label="Select renamed.txt"]')).click();
   await click('Move');
   await (await page.waitForSelector('dialog[open] .picker-list button::-p-text(Sub)')).click();
-  await page.waitForFunction(() => document.querySelector('dialog[open] .picker-path .mono')?.textContent === '/Documents/Sub/');
+  await page.waitForFunction(
+    () => document.querySelector('dialog[open] .picker-path .mono')?.textContent === '/Documents/Sub/'
+  );
   await dialogSubmit();
   const refused = await waitNotice('0 completed');
   assert(refused.includes('name is in use'), refused);
@@ -170,12 +190,17 @@ let page;
   // 9. Move to a sibling folder via the picker's parent button. The refused
   // move kept its selection (by design), so only select if it is not already.
   await clearNotice();
-  assert(await page.$eval('input[aria-label="Select renamed.txt"]', (c) => c.checked), 'failed batch keeps its selection');
+  assert(
+    await page.$eval('input[aria-label="Select renamed.txt"]', (c) => c.checked),
+    'failed batch keeps its selection'
+  );
   await click('Move');
   await page.waitForSelector('dialog[open] .picker-list button');
   await (await page.$('dialog[open] .picker-path button')).click(); // up to /
   await (await page.waitForSelector('dialog[open] .picker-list button::-p-text(Photos)')).click();
-  await page.waitForFunction(() => document.querySelector('dialog[open] .picker-path .mono')?.textContent === '/Photos/');
+  await page.waitForFunction(
+    () => document.querySelector('dialog[open] .picker-path .mono')?.textContent === '/Photos/'
+  );
   await dialogSubmit();
   await waitNotice('1 completed.');
   await idle();
@@ -213,9 +238,16 @@ let page;
   step('filter');
 
   // 13. Download links carry the download attribute; folders do not
-  const links = await page.$$eval('tbody a[download]', (a) => a.map((x) => [x.getAttribute('href'), x.getAttribute('download')]));
+  const links = await page.$$eval(
+    'tbody a[download]',
+    (a) => a.map((x) => [x.getAttribute('href'), x.getAttribute('download')])
+  );
   assert(links.some(([h, d]) => h === '/Documents/notes.txt' && d === 'notes.txt'), JSON.stringify(links));
-  assert.strictEqual(await page.$eval('tbody tr:first-child .name a', () => 1).catch(() => 0), 0, 'folder rows are buttons, not download links');
+  assert.strictEqual(
+    await page.$eval('tbody tr:first-child .name a', () => 1).catch(() => 0),
+    0,
+    'folder rows are buttons, not download links'
+  );
   const download = await page.evaluate(async () => {
     const r = await fetch('/Documents/notes.txt');
     return [r.status, r.headers.get('content-disposition'), await r.text()];
@@ -241,10 +273,19 @@ let page;
   step('breadcrumb fits');
 
   // 16. Artwork, favicon and brand mark load from /_fila/; QuickLook thumbnails render for media
-  const loaded = await page.$$eval('img.fileicon, img.brand-mark', (i) => i.map((x) => [x.getAttribute('src'), x.complete && x.naturalWidth > 0]));
+  const loaded = await page.$$eval(
+    'img.fileicon, img.brand-mark',
+    (i) => i.map((x) => [x.getAttribute('src'), x.complete && x.naturalWidth > 0])
+  );
   assert(loaded.length > 0 && loaded.every(([, ok]) => ok), 'artwork failed to load: ' + JSON.stringify(loaded));
-  assert(loaded.some(([s]) => s === '/_fila/folder.png') && loaded.some(([s]) => s === '/_fila/mark-light-2x.png'), JSON.stringify(loaded));
-  const favicons = await page.$$eval('link[rel=icon], link[rel=apple-touch-icon]', (l) => l.map((x) => [x.rel, x.getAttribute('href'), x.media]));
+  assert(
+    loaded.some(([s]) => s === '/_fila/folder.png') && loaded.some(([s]) => s === '/_fila/mark-light-2x.png'),
+    JSON.stringify(loaded)
+  );
+  const favicons = await page.$$eval(
+    'link[rel=icon], link[rel=apple-touch-icon]',
+    (l) => l.map((x) => [x.rel, x.getAttribute('href'), x.media])
+  );
   assert.strictEqual(favicons.length, 3, JSON.stringify(favicons));
   for (const [, href] of favicons) {
     const status = await page.evaluate(async (u) => (await fetch(u)).status, href);
@@ -252,12 +293,20 @@ let page;
   }
   await page.goto(base + '/Photos/', { waitUntil: 'networkidle0' });
   await page.waitForSelector('tbody tr');
-  await page.waitForFunction(() => [...document.querySelectorAll('img.thumb')].some((i) => i.complete && i.naturalWidth > 0), { timeout: 10000 });
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('img.thumb')].some((i) => i.complete && i.naturalWidth > 0),
+    { timeout: 10000 }
+  );
   const thumbs = await page.$$eval('img.thumb', (i) => i.map((x) => [x.getAttribute('src'), x.naturalWidth > 0]));
   assert(thumbs.some(([s, ok]) => s.includes('.png?thumbnail=') && ok), JSON.stringify(thumbs));
-  const heic = await page.evaluate(async () => { const r = await fetch('/Photos/IMG_0001.HEIC?thumbnail=64'); return r.status; });
+  const heic = await page.evaluate(async () => {
+    const r = await fetch('/Photos/IMG_0001.HEIC?thumbnail=64');
+    return r.status;
+  });
   assert.strictEqual(heic, 404, 'a fake HEIC has no thumbnail, and the row keeps its icon');
-  assert((await page.$$eval('tbody tr', (rows) => rows.map((r) => r.querySelector('img').className))).includes('fileicon'));
+  assert(
+    (await page.$$eval('tbody tr', (rows) => rows.map((r) => r.querySelector('img').className))).includes('fileicon')
+  );
   const lastMenu = (await page.$$('button[aria-label^="Actions for"]')).pop();
   await lastMenu.click();
   const menuBox = await page.$eval('.menu', (m) => {

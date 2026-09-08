@@ -186,7 +186,10 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     ) -> UISwipeActionsConfiguration? {
         guard !isChangingLibrary else { return nil }
         let track = rows[indexPath.row]
-        let action = UIContextualAction(style: .destructive, title: String(localized: "Delete")) { [weak self] _, _, completion in
+        let action = UIContextualAction(
+            style: .destructive,
+            title: String(localized: "Delete")
+        ) { [weak self] _, _, completion in
             completion(false)
             guard let self else { return }
             PermanentDeleteConfirmation.present(

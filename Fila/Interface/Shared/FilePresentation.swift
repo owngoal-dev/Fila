@@ -14,17 +14,27 @@ enum FilePresentation {
     /// Visible rows refine their fallback using four magic bytes in the app.
     /// A mode of 0777 also belongs to ordinary user documents, so it is not evidence.
     @MainActor
-    static func executableImage(for path: String, node: FileNode, session: FileSession, large: Bool = false) async -> UIImage? {
+    static func executableImage(
+        for path: String,
+        node: FileNode,
+        session: FileSession,
+        large: Bool = false
+    ) async -> UIImage? {
         guard node.kind == .regular || node.link?.resolvedKind == .regular else { return nil }
-        let found = await ThumbnailService.shared.isMachO(path: path, modified: node.modified,
-                                                          byteCount: node.kind == .symbolicLink ? 4 : node.size, cacheResult: node.kind != .symbolicLink)
-        {
+        let found = await ThumbnailService.shared.isMachO(
+            path: path,
+            modified: node.modified,
+            byteCount: node.kind == .symbolicLink ? 4 : node.size,
+            cacheResult: node.kind != .symbolicLink
+        ) {
             try await session.perform(retryOnDisconnect: true) {
                 try await $0.open(path, flags: O_RDONLY | O_NONBLOCK | (node.kind == .symbolicLink ? 0 : O_NOFOLLOW))
             }
         }
         guard found, !Task.isCancelled else { return nil }
-        return UIImage(named: large ? "FileIcons/executable-large" : "FileIcons/executable")?.withRenderingMode(.alwaysOriginal)
+        return UIImage(
+            named: large ? "FileIcons/executable-large" : "FileIcons/executable"
+        )?.withRenderingMode(.alwaysOriginal)
     }
 
     /// Which picture a row draws.

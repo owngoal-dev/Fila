@@ -96,9 +96,13 @@ enum TerminalSpawn {
             throw error
         }
         transferred = true
-        return TerminalLaunch(descriptor: master, process: TerminalProcess(processIdentifier: pid),
-                              executable: plan.targetExecutable, launcher: plan.executable,
-                              userIdentifier: plan.credential?.uid ?? getuid())
+        return TerminalLaunch(
+            descriptor: master,
+            process: TerminalProcess(processIdentifier: pid),
+            executable: plan.targetExecutable,
+            launcher: plan.executable,
+            userIdentifier: plan.credential?.uid ?? getuid()
+        )
     }
 
     /// Moves an owned action source out of the fixed 0...3 destination range.

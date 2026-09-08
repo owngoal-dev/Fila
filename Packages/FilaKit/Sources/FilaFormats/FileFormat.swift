@@ -187,7 +187,13 @@ private func isXMLPropertyList(_ head: Data) -> Bool {
 private final class PropertyListRoot: NSObject, XMLParserDelegate {
     var isPropertyList = false
 
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI _: String?, qualifiedName _: String?, attributes _: [String: String]) {
+    func parser(
+        _ parser: XMLParser,
+        didStartElement elementName: String,
+        namespaceURI _: String?,
+        qualifiedName _: String?,
+        attributes _: [String: String]
+    ) {
         isPropertyList = elementName == "plist"
         parser.abortParsing()
     }

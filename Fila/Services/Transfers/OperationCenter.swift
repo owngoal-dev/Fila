@@ -472,7 +472,8 @@ final class OperationCenter: ObservableObject {
         place(finished)
         trimFinished()
         NotificationCenter.default.post(
-            name: .filaJobFinished, object: finished.affected,
+            name: .filaJobFinished,
+            object: finished.affected,
             userInfo: ["kind": finished.kind.rawValue]
         )
         announce(finished)

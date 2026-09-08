@@ -68,7 +68,9 @@ enum Thumbnailer {
                 return nil
             }
             let data = NSMutableData()
-            guard let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
+            guard
+                let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)
+            else {
                 return nil
             }
             CGImageDestinationAddImage(destination, representation.cgImage, nil)

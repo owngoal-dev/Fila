@@ -7,8 +7,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) NSSet<NSString *> *editableFields;
 - (nullable instancetype)initWithExpectedDatabasePath:(NSString *)path error:(NSError **)error;
 - (nullable NSDictionary<NSString *, NSString *> *)valuesForTrackID:(int64_t)trackID error:(NSError **)error;
-- (BOOL)setValue:(id)value forField:(NSString *)field trackID:(int64_t)trackID expected:(NSString *)expected error:(NSError **)error;
-- (nullable NSNumber *)importFileAtPath:(NSString *)path metadata:(NSDictionary<NSString *, id> *)metadata error:(NSError **)error;
+- (BOOL)setValue:(id)value
+        forField:(NSString *)field
+         trackID:(int64_t)trackID
+        expected:(NSString *)expected
+           error:(NSError **)error;
+- (nullable NSNumber *)importFileAtPath:(NSString *)path
+                               metadata:(NSDictionary<NSString *, id> *)metadata
+                                  error:(NSError **)error;
 - (BOOL)deleteTrackID:(int64_t)trackID error:(NSError **)error;
 @end
 

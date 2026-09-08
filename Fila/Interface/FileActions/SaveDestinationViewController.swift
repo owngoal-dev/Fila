@@ -50,7 +50,9 @@ final class SaveDestinationViewController: UIViewController {
 
     private let nameField = UITextField()
     private var folders: [FileNode] = []
-    private lazy var dataSource = UICollectionViewDiffableDataSource<Int, String>(collectionView: list) { [weak self] list, indexPath, name in
+    private lazy var dataSource = UICollectionViewDiffableDataSource<Int, String>(
+        collectionView: list
+    ) { [weak self] list, indexPath, name in
         guard let self, let node = folders.first(where: { $0.name == name }) else { return nil }
         return list.dequeueConfiguredReusableCell(using: rowCell, for: indexPath, item: node)
     }
@@ -132,7 +134,12 @@ final class SaveDestinationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        NotificationCenter.default.addObserver(self, selector: #selector(filesChanged), name: .filaJobFinished, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(filesChanged),
+            name: .filaJobFinished,
+            object: nil
+        )
         list.refreshControl = UIRefreshControl()
         list.refreshControl?.addTarget(self, action: #selector(filesChanged), for: .valueChanged)
         list.alwaysBounceVertical = true

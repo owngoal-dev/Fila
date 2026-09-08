@@ -50,7 +50,9 @@ public struct MusicImportMetadata: Sendable {
                 if let number = pair.number { result.numbers[isDisc ? "DiscNumber" : "TrackNumber"] = number }
                 if let total = pair.total { result.numbers[isDisc ? "DiscCount" : "TrackCount"] = total }
             case .iTunesMetadataDiscCompilation:
-                if let number = try await item.load(.numberValue) { result.numbers["Compilation"] = number.boolValue ? 1 : 0 }
+                if let number = try await item.load(.numberValue) {
+                    result.numbers["Compilation"] = number.boolValue ? 1 : 0
+                }
             case .iTunesMetadataReleaseDate, .id3MetadataYear, .id3MetadataRecordingTime, .id3MetadataReleaseTime:
                 if let text {
                     if let year = Int64(text.prefix(4)), (1...9999).contains(year) { result.numbers["Year"] = year }

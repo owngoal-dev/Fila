@@ -15,9 +15,12 @@ final class TabNavigationController: UINavigationController {
             controller.navigationItem.preferredSearchBarPlacement = .integrated
             items.append(controller.navigationItem.searchBarPlacementBarButtonItem)
         }
-        let tabs = UIBarButtonItem(image: UIImage(systemName: "square.on.square"), primaryAction: UIAction { [weak self] _ in
-            self?.owner?.presentTabSwitcher()
-        })
+        let tabs = UIBarButtonItem(
+            image: UIImage(systemName: "square.on.square"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.owner?.presentTabSwitcher()
+            }
+        )
         tabs.accessibilityIdentifier = "fila.tabs"
         tabs.accessibilityLabel = String(localized: "Tabs")
         if #available(iOS 26.0, *) {

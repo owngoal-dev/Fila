@@ -21,7 +21,11 @@
 + (id)sharedLibrary;
 - (NSString *)databasePath;
 - (void)notifyEntitiesAddedOrRemoved;
-- (BOOL)importOriginalArtworkFromImageData:(NSData *)data withArtworkToken:(NSString *)token artworkType:(int64_t)artworkType sourceType:(int64_t)sourceType mediaType:(uint32_t)mediaType;
+- (BOOL)importOriginalArtworkFromImageData:(NSData *)data
+                          withArtworkToken:(NSString *)token
+                               artworkType:(int64_t)artworkType
+                                sourceType:(int64_t)sourceType
+                                 mediaType:(uint32_t)mediaType;
 - (id)checkoutWriterConnection;
 - (void)checkInDatabaseConnection:(id)connection;
 @end
@@ -51,14 +55,20 @@
 
 @protocol MusicEditAPI
 - (id)initWithLibrary:(id)library writer:(id)writer;
-- (BOOL)_setValues:(NSArray *)values forProperties:(NSArray *)properties withEntityClass:(Class)entityClass usingPersistentID:(int64_t)trackID connection:(id)connection error:(NSError **)error;
+- (BOOL)_setValues:(NSArray *)values
+     forProperties:(NSArray *)properties
+   withEntityClass:(Class)entityClass
+ usingPersistentID:(int64_t)trackID
+        connection:(id)connection
+             error:(NSError **)error;
 @end
 
 
 static BOOL Signature(Method method, const char *result, NSArray<NSString *> *arguments, NSError **error) {
     if (!method || method_getNumberOfArguments(method) != arguments.count) {
         if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:1 userInfo:@{
-            NSLocalizedDescriptionKey: @"A required MusicLibrary method is missing or has an unsupported argument count."
+            NSLocalizedDescriptionKey:
+                @"A required MusicLibrary method is missing or has an unsupported argument count."
         }];
         return NO;
     }
@@ -71,7 +81,9 @@ static BOOL Signature(Method method, const char *result, NSArray<NSString *> *ar
         free(type);
     }
     if (!matches && error) *error = [NSError errorWithDomain:@"MusicLibrary" code:1 userInfo:@{
-        NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Unsupported MusicLibrary signature: %@ (%s).", NSStringFromSelector(method_getName(method)), method_getTypeEncoding(method)]
+        NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Unsupported MusicLibrary signature: %@ (%s).",
+                                    NSStringFromSelector(method_getName(method)),
+                                    method_getTypeEncoding(method)]
     }];
     return matches;
 }
@@ -151,19 +163,23 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         NSString *actual = [(id<MusicLibraryAPI>)_library databasePath];
         if (![actual.stringByResolvingSymlinksInPath isEqualToString:path.stringByResolvingSymlinksInPath]) {
             if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:1 userInfo:@{
-                NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary opened %@ instead of %@.", actual, path]
+                NSLocalizedDescriptionKey:
+                    [NSString stringWithFormat:@"MusicLibrary opened %@ instead of %@.", actual, path]
             }];
             return nil;
         }
         NSMutableDictionary *properties = [NSMutableDictionary dictionary];
         NSMutableSet *editable = [NSMutableSet set];
         NSSet *unsettable = [(Class<MusicTrackAPI>)_trackClass unsettableProperties];
-        for (NSString *field in @[@"Title", @"Artist", @"Album", @"AlbumArtist", @"Genre", @"Composer", @"Year", @"TrackNumber", @"DiscNumber", @"Comment"]) {
+        for (NSString *field in @[@"Title", @"Artist", @"Album", @"AlbumArtist", @"Genre", @"Composer",
+                                  @"Year", @"TrackNumber", @"DiscNumber", @"Comment"]) {
             NSString *symbol = [@"ML3TrackProperty" stringByAppendingString:field];
-            NSString * __unsafe_unretained const *property = (NSString * __unsafe_unretained const *)dlsym(image, symbol.UTF8String);
+            NSString * __unsafe_unretained const *property =
+                (NSString * __unsafe_unretained const *)dlsym(image, symbol.UTF8String);
             if (!property || ![*property isKindOfClass:NSString.class]) {
                 if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:1 userInfo:@{
-                    NSLocalizedDescriptionKey: [@"MusicLibrary property is unavailable: " stringByAppendingString:symbol]
+                    NSLocalizedDescriptionKey:
+                        [@"MusicLibrary property is unavailable: " stringByAppendingString:symbol]
                 }];
                 return nil;
             }
@@ -175,7 +191,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         return self;
     } @catch (NSException *exception) {
         if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:1 userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary initialization: %@: %@", exception.name, exception.reason]
+            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary initialization: %@: %@",
+                                        exception.name,
+                                        exception.reason]
         }];
         return nil;
     }
@@ -204,7 +222,11 @@ static id ImportObject(NSString *className, NSDictionary *values) {
     }
 }
 
-- (BOOL)setValue:(id)value forField:(NSString *)field trackID:(int64_t)trackID expected:(NSString *)expected error:(NSError **)error {
+- (BOOL)setValue:(id)value
+        forField:(NSString *)field
+         trackID:(int64_t)trackID
+        expected:(NSString *)expected
+           error:(NSError **)error {
     @try {
         NSString *property = _properties[field];
         if (!property || ![_editableFields containsObject:field]) { Failure(error, 1); return NO; }
@@ -217,7 +239,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         };
         NSString *column = columns[field];
         if (!column) { Failure(error, 1); return NO; }
-        NSString *query = [NSString stringWithFormat:@"SELECT COALESCE(CAST(%@ AS TEXT), '') FROM item JOIN item_extra USING(item_pid) WHERE item.item_pid = ?", column];
+        NSString *query = [NSString stringWithFormat:
+            @"SELECT COALESCE(CAST(%@ AS TEXT), '') FROM item JOIN item_extra USING(item_pid) WHERE item.item_pid = ?",
+            column];
         id<MusicConnectionAPI> connection = [(id<MusicLibraryAPI>)_library checkoutWriterConnection];
         @try {
             if (![connection pushTransaction]) { Failure(error, 3); return NO; }
@@ -228,8 +252,16 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             // ML3Track's setter forwards to the system service even when given
             // a connection. This native operation keeps the comparison, field
             // update and revision bookkeeping in our one transaction.
-            id<MusicEditAPI> operation = [(id<MusicEditAPI>)[NSClassFromString(@"ML3SetValuesForPropertiesOperation") alloc] initWithLibrary:_library writer:nil];
-            if (![operation _setValues:@[value] forProperties:@[property] withEntityClass:_trackClass usingPersistentID:trackID connection:connection error:error]) {
+            id<MusicEditAPI> operation =
+                [(id<MusicEditAPI>)[NSClassFromString(@"ML3SetValuesForPropertiesOperation") alloc]
+                    initWithLibrary:_library
+                    writer:nil];
+            if (![operation _setValues:@[value]
+                         forProperties:@[property]
+                       withEntityClass:_trackClass
+                     usingPersistentID:trackID
+                            connection:connection
+                                 error:error]) {
                 if (error && !*error) Failure(error, 3);
                 return NO;
             }
@@ -258,7 +290,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
 }
 
 
-- (NSNumber *)importFileAtPath:(NSString *)path metadata:(NSDictionary<NSString *, id> *)metadata error:(NSError **)error {
+- (NSNumber *)importFileAtPath:(NSString *)path
+                      metadata:(NSDictionary<NSString *, id> *)metadata
+                         error:(NSError **)error {
     id<MusicImportAPI> importer = nil;
     NSNumber *identifier = nil;
     BOOL attemptedAdd = NO;
@@ -282,16 +316,22 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod([_library class], @selector(importOriginalArtworkFromImageData:withArtworkToken:artworkType:sourceType:mediaType:)), "B", @[@"@", @":", @"@", @"@", @"q", @"q", @"I"], error))) return nil;
 
         id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
-            @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath], @"shouldLibraryAdd": @YES
+            @"operationCount": @1,
+            @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath],
+            @"shouldLibraryAdd": @YES
         });
         NSMutableDictionary *artistValues = [@{@"name": metadata[@"Artist"] ?: @""} mutableCopy];
         if (metadata[@"SortArtist"]) artistValues[@"sortName"] = metadata[@"SortArtist"];
         id artist = ImportObject(@"MIPArtist", artistValues);
-        NSMutableDictionary *albumArtistValues = [@{@"name": metadata[@"AlbumArtist"] ?: metadata[@"Artist"] ?: @""} mutableCopy];
+        NSMutableDictionary *albumArtistValues =
+            [@{@"name": metadata[@"AlbumArtist"] ?: metadata[@"Artist"] ?: @""} mutableCopy];
         if (metadata[@"SortAlbumArtist"]) albumArtistValues[@"sortName"] = metadata[@"SortAlbumArtist"];
         id albumArtist = ImportObject(@"MIPArtist", albumArtistValues);
         NSMutableDictionary *albumValues = [@{@"name": metadata[@"Album"] ?: @"", @"artist": albumArtist} mutableCopy];
-        NSDictionary *albumFields = @{@"SortAlbum": @"sortName", @"TrackCount": @"numTracks", @"DiscCount": @"numDiscs", @"Compilation": @"compilation"};
+        NSDictionary *albumFields = @{
+            @"SortAlbum": @"sortName", @"TrackCount": @"numTracks",
+            @"DiscCount": @"numDiscs", @"Compilation": @"compilation"
+        };
         for (NSString *key in albumFields) if (metadata[key]) albumValues[albumFields[key]] = metadata[key];
         // The native original-artwork helper resolves artwork type 1/source 500.
         // Give both entities the same unique token before populating its cache.
@@ -299,7 +339,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         if (artworkToken) { albumValues[@"artworkId"] = artworkToken; albumValues[@"artworkSourceType"] = @500; }
         id album = ImportObject(@"MIPAlbum", albumValues);
         NSMutableDictionary *songValues = [@{@"artist": artist, @"album": album} mutableCopy];
-        NSDictionary *songFields = @{@"Lyrics": @"lyrics", @"TrackNumber": @"trackNumber", @"DiscNumber": @"discNumber"};
+        NSDictionary *songFields = @{
+            @"Lyrics": @"lyrics", @"TrackNumber": @"trackNumber", @"DiscNumber": @"discNumber"
+        };
         for (NSString *key in songFields) if (metadata[key]) songValues[songFields[key]] = metadata[key];
         if (metadata[@"Composer"]) {
             NSMutableDictionary *composer = [@{@"name": metadata[@"Composer"]} mutableCopy];
@@ -312,7 +354,10 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             @"title": metadata[@"Title"], @"duration": metadata[@"TotalTime"],
             @"mediaType": @1, @"isInUsersLibrary": @YES, @"song": song
         } mutableCopy];
-        NSDictionary *mediaFields = @{@"SortTitle": @"sortTitle", @"Year": @"year", @"Comment": @"comment", @"Copyright": @"copyright", @"ReleaseDateTime": @"releaseDateTime"};
+        NSDictionary *mediaFields = @{
+            @"SortTitle": @"sortTitle", @"Year": @"year", @"Comment": @"comment",
+            @"Copyright": @"copyright", @"ReleaseDateTime": @"releaseDateTime"
+        };
         for (NSString *key in mediaFields) if (metadata[key]) mediaValues[mediaFields[key]] = metadata[key];
         if (artworkToken) { mediaValues[@"artworkId"] = artworkToken; mediaValues[@"artworkSourceType"] = @500; }
         id media = ImportObject(@"MIPMediaItem", mediaValues);
@@ -342,7 +387,8 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         // The client importer does not persist the MIPSong lyrics body. Use
         // the track's native property writer and verify the saved text.
         if (metadata[@"Lyrics"]) {
-            NSString *__unsafe_unretained *symbol = (NSString *__unsafe_unretained *)dlsym(RTLD_DEFAULT, "ML3TrackPropertyLyrics");
+            NSString *__unsafe_unretained *symbol =
+                (NSString *__unsafe_unretained *)dlsym(RTLD_DEFAULT, "ML3TrackPropertyLyrics");
             NSString *property = symbol ? *symbol : nil;
             if (!property || ![track setValue:metadata[@"Lyrics"] forProperty:property]
                 || ![[track valueForProperty:property] isEqual:metadata[@"Lyrics"]]) {
@@ -371,7 +417,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         return identifier;
     } @catch (NSException *exception) {
         if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:3 userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary import: %@: %@", exception.name, exception.reason]
+            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary import: %@: %@",
+                                        exception.name,
+                                        exception.reason]
         }];
         return nil;
     } @finally {
@@ -422,7 +470,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         return YES;
     } @catch (NSException *exception) {
         if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:3 userInfo:@{
-            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary delete: %@: %@", exception.name, exception.reason]
+            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary delete: %@: %@",
+                                        exception.name,
+                                        exception.reason]
         }];
         return NO;
     } @finally {

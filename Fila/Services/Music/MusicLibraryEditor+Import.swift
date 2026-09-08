@@ -54,7 +54,9 @@ extension MusicLibraryEditor {
         let center = await session.operations
         let result = try await center.awaitJob(
             JobRequest(kind: .copy, sources: [source.path], destination: Self.importDirectory),
-            kind: .copy, subtitle: URL(fileURLWithPath: path).lastPathComponent, feedback: .silent
+            kind: .copy,
+            subtitle: URL(fileURLWithPath: path).lastPathComponent,
+            feedback: .silent
         )
         // A failed copy does not establish ownership of the destination name.
         // Only a confirmed publication may be cleaned up by this import.
@@ -76,7 +78,9 @@ extension MusicLibraryEditor {
             do {
                 let result = try await center.awaitJob(
                     JobRequest(kind: .delete, sources: [destination]),
-                    kind: .delete, subtitle: name, feedback: .silent
+                    kind: .delete,
+                    subtitle: name,
+                    feedback: .silent
                 )
                 if result.code != .success, result.systemError != ENOENT {
                     throw result

@@ -108,19 +108,31 @@ extension MachOImage {
         switch command {
         case let .segment64(segment):
             try result.segments.append(segmentSummary(
-                name: fixedString(bytes, at: 8, count: 16), address: segment.layout.vmaddr,
-                size: segment.layout.vmsize, offset: segment.layout.fileoff, fileSize: segment.layout.filesize,
-                protection: segment.initialProtection, sections: segment.layout.nsects,
-                bytes: bytes, headerSize: 72, sectionSize: 80, slice: slice
+                name: fixedString(bytes, at: 8, count: 16),
+                address: segment.layout.vmaddr,
+                size: segment.layout.vmsize,
+                offset: segment.layout.fileoff,
+                fileSize: segment.layout.filesize,
+                protection: segment.initialProtection,
+                sections: segment.layout.nsects,
+                bytes: bytes,
+                headerSize: 72,
+                sectionSize: 80,
+                slice: slice
             ))
         case let .segment(segment):
             try result.segments.append(segmentSummary(
-                name: fixedString(bytes, at: 8, count: 16), address: UInt64(segment.layout.vmaddr),
+                name: fixedString(bytes, at: 8, count: 16),
+                address: UInt64(segment.layout.vmaddr),
                 size: UInt64(segment.layout.vmsize),
                 offset: UInt64(segment.layout.fileoff),
                 fileSize: UInt64(segment.layout.filesize),
-                protection: segment.initialProtection, sections: segment.layout.nsects,
-                bytes: bytes, headerSize: 56, sectionSize: 68, slice: slice
+                protection: segment.initialProtection,
+                sections: segment.layout.nsects,
+                bytes: bytes,
+                headerSize: 56,
+                sectionSize: 68,
+                slice: slice
             ))
         case let .buildVersion(version):
             guard UInt64(version.layout.ntools) * 8 <= bytes.count - 24 else {
@@ -167,10 +179,19 @@ extension MachOImage {
         }
     }
 
-    private static func segmentSummary(name: String, address: UInt64, size: UInt64, offset: UInt64,
-                                       fileSize: UInt64, protection: VMProtection, sections: UInt32,
-                                       bytes: Data, headerSize: Int, sectionSize: Int, slice: Slice) throws -> Segment
-    {
+    private static func segmentSummary(
+        name: String,
+        address: UInt64,
+        size: UInt64,
+        offset: UInt64,
+        fileSize: UInt64,
+        protection: VMProtection,
+        sections: UInt32,
+        bytes: Data,
+        headerSize: Int,
+        sectionSize: Int,
+        slice: Slice
+    ) throws -> Segment {
         guard offset <= slice.byteCount, fileSize <= UInt64(slice.byteCount) - offset,
               UInt64(sections) * UInt64(sectionSize) <= bytes.count - headerSize
         else {
@@ -179,8 +200,15 @@ extension MachOImage {
         let names = (0 ..< Int(sections)).map { fixedString(bytes, at: headerSize + $0 * sectionSize, count: 16) }
         let permissions = (protection.contains(.read) ? "r" : "-")
             + (protection.contains(.write) ? "w" : "-") + (protection.contains(.execute) ? "x" : "-")
-        return Segment(name: name, virtualAddress: address, virtualSize: size, fileOffset: offset,
-                       fileSize: fileSize, protections: permissions, sections: names)
+        return Segment(
+            name: name,
+            virtualAddress: address,
+            virtualSize: size,
+            fileOffset: offset,
+            fileSize: fileSize,
+            protections: permissions,
+            sections: names
+        )
     }
 
     private static func fixedString(_ bytes: Data, at offset: Int, count: Int) -> String {
