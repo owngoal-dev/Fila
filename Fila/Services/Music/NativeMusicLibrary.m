@@ -118,6 +118,17 @@ static id ImportObject(NSString *className, NSDictionary *values) {
     return object;
 }
 
+// These hints were added after the original client importer. Older systems
+// already add local items and choose their own artwork source. Required
+// metadata still goes through ImportObject and must never be silently skipped.
+static void OptionalImportValue(id object, NSString *key, id value) {
+    NSString *setter = [NSString stringWithFormat:@"set%@%@:",
+                        [key substringToIndex:1].uppercaseString, [key substringFromIndex:1]];
+    if ([object respondsToSelector:NSSelectorFromString(setter)]) {
+        [object setValue:value forKey:key];
+    }
+}
+
 @implementation NativeMusicLibrary {
     id _library;
     Class _trackClass;
@@ -317,9 +328,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
 
         id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
             @"operationCount": @1,
-            @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath],
-            @"shouldLibraryAdd": @YES
+            @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath]
         });
+        OptionalImportValue(configuration, @"shouldLibraryAdd", @YES);
         NSMutableDictionary *artistValues = [@{@"name": metadata[@"Artist"] ?: @""} mutableCopy];
         if (metadata[@"SortArtist"]) artistValues[@"sortName"] = metadata[@"SortArtist"];
         id artist = ImportObject(@"MIPArtist", artistValues);
@@ -336,8 +347,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         // The native original-artwork helper resolves artwork type 1/source 500.
         // Give both entities the same unique token before populating its cache.
         NSString *artworkToken = metadata[@"Artwork"] ? NSUUID.UUID.UUIDString : nil;
-        if (artworkToken) { albumValues[@"artworkId"] = artworkToken; albumValues[@"artworkSourceType"] = @500; }
+        if (artworkToken) albumValues[@"artworkId"] = artworkToken;
         id album = ImportObject(@"MIPAlbum", albumValues);
+        if (artworkToken) OptionalImportValue(album, @"artworkSourceType", @500);
         NSMutableDictionary *songValues = [@{@"artist": artist, @"album": album} mutableCopy];
         NSDictionary *songFields = @{
             @"Lyrics": @"lyrics", @"TrackNumber": @"trackNumber", @"DiscNumber": @"discNumber"
@@ -359,8 +371,9 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             @"Copyright": @"copyright", @"ReleaseDateTime": @"releaseDateTime"
         };
         for (NSString *key in mediaFields) if (metadata[key]) mediaValues[mediaFields[key]] = metadata[key];
-        if (artworkToken) { mediaValues[@"artworkId"] = artworkToken; mediaValues[@"artworkSourceType"] = @500; }
+        if (artworkToken) mediaValues[@"artworkId"] = artworkToken;
         id media = ImportObject(@"MIPMediaItem", mediaValues);
+        if (artworkToken) OptionalImportValue(media, @"artworkSourceType", @500);
         id identity = ImportObject(@"MIPMultiverseIdentifier", @{
             @"mediaType": @1, @"mediaObjectType": @6, @"name": NSUUID.UUID.UUIDString
         });

@@ -201,6 +201,7 @@ check:
 # package instead of inside the daemon target.
 harness:
 	swift test --package-path "$(PACKAGE_DIR)"
+	Scripts/test-music-import.sh
 
 build: harness compile
 
