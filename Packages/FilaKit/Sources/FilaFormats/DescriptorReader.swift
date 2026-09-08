@@ -19,13 +19,15 @@ public struct DescriptorReader: Sendable {
     public init(descriptor: Int32) throws {
         var status = stat()
         guard fstat(descriptor, &status) == 0 else { throw FormatFailure.system(errno: errno) }
+        guard status.st_mode & S_IFMT == S_IFREG, status.st_size >= 0 else { throw FormatFailure.system(errno: EINVAL) }
         self.descriptor = descriptor
         byteCount = Int64(status.st_size)
     }
 
     /// Up to `count` bytes at `offset`. Short at the end of the file.
     public func readUpTo(at offset: Int64, count: Int) throws -> Data {
-        guard count > 0, offset >= 0 else { return Data() }
+        guard count > 0, offset >= 0, offset < byteCount else { return Data() }
+        let count = min(count, Int(byteCount - offset))
         var buffer = Data(count: count)
         var filled = 0
         while filled < count {

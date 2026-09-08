@@ -15,15 +15,16 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     }
 
     private func configureMenu() {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: FilaMenu.groups([
             UIAction(title: String(localized: "Import Music"), image: UIImage(systemName: "square.and.arrow.down"), attributes: importing ? .disabled : []) { [weak self] _ in
                 self?.chooseMusic()
             },
             UIAction(title: String(localized: "Refresh"), image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in self?.reload() },
+        ], [
             UIAction(title: String(localized: "Show Library Folder"), image: UIImage(systemName: "folder")) { [weak self] _ in
                 self?.navigationController?.pushViewController(BrowserViewController(directory: "/var/mobile/Media/iTunes_Control"), animated: true)
             },
-        ]))
+        ])))
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
     }
 

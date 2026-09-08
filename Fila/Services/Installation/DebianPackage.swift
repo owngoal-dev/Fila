@@ -27,7 +27,7 @@ enum DebianPackage {
                 guard entry.declaredPath.hasPrefix("control.tar") else { continue }
                 let out = open(spill, O_WRONLY | O_CREAT | O_EXCL, 0o600)
                 guard out >= 0 else { throw FilaFailure(code: .operationFailed, systemError: errno, path: spill) }
-                do { _ = try outer.read(into: out) } catch { close(out); throw error }
+                do { _ = try outer.read(into: out, maximumByteCount: 16 * 1_024 * 1_024) } catch { close(out); throw error }
                 close(out)
                 let inner = open(spill, O_RDONLY)
                 guard inner >= 0 else { throw FilaFailure(code: .operationFailed, systemError: errno, path: spill) }

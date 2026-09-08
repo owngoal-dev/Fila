@@ -105,7 +105,7 @@ public struct MachOImage: Sendable {
     /// entitlements themselves: a code signature on a large binary is mostly
     /// page hashes, and there is no reason to pull megabytes of those in to
     /// find a two-kilobyte plist.
-    public func entitlements(of slice: Slice) throws -> PropertyListDocument? {
+    public func entitlements(of slice: Slice, maximumByteCount: Int64 = 128 * 1_024) throws -> PropertyListDocument? {
         guard let signature = slice.signature, signature.byteCount >= 12 else { return nil }
 
         let index = try reader.readUpTo(at: signature.offset, count: min(Int(signature.byteCount), 12 + 64 * 8))
@@ -128,8 +128,8 @@ public struct MachOImage: Sendable {
             guard length > 8, Int64(blobOffset) + Int64(length) <= signature.byteCount else {
                 throw FormatFailure.damaged("its entitlements are truncated")
             }
-            guard Int64(length) - 8 <= PropertyListDocument.maximumByteCount else {
-                throw FormatFailure.tooLarge(byteCount: Int64(length) - 8, limit: PropertyListDocument.maximumByteCount)
+            guard Int64(length) - 8 <= maximumByteCount else {
+                throw FormatFailure.tooLarge(byteCount: Int64(length) - 8, limit: maximumByteCount)
             }
             let plist = try reader.read(at: signature.offset + Int64(blobOffset) + 8, count: Int(length) - 8)
             return try PropertyListDocument(data: plist)
@@ -142,10 +142,11 @@ public struct MachOImage: Sendable {
         let count: UInt32 = try header.integer(at: 4, bigEndian: bigEndian)
         // `lipo` itself refuses more than a handful; anything beyond this is a
         // length field being used to make us allocate.
-        guard count > 0, count <= 64 else { throw FormatFailure.damaged("its list of architectures could not be read") }
+        guard count > 0, count <= 8 else { throw FormatFailure.damaged("its list of architectures could not be read") }
 
         let entrySize = is64 ? 32 : 20
         let table = try reader.read(at: 8, count: Int(count) * entrySize)
+        var remainingCommands = maximumLoadCommandByteCount
 
         return try (0 ..< Int(count)).map { index in
             let base = index * entrySize
@@ -164,6 +165,14 @@ public struct MachOImage: Sendable {
             guard offset >= Int64(8 + Int(count) * entrySize) else {
                 throw FormatFailure.damaged("its architecture list is invalid")
             }
+            let header = try reader.read(at: offset, count: 24)
+            let magic: UInt32 = try header.littleEndian(at: 0)
+            let swapped = magic == 0xCEFAEDFE || magic == 0xCFFAEDFE
+            let commands: UInt32 = try header.integer(at: 20, bigEndian: swapped)
+            guard Int64(commands) <= remainingCommands else {
+                throw FormatFailure.tooLarge(byteCount: maximumLoadCommandByteCount + 1, limit: maximumLoadCommandByteCount)
+            }
+            remainingCommands -= Int64(commands)
             return try slice(reader, at: offset, byteCount: byteCount)
         }
     }

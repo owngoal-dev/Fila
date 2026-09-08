@@ -17,17 +17,18 @@ public struct AudioMetadata {
     public var discCount: Int?
 
     public static func load(from asset: AVAsset) async -> AudioMetadata {
-        var items = (try? await asset.load(.commonMetadata)) ?? []
-        for format in (try? await asset.load(.availableMetadataFormats)) ?? [] {
+        var items = Array(((try? await asset.load(.commonMetadata)) ?? []).prefix(256))
+        for format in ((try? await asset.load(.availableMetadataFormats)) ?? []).prefix(8) {
+            guard items.count < 256 else { break }
             guard !Task.isCancelled else { return AudioMetadata() }
-            items += (try? await asset.loadMetadata(for: format)) ?? []
+            items += ((try? await asset.loadMetadata(for: format)) ?? []).prefix(256 - items.count)
         }
         return await decode(items)
     }
 
     static func decode(_ items: [AVMetadataItem]) async -> AudioMetadata {
         var result = AudioMetadata()
-        for item in items {
+        for item in items.prefix(256) {
             guard !Task.isCancelled else { break }
             guard let identifier = item.identifier else { continue }
             if [.commonIdentifierArtwork, .iTunesMetadataCoverArt, .id3MetadataAttachedPicture,
@@ -52,6 +53,16 @@ public struct AudioMetadata {
                     if result.discCount == nil { result.discCount = pair.count }
                 }
                 continue
+            }
+            switch identifier {
+            case .commonIdentifierTitle, .iTunesMetadataSongName, .id3MetadataTitleDescription, .quickTimeMetadataTitle,
+                 .commonIdentifierArtist, .iTunesMetadataArtist, .id3MetadataLeadPerformer, .quickTimeMetadataArtist,
+                 .commonIdentifierAlbumName, .iTunesMetadataAlbum, .id3MetadataAlbumTitle, .quickTimeMetadataAlbum,
+                 .iTunesMetadataAlbumArtist, .id3MetadataBand,
+                 .iTunesMetadataComposer, .id3MetadataComposer, .quickTimeMetadataComposer, .quickTimeUserDataComposer,
+                 .iTunesMetadataUserGenre, .id3MetadataContentType, .quickTimeMetadataGenre, .quickTimeUserDataGenre,
+                 .id3MetadataTrackNumber, .id3MetadataPartOfASet: break
+            default: continue
             }
             guard let raw = try? await item.load(.stringValue) else { continue }
             let text = String(raw.trimmingCharacters(in: .whitespacesAndNewlines).prefix(8_192))

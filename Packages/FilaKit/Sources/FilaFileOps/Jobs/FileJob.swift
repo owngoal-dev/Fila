@@ -158,13 +158,13 @@ public final class FileJob: @unchecked Sendable {
         // duplicates and overlapping roots before any item can be changed.
         let sourceSet = Set(sources)
         guard sourceSet.count == sources.count else {
-            throw FilaFailure(code: .invalidRequest, systemError: EINVAL)
+            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, reason: .overlappingSources)
         }
         for source in sources {
             var parent = FilaPath.directory(of: source)
             while parent != source {
                 guard !sourceSet.contains(parent) else {
-                    throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: source)
+                    throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: source, reason: .overlappingSources)
                 }
                 if parent == "/" { break }
                 parent = FilaPath.directory(of: parent)
@@ -175,13 +175,13 @@ public final class FileJob: @unchecked Sendable {
         if request.kind == .restore {
             targets = try sources.map { try restoreTarget(for: $0) }
             guard Set(targets).count == targets.count else {
-                throw FilaFailure(code: .invalidRequest, systemError: EINVAL)
+                throw FilaFailure(code: .invalidRequest, systemError: EINVAL, reason: .conflictingNames)
             }
         } else if request.kind != .delete {
             let directory = try destinationDirectory()
             targets = try sources.map { try target(in: directory, for: $0) }
             guard Set(targets).count == targets.count else {
-                throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: directory)
+                throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: directory, reason: .conflictingNames)
             }
         }
 
@@ -241,7 +241,7 @@ public final class FileJob: @unchecked Sendable {
         // keeps going until the path runs out — filling the volume on the way.
         // `renameat` catches it with EINVAL; copyfile does not.
         guard source != directory, !FilaGuard.isAncestor(source, of: directory) else {
-            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: directory)
+            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: directory, reason: .insideSource)
         }
 
         let target = try operations.resolveForWrite(FilaPath.join(directory, FilaPath.name(of: source)))
@@ -253,14 +253,21 @@ public final class FileJob: @unchecked Sendable {
             return target
         }
         guard sourceMetadata.st_dev != targetMetadata.st_dev || sourceMetadata.st_ino != targetMetadata.st_ino else {
-            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: target)
+            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: target, reason: source == target ? .sameLocation : .sameItem)
+        }
+        // An approved replacement must report the destruction guard first,
+        // even when the source and destination also have incompatible types.
+        if request.overwrite {
+            _ = try operations.resolveForDestruction(target, overrideGuard: request.overrideGuard)
+        }
+        // Like cp, reject a file/folder collision before asking to replace it.
+        // Use lstat: replacing a symlink must still replace the link itself.
+        guard (sourceMetadata.st_mode & S_IFMT == S_IFDIR) == (targetMetadata.st_mode & S_IFMT == S_IFDIR) else {
+            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: target, reason: .differentItemKinds)
         }
         guard request.overwrite else {
             throw FilaFailure(code: .operationFailed, systemError: EEXIST, path: target)
         }
-        // Overwriting is destroying whatever was there, so it is the guard's
-        // business even though the client called it a copy.
-        _ = try operations.resolveForDestruction(target, overrideGuard: request.overrideGuard)
         if targetMetadata.st_mode & S_IFMT == S_IFDIR {
             guard let entries = opendir(target) else { throw FilaFailure(errno: Darwin.errno, path: target) }
             defer { closedir(entries) }

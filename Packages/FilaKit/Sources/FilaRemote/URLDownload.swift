@@ -1,5 +1,6 @@
 import FilaProtocol
 import Foundation
+import FilaFileOps
 
 /// Pulling a URL down to a path, the app's half.
 ///
@@ -57,6 +58,8 @@ public enum URLDownload {
             throw Failure.unsupportedScheme
         }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try StorageSpace.requireAvailable(at: FileManager.default.temporaryDirectory.path)
+        try StorageSpace.requireAvailable(at: directory.path)
 
         let observer = DownloadObserver(
             directory: directory,
@@ -168,11 +171,19 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
 
     func urlSession(
         _: URLSession,
-        downloadTask _: URLSessionDownloadTask,
+        downloadTask: URLSessionDownloadTask,
         didWriteData _: Int64,
         totalBytesWritten: Int64,
         totalBytesExpectedToWrite: Int64
     ) {
+        do {
+            // URLSession writes a system-owned temporary before our final move.
+            try StorageSpace.requireAvailable(at: FileManager.default.temporaryDirectory.path)
+        } catch {
+            settle(.failure(error))
+            downloadTask.cancel()
+            return
+        }
         let isLast = totalBytesWritten == totalBytesExpectedToWrite
         guard isLast || totalBytesWritten - reported >= Self.reportInterval else { return }
         reported = totalBytesWritten

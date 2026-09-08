@@ -140,6 +140,7 @@ public final class ArchiveJob: @unchecked Sendable {
             guard length > 0 else { throw FilaFailure(errno: Darwin.errno, path: path) }
             linkTarget = String(cString: buffer)
         }
+        guard members.count < ArchiveReader.maximumEntryCount else { throw FilaFailure(errno: E2BIG, path: path) }
         members.append(Member(
             name: name,
             path: path,
@@ -187,7 +188,7 @@ public final class ArchiveJob: @unchecked Sendable {
                 }
                 try writer.addSymbolicLink(member.name, target: target, mode: member.mode, modified: member.modified)
             case .regular:
-                let source = try operations.open(member.path, flags: O_RDONLY | O_NOFOLLOW, mode: 0)
+                let source = try operations.open(member.path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW, mode: 0)
                 defer { close(source) }
                 try writer.addFile(member.name, from: source, mode: member.mode, modified: member.modified) { done, _ in
                     progress.fileProgress(done)
@@ -216,25 +217,33 @@ public final class ArchiveJob: @unchecked Sendable {
             throw FilaFailure(code: .invalidRequest)
         }
         let archive = try FilaPath.canonical(source)
-        let descriptor = try operations.open(archive, flags: O_RDONLY, mode: 0)
+        let descriptor = try operations.open(archive, flags: O_RDONLY | O_NONBLOCK, mode: 0)
         defer { close(descriptor) }
+        var metadata = stat()
+        guard fstat(descriptor, &metadata) == 0 else { throw FilaFailure(errno: errno, path: archive) }
+        guard metadata.st_mode & S_IFMT == S_IFREG else { throw FilaFailure(errno: EINVAL, path: archive) }
         let reader = try ArchiveReader(descriptor: descriptor, name: FilaPath.name(of: archive), password: options.password)
         let placement = Placement(operations: operations, destination: try FilaPath.canonical(destination), overwrite: request.overwrite)
         try placement.prepare()
 
         // Matched by position, never by name — see `ArchiveSelection`.
-        let wanted = options.members.map { selection in
+        var wanted = options.members.map { selection in
             Dictionary(selection.map { ($0.index, $0.declaredPath) }, uniquingKeysWith: { first, _ in first })
         }
         progress.total(bytes: 0, items: Int64(wanted?.count ?? 0))
 
         var links: [ArchiveEntry] = []
         var index: Int64 = -1
-        while let entry = try reader.next() {
+        var remainingMetadata = ArchiveReader.maximumListingByteCount
+        while wanted?.isEmpty != true, let entry = try reader.next() {
             index += 1
+            guard index < ArchiveReader.maximumEntryCount else { throw FilaFailure(errno: E2BIG, path: archive) }
+            let retainedBytes = entry.declaredPath.utf8.count + (entry.linkTarget?.utf8.count ?? 0) + (entry.hardLinkTarget?.utf8.count ?? 0)
+            guard retainedBytes <= remainingMetadata else { throw FilaFailure(errno: E2BIG, path: archive) }
+            remainingMetadata -= retainedBytes
             try checkCancelled(entry.declaredPath)
-            if let wanted {
-                guard let listed = wanted[index] else { continue }
+            if wanted != nil {
+                guard let listed = wanted?.removeValue(forKey: index) else { continue }
                 // The listing and this pass are two reads of a file on a
                 // filesystem the user is also using. A member that is no
                 // longer the one they ticked is not theirs to receive.

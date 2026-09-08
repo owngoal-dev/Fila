@@ -227,7 +227,7 @@ final class ArchiveBrowserViewController: UIViewController {
             let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
                 self?.shell?.presentTabSwitcher()
             }
-            menuItem.menu = UIMenu(children: [select, extract] + (fileActionsOwner?.fileMenuElements(presenting: self) ?? []) + [tabs])
+            menuItem.menu = UIMenu(children: FilaMenu.groups([select, extract]) + (fileActionsOwner?.fileMenuElements(presenting: self) ?? []) + FilaMenu.groups([tabs]))
             navigationItem.rightBarButtonItem = menuItem
         }
     }
@@ -295,7 +295,9 @@ final class ArchiveBrowserViewController: UIViewController {
                 // listing of a large one is real work. The handler is how
                 // leaving the screen stops it.
                 result = Result {
-                    try ArchiveReader.list(descriptor: descriptor, name: name) { _, _ in !Task.isCancelled }
+                    let reader = try DescriptorReader(descriptor: descriptor)
+                    try PreviewLimits.validate(byteCount: reader.byteCount, format: .archive)
+                    return try ArchiveReader.list(descriptor: descriptor, name: name) { _, _ in !Task.isCancelled }
                 }
             } catch {
                 result = .failure(error)
@@ -362,7 +364,7 @@ final class ArchiveBrowserViewController: UIViewController {
     ///
     /// An encrypted member is asked for its password before the job starts;
     /// a wrong one comes back as `.wrongPassword` and is asked again.
-    private func extract(_ selection: [Row], to destination: String, password: String? = nil) {
+    private func extract(_ selection: [Row], to destination: String, password: String? = nil, spaceConfirmed: Bool = false) {
         if password == nil, selection.contains(where: { $0.entry.isEncrypted }) {
             return promptPassword { [weak self] password in self?.extract(selection, to: destination, password: password) }
         }
@@ -379,7 +381,30 @@ final class ArchiveBrowserViewController: UIViewController {
         )
         let center = FileSession.shared.operations
         Task { [weak self] in
+            guard self != nil else { return }
             do {
+                if !spaceConfirmed {
+                    guard let self else { return }
+                    let estimate = ArchiveSpaceEstimate(entries: selection.map(\.entry))
+                    // Advisory only. The extraction checks real writes even if
+                    // the volume cannot provide an estimate here.
+                    if let available = try? await self.availableSpace(at: destination),
+                       estimate.needsWarning(availableByteCount: available) {
+                        let message = estimate.hasUnknownSize
+                            ? String(localized: "The archive does not report all extracted file sizes. There may not be enough space to finish extracting.")
+                            : String(format: String(localized: "The extracted files need approximately %@, more than 90%% of the %@ available at the destination."),
+                                     FilePresentation.byteLabel(estimate.byteCount), FilePresentation.byteLabel(available))
+                        let alert = AlertViewController(title: "Low Storage Space", message: message) { [weak self] context in
+                            context.addAction(title: "Close") { context.dispose() }
+                            context.addAction(title: "Extract", attribute: .accent) {
+                                context.dispose { self?.extract(selection, to: destination, password: password, spaceConfirmed: true) }
+                            }
+                        }
+                        self.present(alert, animated: true)
+                        return
+                    }
+                }
+                try Task.checkCancellation()
                 let identifier = try await center.startJob(
                     request,
                     kind: .extract,
@@ -396,6 +421,19 @@ final class ArchiveBrowserViewController: UIViewController {
                 OperationCoverViewController.present(for: operation.id, from: self, center: center)
             } catch {
                 self?.report(error)
+            }
+        }
+    }
+
+    /// A new extraction folder does not exist yet. Ask the backend for the
+    /// nearest existing ancestor, whose resolved volume will receive it.
+    private func availableSpace(at destination: String) async throws -> Int64 {
+        guard destination.hasPrefix("/") else { throw FilaFailure(code: .invalidRequest, path: destination) }
+        var path = destination
+        while true {
+            do { return try await link.volumeInfo(for: path).availableByteCount }
+            catch let failure as FilaFailure where failure.systemError == ENOENT && path != "/" {
+                path = (path as NSString).deletingLastPathComponent
             }
         }
     }
@@ -503,7 +541,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     let output = open(staged.path, O_WRONLY | O_TRUNC)
                     guard output >= 0 else { throw ViewerFailure.writeFailed(errno) }
                     defer { close(output) }
-                    try reader.read(into: output) { _, _ in !Task.isCancelled }
+                    try reader.read(into: output, maximumByteCount: ViewerLimits.containerCopyByteCount) { _, _ in !Task.isCancelled }
                     found = true
                 }
                 guard found else {

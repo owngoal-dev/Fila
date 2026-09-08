@@ -1,3 +1,4 @@
+import FilaFileOps
 import FilaProtocol
 import Foundation
 import LibArchive
@@ -79,6 +80,7 @@ extension ZipEncryption {
 public final class ArchiveWriter: @unchecked Sendable {
     private let handle: OpaquePointer
     private var isFinished = false
+    private let output: ArchiveOutput
 
     /// Set up before `self` exists, for the reason spelled out on
     /// `ArchiveReader.init`: one owner for the handle at every moment.
@@ -94,30 +96,39 @@ public final class ArchiveWriter: @unchecked Sendable {
         encryption: ZipEncryption = .aes256,
         password: String? = nil
     ) throws {
+        var status = stat()
+        guard fstat(descriptor, &status) == 0 else { throw FormatFailure.system(errno: errno) }
         let password = password.flatMap { $0.isEmpty ? nil : $0 }
         guard password == nil || format == .zip else {
             throw FormatFailure.unsupported("a password on a \(format.filenameExtension) archive")
         }
         guard let handle = archive_write_new() else { throw FormatFailure.system(errno: ENOMEM) }
+        let output = ArchiveOutput(descriptor: descriptor)
         do {
             let configuration = format.configure(handle, zipCompression: zipCompression, encryption: password == nil ? nil : encryption)
             guard configuration == ARCHIVE_OK else {
                 throw FormatFailure.damaged(archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created")
             }
+            try Self.check(handle, archive_write_set_bytes_in_last_block(handle, 1))
             if let password { try Self.check(handle, archive_write_set_passphrase(handle, password)) }
-            try Self.check(handle, archive_write_open_fd(handle, descriptor))
+            try Self.check(handle, archive_write_open(handle, Unmanaged.passUnretained(output).toOpaque(), nil, { _, context, buffer, count in
+                guard let context, let buffer else { return -1 }
+                return Unmanaged<ArchiveOutput>.fromOpaque(context).takeUnretainedValue()
+                    .write(buffer, count: count)
+            }, nil), output: output)
         } catch {
-            archive_write_free(handle)
+            withExtendedLifetime(output) { archive_write_free(handle) }
             throw error
         }
-        self.init(handle: handle)
+        self.init(handle: handle, output: output)
     }
 
-    private init(handle: OpaquePointer) {
+    private init(handle: OpaquePointer, output: ArchiveOutput) {
         self.handle = handle
+        self.output = output
     }
 
-    deinit { archive_write_free(handle) }
+    deinit { withExtendedLifetime(output) { archive_write_free(handle) } }
 
     public func addDirectory(_ path: String, mode: mode_t = 0o755, modified: Date = Date()) throws {
         try append(path, filetype: S_IFDIR, mode: mode, modified: modified, byteCount: 0, linkTarget: nil, progress: nil) { nil }
@@ -178,7 +189,7 @@ public final class ArchiveWriter: @unchecked Sendable {
     public func finish() throws {
         guard !isFinished else { return }
         isFinished = true
-        try Self.check(handle, archive_write_close(handle))
+        try Self.check(handle, archive_write_close(handle), output: output)
     }
 
     private func append(
@@ -216,7 +227,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         // this is not optional even for the formats that could stream.
         archive_entry_set_size(entry, filetype == S_IFREG ? byteCount : 0)
 
-        try Self.check(handle, archive_write_header(handle, entry))
+        try Self.check(handle, archive_write_header(handle, entry), output: output)
 
         var written: Int64 = 0
         while let chunk = try chunks() {
@@ -225,7 +236,7 @@ public final class ArchiveWriter: @unchecked Sendable {
                 var sent = 0
                 while sent < raw.count {
                     let put = archive_write_data(handle, base.advanced(by: sent), raw.count - sent)
-                    guard put > 0 else { throw archiveFailure(handle) }
+                    guard put > 0 else { throw output.failure.map { FormatFailure.system(errno: $0) } ?? archiveFailure(handle) }
                     sent += put
                 }
             }
@@ -246,7 +257,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         guard filetype != S_IFREG || written == byteCount else {
             throw FormatFailure.damaged("“\(path)” changed size while it was being archived")
         }
-        try Self.check(handle, archive_write_finish_entry(handle))
+        try Self.check(handle, archive_write_finish_entry(handle), output: output)
     }
 
     /// Seconds since 1970, clamped rather than trapped.
@@ -262,8 +273,36 @@ public final class ArchiveWriter: @unchecked Sendable {
         return time_t(seconds)
     }
 
-    private static func check(_ handle: OpaquePointer, _ status: Int32) throws {
+    private static func check(_ handle: OpaquePointer, _ status: Int32, output: ArchiveOutput? = nil) throws {
+        if let failure = output?.failure { throw FormatFailure.system(errno: failure) }
         guard status != ARCHIVE_OK, status != ARCHIVE_WARN else { return }
         throw archiveFailure(handle)
+    }
+}
+
+/// libarchive also writes headers and trailers, so the output callback owns the
+/// space check. The caller continues to own the descriptor.
+private final class ArchiveOutput {
+    let descriptor: Int32
+    private(set) var failure: Int32?
+
+    init(descriptor: Int32) { self.descriptor = descriptor }
+
+    func write(_ buffer: UnsafeRawPointer, count: Int) -> Int {
+        guard failure == nil else { return -1 }
+        do {
+            try StorageSpace.requireAvailable(Int64(count), descriptor: descriptor)
+            var written = 0
+            while written < count {
+                let result = Darwin.write(descriptor, buffer.advanced(by: written), count - written)
+                if result < 0, errno == EINTR { continue }
+                guard result > 0 else { throw FilaFailure(errno: result == 0 ? ENOSPC : errno) }
+                written += result
+            }
+            return written
+        } catch {
+            failure = (error as? FilaFailure)?.systemError ?? EIO
+            return -1
+        }
     }
 }

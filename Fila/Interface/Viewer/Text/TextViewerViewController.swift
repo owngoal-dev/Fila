@@ -1,5 +1,6 @@
 import AlertController
 import FilaClient
+import FilaFormats
 import FilaProtocol
 import RunestoneEditor
 import SnapKit
@@ -175,12 +176,12 @@ final class TextViewerViewController: UIViewController {
 
     private func loadContent() {
         do {
-            let budget = min(file.byteCount, ViewerLimits.editableTextByteCount)
-            isTruncated = file.byteCount > ViewerLimits.editableTextByteCount
-            let limit = isTruncated ? ViewerLimits.textPreviewByteCount : budget
-            let data = try isTruncated
-                ? file.read(at: 0, count: Int(limit))
+            try PreviewLimits.validate(byteCount: file.byteCount, format: .text)
+            let bytes = try file.byteCount > ViewerLimits.editableTextByteCount
+                ? file.read(at: 0, count: Int(ViewerLimits.textPreviewByteCount))
                 : file.readAll(limit: ViewerLimits.editableTextByteCount)
+            let data = Data(bytes.prefix(PreviewLimits.textPrefixByteCount(bytes)))
+            isTruncated = data.count < file.byteCount
             let (text, encoding) = Self.decode(data, allowingTruncation: isTruncated)
             self.encoding = encoding
             savedText = text
@@ -190,7 +191,7 @@ final class TextViewerViewController: UIViewController {
             if isTruncated {
                 pendingNotice = String(
                     format: String(localized: "Showing the first %@ of %@. This file is too large to edit. Open it as Hex to see the rest."),
-                    FilePresentation.byteLabel(limit),
+                    FilePresentation.byteLabel(Int64(data.count)),
                     FilePresentation.byteLabel(file.byteCount)
                 )
             } else if encoding != .utf8 {
@@ -403,6 +404,10 @@ final class TextViewerViewController: UIViewController {
             presentSaveFailure(ViewerFailure.unsupportedContent(
                 String(localized: "Some characters you typed cannot be saved in this file’s encoding. Remove them and try again.")
             ))
+            return
+        }
+        guard data.count <= ViewerLimits.editableTextByteCount else {
+            presentSaveFailure(ViewerFailure.tooLarge(byteCount: Int64(data.count), limit: ViewerLimits.editableTextByteCount))
             return
         }
         isSaving = true

@@ -149,8 +149,43 @@ struct JobTests {
     func transferRefusesItself(_ kind: FilaJobKind) throws {
         let source = scratch.file("payload.txt", contents: "keep")
         for overwrite in [false, true] {
-            #expect(run(JobRequest(kind: kind, sources: [source], destination: scratch.root, overwrite: overwrite)).code == .invalidRequest)
+            let result = run(JobRequest(kind: kind, sources: [source], destination: scratch.root, overwrite: overwrite))
+            #expect(result.code == .invalidRequest)
+            #expect(result.reason == .sameLocation)
             #expect(try String(contentsOfFile: source, encoding: .utf8) == "keep")
+        }
+    }
+
+    @Test("Same-item and descendant refusals survive aliases", arguments: [FilaJobKind.copy, .move])
+    func transferExplainsAliases(_ kind: FilaJobKind) throws {
+        let source = scratch.file("payload.txt", contents: "keep")
+        let alias = scratch.link("alias", to: scratch.root)
+        #expect(run(JobRequest(kind: kind, sources: [source], destination: alias)).reason == .sameLocation)
+        let destination = scratch.directory("destination")
+        let target = scratch.path("destination/payload.txt")
+        #expect(Darwin.link(source, target) == 0)
+        #expect(run(JobRequest(kind: kind, sources: [source], destination: destination, overwrite: true)).reason == .sameItem)
+        let nested = scratch.directory("tree/nested")
+        let nestedAlias = scratch.link("nested-alias", to: nested)
+        #expect(run(JobRequest(kind: kind, sources: [scratch.path("tree")], destination: nestedAlias)).reason == .insideSource)
+        #expect(try String(contentsOfFile: source, encoding: .utf8) == "keep")
+        #expect(try String(contentsOfFile: target, encoding: .utf8) == "keep")
+        #expect(try FileManager.default.contentsOfDirectory(atPath: nested).isEmpty)
+    }
+
+    @Test("File-folder conflicts reject the whole batch before writes", arguments: [FilaJobKind.copy, .move])
+    func transferExplainsIncompatibleTypes(_ kind: FilaJobKind) throws {
+        let first = scratch.file("first.txt", contents: "first")
+        let source = scratch.file("payload", contents: "keep")
+        let destination = scratch.directory("destination")
+        scratch.directory("destination/payload")
+        for overwrite in [false, true] {
+            let result = run(JobRequest(kind: kind, sources: [first, source], destination: destination, overwrite: overwrite))
+            #expect(result.reason == .differentItemKinds)
+            #expect(!exists(scratch.path("destination/first.txt")))
+            #expect(try String(contentsOfFile: first, encoding: .utf8) == "first")
+            #expect(try String(contentsOfFile: source, encoding: .utf8) == "keep")
+            #expect(metadata(of: scratch.path("destination/payload")).map { $0.st_mode & S_IFMT == S_IFDIR } == true)
         }
     }
 

@@ -58,14 +58,14 @@ final class AppListViewController: UIViewController {
             }
         }
         let scopes = AppScope.allCases.map { scope in
-            UIAction(title: scope.title, state: preferences.appScope == scope ? .on : .off) { [weak self] _ in
+            UIAction(title: scope.title, image: UIImage(systemName: scope == .all ? "square.grid.2x2" : scope == .user ? "person" : "gearshape"), state: preferences.appScope == scope ? .on : .off) { [weak self] _ in
                 AppPreferences.shared.appScope = scope
                 self?.apply()
             }
         }
         return [
             UIMenu(title: String(localized: "Sort By"), options: .displayInline, children: sorts),
-            UIMenu(options: .displayInline, children: scopes),
+            FilaMenu.selection(title: String(localized: "Applications"), actions: scopes),
         ]
     }
 
@@ -232,11 +232,11 @@ extension AppListViewController: UICollectionViewDelegate {
                     navigation.pushViewController(BrowserViewController(directory: location.path), animated: true)
                 }
             }
-            return UIMenu(title: app.name, children: locations + [
+            return UIMenu(title: app.name, children: FilaMenu.groups(locations, [
                 UIAction(title: String(localized: "Copy Bundle Identifier"), image: UIImage(systemName: "doc.on.doc")) { _ in
                     UIPasteboard.general.string = app.bundleIdentifier
                 },
-            ])
+            ]))
         }
     }
 

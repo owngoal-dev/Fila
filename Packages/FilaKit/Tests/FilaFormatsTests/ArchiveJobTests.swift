@@ -18,6 +18,29 @@ struct ArchiveJobTests {
         return (outcome, progress, notes)
     }
 
+    @Test("Selected extraction finishes without scanning unrelated entries past the listing limit")
+    func selectedExtractionStopsAfterSelection() throws {
+        try withScratch { scratch in
+            let archive = scratch.appendingPathComponent("many.tar")
+            try withDescriptor(writing: archive) { descriptor in
+                let writer = try ArchiveWriter(descriptor: descriptor, format: .tar)
+                try writer.addData("selected.txt", Data("selected".utf8))
+                for index in 1...ArchiveReader.maximumEntryCount {
+                    try writer.addData("other-\(index)", Data())
+                }
+                try writer.finish()
+            }
+            let destination = scratch.appendingPathComponent("out")
+            let result = run(JobRequest(
+                kind: .extract, sources: [archive.path], destination: destination.path,
+                archive: ArchiveOptions(members: [ArchiveSelection(index: 0, declaredPath: "selected.txt")])
+            ))
+            #expect(result.outcome.code == .success)
+            #expect(try String(contentsOf: destination.appendingPathComponent("selected.txt"), encoding: .utf8) == "selected")
+            #expect(try FileManager.default.contentsOfDirectory(atPath: destination.path) == ["selected.txt"])
+        }
+    }
+
     private func makeTree(in scratch: URL) throws -> URL {
         let tree = scratch.appendingPathComponent("tree")
         try FileManager.default.createDirectory(at: tree.appendingPathComponent("nested"), withIntermediateDirectories: true)

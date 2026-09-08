@@ -50,6 +50,7 @@ final class BrowserViewController: UIViewController {
     /// What the footer says. Held here rather than read out of the footer view,
     /// because the view comes and goes with the layout and the text does not.
     private var footerText: String?
+    private var listingTruncated = false
     /// The folder title remains stable when selection changes. The trash is
     /// named for what it is, not for its dot-directory.
     private var folderTitle: String {
@@ -500,6 +501,8 @@ final class BrowserViewController: UIViewController {
         loadTask = Task { [weak self] in
             guard let self else { return }
             var pending: [FileNode] = []
+            var received = 0
+            var truncated = false
             var lastApply = Date.distantPast
             var animateSnapshot = false
             do {
@@ -507,7 +510,13 @@ final class BrowserViewController: UIViewController {
                     // Only the latest reload owns the rows. During a refresh,
                     // a partial listing must not remove later pages.
                     guard !Task.isCancelled else { return }
-                    pending.append(contentsOf: page)
+                    let remaining = DirectoryReader.maximumEntryCount - received
+                    pending.append(contentsOf: page.prefix(remaining))
+                    received += min(remaining, page.count)
+                    if page.count > remaining {
+                        truncated = true
+                        break
+                    }
                     guard !keepsContent else { continue }
                     // ponytail: re-sorting the accumulated list on every apply is
                     // O(n log n) per batch; the throttle is what keeps that off
@@ -520,6 +529,7 @@ final class BrowserViewController: UIViewController {
                     self.applySnapshot(animated: false)
                 }
                 guard !Task.isCancelled else { return }
+                self.listingTruncated = truncated
                 if keepsContent {
                     let names = Set(pending.lazy.map(\.name))
                     animateSnapshot = self.visible.contains { !names.contains($0.name) }
@@ -674,6 +684,9 @@ final class BrowserViewController: UIViewController {
             return
         }
         var parts = [String(localized: "\(visible.count) items")]
+        if listingTruncated {
+            parts.append(String(localized: "Only the first 50,000 items are shown."))
+        }
         if let volume {
             let free = FilePresentation.byteLabel(volume.availableByteCount)
             let total = FilePresentation.byteLabel(volume.totalByteCount)
@@ -805,8 +818,8 @@ final class BrowserViewController: UIViewController {
         return false
     }
 
-    /// The trailing bar item: Select, New, the running transfers when there
-    /// are any, then the folder's own menu. While transfers run, the glyph is
+    /// The trailing bar item groups creation, display preferences, and navigation.
+    /// While transfers run, the glyph is
     /// their count — the one place the bar says so without another button.
     private lazy var moreButton: UIBarButtonItem = {
         let more = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
@@ -825,7 +838,7 @@ final class BrowserViewController: UIViewController {
                     ) { _ in TransfersViewController.presentAsSheet() },
                 ])] : []
                 let folder: UIMenuElement = self.isTrash ? self.emptyTrashAction() : self.newMenu()
-                done([select, folder] + transfers + self.browserMenuElements())
+                done(self.browserMenuElements(folderAction: folder, selectAction: select) + transfers)
             },
         ]))
         more.accessibilityLabel = String(localized: "More")

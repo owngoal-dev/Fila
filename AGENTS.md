@@ -529,22 +529,18 @@ this job moved them. Preserve the failed selection instead of guessing.
 ### Temporary files
 
 `FileSession` owns app-created share, download, nested-archive, log-export
-directories. Derive the location from `Hello.backend`: the
-daemon uses `<installRoot>/.fila-tmp/<process UUID>`; the local backend uses
-the app's system temporary directory under `wiki.qaq.fila/<process UUID>`.
-Never hardcode a bootstrap prefix or use its `tmp` symlink, which may lead
-outside the writable root. The daemon's fixed parent stays root-owned 0755
-and contains only UUID directories; actual content stays in mobile-owned
-0700 workspaces. Verify an existing parent's type, owner, permissions and
-canonical path rather than changing an unknown directory's ownership.
+directories. Both backends use the app's system temporary directory under
+`wiki.qaq.fila/<process UUID>`. Never create scratch workspaces at the filesystem
+root or under the install root. The parent and workspaces stay app-owned 0700.
+Verify an existing parent's type, owner, permissions and canonical path rather
+than changing an unknown directory's ownership.
 
 Each consumer removes its own UUID directory when finished, including share
 cancellation and failed preview handoff. Startup lists the dedicated parent
 before deleting stale UUID directories and waits for each delete job's result.
-Normal exit makes a synchronous best effort to empty the privileged workspace;
-its empty UUID directory is removed at the next startup. Local exit removes
-the whole workspace. SIGKILL cannot run cleanup: the next startup removes its
-leftovers. Do not turn an accepted cleanup job into a claimed completion.
+Normal exit makes a synchronous best effort to remove the whole workspace.
+SIGKILL cannot run cleanup: the next startup removes its leftovers. Do not turn
+an accepted cleanup job into a claimed completion.
 
 Atomic save, copy, extraction, ZIP publication and WebDAV publication still
 require a temporary beside their destination; daemon writes remain inside its

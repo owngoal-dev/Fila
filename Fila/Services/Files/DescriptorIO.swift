@@ -1,4 +1,5 @@
 import FilaProtocol
+import FilaFileOps
 import Foundation
 
 /// Blocking descriptor reads, kept out of the actor that owns the link so a
@@ -11,6 +12,9 @@ enum DescriptorIO {
     /// a browsing session runs the app out of them.
     static func readAndClose(_ descriptor: Int32, limit: Int) throws -> Data {
         defer { close(descriptor) }
+        var status = stat()
+        guard fstat(descriptor, &status) == 0 else { throw FilaFailure(errno: errno) }
+        guard status.st_mode & S_IFMT == S_IFREG, status.st_size >= 0, limit >= 0 else { throw FilaFailure(errno: EINVAL) }
         var data = Data()
         var buffer = [UInt8](repeating: 0, count: chunkByteCount)
         while data.count < limit {
@@ -33,6 +37,7 @@ enum DescriptorIO {
         guard original.st_mode & S_IFMT == S_IFREG, original.st_size >= 0 else {
             throw FilaFailure(errno: EINVAL)
         }
+        try StorageSpace.requireAvailable(Int64(original.st_size), at: url.deletingLastPathComponent().path)
         guard FileManager.default.createFile(atPath: url.path, contents: nil) else {
             throw FilaFailure(code: .operationFailed, systemError: EIO, path: url.path)
         }
@@ -48,6 +53,7 @@ enum DescriptorIO {
                 throw FilaFailure(code: .operationFailed, systemError: errno, path: url.path)
             }
             guard got != 0 else { throw FilaFailure(errno: EIO, path: url.path) }
+            try StorageSpace.requireAvailable(Int64(got), descriptor: handle.fileDescriptor)
             try handle.write(contentsOf: Data(buffer[0 ..< got]))
             remaining -= off_t(got)
         }
@@ -80,6 +86,7 @@ extension DescriptorIO {
                 }
                 return
             }
+            try StorageSpace.requireAvailable(Int64(chunk.count), descriptor: descriptor)
             try chunk.withUnsafeBytes { raw -> Void in
                 guard let base = raw.baseAddress else { return }
                 var written = 0

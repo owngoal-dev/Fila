@@ -25,6 +25,24 @@ enum FailureMessage {
     }
 
     private static func message(for failure: FilaFailure, whileWriting: Bool) -> String {
+        if let reason = failure.reason {
+            switch reason {
+            case .sameLocation: return String(localized: "This item is already in the destination folder. Choose another folder.")
+            case .sameItem: return String(localized: "The source and destination refer to the same item, even though their paths differ. Choose another destination.")
+            case .insideSource: return String(localized: "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder.")
+            case .overlappingSources: return String(localized: "The selection includes the same item more than once, or both a folder and an item inside it. Select each item only once.")
+            case .conflictingNames: return String(localized: "Two selected items have the same name and would use the same destination. Rename one or transfer them separately.")
+            case .differentItemKinds: return String(localized: "A file and a folder have the same name at the destination. Rename one or choose another folder.")
+            }
+        }
+        switch failure.systemError {
+        case ENOSPC: return String(localized: "There is not enough free space to finish this operation safely. Free up space or choose another destination.")
+        case EROFS: return String(localized: "The destination is read-only. Choose a writable folder.")
+        case ENOTEMPTY: return String(localized: "The destination folder is not empty and cannot be replaced. Rename the item or choose another folder.")
+        case ENOTDIR: return String(localized: "Part of the path is a file instead of a folder. Choose an existing destination folder.")
+        case ELOOP: return String(localized: "A symbolic link in this path cannot be followed for this operation. Choose a direct path to the item.")
+        default: break
+        }
         var lines: [String] = []
         switch failure.code {
         case .protectedPath:

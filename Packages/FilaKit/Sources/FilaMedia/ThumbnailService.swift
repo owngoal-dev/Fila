@@ -54,6 +54,7 @@ public actor ThumbnailService {
         // A 160-point thumbnail is about 100 KB, so a full cache is a few tens
         // of megabytes — and `NSCache` gives it all back under pressure.
         images.countLimit = 256
+        images.totalCostLimit = 32 * 1_024 * 1_024
         failures.countLimit = 256
     }
 
@@ -76,7 +77,7 @@ public actor ThumbnailService {
         maxPixelSize: Int = 160,
         open: @escaping @Sendable () async throws -> Int32
     ) async -> CGImage? {
-        guard byteCount > 0, maxPixelSize > 0 else { return nil }
+        guard byteCount > 0, maxPixelSize > 0, maxPixelSize <= 512 else { return nil }
         let key = "\(path)@\(modified.bitPattern)@\(byteCount)@\(maxPixelSize)" as NSString
         if let hit = images.object(forKey: key) { return hit }
         if failures.object(forKey: key) != nil { return nil }
@@ -101,13 +102,13 @@ public actor ThumbnailService {
             failures.setObject(NSNull(), forKey: key)
             return nil
         }
-        images.setObject(image, forKey: key)
+        guard !Task.isCancelled else { return nil }
+        images.setObject(image, forKey: key, cost: image.bytesPerRow * image.height)
         return image
     }
 
-    /// Which generator the file gets, decided the same way a viewer is: content
-    /// first, name second. An extensionless `.mov` in `/var/mobile/Media` is a
-    /// real file and it should get a picture.
+    /// Content sniffing must not expand the decoder surface selected by the
+    /// file's name during background browsing. Mismatches keep the type icon.
     ///
     /// The size comes from `fstat` on the descriptor rather than from the
     /// listing the caller quoted: a file being appended to between the two — a
@@ -115,8 +116,9 @@ public actor ThumbnailService {
     /// length that is no longer true.
     private func render(descriptor: Int32, name: String, maxPixelSize: Int) async -> CGImage? {
         var status = stat()
-        guard fstat(descriptor, &status) == 0, status.st_size > 0 else { return nil }
+        guard fstat(descriptor, &status) == 0, status.st_mode & S_IFMT == S_IFREG, status.st_size > 0 else { return nil }
         let byteCount = Int64(status.st_size)
+        guard byteCount <= PreviewLimits.fileByteCount else { return nil }
 
         var head = Data(count: FileFormat.detectionByteCount)
         let read = head.withUnsafeMutableBytes { raw in
@@ -126,7 +128,10 @@ public actor ThumbnailService {
 
         // Decoding is synchronous CPU work and runs off this actor, or a cache
         // lookup for the next row waits behind it.
-        switch FileFormat.detect(head: head.prefix(read), name: name) {
+        let declared = FileFormat.detect(head: Data(), name: name)
+        let detected = FileFormat.detect(head: head.prefix(read), name: name)
+        guard declared == detected else { return nil }
+        switch detected {
         case .image:
             return await Task.detached(priority: .utility) {
                 DescriptorImage.thumbnail(descriptor: descriptor, byteCount: byteCount, maxPixelSize: maxPixelSize)

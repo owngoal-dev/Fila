@@ -29,7 +29,8 @@ final class PDFViewerViewController: UIViewController {
 
         pdfView.do {
             $0.autoScales = true
-            $0.displayMode = .singlePageContinuous
+            $0.displayMode = .singlePage
+            $0.usePageViewController(true)
             $0.displayDirection = .vertical
             $0.backgroundColor = .secondarySystemBackground
         }
@@ -58,6 +59,9 @@ final class PDFViewerViewController: UIViewController {
                 throw ViewerFailure.unsupportedContent(
                     String(localized: "This PDF could not be opened. Open it as hex to see its contents.")
                 )
+            }
+            guard document.pageCount <= 10_000 else {
+                throw ViewerFailure.unsupportedContent(String(localized: "This PDF has too many pages to preview."))
             }
             pdfView.document = document
             updatePage()

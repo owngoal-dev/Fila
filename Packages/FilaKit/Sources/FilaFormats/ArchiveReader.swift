@@ -1,4 +1,5 @@
 import Foundation
+import FilaFileOps
 import FilaProtocol
 import LibArchive
 
@@ -140,7 +141,8 @@ public final class ArchiveReader: @unchecked Sendable {
     /// Public because `list` stopping here is not something to hide: a caller
     /// that gets exactly this many entries back has a listing that may be
     /// incomplete, and the user is entitled to be told.
-    public static let maximumEntryCount = 200_000
+    public static let maximumEntryCount = 50_000
+    public static let maximumListingByteCount = 16 * 1_024 * 1_024
 
     private let handle: OpaquePointer
     private let source: ArchiveSource
@@ -287,9 +289,19 @@ public final class ArchiveReader: @unchecked Sendable {
     /// writing — in the app, that is one `filad` handed back for a single path
     /// it had already checked.
     @discardableResult
-    public func read(into destination: Int32, progress: ProgressHandler? = nil) throws -> Int64 {
+    public func read(into destination: Int32, maximumByteCount: Int64 = .max, progress: ProgressHandler? = nil) throws -> Int64 {
+        if let size = currentByteCount, size > maximumByteCount {
+            throw FormatFailure.tooLarge(byteCount: size, limit: maximumByteCount)
+        }
+        try StorageSpace.requireAvailable(descriptor: destination)
         var end: Int64 = 0
         try read(progress: progress) { offset, bytes in
+            guard offset >= 0, offset <= maximumByteCount, Int64(bytes.count) <= maximumByteCount - offset else {
+                throw FormatFailure.tooLarge(byteCount: .max, limit: maximumByteCount)
+            }
+            // Header sizes are untrusted estimates. Keep checking actual output
+            // even when the UI's preflight says the archive will fit.
+            try StorageSpace.requireAvailable(Int64(bytes.count), descriptor: destination)
             try writeFully(bytes, to: destination, at: offset)
             end = max(end, offset + Int64(bytes.count))
         }
@@ -297,7 +309,8 @@ public final class ArchiveReader: @unchecked Sendable {
         // corrupt one throws rather than arriving here, so a shortfall at this
         // point is a sparse member whose last block is a hole, and the archive's
         // own size is the truth about how long the file should be.
-        if let size = currentByteCount, size > end, ftruncate(destination, off_t(size)) == 0 {
+        if let size = currentByteCount, size > end {
+            guard ftruncate(destination, off_t(size)) == 0 else { throw FormatFailure.system(errno: errno) }
             end = size
         }
         return end
@@ -317,11 +330,12 @@ public final class ArchiveReader: @unchecked Sendable {
         var data = Data()
         if let size = currentByteCount { data.reserveCapacity(Int(size)) }
         try read { offset, bytes in
-            guard offset + Int64(bytes.count) <= maximumByteCount else {
-                throw FormatFailure.tooLarge(byteCount: offset + Int64(bytes.count), limit: maximumByteCount)
+            guard offset >= 0, offset <= maximumByteCount, Int64(bytes.count) <= maximumByteCount - offset else {
+                throw FormatFailure.tooLarge(byteCount: .max, limit: maximumByteCount)
             }
-            if offset > Int64(data.count) { data.append(Data(count: Int(offset) - data.count)) }
-            data.append(contentsOf: bytes)
+            let end = Int(offset) + bytes.count
+            if end > data.count { data.append(Data(count: end - data.count)) }
+            data.replaceSubrange(Int(offset)..<end, with: bytes)
         }
         return data
     }
@@ -339,7 +353,13 @@ public final class ArchiveReader: @unchecked Sendable {
     ) throws -> [ArchiveEntry] {
         let reader = try ArchiveReader(descriptor: descriptor, name: name)
         var entries: [ArchiveEntry] = []
+        var remainingBytes = maximumListingByteCount
         while entries.count < maximumEntryCount, let entry = try reader.next() {
+            let bytes = entry.declaredPath.utf8.count + (entry.linkTarget?.utf8.count ?? 0) + (entry.hardLinkTarget?.utf8.count ?? 0)
+            guard bytes <= remainingBytes else {
+                throw FormatFailure.tooLarge(byteCount: Int64(maximumListingByteCount) + 1, limit: Int64(maximumListingByteCount))
+            }
+            remainingBytes -= bytes
             entries.append(entry)
             try checkCancellation(progress, Int64(entries.count), 0)
         }
@@ -455,6 +475,7 @@ public final class ArchiveReader: @unchecked Sendable {
 /// archive" has exactly one owner, `refuseABareRawMember`, and it is not this.
 func archiveFailure(_ handle: OpaquePointer) -> FormatFailure {
     let code = archive_errno(handle)
+    if code == ENOSPC { return .system(errno: code) }
     guard let raw = archive_error_string(handle), let message = String(validatingUTF8: raw) else {
         return .system(errno: code == 0 ? EIO : code)
     }
@@ -486,6 +507,7 @@ private final class ArchiveSource {
     init(descriptor: Int32) throws {
         var status = stat()
         guard fstat(descriptor, &status) == 0 else { throw FormatFailure.system(errno: errno) }
+        guard status.st_mode & S_IFMT == S_IFREG, status.st_size >= 0 else { throw FormatFailure.system(errno: EINVAL) }
         self.descriptor = descriptor
         byteCount = Int64(status.st_size)
         buffer = .allocate(byteCount: chunkByteCount, alignment: MemoryLayout<UInt64>.alignment)

@@ -1,4 +1,6 @@
 import FilaClient
+import FilaFormats
+import FilaFileOps
 import FilaProtocol
 import Foundation
 
@@ -27,6 +29,10 @@ final class DescriptorFile {
             let failure = errno
             Darwin.close(descriptor)
             throw ViewerFailure.readFailed(failure)
+        }
+        guard status.st_mode & S_IFMT == S_IFREG, status.st_size >= 0 else {
+            Darwin.close(descriptor)
+            throw ViewerFailure.readFailed(EINVAL)
         }
         self.descriptor = descriptor
         byteCount = Int64(status.st_size)
@@ -94,6 +100,7 @@ final class DescriptorFile {
     /// `AtomicSave` exists to guarantee.
     func write(_ data: Data) throws {
         guard !isClosed else { throw ViewerFailure.writeFailed(EBADF) }
+        try StorageSpace.requireAvailable(Int64(data.count), descriptor: descriptor)
         var written = 0
         try data.withUnsafeBytes { raw -> Void in
             guard let base = raw.baseAddress else { return }
@@ -160,10 +167,10 @@ enum ViewerLimits {
     /// Editing wants the whole thing in memory — every save rewrites every
     /// byte — and the text engine lays out the whole string, so the ceiling is
     /// the text view's long before it is the phone's.
-    static let editableTextByteCount: Int64 = 4 * 1_024 * 1_024
+    static let editableTextByteCount = PreviewLimits.textByteCount
 
     /// How much of an over-sized text file is shown before the tail is cut.
-    static let textPreviewByteCount: Int64 = 1 * 1_024 * 1_024
+    static let textPreviewByteCount = PreviewLimits.textByteCount
 
     /// Above this a text file is shown with no grammar. Tree-sitter parses the
     /// whole string before the first line is drawn, and on the oldest hardware
@@ -173,21 +180,18 @@ enum ViewerLimits {
 
     /// A property list is parsed whole by `PropertyListSerialization`; there is
     /// no streaming plist parser and writing one is not worth it.
-    static let propertyListByteCount: Int64 = 32 * 1_024 * 1_024
+    static let propertyListByteCount = PreviewLimits.textByteCount
 
     /// Images and PDFs are handed to ImageIO and PDFKit as `Data`, so they are
     /// resident whole while the screen is up. The cap only has to stop something
     /// that is not really a document from being loaded as one.
-    static let inMemoryDocumentByteCount: Int64 = 128 * 1_024 * 1_024
+    static let inMemoryDocumentByteCount = PreviewLimits.fileByteCount
 
     /// What an extraction may materialise in the app's own container. Media no
     /// longer counts against it — a player reads its file through the descriptor
     /// and copies nothing — so this is the archive reader's ceiling alone.
-    static let containerCopyByteCount: Int64 = 2 * 1_024 * 1_024 * 1_024
+    static let containerCopyByteCount = PreviewLimits.streamingFileByteCount
 
-    /// Mach-O load commands and an archive's directory are metadata; anything
-    /// claiming more than this is corrupt or hostile.
-    static let structureByteCount: Int64 = 16 * 1_024 * 1_024
 }
 
 enum ViewerFailure: LocalizedError {

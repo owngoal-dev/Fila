@@ -95,21 +95,8 @@ extension UIViewController {
     }
 
     private static func failureMessage(for failure: FilaFailure) -> String {
-        var lines: [String] = []
-        switch failure.code {
-        case .protectedPath:
-            lines.append(String(localized: "The device needs this item to start up, so Fila will not delete, move or replace it. You can still edit what is inside it."))
-        case .notPermitted:
-            lines.append(String(localized: "Fila does not have permission to do this."))
-        case .notFound:
-            lines.append(String(localized: "This item no longer exists."))
-        case .wrongPassword:
-            lines.append(String(localized: "The archive password is missing or incorrect. Enter the password and try again."))
-        default:
-            break
-        }
+        var lines = [FailureMessage.text(for: failure)]
         if let path = failure.path { lines.append(path) }
-        if let reason = failure.systemErrorDescription { lines.append(reason) }
-        return lines.joined(separator: "\n")
+        return lines.joined(separator: "\n\n")
     }
 }

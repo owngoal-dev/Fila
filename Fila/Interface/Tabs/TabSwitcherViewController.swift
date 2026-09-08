@@ -101,7 +101,25 @@ final class TabSwitcherViewController: UIViewController {
             self?.shell?.closeAllTabs()
         })
         closeAll.tintColor = .systemRed
-        toolbarItems = [.flexibleSpace(), closeAll, .flexibleSpace()]
+        let settings = UIBarButtonItem(image: UIImage(systemName: "gearshape"), primaryAction: UIAction { [weak self] _ in
+            self?.shell?.presentSettings()
+        }).then {
+            $0.accessibilityLabel = String(localized: "Settings")
+        }
+        let places = UIBarButtonItem(image: UIImage(systemName: "bookmark"), primaryAction: UIAction { [weak self] _ in
+            self?.shell?.presentSidebar(settingsShown: false)
+        }).then {
+            $0.accessibilityLabel = String(localized: "Places")
+        }
+        if #available(iOS 26.0, *) {
+            settings.sharesBackground = false
+            closeAll.sharesBackground = false
+            places.sharesBackground = false
+        }
+        toolbarItems = [
+            .flexibleSpace(), settings, .fixedSpace(FilaUI.Spacing.medium),
+            closeAll, .fixedSpace(FilaUI.Spacing.medium), places, .flexibleSpace(),
+        ]
     }
 
     private func newTabMenuElements() -> [UIMenuElement] {
@@ -123,11 +141,12 @@ final class TabSwitcherViewController: UIViewController {
         }
         let favorites = preferences.favorites.map { open($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0) }
         let recents = preferences.recents.prefix(8).map { open($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0) }
-        return [
+        let locations = [
             UIMenu(title: String(localized: "Places"), options: .displayInline, children: places),
-            UIMenu(title: String(localized: "Favorites"), options: .displayInline, children: favorites),
-            UIMenu(title: String(localized: "Recents"), options: .displayInline, children: recents),
+            UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
+            UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
         ].filter { !$0.children.isEmpty }
+        return locations
     }
 
     static let cardCornerRadius = FilaUI.Spacing.large

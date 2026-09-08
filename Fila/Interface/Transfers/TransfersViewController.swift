@@ -24,11 +24,18 @@ final class TransfersViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, UUID>!
     private var observation: AnyCancellable?
+    private lazy var clearItem = UIBarButtonItem(image: UIImage(named: "broom"), primaryAction: UIAction { [weak self] _ in
+        self?.center.clearFinished()
+    }).then {
+        $0.accessibilityLabel = String(localized: "Clear")
+    }
 
     init(center: OperationCenter) {
         self.center = center
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Tasks")
+        clearItem.isEnabled = center.operations.contains { !$0.isRunning }
+        navigationItem.rightBarButtonItem = clearItem
     }
 
     convenience init() {
@@ -88,12 +95,6 @@ final class TransfersViewController: UIViewController {
                 ? String(localized: "In Progress")
                 : String(localized: "Recent")
             view.contentConfiguration = content
-            // Clearing the finished rows belongs to the section that holds
-            // them, and nowhere else — a Clear in the navigation bar would be
-            // live even when there is nothing to clear.
-            view.accessories = section == .settled
-                ? [.customView(configuration: .init(customView: self.clearButton(), placement: .trailing()))]
-                : []
         }
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
             elementKind: UICollectionView.elementKindSectionFooter
@@ -121,17 +122,10 @@ final class TransfersViewController: UIViewController {
         }
     }
 
-    private func clearButton() -> UIButton {
-        let button = UIButton(type: .system)
-        button.setTitle(String(localized: "Clear"), for: .normal)
-        button.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
-        button.addAction(UIAction { [weak self] _ in self?.center.clearFinished() }, for: .touchUpInside)
-        return button
-    }
-
     private func apply() {
         let running = center.operations.filter(\.isRunning).map(\.id)
         let settled = center.operations.filter { !$0.isRunning }.map(\.id)
+        clearItem.isEnabled = !settled.isEmpty
 
         var snapshot = NSDiffableDataSourceSnapshot<Section, UUID>()
         if !running.isEmpty {

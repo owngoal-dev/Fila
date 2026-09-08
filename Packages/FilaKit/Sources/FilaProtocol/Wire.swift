@@ -282,6 +282,16 @@ public enum FilaReplyCode: Int64, Sendable, Codable {
     }
 }
 
+/// A filesystem refusal whose recovery cannot be inferred from errno alone.
+public enum FilaFailureReason: String, Sendable, Codable, CaseIterable {
+    case sameLocation
+    case sameItem
+    case insideSource
+    case overlappingSources
+    case conflictingNames
+    case differentItemKinds
+}
+
 /// Everything that can come back instead of an answer.
 ///
 /// One type, because callers recover the same way for almost all of it: show
@@ -295,11 +305,13 @@ public struct FilaFailure: Error, Sendable, Hashable, Codable {
     public var systemError: Int32
     /// The path the daemon was working on when it gave up, when it knows one.
     public var path: String?
+    public var reason: FilaFailureReason?
 
-    public init(code: FilaReplyCode, systemError: Int32 = 0, path: String? = nil) {
+    public init(code: FilaReplyCode, systemError: Int32 = 0, path: String? = nil, reason: FilaFailureReason? = nil) {
         self.code = code
         self.systemError = systemError
         self.path = path
+        self.reason = reason
     }
 
     /// `strerror(3)` for `systemError`, or nil when there was none.
@@ -314,6 +326,7 @@ public enum FilaWireKey {
     public static let operation = "op"
     public static let code = "code"
     public static let errno = "errno"
+    public static let failureReason = "failureReason"
     public static let path = "path"
     public static let destination = "dst"
     public static let sources = "srcs"

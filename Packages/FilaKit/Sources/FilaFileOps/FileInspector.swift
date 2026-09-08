@@ -64,7 +64,9 @@ public extension FileOperations {
             return try filaCheck(resolved) { Darwin.open(resolved, flags | O_NOFOLLOW, mode) }
         }
         let resolved = try FilaPath.canonical(path)
-        return try filaCheck(resolved) { Darwin.open(resolved, flags, mode) }
+        // A read-only FIFO must never block the daemon's control queue.
+        // Ordinary files ignore O_NONBLOCK; byte readers still check fstat's type.
+        return try filaCheck(resolved) { Darwin.open(resolved, writes ? flags : flags | O_NONBLOCK, mode) }
     }
 
     /// One extended attribute's value.

@@ -1,5 +1,6 @@
 import AlertController
 import FilaClient
+import FilaFormats
 import FilaProtocol
 import SnapKit
 import Then
@@ -116,7 +117,7 @@ final class PropertyListEditorViewController: UIViewController {
             do {
                 let data = try file.readAll(limit: ViewerLimits.propertyListByteCount)
                 var format = PropertyListSerialization.PropertyListFormat.binary
-                let object = try PropertyListSerialization.propertyList(from: data, options: [], format: &format)
+                let object = try PropertyListBudget.parse(data, format: &format)
                 document.root = PropertyListValue(object)
                 document.format = format
             } catch {
@@ -170,7 +171,7 @@ final class PropertyListEditorViewController: UIViewController {
             let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
                 self?.shell?.presentTabSwitcher()
             }
-            let elements = menuElements() + (owner?.fileMenuElements(presenting: self) ?? []) + [tabs]
+            let elements = FilaMenu.groups(menuElements()) + (owner?.fileMenuElements(presenting: self) ?? []) + FilaMenu.groups([tabs])
             menuItem.menu = UIMenu(children: elements)
             menuItem.isEnabled = !document.isSaving
             navigationItem.rightBarButtonItem = menuItem
@@ -280,34 +281,21 @@ final class PropertyListEditorViewController: UIViewController {
 
     private func apply(_ transform: (PropertyListValue) -> PropertyListValue) {
         guard document.isEditing, !document.isSaving, let root = document.root else { return }
-        document.root = transform(root)
-        document.hasUnsavedChanges = true
-        refresh()
+        let changed = transform(root)
+        do {
+            try PropertyListBudget.validate(changed.foundationObject)
+            document.root = changed
+            document.hasUnsavedChanges = true
+            refresh()
+        } catch {
+            showError(FailureMessage.text(for: error))
+        }
     }
 
+    /// Booleans are the row's own switch, not a card: a value with two states
+    /// and no confirmation to make has nothing to ask.
     private func edit(_ row: Row) {
         guard document.isEditing, !document.isSaving else { return }
-        if case let .boolean(flag) = row.value {
-            let alert = AlertViewController(title: row.label, message: row.value.typeName) { [weak self] context in
-                context.addAction(title: "Cancel") {
-                    context.dispose()
-                }
-                context.addAction(title: "True") {
-                    context.dispose {
-                        guard !flag else { return }
-                        self?.apply { $0.replacing(row.path, with: .boolean(true)) }
-                    }
-                }
-                context.addAction(title: "False", attribute: .accent) {
-                    context.dispose {
-                        guard flag else { return }
-                        self?.apply { $0.replacing(row.path, with: .boolean(false)) }
-                    }
-                }
-            }
-            present(alert, animated: true)
-            return
-        }
         guard row.value.editableText != nil else { return }
         let alert = AlertInputViewController(
             title: row.label,
@@ -358,50 +346,47 @@ final class PropertyListEditorViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    private func addChild(to row: Row) {
-        guard row.value.isContainer else { return }
-        let needsKey: Bool
-        if case .dictionary = row.value { needsKey = true } else { needsKey = false }
-        if needsKey {
-            let alert = AlertInputViewController(
-                title: "Add Entry",
-                message: "Enter a key for the new entry. You choose its type next.",
-                placeholder: "Key",
-                text: ""
-            ) { [weak self] key in
-                guard let self, !key.isEmpty else { return }
-                guard self.document.root?.value(at: row.path + [.key(key)]) == nil else {
-                    self.showError(String(localized: "A key with this name already exists. Choose a different name."))
-                    return
+    /// Choosing the type is a menu: five types and a way out never fit an alert
+    /// card. Titles come from `typeName`, so the picker adds no new strings.
+    private func addEntryMenu(for row: Row) -> UIMenu {
+        let types: [(value: PropertyListValue, symbol: String)] = [
+            (.string(""), "textformat"),
+            (.integer(0), "number"),
+            (.boolean(false), "switch.2"),
+            (.array([]), "list.number"),
+            (.dictionary([]), "list.bullet.indent"),
+        ]
+        return UIMenu(
+            title: String(localized: "Add Entry"),
+            image: UIImage(systemName: "plus"),
+            children: types.map { value, symbol in
+                UIAction(title: value.typeName, image: UIImage(systemName: symbol)) { [weak self] _ in
+                    self?.addEntry(value, to: row)
                 }
-                self.presentNewEntryTypePicker(into: row.path, key: key)
             }
-            present(alert, animated: true)
-        } else {
-            presentNewEntryTypePicker(into: row.path, key: "")
-        }
+        )
     }
 
-    private func presentNewEntryTypePicker(into path: [PropertyListStep], key: String) {
-        let alert = AlertViewController(title: "Add Entry", message: "Choose the type of the new value.") { [weak self] context in
-            context.addAction(title: "Cancel") {
-                context.dispose()
+    /// The type is already chosen; a dictionary still needs a key for it, and
+    /// an array does not.
+    private func addEntry(_ value: PropertyListValue, to row: Row) {
+        guard row.value.isContainer else { return }
+        guard case .dictionary = row.value else {
+            apply { $0.inserting(value, key: "", into: row.path) }
+            return
+        }
+        let alert = AlertInputViewController(
+            title: "Add Entry",
+            message: "Keys in the same dictionary must be unique.",
+            placeholder: "Key",
+            text: ""
+        ) { [weak self] key in
+            guard let self, !key.isEmpty else { return }
+            guard self.document.root?.value(at: row.path + [.key(key)]) == nil else {
+                self.showError(String(localized: "A key with this name already exists. Choose a different name."))
+                return
             }
-            context.addAction(title: "String") {
-                context.dispose { self?.apply { $0.inserting(.string(""), key: key, into: path) } }
-            }
-            context.addAction(title: "Number") {
-                context.dispose { self?.apply { $0.inserting(.integer(0), key: key, into: path) } }
-            }
-            context.addAction(title: "Boolean") {
-                context.dispose { self?.apply { $0.inserting(.boolean(false), key: key, into: path) } }
-            }
-            context.addAction(title: "Array") {
-                context.dispose { self?.apply { $0.inserting(.array([]), key: key, into: path) } }
-            }
-            context.addAction(title: "Dictionary", attribute: .accent) {
-                context.dispose { self?.apply { $0.inserting(.dictionary([]), key: key, into: path) } }
-            }
+            self.apply { $0.inserting(value, key: key, into: row.path) }
         }
         present(alert, animated: true)
     }
@@ -424,7 +409,7 @@ final class PropertyListEditorViewController: UIViewController {
         Task { [weak self] in
             guard let self else { return }
             do {
-                let data = try PropertyListSerialization.data(fromPropertyList: root.foundationObject, format: format, options: 0)
+                let data = try PropertyListBudget.serialize(root.foundationObject, format: format)
                 try await AtomicSave.write(data, to: details.path, link: link)
                 self.document.saved = nil
                 self.document.hasUnsavedChanges = false
@@ -455,6 +440,18 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         content.secondaryTextProperties.color = .secondaryLabel
         cell.contentConfiguration = content
         cell.accessoryType = row.value.isContainer ? .disclosureIndicator : .none
+        cell.accessoryView = nil
+        if case let .boolean(flag) = row.value, document.isEditing {
+            let toggle = UISwitch()
+            toggle.isOn = flag
+            toggle.isEnabled = !document.isSaving
+            toggle.accessibilityLabel = row.label
+            toggle.addAction(UIAction { [weak self, weak toggle] _ in
+                guard let toggle else { return }
+                self?.apply { $0.replacing(row.path, with: .boolean(toggle.isOn)) }
+            }, for: .valueChanged)
+            cell.accessoryView = toggle
+        }
         return cell
     }
 
@@ -468,14 +465,12 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
     }
 
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        guard document.isEditing, document.root?.value(at: path)?.isContainer == true else { return nil }
+        guard document.isEditing, let value = document.root?.value(at: path), value.isContainer else { return nil }
         let button = UIButton(type: .system)
         button.setTitle(String(localized: "Add Entry"), for: .normal)
         button.titleLabel?.font = .preferredFont(forTextStyle: .body)
-        button.addAction(UIAction { [weak self] _ in
-            guard let self, let value = self.document.root?.value(at: self.path) else { return }
-            self.addChild(to: Row(path: self.path, label: self.title ?? "", value: value))
-        }, for: .touchUpInside)
+        button.showsMenuAsPrimaryAction = true
+        button.menu = addEntryMenu(for: Row(path: path, label: title ?? "", value: value))
         return button
     }
 
@@ -499,10 +494,10 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         let row = rows[indexPath.row]
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             guard let self else { return nil }
-            var actions = [UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in UIPasteboard.general.string = row.value.summary }]
+            var actions: [UIMenuElement] = [UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in UIPasteboard.general.string = row.value.summary }]
             if self.document.isEditing, !self.document.isSaving {
                 if row.value.isContainer {
-                    actions.append(UIAction(title: String(localized: "Add Entry"), image: UIImage(systemName: "plus")) { _ in self.addChild(to: row) })
+                    actions.append(self.addEntryMenu(for: row))
                 }
                 if case .key = row.path.last {
                     actions.append(UIAction(title: String(localized: "Rename Key"), image: UIImage(systemName: "pencil")) { _ in self.rename(row) })
@@ -513,7 +508,9 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
                     })
                 }
             }
-            return UIMenu(children: actions)
+            let destructive = actions.filter { ($0 as? UIAction)?.attributes.contains(.destructive) == true }
+            let editing = actions.filter { ($0 as? UIAction)?.attributes.contains(.destructive) != true }
+            return UIMenu(children: FilaMenu.groups(editing, destructive))
         }
     }
 }

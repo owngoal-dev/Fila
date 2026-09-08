@@ -168,57 +168,32 @@ final class FileSession {
     /// call this; the next workspace preparation removes old UUID directories.
     func cleanupTemporaryFiles() {
         temporaryPreparation?.cancel()
-        guard let hello else { return }
-        let workspace = Self.temporaryParent(for: hello.backend).appendingPathComponent(temporaryIdentifier, isDirectory: true)
-        do {
-            // mobile can empty its private workspace but cannot unlink that
-            // directory from the root-owned parent. Startup removes the shell.
-            let targets = hello.isPrivileged
-                ? try FileManager.default.contentsOfDirectory(at: workspace, includingPropertiesForKeys: nil)
-                : [workspace]
-            for target in targets {
-                do { try FileManager.default.removeItem(at: target) }
-                catch let error as CocoaError where error.code == .fileNoSuchFile {}
-                catch { FilaLog.error("Temporary workspace cleanup failed at \(target.path): \(error)") }
-            }
-        } catch let error as CocoaError where error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile {}
+        let workspace = Self.temporaryParent.appendingPathComponent(temporaryIdentifier, isDirectory: true)
+        do { try FileManager.default.removeItem(at: workspace) }
+        catch let error as CocoaError where error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile {}
         catch { FilaLog.error("Temporary workspace cleanup failed: \(error)") }
     }
 
-    private static func temporaryParent(for backend: DaemonLink.Backend) -> URL {
-        switch backend {
-        case let .daemon(installRoot):
-            return URL(fileURLWithPath: installRoot.isEmpty ? "/" : installRoot, isDirectory: true)
-                .resolvingSymlinksInPath().appendingPathComponent(".fila-tmp", isDirectory: true)
-        case .local:
-            return FileManager.default.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent("wiki.qaq.fila", isDirectory: true)
-        }
+    private static var temporaryParent: URL {
+        FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
+            .appendingPathComponent("wiki.qaq.fila", isDirectory: true)
     }
 
     private func prepareTemporaryWorkspace() async throws -> URL {
-        let hello = await ready()
+        _ = await ready()
         try Task.checkCancellation()
-        let parent = Self.temporaryParent(for: hello.backend)
-        if hello.isPrivileged {
-            // The fixed parent keeps mkdir's root ownership and 0755 mode.
-            // Only UUID workspaces need an ownership change, so a kill between
-            // create and chown leaves a disposable child, not a poisoned root.
-            do { try await link.create(.directory, at: parent.path, mode: 0o755) }
-            catch let failure as FilaFailure where failure.systemError == EEXIST {}
-        } else if mkdir(parent.path, 0o700) != 0, errno != EEXIST {
+        let parent = Self.temporaryParent
+        if mkdir(parent.path, 0o700) != 0, errno != EEXIST {
             throw FilaFailure(errno: errno, path: parent.path)
         }
         let details = try await link.details(of: parent.path)
-        // An existing symlink or somebody else's directory is not ours to
-        // adopt, chmod or clean. Private bytes live only in the 0700 child.
-        let owner = hello.isPrivileged ? 0 : getuid()
-        let mode: mode_t = hello.isPrivileged ? 0o755 : 0o700
-        guard details.node.kind == .directory, details.node.ownerID == owner, details.node.mode & 0o777 == mode,
+        // Never adopt an unknown directory or follow a replacement symlink.
+        guard details.node.kind == .directory, details.node.ownerID == getuid(), details.node.mode & 0o777 == 0o700,
               URL(fileURLWithPath: details.path).standardizedFileURL.path == parent.standardizedFileURL.path else {
             throw FilaFailure(code: .notPermitted, systemError: EPERM, path: parent.path)
         }
-        // Finish this one directory's listing before removing its children;
-        // deleting during pagination can change which entries a cursor sees.
+        // Complete the listing before deleting. Only UUID process workspaces
+        // are ours; terminal configuration files in this parent are separate.
         let entries = try await DirectoryReader.entries(in: parent.path, session: self)
         try Task.checkCancellation()
         let stale = entries.filter { $0.kind == .directory && UUID(uuidString: $0.name) != nil }
@@ -229,24 +204,7 @@ final class FileSession {
         }
         try Task.checkCancellation()
         let workspace = parent.appendingPathComponent(temporaryIdentifier, isDirectory: true)
-        if hello.isPrivileged {
-            try await link.create(.directory, at: workspace.path, mode: 0o700)
-            do {
-                try await link.setAttributes(AttributeChange(mode: 0o700, ownerID: getuid(), groupID: getgid()), at: workspace.path)
-                try Task.checkCancellation()
-            } catch {
-                await discardTemporary(workspace.path)
-                throw error
-            }
-        } else {
-            guard mkdir(workspace.path, 0o700) == 0 else { throw FilaFailure(errno: errno, path: workspace.path) }
-        }
-        #if DEBUG
-            let privateDirectory = try await link.details(of: workspace.path)
-            assert(privateDirectory.node.kind == .directory && privateDirectory.node.ownerID == getuid())
-            assert(privateDirectory.node.mode & 0o777 == 0o700)
-            assert(URL(fileURLWithPath: privateDirectory.path).deletingLastPathComponent().path == parent.path)
-        #endif
+        guard mkdir(workspace.path, 0o700) == 0 else { throw FilaFailure(errno: errno, path: workspace.path) }
         return workspace
     }
 
@@ -264,7 +222,7 @@ final class FileSession {
     /// Reads at most `limit` bytes of a file through a descriptor the daemon
     /// opened as root. The bytes never touch the daemon — see the descriptor
     /// rule in `Documentation/Architecture.md`.
-    func read(_ path: String, limit: Int = .max) async throws -> Data {
+    func read(_ path: String, limit: Int) async throws -> Data {
         let descriptor = try await perform(retryOnDisconnect: true) { try await $0.open(path, flags: O_RDONLY) }
         return try await Task.detached { try DescriptorIO.readAndClose(descriptor, limit: limit) }.value
     }

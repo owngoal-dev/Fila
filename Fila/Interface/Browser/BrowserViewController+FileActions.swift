@@ -90,28 +90,38 @@ extension BrowserViewController {
         return URL(fileURLWithPath: joined).standardizedFileURL.path
     }
 
-    func browserMenuElements() -> [UIMenuElement] {
+    func browserMenuElements(folderAction: UIMenuElement, selectAction: UIAction) -> [UIMenuElement] {
         let preferences = AppPreferences.shared
-        let isGrid = preferences.layout(for: directory) == .grid
-        let view = UIMenu(options: .displayInline, children: [
-            UIMenu(title: String(localized: "Sort By"), image: UIImage(systemName: "arrow.up.arrow.down"), children: sortMenuElements()),
+        let layouts = BrowserLayout.allCases.map { layout in
             UIAction(
-                title: isGrid ? String(localized: "Show as List") : String(localized: "Show as Grid"),
-                image: UIImage(systemName: isGrid ? "list.bullet" : "square.grid.2x2")
+                title: layout == .grid ? String(localized: "Grid") : String(localized: "List"),
+                image: UIImage(systemName: layout == .grid ? "square.grid.2x2" : "list.bullet"),
+                state: preferences.layout(for: directory) == layout ? .on : .off
             ) { [weak self] _ in
                 guard let self else { return }
-                AppPreferences.shared.setLayout(isGrid ? .list : .grid, for: self.directory)
+                AppPreferences.shared.setLayout(layout, for: self.directory)
                 self.viewPreferenceChanged(relayout: true)
-            },
-            UIAction(title: String(localized: "Show Hidden Files"), image: UIImage(systemName: "eye"), state: preferences.showsHidden ? .on : .off) { [weak self] _ in
-                AppPreferences.shared.showsHidden.toggle()
-                self?.viewPreferenceChanged(relayout: false)
-            },
+            }
+        }
+        // These are ordinary submenus on every OS: keep the home menu's
+        // creation, display preferences, and navigation groups in this order.
+        let hidden = [true, false].map { showsHidden in
+            UIAction(
+                title: showsHidden ? String(localized: "Show") : String(localized: "Hide"),
+                state: preferences.showsHidden == showsHidden ? .on : .off
+            ) { [weak self] _ in
+                guard let self else { return }
+                AppPreferences.shared.showsHidden = showsHidden
+                self.viewPreferenceChanged(relayout: false)
+            }
+        }
+        let view = UIMenu(options: .displayInline, children: [
+            UIMenu(title: String(localized: "View"), image: UIImage(systemName: "square.grid.2x2"), options: .singleSelection, children: layouts),
+            UIMenu(title: String(localized: "Hidden Files"), image: UIImage(systemName: "eye.slash"), options: .singleSelection, children: hidden),
+            UIMenu(title: String(localized: "Sort By"), image: UIImage(systemName: "arrow.up.arrow.down"), children: sortMenuElements()),
         ])
-        let location = UIMenu(options: .displayInline, children: [
-            UIAction(title: String(localized: "Go to Path…"), image: UIImage(systemName: "arrow.right.circle")) { [weak self] _ in
-                self?.promptGoToPath()
-            },
+        let more: [UIMenuElement] = [
+            selectAction,
             UIAction(
                 title: preferences.isFavorite(directory) ? String(localized: "Remove from Favorites") : String(localized: "Add to Favorites"),
                 image: UIImage(systemName: preferences.isFavorite(directory) ? "star.slash" : "star")
@@ -123,11 +133,49 @@ extension BrowserViewController {
                 guard let self else { return }
                 self.shell?.openInNewTab(self.directory)
             },
-            UIAction(title: String(localized: "Clipboard"), image: UIImage(systemName: "doc.on.clipboard")) { [weak self] _ in
-                self?.presentClipboard()
-            },
-        ])
-        return [view, location]
+        ]
+        // The browser's Go menu changes the current location; More acts on
+        // the current folder. Keep these separate from the overview's new-tab menu.
+        let navigation: [UIMenuElement] = [
+            UIMenu(title: String(localized: "Go"), image: UIImage(systemName: "arrow.right.circle"), children: goMenuElements()),
+            UIMenu(title: String(localized: "More"), image: UIImage(systemName: "ellipsis.circle"), children: more),
+        ]
+        return FilaMenu.groups([folderAction]) + [view] + FilaMenu.groups(navigation)
+    }
+
+    private func goMenuElements() -> [UIMenuElement] {
+        let preferences = AppPreferences.shared
+        func destination(_ path: String, title: String, image: UIImage?, subtitle: String? = nil, isFile: Bool = false) -> UIAction {
+            UIAction(title: title, subtitle: subtitle, image: image) { [weak self] _ in
+                if isFile { self?.shell?.follow(.view(path)) }
+                else { self?.open(directory: path) }
+            }
+        }
+        func name(of path: String) -> String { path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent }
+        let places = SidebarLocation.jumpList(backend: session.hello?.backend).map { place in
+            let image: UIImage?
+            switch place.icon {
+            case let .artwork(name): image = UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
+            case let .symbol(name): image = UIImage(systemName: name)
+            }
+            return destination(place.path, title: place.title, image: image)
+        }
+        let favorites = preferences.favorites.map {
+            destination($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
+        }
+        let recents = preferences.recents.prefix(8).map {
+            destination($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0, isFile: preferences.recentFiles.contains($0))
+        }
+        let locations = [
+            UIMenu(title: String(localized: "Places"), image: UIImage(systemName: "folder"), children: places),
+            UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
+            UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
+        ].filter { !$0.children.isEmpty }
+        let path = UIAction(title: String(localized: "Go to Path…"), image: UIImage(systemName: "arrow.right.circle")) { [weak self] _ in
+            self?.promptGoToPath()
+        }
+        // Named destinations come first; manual path entry stays last.
+        return FilaMenu.groups(locations, [path])
     }
 
     func sortMenuElements() -> [UIMenuElement] {
@@ -141,24 +189,27 @@ extension BrowserViewController {
         let keys = FileSortKey.allCases.map { key in
             UIAction(title: titles[key] ?? key.rawValue, state: preferences.sortKey == key ? .on : .off) { [weak self] _ in
                 let preferences = AppPreferences.shared
-                // Tapping the key that is already selected flips the direction,
-                // the way every file manager does it.
-                if preferences.sortKey == key { preferences.isAscending.toggle() } else { preferences.sortKey = key }
+                preferences.sortKey = key
                 self?.viewPreferenceChanged(relayout: false)
             }
         }
-        let direction = UIAction(
-            title: preferences.isAscending ? String(localized: "Ascending") : String(localized: "Descending"),
-            image: UIImage(systemName: preferences.isAscending ? "arrow.up" : "arrow.down")
-        ) { [weak self] _ in
-            AppPreferences.shared.isAscending.toggle()
-            self?.viewPreferenceChanged(relayout: false)
+        let directions = [true, false].map { ascending in
+            UIAction(
+                title: ascending ? String(localized: "Ascending") : String(localized: "Descending"),
+                state: preferences.isAscending == ascending ? .on : .off
+            ) { [weak self] _ in
+                AppPreferences.shared.isAscending = ascending
+                self?.viewPreferenceChanged(relayout: false)
+            }
         }
-        return [UIMenu(options: .displayInline, children: keys), UIMenu(options: .displayInline, children: [direction])]
+        return [
+            UIMenu(options: [.displayInline, .singleSelection], children: keys),
+            UIMenu(options: [.displayInline, .singleSelection], children: directions),
+        ]
     }
 
     func newMenu() -> UIMenu {
-        UIMenu(title: String(localized: "New"), image: UIImage(systemName: "plus"), children: [
+        UIMenu(title: String(localized: "New"), image: UIImage(systemName: "plus"), children: FilaMenu.groups([
             UIAction(title: String(localized: "Folder"), image: UIImage(systemName: "folder.badge.plus")) { [weak self] _ in
                 self?.promptCreate(.directory)
             },
@@ -168,6 +219,7 @@ extension BrowserViewController {
             UIAction(title: String(localized: "Symbolic Link"), image: UIImage(systemName: "arrowshape.turn.up.right")) { [weak self] _ in
                 self?.promptCreateLink()
             },
+        ], [
             UIAction(title: String(localized: "Import Photos…"), image: UIImage(systemName: "photo.on.rectangle")) { [weak self] _ in
                 self?.importPhotos()
             },
@@ -177,7 +229,7 @@ extension BrowserViewController {
             UIAction(title: String(localized: "Download from URL…"), image: UIImage(systemName: "arrow.down.circle")) { [weak self] _ in
                 self?.promptDownload()
             },
-        ])
+        ]))
     }
 
     // MARK: - Operations
@@ -269,7 +321,11 @@ extension BrowserViewController {
                   let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
                   let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
                   url.host?.isEmpty == false else { return }
-            self.session.operations.download(url, into: self.directory)
+            let center = self.session.operations
+            let operationID = center.download(url, into: self.directory)
+            // Use the extraction card's delayed presentation and cancellation;
+            // the returned identity also keeps simultaneous downloads separate.
+            OperationCoverViewController.present(for: operationID, from: self, center: center)
         }
     }
 
@@ -290,9 +346,8 @@ extension BrowserViewController {
             title: (target as NSString).lastPathComponent,
             message: "Copy keeps the originals. Move takes them out of their current folder."
         ) { [weak self] context in
-            context.addAction(title: "Cancel") {
-                context.dispose()
-            }
+            context.allowSimpleDispose()
+            context.addAction(title: "Cancel") { context.dispose() }
             context.addAction(title: "Copy Here") {
                 context.dispose {
                     self?.transfer(JobRequest(kind: .copy, sources: sources, destination: target))
@@ -304,6 +359,7 @@ extension BrowserViewController {
                 }
             }
         }
+        alert.shouldDismissWhenTappedAround = true
         present(alert, animated: true)
     }
 
@@ -345,7 +401,14 @@ extension BrowserViewController {
                 // which items this operation moved.
                 FileClipboard.shared.finishPaste(paste, succeeded: outcome.code == .success)
             }
-            if outcome.code != .success, outcome.code != .cancelled { report(outcome) }
+            if outcome.code != .success, outcome.code != .cancelled {
+                var message = FailureMessage.text(for: outcome)
+                if let path = outcome.path { message += "\n\n" + path }
+                if paste != nil {
+                    message += "\n\n" + String(localized: "Check the source and destination folders before trying again. Some items may already have been transferred.")
+                }
+                FeedbackAlert.show(request.kind == .move ? String(localized: "Unable to Move Items") : String(localized: "Unable to Copy Items"), message: message)
+            }
         }
     }
 

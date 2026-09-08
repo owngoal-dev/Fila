@@ -281,7 +281,7 @@ it off in Settings → System Features. The environment side reads the live
 | Trash | `<volume>/.fila-trash` — cross-volume copy then remove; read-only reports errno | same | `<install root>/.fila-trash` on rootless and roothide, `<volume>/.fila-trash` rootful |
 | Compress / extract | `ArchiveJob` in-process | same | `fila-archive`, spawned by `filad` per job; progress over the helper's stdout, then XPC |
 | WebDAV | fine on a bound port ≥ 1024; publishes what the process can read | same | same |
-| Temporary workspace | the app's own `tmp/wiki.qaq.fila/<UUID>` (`FileSession`) | same | `<installRoot>/.fila-tmp/<UUID>` |
+| Temporary workspace | the app's own `tmp/wiki.qaq.fila/<UUID>` (`FileSession`) | same | same app-container workspace |
 | `FilaGuard` | still enforced in-process | same | in the daemon |
 
 The user-side switches exist because a jailbreak without a full

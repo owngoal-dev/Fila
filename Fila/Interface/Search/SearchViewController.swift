@@ -143,11 +143,11 @@ final class SearchViewController: UIViewController {
     private func updateScopeMenu() {
         let options: [(Scope, String)] = [(.folder, String(localized: "This Folder")), (.subfolders, String(localized: "Subfolders"))]
         let actions = options.map { option, title in
-            UIAction(title: title, state: scope == option ? .on : .off) { [weak self] _ in
+            UIAction(title: title, image: UIImage(systemName: option == .folder ? "folder" : "square.stack.3d.up"), state: scope == option ? .on : .off) { [weak self] _ in
                 self?.selectScope(option)
             }
         }
-        navigationItem.rightBarButtonItem?.menu = UIMenu(options: .singleSelection, children: actions)
+        navigationItem.rightBarButtonItem?.menu = UIMenu(children: [FilaMenu.selection(title: String(localized: "Search"), actions: actions)])
     }
 
     private func selectScope(_ scope: Scope) {
@@ -182,6 +182,9 @@ final class SearchViewController: UIViewController {
                 do {
                     for try await page in DirectoryReader.pages(in: self.root, session: self.session) {
                         guard !Task.isCancelled, self.searchID == searchID else { return }
+                        guard page.count <= DirectoryReader.maximumEntryCount - self.loadingFolderEntries.count else {
+                            throw FilaFailure(errno: E2BIG, path: self.root)
+                        }
                         self.loadingFolderEntries.append(contentsOf: page)
                         self.filterFolder(self.loadingFolderEntries)
                     }

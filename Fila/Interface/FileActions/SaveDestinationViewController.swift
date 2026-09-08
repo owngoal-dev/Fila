@@ -164,13 +164,14 @@ final class SaveDestinationViewController: UIViewController {
         confirmItem.isEnabled = availability == .ready && (selection.folderName.map(Self.isValidName) ?? true)
         cancelItem.isEnabled = availability != .creatingFolder
         menuItem.isEnabled = availability != .creatingFolder
-        menuItem.menu = UIMenu(children: [
+        menuItem.menu = UIMenu(children: FilaMenu.groups([
             UIAction(title: String(localized: "New Folder"), image: UIImage(systemName: "folder.badge.plus"), attributes: availability == .ready ? [] : .disabled) { [weak self] _ in
                 self?.promptNewFolder()
             },
             UIAction(title: String(localized: "Refresh"), image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in self?.load() },
+        ], [
             UIAction(title: String(localized: "Cancel"), image: UIImage(systemName: "xmark")) { [weak self] _ in self?.cancel() },
-        ])
+        ]))
         navigationItem.rightBarButtonItems = selection.fileTypes == nil ? [confirmItem, menuItem] : [menuItem]
         navigationItem.hidesBackButton = availability == .creatingFolder
         list.isUserInteractionEnabled = availability != .creatingFolder

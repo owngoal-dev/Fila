@@ -12,6 +12,34 @@ import UniformTypeIdentifiers
 /// of them would prove nothing about the only thing that can go wrong.
 @Suite("Thumbnails")
 struct ThumbnailTests {
+    @Test("Background thumbnails do not promote a named image into PDF decoding")
+    func misleadingPDFName() async throws {
+        try await withScratchAsync { directory in
+            let url = directory.appendingPathComponent("wallpaper.png")
+            try writePDF(to: url)
+            let size = try byteCount(of: url)
+            let service = ThumbnailService()
+            let image = await service.thumbnail(path: url.path, modified: 1, byteCount: size,
+                                                open: { try openForReading(url) })
+            #expect(image == nil)
+            let pdf = await service.thumbnail(path: directory.appendingPathComponent("wallpaper.pdf").path,
+                                              modified: 1, byteCount: size,
+                                              open: { try openForReading(url) })
+            #expect(pdf != nil)
+        }
+    }
+
+    @Test("Full image previews downsample an ordinary large image before display")
+    func previewPixelLimit() throws {
+        try withScratch { directory in
+            let url = directory.appendingPathComponent("wide-preview.png")
+            try writePNG(width: 8_192, height: 64, to: url)
+            let image = try #require(ImagePreview.make(data: Data(contentsOf: url)))
+            #expect(image.width == 4_096)
+            #expect(image.height == 32)
+        }
+    }
+
     @Test("An image thumbnail comes back inside the pixel bound")
     func imageThumbnail() throws {
         try withScratch { directory in

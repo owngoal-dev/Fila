@@ -10,9 +10,10 @@ import Foundation
 /// same failure toast, because from the user's side it is the same kind of
 /// thing — bytes arriving somewhere, slowly, with something that could go wrong.
 extension OperationCenter {
-    func download(_ url: URL, into directory: String) {
+    @discardableResult
+    func download(_ url: URL, into directory: String) -> UUID {
         let name = URLDownload.suggestedName(for: url)
-        run(
+        return run(
             kind: .download,
             title: Kind.download.runningTitle,
             subtitle: name + " → " + directory,

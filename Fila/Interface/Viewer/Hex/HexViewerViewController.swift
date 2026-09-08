@@ -9,8 +9,8 @@ import UIKit
 /// `.binary` case rather than a nil.
 ///
 /// Windowed: the table has one row per sixteen bytes and the rows fetch pages of
-/// the file as they scroll into view, so a 4 GB disk image opens as fast as a
-/// 4 KB one and neither is ever in memory. Reading it whole would be simpler and
+/// the file as they scroll into view, so a large file uses the same bounded
+/// page cache as a small one. Reading it whole would be simpler and
 /// would also be the difference between a viewer and a jetsam.
 ///
 /// Read-only, deliberately. Editing bytes in place means `pwrite` onto the
@@ -155,7 +155,8 @@ final class HexViewerViewController: UIViewController {
             message: message
         ) { [weak self] context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: "Close") { context.dispose() }
+            context.addAction(title: "Go to Offset", attribute: .accent) {
                 context.dispose { self?.goToOffset() }
             }
         }
@@ -169,7 +170,7 @@ final class HexViewerViewController: UIViewController {
 /// one cannot, because a snapshot must enumerate every identifier up front and
 /// this table's row count is the file's length.
 ///
-/// A 4 GB disk image — an ordinary thing to open here — is 4,294,967,296 ÷ 16 =
+/// A 4 GB disk image is 4,294,967,296 ÷ 16 =
 /// **268,435,456 rows**. Even at eight bytes an identifier that is over 2 GB of
 /// identifiers before the snapshot's own hash index, to draw the forty rows that
 /// fit on screen, on a device whose whole app footprint is a few hundred

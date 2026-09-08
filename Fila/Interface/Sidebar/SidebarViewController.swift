@@ -32,6 +32,7 @@ final class SidebarViewController: UIViewController {
     }
 
     private let session = FileSession.shared
+    private let settingsShown: Bool
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
     /// Only the current eight rows' presentation; thumbnail reuse stays in ThumbnailCache.
@@ -72,6 +73,14 @@ final class SidebarViewController: UIViewController {
         return item
     }()
 
+    init(settingsShown: Bool = true) {
+        self.settingsShown = settingsShown
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) { fatalError("not supported") }
+
     func setColumnToggle(_ item: UIBarButtonItem?, animated: Bool = false) {
         guard columnToggle !== item else { return }
         columnToggle = item
@@ -81,7 +90,8 @@ final class SidebarViewController: UIViewController {
     private func updateBarButtons(animated: Bool = false) {
         let running = session.operations.operations.filter(\.isRunning).count
         tasksItem.accessibilityValue = running > 0 ? String(localized: "\(running) in progress") : nil
-        if navigationItem.leftBarButtonItem !== settingsItem { navigationItem.leftBarButtonItem = settingsItem }
+        let settings = settingsShown ? settingsItem : nil
+        if navigationItem.leftBarButtonItem !== settings { navigationItem.leftBarButtonItem = settings }
         let dismissItem = presentingViewController != nil ? doneItem : nil
         let items = [columnToggle ?? dismissItem, running > 0 ? tasksItem : nil].compactMap { $0 }
         if (navigationItem.rightBarButtonItems ?? []) != items { navigationItem.setRightBarButtonItems(items, animated: animated) }
@@ -120,9 +130,24 @@ final class SidebarViewController: UIViewController {
             collectionViewLayout: layout
         )
         collectionView.delegate = self
+        // Match iGhostVT's studio credit: caption, 40% foreground, 24-point insets.
+        let footer = UILabel().then {
+            $0.text = String(localized: "OwnGoal Studio × AI", comment: "Studio credit. Do not translate.")
+            $0.font = .preferredFont(forTextStyle: .caption1)
+            $0.textColor = .label.withAlphaComponent(0.4)
+            $0.textAlignment = .center
+            $0.numberOfLines = 0
+            $0.adjustsFontForContentSizeCategory = true
+        }
+        view.addSubview(footer)
+        footer.snp.makeConstraints { make in
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(FilaUI.Spacing.extraLarge)
+            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(FilaUI.Spacing.extraLarge)
+        }
         view.addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(footer.snp.top).offset(-FilaUI.Spacing.extraLarge)
         }
 
         buildDataSource()

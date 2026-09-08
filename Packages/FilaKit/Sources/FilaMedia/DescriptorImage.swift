@@ -8,19 +8,19 @@ import ImageIO
 /// ImageIO and Core Graphics both take a `CGDataProvider`, and a provider can be
 /// a pair of callbacks rather than a block of memory — so the "read the file,
 /// then decode it" step that every naive thumbnail does never happens here. A
-/// 200 MB TIFF costs the same as a 200 KB one, which is what makes it safe to
-/// thumbnail files without a size ceiling.
+/// provider avoids loading a second complete copy. Input and raster budgets
+/// still apply because a decoder may allocate intermediate buffers.
 enum DescriptorImage {
     /// A thumbnail no larger than `maxPixelSize` on its long edge.
     ///
-    /// `kCGImageSourceThumbnailMaxPixelSize` is what keeps the full-size image
-    /// from ever being decoded: ImageIO reads the header, then reads only the
-    /// rows it needs — or lifts the embedded preview an EXIF JPEG already has.
+    /// The thumbnail bounds the returned raster. Source dimensions are checked
+    /// separately because codec intermediate allocations are format-dependent.
     static func thumbnail(descriptor: Int32, byteCount: Int64, maxPixelSize: Int) -> CGImage? {
         let reads = ReadLog()
         guard let provider = provider(descriptor: descriptor, byteCount: byteCount, reads: reads),
-              let source = CGImageSourceCreateWithDataProvider(provider, nil)
+              let source = CGImageSourceCreateWithDataProvider(provider, [kCGImageSourceShouldCache: false] as CFDictionary)
         else { return nil }
+        guard ImagePreview.hasSupportedDimensions(source) else { return nil }
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -46,7 +46,7 @@ enum DescriptorImage {
         // to the wrong edge. `getDrawingTransform` is the one call that knows
         // about the rotation, so the box is measured through it too.
         let box = page.getBoxRect(.cropBox)
-        guard box.width > 0, box.height > 0 else { return nil }
+        guard box.width.isFinite, box.height.isFinite, box.width > 0, box.height > 0 else { return nil }
         let rotation = page.rotationAngle % 180 == 0 ? box.size : CGSize(width: box.height, height: box.width)
         let scale = CGFloat(maxPixelSize) / max(rotation.width, rotation.height)
         let width = max(1, Int((rotation.width * scale).rounded()))
@@ -99,7 +99,7 @@ enum DescriptorImage {
                         // reads to Core Graphics as end of data, and the caller
                         // gets a silently truncated picture. So the failure is
                         // recorded here and the caller throws the result away.
-                        file.reads.failed = true
+                        file.reads.recordFailure()
                         return 0
                     }
                     return got
@@ -133,9 +133,20 @@ private final class DescriptorBox {
     deinit { close(descriptor) }
 }
 
-/// Whether any read the provider served failed. Written from the callback and
-/// read once the generator has returned, both on the same thread, because Core
-/// Graphics pulls bytes synchronously while it decodes.
+/// Codecs may read a provider from several worker threads.
 private final class ReadLog {
-    var failed = false
+    private let lock = NSLock()
+    private var storedFailure = false
+
+    var failed: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return storedFailure
+    }
+
+    func recordFailure() {
+        lock.lock()
+        defer { lock.unlock() }
+        storedFailure = true
+    }
 }

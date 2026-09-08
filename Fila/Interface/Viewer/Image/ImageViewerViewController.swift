@@ -1,4 +1,5 @@
 import FilaProtocol
+import FilaMedia
 import ImageIO
 import SnapKit
 import Then
@@ -77,13 +78,14 @@ final class ImageViewerViewController: UIViewController {
     private func load() {
         do {
             let data = try file.readAll(limit: ViewerLimits.inMemoryDocumentByteCount)
-            guard let image = UIImage(data: data) else {
+            guard let raster = ImagePreview.make(data: data) else {
                 throw ViewerFailure.unsupportedContent(
                     String(localized: "This image format is not supported. Open it as hex to see its contents.")
                 )
             }
+            let image = UIImage(cgImage: raster)
             imageView.image = image
-            metadata = Self.describe(data, image: image, details: details)
+            metadata = Self.describe(data, details: details)
         } catch {
             let label = UILabel().then {
                 $0.text = FailureMessage.text(for: error)
@@ -128,14 +130,15 @@ final class ImageViewerViewController: UIViewController {
     /// a bundle actually came for. The EXIF selection is the shooting settings
     /// and the timestamp; the full dictionary is dozens of keys, most of them
     /// vendor noise.
-    private static func describe(_ data: Data, image: UIImage, details: FileDetails) -> [(String, String)] {
+    private static func describe(_ data: Data, details: FileDetails) -> [(String, String)] {
         var rows: [(String, String)] = []
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return rows }
         let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] ?? [:]
 
-        let width = properties[kCGImagePropertyPixelWidth] as? Int ?? Int(image.size.width * image.scale)
-        let height = properties[kCGImagePropertyPixelHeight] as? Int ?? Int(image.size.height * image.scale)
-        rows.append((String(localized: "Dimensions"), "\(width) × \(height)"))
+        if let width = properties[kCGImagePropertyPixelWidth] as? Int,
+           let height = properties[kCGImagePropertyPixelHeight] as? Int {
+            rows.append((String(localized: "Dimensions"), "\(width) × \(height)"))
+        }
 
         if let type = CGImageSourceGetType(source) {
             rows.append((String(localized: "Type"), type as String))

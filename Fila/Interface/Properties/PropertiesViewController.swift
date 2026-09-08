@@ -1,5 +1,6 @@
 import AlertController
 import FilaClient
+import FilaFormats
 import FilaMedia
 import FilaProtocol
 import SnapKit
@@ -530,7 +531,8 @@ final class PropertiesViewController: UIViewController {
     /// most of the rest is a short string. Guessing right saves a trip through
     /// the hex viewer for the two common cases.
     private static func viewer(for name: String, value: Data) -> UIViewController {
-        if let object = try? PropertyListSerialization.propertyList(from: value, options: [], format: nil) {
+        var format = PropertyListSerialization.PropertyListFormat.binary
+        if let object = try? PropertyListBudget.parse(value, format: &format) {
             return PropertyListEditorViewController(title: name, value: PropertyListValue(object))
         }
         return AttributeValueViewController(name: name, value: value)

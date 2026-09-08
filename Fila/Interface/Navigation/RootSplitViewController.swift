@@ -154,8 +154,6 @@ final class RootSplitViewController: UISplitViewController {
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
-        // Collapsed, the toggle opens Places as a sheet, not a column: say so.
-        toggle.image = UIImage(systemName: isCollapsed ? "bookmark" : "sidebar.leading")
         var buttons = (leadingItems ?? item.leftBarButtonItems ?? []).filter { $0 !== toggle && $0 !== back }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
         // exit intact, rather than creating another route around its save guard.
@@ -176,10 +174,9 @@ final class RootSplitViewController: UISplitViewController {
             // Custom leading items suppress UIKit's default Back control.
             // Keep its native edge transition, subject to editor guards.
             navigation.interactivePopGestureRecognizer?.delegate = self
-            // Phone viewers, including archive subdirectories, keep Back alone.
-            // Places belongs to the filesystem browser they came from.
-            let isViewer = controller is ViewerContainerViewController || controller is ArchiveBrowserViewController
-            if !inSidebar, !(isCollapsed && isViewer) { buttons.append(toggle) }
+            // On a phone, Places lives in the tab overview's bottom toolbar.
+            // Wide layouts keep the control that restores the sidebar column.
+            if !isCollapsed, !inSidebar { buttons.append(toggle) }
         }
         item.leftItemsSupplementBackButton = false
         // UIKit's animated item swap fades the arriving and departing buttons
@@ -379,12 +376,12 @@ final class RootSplitViewController: UISplitViewController {
     /// navigation controller and moving a view controller out of a container to
     /// present it and back again is a great deal of ceremony for a list that
     /// rebuilds itself from `UserDefaults` in a millisecond.
-    func presentSidebar() {
+    func presentSidebar(settingsShown: Bool = true) {
         guard isCollapsed else {
             show(.primary)
             return
         }
-        presentAsSheet(UINavigationController(rootViewController: SidebarViewController()))
+        presentAsSheet(UINavigationController(rootViewController: SidebarViewController(settingsShown: settingsShown)))
     }
 
     private func dismissSidebarSheet() {

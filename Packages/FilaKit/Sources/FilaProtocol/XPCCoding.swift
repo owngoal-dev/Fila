@@ -509,9 +509,7 @@ public extension JobEvent {
             xpc_dictionary_set_string(message, FilaWireKey.path, progress.currentPath)
         case let .completed(failure):
             xpc_dictionary_set_bool(message, FilaWireKey.jobPhase, true)
-            xpc_dictionary_set_int64(message, FilaWireKey.code, failure.code.rawValue)
-            xpc_dictionary_set_int64(message, FilaWireKey.errno, Int64(failure.systemError))
-            if let path = failure.path { xpc_dictionary_set_string(message, FilaWireKey.path, path) }
+            failure.encode(into: message)
         }
         return message
     }
@@ -527,7 +525,8 @@ public extension JobEvent {
             return (identifier, .completed(FilaFailure(
                 code: code,
                 systemError: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(message, FilaWireKey.errno)),
-                path: path
+                path: path,
+                reason: xpc_dictionary_get_string(message, FilaWireKey.failureReason).flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
             )))
         }
         return (identifier, .progress(JobProgress(
@@ -547,6 +546,7 @@ public extension FilaFailure {
         xpc_dictionary_set_int64(reply, FilaWireKey.code, code.rawValue)
         xpc_dictionary_set_int64(reply, FilaWireKey.errno, Int64(systemError))
         if let path { xpc_dictionary_set_string(reply, FilaWireKey.path, path) }
+        if let reason { xpc_dictionary_set_string(reply, FilaWireKey.failureReason, reason.rawValue) }
     }
 
     /// The failure a reply carries, or nil when it says `.success`.
@@ -556,7 +556,8 @@ public extension FilaFailure {
         return FilaFailure(
             code: code,
             systemError: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(reply, FilaWireKey.errno)),
-            path: xpc_dictionary_get_string(reply, FilaWireKey.path).map { String(cString: $0) }
+            path: xpc_dictionary_get_string(reply, FilaWireKey.path).map { String(cString: $0) },
+            reason: xpc_dictionary_get_string(reply, FilaWireKey.failureReason).flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
         )
     }
 }

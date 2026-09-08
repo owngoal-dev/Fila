@@ -142,6 +142,7 @@ let package = Package(
             name: "FilaRemote",
             dependencies: [
                 "FilaProtocol",
+                "FilaFileOps", // Shared descriptor-based storage reserve checks.
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),

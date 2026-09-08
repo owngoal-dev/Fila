@@ -1,43 +1,54 @@
 import FilaProtocol
 import Foundation
 
-/// A directory as it arrives, one page at a time.
-///
-/// The whole point of paging is that nothing ever holds a whole directory: a
-/// listing of 100k entries is 196 messages, and the browser shows the first one
-/// while the rest are still coming. A caller that abandons a listing simply
-/// cancels the task — the daemon closes the handle it kept open after
-/// `FilaProtocol.listingIdleTimeoutSeconds`, so there is nothing to tell it.
+/// Pull-based pages: the next backend request starts only when the consumer
+/// asks for it. A slow UI never accumulates an unbounded queue of pages.
 enum DirectoryReader {
+    static let maximumEntryCount = 50_000
+
     @MainActor
-    static func pages(in path: String, session: FileSession) -> AsyncThrowingStream<[FileNode], Error> {
-        AsyncThrowingStream { continuation in
-            let task = Task { @MainActor in
-                do {
-                    var cursor: UInt64 = 0
-                    repeat {
-                        let page = try await session.perform(retryOnDisconnect: true) {
-                            try await $0.list(directory: path, cursor: cursor)
-                        }
-                        if Task.isCancelled { break }
-                        continuation.yield(page.entries)
-                        cursor = page.cursor
-                    } while cursor != 0
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
+    static func pages(in path: String, session: FileSession) -> Pages {
+        Pages(path: path, session: session)
+    }
+
+    struct Pages: AsyncSequence {
+        typealias Element = [FileNode]
+        let path: String
+        let session: FileSession
+
+        func makeAsyncIterator() -> AsyncIterator { AsyncIterator(path: path, session: session) }
+
+        struct AsyncIterator: AsyncIteratorProtocol {
+            let path: String
+            let session: FileSession
+            private var cursor: UInt64? = 0
+
+            init(path: String, session: FileSession) {
+                self.path = path
+                self.session = session
             }
-            continuation.onTermination = { _ in task.cancel() }
+
+            mutating func next() async throws -> [FileNode]? {
+                try Task.checkCancellation()
+                guard let cursor else { return nil }
+                let path = path
+                let page = try await session.perform(retryOnDisconnect: true) {
+                    try await $0.list(directory: path, cursor: cursor)
+                }
+                try Task.checkCancellation()
+                self.cursor = page.cursor == 0 ? nil : page.cursor
+                return page.entries
+            }
         }
     }
 
-    /// Every entry, for the callers that genuinely need the whole thing — the
-    /// archive walk and the app-container scan. Never use this to fill a list.
+    /// Consumers requiring a complete listing must fail rather than treating
+    /// an incomplete result as all entries (especially workspace cleanup).
     @MainActor
     static func entries(in path: String, session: FileSession) async throws -> [FileNode] {
         var entries: [FileNode] = []
         for try await page in pages(in: path, session: session) {
+            guard page.count <= maximumEntryCount - entries.count else { throw FilaFailure(errno: E2BIG, path: path) }
             entries.append(contentsOf: page)
         }
         return entries

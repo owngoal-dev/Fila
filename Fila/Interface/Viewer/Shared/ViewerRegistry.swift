@@ -123,13 +123,14 @@ final class ViewerContainerViewController: UIViewController {
             let file = try await DescriptorFile.open(details.path, link: link)
             let head = try file.read(at: 0, count: FileFormat.detectionByteCount)
             let format = FileFormat.detect(head: head, name: fileName)
-            present(format: format, file: file)
+            try present(format: format, file: file)
         } catch {
             present(failure: error)
         }
     }
 
-    private func present(format: FileFormat, file: DescriptorFile) {
+    private func present(format: FileFormat, file: DescriptorFile) throws {
+        try PreviewLimits.validate(byteCount: file.byteCount, format: format)
         detectedFormat = format
         // Cleared before the child loads, because the child sets it while its
         // view is being made and clearing afterwards would wipe it.
@@ -207,6 +208,8 @@ final class ViewerContainerViewController: UIViewController {
         let choices: [FileFormat] = [.text, .binary, .propertyList, .machO, .archive, .image]
         let openAs = UIMenu(
             title: String(localized: "Open As"),
+            image: UIImage(systemName: "doc.text.magnifyingglass"),
+            options: .singleSelection,
             children: choices.map { format in
                 UIAction(
                     title: Self.name(of: format),
@@ -217,15 +220,12 @@ final class ViewerContainerViewController: UIViewController {
         let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
             self?.shell?.presentTabSwitcher()
         }
-        // The viewer's own controls come first, as one group of their own;
-        // then how to open, then the file, then the shell.
-        let own: [UIMenuElement] = childMenuElements.isEmpty ? [] : [UIMenu(options: .displayInline, children: childMenuElements)]
-        menuItem.menu = UIMenu(children: own + [openAs] + fileMenuElements(presenting: self) + [tabs])
+        menuItem.menu = UIMenu(children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs]) + FilaMenu.groups([tabs]))
     }
 
     /// Nested editors and virtual archive directories use their real file's
     /// container; a staged archive member must never borrow another file.
-    func fileMenuElements(presenting presenter: UIViewController) -> [UIMenuElement] {
+    func fileMenuElements(presenting presenter: UIViewController, additional: [UIMenuElement] = []) -> [UIMenuElement] {
         let directory = URL(fileURLWithPath: details.path).deletingLastPathComponent().path
         let actions = FileActions(presenter: presenter, directory: directory) { [weak self, weak presenter] in
             guard let self, let presenter, let navigation = self.navigationController,
@@ -233,7 +233,7 @@ final class ViewerContainerViewController: UIViewController {
                   let index = navigation.viewControllers.firstIndex(where: { $0 === self }), index > 0 else { return }
             navigation.popToViewController(navigation.viewControllers[index - 1], animated: true)
         }
-        return actions.menuElements(for: details.path, node: details.node) { [weak self, weak presenter] action in
+        return actions.menuElements(for: details.path, node: details.node, additional: additional, groupsFileOperations: true) { [weak self, weak presenter] action in
             guard let self, self.menuItem.isEnabled else { return }
             let perform = { [weak self, weak presenter] in
                 guard let self, let presenter, let navigation = self.navigationController,
@@ -270,7 +270,7 @@ final class ViewerContainerViewController: UIViewController {
             }
             do {
                 let file = try await DescriptorFile.open(details.path, link: link)
-                self?.present(format: format, file: file)
+                try self?.present(format: format, file: file)
             } catch {
                 let alert = AlertViewController(
                     title: "Unable to Open This File",

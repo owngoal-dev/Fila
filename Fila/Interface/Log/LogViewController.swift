@@ -324,7 +324,7 @@ final class LogViewController: UIViewController {
                 }
             }
         )
-        let actions = UIMenu(options: .displayInline, children: [
+        let actions = FilaMenu.groups([
             UIAction(
                 title: String(localized: "Jump to Latest"),
                 image: UIImage(systemName: "arrow.down.to.line")
@@ -336,13 +336,14 @@ final class LogViewController: UIViewController {
                 title: String(localized: "Share"),
                 image: UIImage(systemName: "square.and.arrow.up")
             ) { [weak self] _ in self?.share() },
+        ], [
             UIAction(
                 title: String(localized: "Clear"),
                 image: UIImage(systemName: "trash"),
                 attributes: .destructive
             ) { [weak self] _ in self?.clear() },
         ])
-        return UIMenu(children: [levels, sources, actions])
+        return UIMenu(children: FilaMenu.groups([levels, sources]) + actions)
     }
 
     // MARK: - Actions

@@ -74,6 +74,10 @@ final class JobTally {
         failure = FilaFailure(errno: code == 0 ? EIO : code, path: path)
     }
 
+    func recordFailure(_ failure: FilaFailure) {
+        if self.failure == nil { self.failure = failure }
+    }
+
     /// Copying a large file fires the callback thousands of times a second and
     /// deleting a large tree fires it once per node. Every one of those would
     /// otherwise be an XPC message to a bar that cannot show more than a few a
@@ -94,7 +98,7 @@ final class JobTally {
 
 /// `copyfile(3)`'s state callback: progress on the way past, and the one place
 /// a cancellation can take effect.
-let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, _, context in
+let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, destination, context in
     guard let context else { return COPYFILE_CONTINUE }
     let tally = Unmanaged<JobTally>.fromOpaque(context).takeUnretainedValue()
     // COPYFILE_QUIT makes copyfile return -1 with ECANCELED, which is exactly
@@ -106,6 +110,23 @@ let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, _, con
     if stage == COPYFILE_ERR || what == COPYFILE_RECURSE_ERROR {
         tally.recordFailure(source.map { String(cString: $0) })
         return COPYFILE_QUIT
+    }
+
+    if stage == COPYFILE_START || stage == COPYFILE_PROGRESS {
+        do {
+            var descriptor: Int32 = -1
+            if what == COPYFILE_COPY_DATA, copyfile_state_get(state, UInt32(COPYFILE_STATE_DST_FD), &descriptor) == 0, descriptor >= 0 {
+                try StorageSpace.requireAvailable(descriptor: descriptor)
+            } else if let destination {
+                try StorageSpace.requireAvailable(at: FilaPath.directory(of: String(cString: destination)))
+            }
+        } catch let failure as FilaFailure {
+            tally.recordFailure(failure)
+            return COPYFILE_QUIT
+        } catch {
+            tally.recordFailure(FilaFailure(errno: EIO))
+            return COPYFILE_QUIT
+        }
     }
 
     switch (what, stage) {

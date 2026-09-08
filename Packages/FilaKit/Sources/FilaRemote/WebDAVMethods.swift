@@ -1,6 +1,7 @@
 import Darwin
 import FilaProtocol
 import Foundation
+import FilaFileOps
 import UniformTypeIdentifiers
 
 /// The verbs.
@@ -533,6 +534,7 @@ extension WebDAVHandler {
     }
 
     static func write(_ data: Data, to descriptor: Int32) throws {
+        try StorageSpace.requireAvailable(Int64(data.count), descriptor: descriptor)
         try data.withUnsafeBytes { raw in
             guard let base = raw.baseAddress else { return }
             var written = 0

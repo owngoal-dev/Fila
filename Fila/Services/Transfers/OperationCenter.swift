@@ -375,6 +375,7 @@ final class OperationCenter: ObservableObject {
     ///
     /// Cancelling drops the task, which only bites where `body` cooperates —
     /// see the note on `cancel(_:)`.
+    @discardableResult
     func run(
         kind: Kind,
         title: String,
@@ -382,7 +383,7 @@ final class OperationCenter: ObservableObject {
         affected: [String],
         undo: Undo? = nil,
         _ body: @escaping (@escaping (JobProgress) -> Void) async throws -> Void
-    ) {
+    ) -> UUID {
         let operation = Operation(
             kind: kind,
             title: title,
@@ -411,6 +412,7 @@ final class OperationCenter: ObservableObject {
         if let index = operations.firstIndex(where: { $0.id == identity }) {
             operations[index].control = .task(task)
         }
+        return identity
     }
 
     // MARK: - Stopping and putting back

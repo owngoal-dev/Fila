@@ -164,7 +164,7 @@ public struct PropertyListDocument: Sendable, Hashable {
     /// document. Anything approaching this limit is not a property list — it is
     /// a database that someone named `.plist`, and the hex viewer is the honest
     /// answer for it.
-    public static let maximumByteCount: Int64 = 64 * 1024 * 1024
+    public static let maximumByteCount = PreviewLimits.textByteCount
 
     public init(descriptor: Int32, maximumByteCount: Int64 = PropertyListDocument.maximumByteCount) throws {
         let reader = try DescriptorReader(descriptor: descriptor)
@@ -176,12 +176,7 @@ public struct PropertyListDocument: Sendable, Hashable {
 
     public init(data: Data) throws {
         var serializationFormat = PropertyListSerialization.PropertyListFormat.xml
-        let object: Any
-        do {
-            object = try PropertyListSerialization.propertyList(from: data, options: [], format: &serializationFormat)
-        } catch {
-            throw FormatFailure.damaged("it is not a property list")
-        }
+        let object = try PropertyListBudget.parse(data, format: &serializationFormat)
         root = try PropertyListValue(propertyList: object)
         format = switch serializationFormat {
         case .binary: .binary
@@ -204,7 +199,9 @@ public struct PropertyListDocument: Sendable, Hashable {
         }
         let serializationFormat: PropertyListSerialization.PropertyListFormat = format == .binary ? .binary : .xml
         do {
-            return try PropertyListSerialization.data(fromPropertyList: root.propertyListObject, format: serializationFormat, options: 0)
+            return try PropertyListBudget.serialize(root.propertyListObject, format: serializationFormat)
+        } catch let failure as FormatFailure {
+            throw failure
         } catch {
             throw FormatFailure.damaged("these changes could not be written")
         }

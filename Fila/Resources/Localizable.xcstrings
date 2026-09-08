@@ -1,168 +1,168 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Authenticate to run a terminal session as root.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "صادق على هويتك لبدء جلسة طرفية بصلاحيات root."
+    "Authenticate to run a terminal session as root." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صادق على هويتك لبدء جلسة طرفية بصلاحيات root."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Authentifiziere dich, um eine Terminalsitzung als root zu starten."
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifiziere dich, um eine Terminalsitzung als root zu starten."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Authenticate to run a terminal session as root."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authenticate to run a terminal session as root."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Autentícate para iniciar una sesión de terminal como root."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autentícate para iniciar una sesión de terminal como root."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Authentifiez-vous pour lancer une session de terminal en tant que root."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifiez-vous pour lancer une session de terminal en tant que root."
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Autenticati per avviare una sessione del terminale come root."
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticati per avviare una sessione del terminale come root."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "root としてターミナルセッションを開始するには認証してください。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "root としてターミナルセッションを開始するには認証してください。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "root로 터미널 세션을 시작하려면 인증하세요."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "root로 터미널 세션을 시작하려면 인증하세요."
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Autentique-se para iniciar uma sessão de terminal como root."
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autentique-se para iniciar uma sessão de terminal como root."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пройдите аутентификацию для запуска сеанса терминала от имени root."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пройдите аутентификацию для запуска сеанса терминала от имени root."
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xác thực để bắt đầu phiên dòng lệnh với quyền root."
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xác thực để bắt đầu phiên dòng lệnh với quyền root."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请认证以 root 身份启动终端会话。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请认证以 root 身份启动终端会话。"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請認證以 root 身分啟動終端機工作階段。"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請認證以 root 身分啟動終端機工作階段。"
           }
         }
       }
     },
-    "Authentication failed.": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "فشلت المصادقة."
+    "Authentication failed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشلت المصادقة."
           }
         },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Authentifizierung fehlgeschlagen."
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizierung fehlgeschlagen."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Authentication failed."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentication failed."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La autenticación ha fallado."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La autenticación ha fallado."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L’authentification a échoué."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’authentification a échoué."
           }
         },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Autenticazione non riuscita."
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autenticazione non riuscita."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "認証に失敗しました。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "認証に失敗しました。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "인증에 실패했습니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인증에 실패했습니다."
           }
         },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A autenticação falhou."
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A autenticação falhou."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не удалось пройти аутентификацию."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось пройти аутентификацию."
           }
         },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Xác thực không thành công."
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xác thực không thành công."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "认证失败。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "认证失败。"
           }
         },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "認證失敗。"
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "認證失敗。"
           }
         }
       }
@@ -8015,83 +8015,6 @@
         }
       }
     },
-    "Choose the type of the new value." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختر نوع القيمة الجديدة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wähle den Typ des neuen Werts."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elige el tipo del nuevo valor."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez le type de la nouvelle valeur."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli il tipo del nuovo valore."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新しい値のタイプを選択してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새로운 값의 유형을 선택하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha o tipo do novo valor."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выберите тип нового значения."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy chọn kiểu cho giá trị mới."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择新值的类型。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請選擇新值的類型。"
-          }
-        }
-      }
-    },
     "Choose This Folder" : {
       "comment" : "Accessibility label of the checkmark in the target picker: answers with the folder being shown.",
       "localizations" : {
@@ -15377,83 +15300,6 @@
         }
       }
     },
-    "Enter a key for the new entry. You choose its type next." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أدخل مفتاحًا للإدخال الجديد. ستختار نوعه بعد ذلك."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gib einen Schlüssel für den neuen Eintrag ein. Den Typ wählst du im nächsten Schritt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Introduce una clave para la nueva entrada. A continuación elegirás su tipo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisissez une clé pour la nouvelle entrée. Vous choisirez ensuite son type."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inserisci una chiave per la nuova voce. Il tipo si sceglie subito dopo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新しい項目のキーを入力してください。タイプは次に選択します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "새로운 항목의 키를 입력하십시오. 유형은 다음 단계에서 선택합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Digite uma chave para a nova entrada. Você escolhe o tipo dela em seguida."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Введите ключ для новой записи. Её тип вы выберете далее."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy nhập khóa cho mục mới. Bạn sẽ chọn kiểu của nó ở bước tiếp theo."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入新条目的键，随后选择其类型。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請為新項目輸入鍵名，下一步再選擇它的類型。"
-          }
-        }
-      }
-    },
     "Enter a name for the link to the item you chose." : {
       "localizations" : {
         "ar" : {
@@ -17592,83 +17438,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在解壓縮…"
-          }
-        }
-      }
-    },
-    "False" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "خطأ"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Falsch"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Falso"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Faux"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Falso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "いいえ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "거짓"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Falso"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ложь"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sai"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "假"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "假"
           }
         }
       }
@@ -34305,7 +34074,8 @@
             "value" : "位置"
           }
         }
-      }
+      },
+      "comment" : "File system locations (paths and favorites), not geographic or GPS coordinates. Chinese: 位置."
     },
     "Platform" : {
       "comment" : "Row label in the Mach-O inspector: the platform from LC_BUILD_VERSION.",
@@ -48338,83 +48108,6 @@
         }
       }
     },
-    "True" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "صحيح"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wahr"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verdadero"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vrai"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vero"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "はい"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "참"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verdadeiro"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Истина"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đúng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "真"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "真"
-          }
-        }
-      }
-    },
     "Try different filters." : {
       "localizations" : {
         "ar" : {
@@ -52922,6 +52615,822 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "iOS 無法開啟此 App。它可能無法使用，或沒有可顯示的介面。"
+          }
+        }
+      }
+    },
+    "File Actions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File Actions"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件操作"
+          }
+        }
+      }
+    },
+    "Grid" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grid"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网格"
+          }
+        }
+      }
+    },
+    "Hidden Files" : {
+      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الملفات المخفية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versteckte Dateien"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos ocultos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichiers masqués"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File nascosti"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隠しファイル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "숨김 파일"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos ocultos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрытые файлы"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp ẩn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏檔案"
+          }
+        }
+      }
+    },
+    "Hide" : {
+      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إخفاء"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausblenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nascondi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "非表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "숨기기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрыть"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏"
+          }
+        }
+      }
+    },
+    "List" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "列表"
+          }
+        }
+      }
+    },
+    "Low Storage Space" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مساحة التخزين منخفضة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenig Speicherplatz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low Storage Space"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poco espacio de almacenamiento"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espace de stockage insuffisant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spazio di archiviazione insufficiente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ストレージの空き容量が不足"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장 공간 부족"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pouco espaço de armazenamento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недостаточно места"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dung lượng lưu trữ thấp"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "存储空间不足"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存空間不足"
+          }
+        }
+      }
+    },
+    "Only the first 50,000 items are shown." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only the first 50,000 items are shown."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅显示前 50,000 个项目。"
+          }
+        }
+      }
+    },
+    "Show" : {
+      "comment" : "File browser visibility preference for dotfiles. Show and Hide are mutually exclusive actions.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إظهار"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeigen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "표시"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示"
+          }
+        }
+      }
+    },
+    "The archive does not report all extracted file sizes. There may not be enough space to finish extracting." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يحدد الأرشيف أحجام جميع الملفات بعد الاستخراج. قد لا تتوفر مساحة كافية لإكمال الاستخراج."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Archiv enthält nicht alle entpackten Dateigrößen. Der Speicherplatz reicht möglicherweise nicht zum vollständigen Entpacken."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The archive does not report all extracted file sizes. There may not be enough space to finish extracting."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El archivo no indica el tamaño de todos los archivos extraídos. Es posible que no haya espacio suficiente para completar la extracción."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’archive n’indique pas la taille de tous les fichiers extraits. L’espace disponible risque de ne pas suffire pour terminer l’extraction."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’archivio non indica le dimensioni di tutti i file estratti. Lo spazio potrebbe non bastare per completare l’estrazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アーカイブに一部の展開後のサイズが記録されていません。展開を完了するための空き容量が不足する可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "압축 파일에 일부 파일의 압축 해제 후 크기가 없습니다. 압축 해제를 완료할 공간이 부족할 수 있습니다。"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O arquivo não informa o tamanho de todos os arquivos extraídos. Pode não haver espaço suficiente para concluir a extração."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В архиве указаны размеры не всех распакованных файлов. Для завершения распаковки может не хватить места."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp nén không cung cấp kích thước của tất cả tệp sau khi giải nén. Có thể không đủ dung lượng để hoàn tất giải nén."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "归档未提供所有解压文件的大小，剩余空间可能不足以完成解压。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "封存檔未提供所有解壓縮檔案的大小，剩餘空間可能不足以完成解壓縮。"
+          }
+        }
+      }
+    },
+    "The extracted files need approximately %@, more than 90%% of the %@ available at the destination." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحتاج الملفات المستخرجة إلى نحو %@، أي أكثر من 90%% من المساحة المتاحة في الوجهة والبالغة %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die entpackten Dateien benötigen etwa %@, mehr als 90%% der am Ziel verfügbaren %@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The extracted files need approximately %@, more than 90%% of the %@ available at the destination."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los archivos extraídos necesitan aproximadamente %@, más del 90%% de los %@ disponibles en el destino."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fichiers extraits nécessitent environ %@, soit plus de 90%% des %@ disponibles à destination."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I file estratti richiedono circa %@, oltre il 90%% dei %@ disponibili nella destinazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展開後のファイルには約 %@ が必要です。これは展開先の空き容量 %@ の 90%% を超えます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "압축을 푼 파일에는 약 %@가 필요하며, 대상 위치의 사용 가능한 공간 %@의 90%%를 초과합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os arquivos extraídos precisam de aproximadamente %@, mais de 90%% dos %@ disponíveis no destino."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Распакованным файлам потребуется около %@ — более 90%% от %@, доступных в месте назначения."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các tệp sau khi giải nén cần khoảng %@, hơn 90%% dung lượng %@ còn trống tại đích."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压后的文件预计需要 %@，超过目标位置可用空间 %@ 的 90%%。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解壓縮後的檔案預計需要 %@，超過目的地可用空間 %@ 的 90%%。"
+          }
+        }
+      }
+    },
+    "This PDF has too many pages to preview." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This PDF has too many pages to preview."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 PDF 的页数过多，无法预览。"
+          }
+        }
+      }
+    },
+    "This property list has too many values or nesting levels to preview." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This property list has too many values or nesting levels to preview."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此属性列表的项目或嵌套层级过多，无法预览。"
+          }
+        }
+      }
+    },
+    "View" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "视图"
+          }
+        }
+      }
+    },
+    "This item is already in the destination folder. Choose another folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此项目已在目标文件夹中，请选择其他文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此項目已在目標檔案夾中，請選擇其他檔案夾。"
+          }
+        }
+      }
+    },
+    "The source and destination refer to the same item, even though their paths differ. Choose another destination." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "源路径和目标路径虽然不同，但指向同一个项目。请选择其他目标位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "來源路徑和目標路徑雖然不同，但指向同一個項目。請選擇其他目標位置。"
+          }
+        }
+      }
+    },
+    "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不能将文件夹拷贝或移动到自身或其子文件夹中。请选择此文件夹以外的位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法將檔案夾拷貝或搬移至自身或其子檔案夾中。請選擇此檔案夾以外的位置。"
+          }
+        }
+      }
+    },
+    "The selection includes the same item more than once, or both a folder and an item inside it. Select each item only once." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选项目存在重复，或同时包含文件夹及其内部项目。请调整选择，避免重复操作。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選項目存在重複，或同時包含檔案夾及其內部項目。請調整選擇，避免重複操作。"
+          }
+        }
+      }
+    },
+    "Two selected items have the same name and would use the same destination. Rename one or transfer them separately." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所选项目中有同名项目，会使用相同的目标路径。请先重命名，或分别传输。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所選項目中有同名項目，會使用相同的目標路徑。請先重新命名，或分別傳輸。"
+          }
+        }
+      }
+    },
+    "A file and a folder have the same name at the destination. Rename one or choose another folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标位置存在同名的文件或文件夹，类型不同，无法替换。请先重命名或选择其他文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標位置存在同名的檔案或檔案夾，類型不同，無法取代。請先重新命名或選擇其他檔案夾。"
+          }
+        }
+      }
+    },
+    "There is not enough free space to finish this operation safely. Free up space or choose another destination." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用空间不足，无法安全完成操作。请释放空间或选择其他目标位置。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可用空間不足，無法安全完成操作。請釋出空間或選擇其他目標位置。"
+          }
+        }
+      }
+    },
+    "The destination is read-only. Choose a writable folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标位置为只读。请选择可写入的文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標位置為唯讀。請選擇可寫入的檔案夾。"
+          }
+        }
+      }
+    },
+    "The destination folder is not empty and cannot be replaced. Rename the item or choose another folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标文件夹不为空，无法替换。请重命名项目或选择其他文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標檔案夾不是空的，無法取代。請重新命名項目或選擇其他檔案夾。"
+          }
+        }
+      }
+    },
+    "Part of the path is a file instead of a folder. Choose an existing destination folder." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路径中的某一部分是文件，无法作为文件夹访问。请选择已有的目标文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路徑中的某一部分是檔案，無法作為檔案夾存取。請選擇現有的目標檔案夾。"
+          }
+        }
+      }
+    },
+    "Unable to Move Items" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法移动项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法搬移項目"
+          }
+        }
+      }
+    },
+    "Unable to Copy Items" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法拷贝项目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法拷貝項目"
+          }
+        }
+      }
+    },
+    "Check the source and destination folders before trying again. Some items may already have been transferred." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试前请先检查源文件夹和目标文件夹，部分项目可能已完成传输。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重試前請先檢查來源檔案夾和目標檔案夾，部分項目可能已完成傳輸。"
+          }
+        }
+      }
+    },
+    "A symbolic link in this path cannot be followed for this operation. Choose a direct path to the item." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此路径中的符号链接无法用于当前操作。请选择项目的直接路径。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此路徑中的符號連結無法用於目前操作。請選擇項目的直接路徑。"
           }
         }
       }
