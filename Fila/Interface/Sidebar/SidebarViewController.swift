@@ -145,24 +145,9 @@ final class SidebarViewController: UIViewController {
             collectionViewLayout: layout
         )
         collectionView.delegate = self
-        // Match iGhostVT's studio credit: caption, 40% foreground, 24-point insets.
-        let footer = UILabel().then {
-            $0.text = String(localized: "OwnGoal Studio × AI", comment: "Studio credit. Do not translate.")
-            $0.font = .preferredFont(forTextStyle: .caption1)
-            $0.textColor = .label.withAlphaComponent(0.4)
-            $0.textAlignment = .center
-            $0.numberOfLines = 0
-            $0.adjustsFontForContentSizeCategory = true
-        }
-        view.addSubview(footer)
-        footer.snp.makeConstraints { make in
-            make.leading.trailing.equalTo(view.safeAreaLayoutGuide).inset(FilaUI.Spacing.extraLarge)
-            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(FilaUI.Spacing.extraLarge)
-        }
         view.addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
-            make.top.leading.trailing.equalToSuperview()
-            make.bottom.equalTo(footer.snp.top).offset(-FilaUI.Spacing.extraLarge)
+            make.edges.equalToSuperview()
         }
 
         buildDataSource()
