@@ -400,6 +400,9 @@
             if let password {
                 xpc_dictionary_set_string(request, FilaWireKey.archivePassword, password)
             }
+            if let organizeExtraction {
+                xpc_dictionary_set_bool(request, FilaWireKey.archiveOrganizeExtraction, organizeExtraction)
+            }
             guard let members else { return }
             let array = xpc_array_create(nil, 0)
             for member in members {
@@ -438,7 +441,9 @@
                 zipCompression: zipCompression,
                 encryption: encryption,
                 password: xpc_dictionary_get_string(request, FilaWireKey.archivePassword).map { String(cString: $0) },
-                members: members
+                members: members,
+                organizeExtraction: xpc_dictionary_get_value(request, FilaWireKey.archiveOrganizeExtraction) == nil
+                    ? nil : xpc_dictionary_get_bool(request, FilaWireKey.archiveOrganizeExtraction)
             )
         }
     }

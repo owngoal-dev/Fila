@@ -368,6 +368,7 @@ public enum FilaWireKey {
     public static let zipEncryption = "aenc"
     public static let archivePassword = "apass"
     public static let archiveMembers = "amembers"
+    public static let archiveOrganizeExtraction = "aorganize"
     public static let memberIndex = "i"
     public static let memberPath = "p"
     /// The newest log sequence the client already has; the daemon answers with
