@@ -42,7 +42,10 @@ public final class ArchiveJob: @unchecked Sendable {
 
     /// `note` carries what the outcome cannot: a member skipped for a reason
     /// the user should be able to find in the log.
-    public func run(report: @escaping (JobProgress) -> Void, note: @escaping (String) -> Void = { _ in }) -> FilaFailure {
+    public func run(
+        report: @escaping (JobProgress) -> Void,
+        note: @escaping (String) -> Void = { _ in }
+    ) -> FilaFailure {
         let progress = Progress(report: report)
         do {
             switch request.kind {
@@ -68,7 +71,8 @@ public final class ArchiveJob: @unchecked Sendable {
         case .wrongPassword: return FilaFailure(code: .wrongPassword, path: path)
         case let .system(code): return FilaFailure(errno: code, path: path)
         case .tooLarge: return FilaFailure(code: .operationFailed, systemError: EFBIG, path: path)
-        case .damaged, .unsupported, .notRecognised: return FilaFailure(code: .operationFailed, systemError: EFTYPE, path: path)
+        case .damaged, .unsupported, .notRecognised:
+            return FilaFailure(code: .operationFailed, systemError: EFTYPE, path: path)
         }
     }
 
@@ -222,8 +226,16 @@ public final class ArchiveJob: @unchecked Sendable {
         var metadata = stat()
         guard fstat(descriptor, &metadata) == 0 else { throw FilaFailure(errno: errno, path: archive) }
         guard metadata.st_mode & S_IFMT == S_IFREG else { throw FilaFailure(errno: EINVAL, path: archive) }
-        let reader = try ArchiveReader(descriptor: descriptor, name: FilaPath.name(of: archive), password: options.password)
-        let placement = Placement(operations: operations, destination: try FilaPath.canonical(destination), overwrite: request.overwrite)
+        let reader = try ArchiveReader(
+            descriptor: descriptor,
+            name: FilaPath.name(of: archive),
+            password: options.password
+        )
+        let placement = Placement(
+            operations: operations,
+            destination: try FilaPath.canonical(destination),
+            overwrite: request.overwrite
+        )
         try placement.prepare()
 
         // Matched by position, never by name — see `ArchiveSelection`.
@@ -238,7 +250,9 @@ public final class ArchiveJob: @unchecked Sendable {
         while wanted?.isEmpty != true, let entry = try reader.next() {
             index += 1
             guard index < ArchiveReader.maximumEntryCount else { throw FilaFailure(errno: E2BIG, path: archive) }
-            let retainedBytes = entry.declaredPath.utf8.count + (entry.linkTarget?.utf8.count ?? 0) + (entry.hardLinkTarget?.utf8.count ?? 0)
+            let retainedBytes = entry.declaredPath.utf8.count
+                + (entry.linkTarget?.utf8.count ?? 0)
+                + (entry.hardLinkTarget?.utf8.count ?? 0)
             guard retainedBytes <= remainingMetadata else { throw FilaFailure(errno: E2BIG, path: archive) }
             remainingMetadata -= retainedBytes
             try checkCancelled(entry.declaredPath)
@@ -412,13 +426,15 @@ private final class Placement {
                 throw Skipped(reason: "it is a symbolic link with no target")
             }
             try makeDirectories(parent(of: relative))
-            guard overwrite || !filaExists(target) else { throw Skipped(reason: "an item with that name already exists") }
+            guard overwrite || !filaExists(target)
+            else { throw Skipped(reason: "an item with that name already exists") }
             try operations.create(.symbolicLink(target: linkTarget), at: target, mode: entry.permissions)
             planted.insert(relative)
 
         case .regular:
             try makeDirectories(parent(of: relative))
-            guard overwrite || !filaExists(target) else { throw Skipped(reason: "an item with that name already exists") }
+            guard overwrite || !filaExists(target)
+            else { throw Skipped(reason: "an item with that name already exists") }
             try write(from: reader, to: target, permissions: entry.permissions, progress: progress)
 
         // A fifo, a socket or a device node is a thing a tar can carry and a
@@ -453,7 +469,12 @@ private final class Placement {
 
     /// Streams one member into a temporary beside the target and renames it
     /// in, so a member that fails halfway never replaces what was there.
-    private func write(from reader: ArchiveReader, to target: String, permissions: mode_t, progress: @escaping ProgressHandler) throws {
+    private func write(
+        from reader: ArchiveReader,
+        to target: String,
+        permissions: mode_t,
+        progress: @escaping ProgressHandler
+    ) throws {
         let temporary = FilaPath.join(FilaPath.directory(of: target), ".fila-tmp-\(UUID().uuidString)")
         let descriptor = try operations.open(temporary, flags: O_CREAT | O_EXCL | O_WRONLY, mode: 0o600)
         do {

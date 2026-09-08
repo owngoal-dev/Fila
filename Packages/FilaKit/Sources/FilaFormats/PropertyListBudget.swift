@@ -31,13 +31,18 @@ public enum PropertyListBudget {
         var remainingBytes = PreviewLimits.textByteCount
         func consume(_ count: Int) throws {
             guard count <= remainingBytes else {
-                throw FormatFailure.tooLarge(byteCount: PreviewLimits.textByteCount + 1, limit: PreviewLimits.textByteCount)
+                throw FormatFailure.tooLarge(
+                    byteCount: PreviewLimits.textByteCount + 1,
+                    limit: PreviewLimits.textByteCount
+                )
             }
             remainingBytes -= Int64(count)
         }
         func visit(_ value: Any, depth: Int) throws {
             guard depth <= 64, remainingNodes > 0 else {
-                throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels", bundle: .module))
+                throw FormatFailure.unsupported(
+                    String(localized: "a property list with this many values or nesting levels", bundle: .module)
+                )
             }
             remainingNodes -= 1
             switch value {
@@ -45,12 +50,16 @@ public enum PropertyListBudget {
             case let data as Data: try consume(data.count)
             case let values as [Any]:
                 guard values.count <= remainingNodes else {
-                    throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels", bundle: .module))
+                    throw FormatFailure.unsupported(
+                        String(localized: "a property list with this many values or nesting levels", bundle: .module)
+                    )
                 }
                 for child in values { try visit(child, depth: depth + 1) }
             case let values as [String: Any]:
                 guard values.count <= remainingNodes else {
-                    throw FormatFailure.unsupported(String(localized: "a property list with this many values or nesting levels", bundle: .module))
+                    throw FormatFailure.unsupported(
+                        String(localized: "a property list with this many values or nesting levels", bundle: .module)
+                    )
                 }
                 for (key, child) in values {
                     try consume(key.utf8.count)

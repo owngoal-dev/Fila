@@ -16,11 +16,14 @@ final class FileFlagsEditorViewController: UITableViewController {
         self.apply = apply
         super.init(style: .insetGrouped)
         title = String(localized: "Flags")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "checkmark"), primaryAction: UIAction { [weak self] _ in
-            guard let self else { return }
-            apply(flags)
-            navigationController?.popViewController(animated: true)
-        })
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "checkmark"),
+            primaryAction: UIAction { [weak self] _ in
+                guard let self else { return }
+                apply(flags)
+                navigationController?.popViewController(animated: true)
+            }
+        )
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "Apply")
     }
 

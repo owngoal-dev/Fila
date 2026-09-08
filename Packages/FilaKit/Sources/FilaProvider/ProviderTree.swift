@@ -76,10 +76,15 @@ public final class ProviderTree {
         self.index = index
         operations = FileOperations(bootstrapRoot: path, writableRoot: path)
         let indexDirectory = index.deletingLastPathComponent()
-        try FileManager.default.createDirectory(at: indexDirectory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        try FileManager.default.createDirectory(
+            at: indexDirectory,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
         // A corrupt index is not a corrupt folder: the identifiers come from
         // the filesystem, so starting empty costs one re-enumeration.
-        if let data = try? Data(contentsOf: index), let saved = try? JSONDecoder().decode([String: Entry].self, from: data) {
+        if let data = try? Data(contentsOf: index),
+           let saved = try? JSONDecoder().decode([String: Entry].self, from: data) {
             entries = saved
         }
     }
@@ -370,9 +375,17 @@ public final class ProviderTree {
             path: path,
             isDirectory: isDirectory,
             size: isDirectory ? 0 : info.st_size,
-            created: Date(timeIntervalSince1970: Double(info.st_birthtimespec.tv_sec) + Double(info.st_birthtimespec.tv_nsec) / 1e9),
-            modified: Date(timeIntervalSince1970: Double(info.st_mtimespec.tv_sec) + Double(info.st_mtimespec.tv_nsec) / 1e9),
-            contentVersion: isDirectory ? "directory" : "\(info.st_size):\(info.st_mtimespec.tv_sec).\(info.st_mtimespec.tv_nsec)",
+            created: Date(
+                timeIntervalSince1970: Double(info.st_birthtimespec.tv_sec)
+                    + Double(info.st_birthtimespec.tv_nsec) / 1e9
+            ),
+            modified: Date(
+                timeIntervalSince1970: Double(info.st_mtimespec.tv_sec)
+                    + Double(info.st_mtimespec.tv_nsec) / 1e9
+            ),
+            contentVersion: isDirectory
+                ? "directory"
+                : "\(info.st_size):\(info.st_mtimespec.tv_sec).\(info.st_mtimespec.tv_nsec)",
             metadataVersion: "\(name)|\(parent ?? "")|\(info.st_ctimespec.tv_sec).\(info.st_ctimespec.tv_nsec)"
         )
     }
@@ -381,7 +394,9 @@ public final class ProviderTree {
         if let failure = error as? Failure { return failure }
         if let fila = error as? FilaFailure { return failure(errno: fila.systemError) }
         if let posix = error as? POSIXError { return failure(errno: posix.code.rawValue) }
-        if let cocoa = error as? CocoaError, let underlying = cocoa.userInfo[NSUnderlyingErrorKey] as? NSError, underlying.domain == NSPOSIXErrorDomain {
+        if let cocoa = error as? CocoaError,
+           let underlying = cocoa.userInfo[NSUnderlyingErrorKey] as? NSError,
+           underlying.domain == NSPOSIXErrorDomain {
             return failure(errno: Int32(underlying.code))
         }
         return .io(EIO)

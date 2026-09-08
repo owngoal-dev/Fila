@@ -115,7 +115,8 @@ let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, destin
     if stage == COPYFILE_START || stage == COPYFILE_PROGRESS {
         do {
             var descriptor: Int32 = -1
-            if what == COPYFILE_COPY_DATA, copyfile_state_get(state, UInt32(COPYFILE_STATE_DST_FD), &descriptor) == 0, descriptor >= 0 {
+            if what == COPYFILE_COPY_DATA,
+               copyfile_state_get(state, UInt32(COPYFILE_STATE_DST_FD), &descriptor) == 0, descriptor >= 0 {
                 try StorageSpace.requireAvailable(descriptor: descriptor)
             } else if let destination {
                 try StorageSpace.requireAvailable(at: FilaPath.directory(of: String(cString: destination)))

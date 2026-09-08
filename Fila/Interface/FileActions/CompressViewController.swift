@@ -31,7 +31,13 @@ final class CompressViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, Row>!
 
-    init(suggestedName: String, directory: String, itemCount: Int, link: DaemonLink, confirm: @escaping (Choice) -> Void) {
+    init(
+        suggestedName: String,
+        directory: String,
+        itemCount: Int,
+        link: DaemonLink,
+        confirm: @escaping (Choice) -> Void
+    ) {
         name = suggestedName
         self.directory = directory
         self.itemCount = itemCount
@@ -39,9 +45,17 @@ final class CompressViewController: UIViewController {
         self.confirm = confirm
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Compress")
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) })
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "xmark"),
+            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) }
+        )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Cancel")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: String(localized: "Compress"), style: .done, target: self, action: #selector(commit))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: String(localized: "Compress"),
+            style: .done,
+            target: self,
+            action: #selector(commit)
+        )
         preferredContentSize = CGSize(width: 440, height: 560)
     }
 
@@ -57,7 +71,13 @@ final class CompressViewController: UIViewController {
         link: DaemonLink,
         confirm: @escaping (Choice) -> Void
     ) {
-        let form = CompressViewController(suggestedName: suggestedName, directory: directory, itemCount: itemCount, link: link, confirm: confirm)
+        let form = CompressViewController(
+            suggestedName: suggestedName,
+            directory: directory,
+            itemCount: itemCount,
+            link: link,
+            confirm: confirm
+        )
         let navigation = UINavigationController(rootViewController: form)
         if presenter.traitCollection.horizontalSizeClass == .regular {
             navigation.modalPresentationStyle = .formSheet
@@ -75,7 +95,10 @@ final class CompressViewController: UIViewController {
             $0.headerMode = .supplementary
             $0.footerMode = .supplementary
         }
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration))
+        collectionView = UICollectionView(
+            frame: .zero,
+            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
+        )
         collectionView.keyboardDismissMode = .onDrag
         collectionView.delegate = self
         view.addSubview(collectionView)
@@ -89,7 +112,11 @@ final class CompressViewController: UIViewController {
     private func buildDataSource() {
         let field = UICollectionView.CellRegistration<TextFieldCell, Row> { [weak self] cell, _, _ in
             guard let self else { return }
-            cell.configure(text: self.name, placeholder: String(localized: "Archive name"), suffix: "." + self.format.filenameExtension) { self.name = $0 }
+            cell.configure(
+                text: self.name,
+                placeholder: String(localized: "Archive name"),
+                suffix: "." + self.format.filenameExtension
+            ) { self.name = $0 }
         }
         let choice = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
             guard let self else { return }
@@ -98,16 +125,30 @@ final class CompressViewController: UIViewController {
             switch row {
             case .format:
                 content.text = String(localized: "Format")
-                cell.accessories = [self.menuAccessory(ArchiveFormat.allCases, selected: self.format, title: Self.title(for:)) { self.format = $0 }]
+                cell.accessories = [
+                    self.menuAccessory(ArchiveFormat.allCases, selected: self.format, title: Self.title(for:)) {
+                        self.format = $0
+                    }
+                ]
             case .level:
                 content.text = String(localized: "Compression")
-                cell.accessories = [self.menuAccessory(ZipCompression.allCases, selected: self.level, title: Self.title(for:)) { self.level = $0 }]
+                cell.accessories = [
+                    self.menuAccessory(ZipCompression.allCases, selected: self.level, title: Self.title(for:)) {
+                        self.level = $0
+                    }
+                ]
             case .encryption:
                 content.text = String(localized: "Encryption")
-                cell.accessories = [self.menuAccessory(ZipEncryption.allCases, selected: self.encryption, title: Self.title(for:)) { self.encryption = $0 }]
+                cell.accessories = [
+                    self.menuAccessory(ZipEncryption.allCases, selected: self.encryption, title: Self.title(for:)) {
+                        self.encryption = $0
+                    }
+                ]
             case .password:
                 content.text = String(localized: "Password")
-                content.secondaryText = self.password.isEmpty ? String(localized: "None") : String(repeating: "•", count: 8)
+                content.secondaryText = self.password.isEmpty
+                    ? String(localized: "None")
+                    : String(repeating: "•", count: 8)
                 cell.accessories = [.disclosureIndicator()]
             case .destination:
                 content.text = String(localized: "Save To")
@@ -119,12 +160,16 @@ final class CompressViewController: UIViewController {
             }
             cell.contentConfiguration = content
         }
-        let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(elementKind: UICollectionView.elementKindSectionHeader) { view, _, indexPath in
+        let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+            elementKind: UICollectionView.elementKindSectionHeader
+        ) { view, _, indexPath in
             var content = UIListContentConfiguration.groupedHeader()
             content.text = Section(rawValue: indexPath.section) == .options ? String(localized: "Options") : nil
             view.contentConfiguration = content
         }
-        let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(elementKind: UICollectionView.elementKindSectionFooter) { [weak self] view, _, indexPath in
+        let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+            elementKind: UICollectionView.elementKindSectionFooter
+        ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedFooter()
             content.text = self?.footerText(for: indexPath.section)
             view.contentConfiguration = content
@@ -169,7 +214,9 @@ final class CompressViewController: UIViewController {
             return String(localized: "Only ZIP archives can be protected with a password.")
         case .options where !password.isEmpty:
             return encryption == .aes256
-                ? String(localized: "AES-256 provides strong encryption, but some older tools cannot open these archives.")
+                ? String(
+                    localized: "AES-256 provides strong encryption, but some older tools cannot open these archives."
+                )
                 : String(localized: "ZipCrypto offers broad compatibility but weak password protection.")
         case .destination:
             return String(localized: "The archive will be created in this folder.")
@@ -192,7 +239,8 @@ final class CompressViewController: UIViewController {
         dataSource.apply(snapshot, animatingDifferences: dataSource.snapshot().numberOfItems > 0)
         // The footer reads the live state; the snapshot does not carry it.
         for view in collectionView.visibleSupplementaryViews(ofKind: UICollectionView.elementKindSectionFooter) {
-            guard let cell = view as? UICollectionViewListCell, var content = cell.contentConfiguration as? UIListContentConfiguration,
+            guard let cell = view as? UICollectionViewListCell,
+                  var content = cell.contentConfiguration as? UIListContentConfiguration,
                   let section = collectionView.indexPath(forSupplementaryView: view)?.section else { continue }
             content.text = footerText(for: section)
             cell.contentConfiguration = content
@@ -205,11 +253,11 @@ final class CompressViewController: UIViewController {
     /// password nobody can see is an archive nobody can open.
     private func promptPassword() {
         let first = AlertInputViewController(
-            title: "Set Password",
-            message: "Enter a password for the archive. Leave it empty for no password.",
-            placeholder: "Password",
+            title: String.LocalizationValue("Set Password"),
+            message: String.LocalizationValue("Enter a password for the archive. Leave it empty for no password."),
+            placeholder: String.LocalizationValue("Password"),
             text: "",
-            doneButtonText: "Next"
+            doneButtonText: String.LocalizationValue("Next")
         ) { [weak self] entered in
             guard let self else { return }
             guard !entered.isEmpty else {
@@ -218,17 +266,22 @@ final class CompressViewController: UIViewController {
                 return
             }
             let second = AlertInputViewController(
-                title: "Confirm Password",
-                message: "Enter the password again.",
-                placeholder: "Password",
+                title: String.LocalizationValue("Confirm Password"),
+                message: String.LocalizationValue("Enter the password again."),
+                placeholder: String.LocalizationValue("Password"),
                 text: "",
-                doneButtonText: "Set"
+                doneButtonText: String.LocalizationValue("Set")
             ) { [weak self] confirmed in
                 guard let self else { return }
                 guard confirmed == entered else {
-                    let alert = AlertViewController(title: "Passwords Do Not Match", message: "The password was not changed. Try again.") { context in
+                    let alert = AlertViewController(
+                        title: String.LocalizationValue("Passwords Do Not Match"),
+                        message: String.LocalizationValue("The password was not changed. Try again.")
+                    ) { context in
                         context.allowSimpleDispose()
-                        context.addAction(title: "OK", attribute: .accent) { context.dispose() }
+                        context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
+                            context.dispose()
+                        }
                     }
                     self.present(alert, animated: true)
                     return
@@ -242,7 +295,10 @@ final class CompressViewController: UIViewController {
     }
 
     private func promptDestination() {
-        let picker = SaveDestinationViewController(directory: URL(fileURLWithPath: directory, isDirectory: true), link: link) { [weak self] url in
+        let picker = SaveDestinationViewController(
+            directory: URL(fileURLWithPath: directory, isDirectory: true),
+            link: link
+        ) { [weak self] url in
             self?.directory = url.path
             self?.apply()
         }
@@ -253,7 +309,12 @@ final class CompressViewController: UIViewController {
         view.endEditing(true)
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !trimmed.contains("/"), !trimmed.contains("\0"), trimmed != ".", trimmed != ".." else {
-            FeedbackAlert.show(String(localized: "Invalid Name"), message: String(localized: "Enter an archive name without slashes. “.” and “..” cannot be used."))
+            FeedbackAlert.show(
+                String(localized: "Invalid Name"),
+                message: String(
+                    localized: "Enter an archive name without slashes. “.” and “..” cannot be used."
+                )
+            )
             return
         }
         let choice = Choice(

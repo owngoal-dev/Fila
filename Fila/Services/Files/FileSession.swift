@@ -199,7 +199,12 @@ final class FileSession {
         let stale = entries.filter { $0.kind == .directory && UUID(uuidString: $0.name) != nil }
             .map { parent.appendingPathComponent($0.name).path }
         if !stale.isEmpty {
-            let outcome = try await operations.awaitJob(JobRequest(kind: .delete, sources: stale), kind: .delete, subtitle: parent.path, feedback: .silent)
+            let outcome = try await operations.awaitJob(
+                JobRequest(kind: .delete, sources: stale),
+                kind: .delete,
+                subtitle: parent.path,
+                feedback: .silent
+            )
             guard outcome.code == .success else { throw outcome }
         }
         try Task.checkCancellation()
@@ -212,7 +217,12 @@ final class FileSession {
     /// delete result before returning the original failure to the caller.
     func discardTemporary(_ path: String) async {
         do {
-            let outcome = try await operations.awaitJob(JobRequest(kind: .delete, sources: [path]), kind: .delete, subtitle: path, feedback: .silent)
+            let outcome = try await operations.awaitJob(
+                JobRequest(kind: .delete, sources: [path]),
+                kind: .delete,
+                subtitle: path,
+                feedback: .silent
+            )
             if outcome.code != .success && outcome.code != .notFound { throw outcome }
         } catch { FilaLog.error("Temporary file cleanup failed at \(path): \(error)") }
     }
@@ -233,7 +243,9 @@ final class FileSession {
         let directory = try await makeTemporaryDirectory()
         let target = directory.appendingPathComponent(URL(fileURLWithPath: path).lastPathComponent)
         do {
-            let descriptor = try await perform(retryOnDisconnect: true) { try await $0.open(path, flags: O_RDONLY | O_NONBLOCK) }
+            let descriptor = try await perform(retryOnDisconnect: true) {
+                try await $0.open(path, flags: O_RDONLY | O_NONBLOCK)
+            }
             try await Task.detached { try DescriptorIO.copyAndClose(descriptor, to: target) }.value
             return target
         } catch {

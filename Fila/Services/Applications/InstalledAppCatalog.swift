@@ -54,7 +54,8 @@ enum InstalledAppCatalog {
         guard SystemCapabilities.showsApplications,
               let type = NSClassFromString("LSApplicationWorkspace") as? NSObject.Type,
               type.responds(to: NSSelectorFromString("defaultWorkspace")),
-              let workspace = type.perform(NSSelectorFromString("defaultWorkspace"))?.takeUnretainedValue() as? NSObject,
+              let workspace = type.perform(NSSelectorFromString("defaultWorkspace"))?
+                  .takeUnretainedValue() as? NSObject,
               workspace.responds(to: #selector(ApplicationOpening.openApplicationWithBundleID(_:)))
         else { return false }
         return unsafeBitCast(workspace, to: ApplicationOpening.self).openApplicationWithBundleID(app.bundleIdentifier)
@@ -143,7 +144,9 @@ enum InstalledAppCatalog {
         var apps: [InstalledApp] = []
         for container in containers where container.isNavigable {
             let containerPath = root + "/" + container.name
-            guard let contents = try? await DirectoryReader.entries(in: containerPath, session: session) else { continue }
+            guard let contents = try? await DirectoryReader.entries(in: containerPath, session: session) else {
+                continue
+            }
             guard let bundle = contents.first(where: { $0.name.hasSuffix(".app") }) else { continue }
             let name = (bundle.name as NSString).deletingPathExtension
             apps.append(InstalledApp(

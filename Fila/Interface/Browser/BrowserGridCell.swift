@@ -66,7 +66,9 @@ final class BrowserGridCell: UICollectionViewCell {
         label.textColor = presentation == nil ? .label : .systemBrown
         let isApplication = presentation != nil && URL(fileURLWithPath: node.name).pathExtension.lowercased() == "app"
         appBadge.isHidden = presentation == nil || isApplication
-        accessibilityLabel = [presentation?.name, presentation?.detail, node.name].compactMap { $0 }.joined(separator: ", ")
+        accessibilityLabel = [presentation?.name, presentation?.detail, node.name]
+            .compactMap { $0 }
+            .joined(separator: ", ")
         image.image = FilePresentation.image(for: node)
         image.contentMode = .scaleAspectFit
         image.alpha = node.isHidden ? 0.5 : 1

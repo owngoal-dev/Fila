@@ -205,9 +205,11 @@ final class OperationCenter: ObservableObject {
             guard details.node.kind == .directory || details.node.linkCount == 1 else { continue }
             recorded.append(details.path)
         }
-        let undo = recorded.isEmpty || recorded.count != paths.count ? nil : Undo(title: String(localized: "Put Back")) { [weak self] in
-            try await self?.putBack(recorded, identity: identity)
-        }
+        let undo = recorded.isEmpty || recorded.count != paths.count
+            ? nil
+            : Undo(title: String(localized: "Put Back")) { [weak self] in
+                try await self?.putBack(recorded, identity: identity)
+            }
         return try await awaitJob(
             JobRequest(kind: .delete, sources: paths, useTrash: true, trashID: identity),
             kind: .trash,
@@ -510,7 +512,8 @@ final class OperationCenter: ObservableObject {
     }
 
     private func finish(_ identity: UUID, _ failure: FilaFailure) {
-        guard let index = operations.firstIndex(where: { $0.id == identity }), operations[index].isRunning else { return }
+        guard let index = operations.firstIndex(where: { $0.id == identity }),
+              operations[index].isRunning else { return }
         operations[index].state = .finished(failure)
         operations[index].control = nil
         if failure.code != .success { operations[index].undo = nil }
@@ -599,7 +602,10 @@ final class OperationCenter: ObservableObject {
                 operation.kind.completionTitle,
                 action: Toast.Action(title: undo.title) { [weak self] in self?.undo(operation) }
             )
-        } else if operation.feedback == .successOnly || operation.kind.isInstant || operation.kind == .compress || operation.kind == .extract {
+        } else if operation.feedback == .successOnly
+            || operation.kind.isInstant
+            || operation.kind == .compress
+            || operation.kind == .extract {
             Toast.show(operation.kind.completionTitle)
         }
     }

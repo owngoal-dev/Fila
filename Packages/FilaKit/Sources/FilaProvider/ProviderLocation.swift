@@ -63,7 +63,11 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
 
     private static func make(url: URL, isDefault: Bool, generation: UUID, group: URL) throws -> ProviderLocation {
         try validateFolder(url, groupURL: group)
-        return ProviderLocation(generation: generation, displayPath: try FilaPath.resolve(url.path), isDefault: isDefault)
+        return ProviderLocation(
+            generation: generation,
+            displayPath: try FilaPath.resolve(url.path),
+            isDefault: isDefault
+        )
     }
 
     private static func validateFolder(_ url: URL, groupURL: URL?) throws {
@@ -137,8 +141,14 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
     }
 
     private static func write(_ bytes: Data, to destination: URL, operations: FileOperations) throws {
-        let temporary = destination.deletingLastPathComponent().appendingPathComponent(".fila-location-" + UUID().uuidString)
-        let descriptor = try operations.open(temporary.path, flags: O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, mode: 0o600)
+        let temporary = destination
+            .deletingLastPathComponent()
+            .appendingPathComponent(".fila-location-" + UUID().uuidString)
+        let descriptor = try operations.open(
+            temporary.path,
+            flags: O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
+            mode: 0o600
+        )
         let file = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
         defer {
             try? file.close()

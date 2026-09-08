@@ -47,7 +47,8 @@ public enum TerminalTemporaryFiles {
                 $0.withMemoryRebound(to: CChar.self, capacity: Int(entry.pointee.d_namlen) + 1) { String(cString: $0) }
             }
             guard name.hasPrefix("ghostty-config-"), name.hasSuffix(".conf"),
-                  UUID(uuidString: String(name.dropFirst("ghostty-config-".count).dropLast(".conf".count))) != nil else { continue }
+                  UUID(uuidString: String(name.dropFirst("ghostty-config-".count).dropLast(".conf".count))) != nil
+            else { continue }
             names.append(name)
         }
         for name in names {

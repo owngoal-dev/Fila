@@ -24,7 +24,13 @@ final class StatusView: UIView {
         /// detail behind it, and optionally one thing to do about it — the
         /// button's title; what it does is `StatusView.action`, set by whoever
         /// shows the panel.
-        case message(symbol: String, artwork: String? = nil, title: String, detail: String? = nil, button: String? = nil)
+        case message(
+            symbol: String,
+            artwork: String? = nil,
+            title: String,
+            detail: String? = nil,
+            button: String? = nil
+        )
     }
 
     /// What the button does. Kept beside the content rather than in it so

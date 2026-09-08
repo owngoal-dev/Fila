@@ -25,7 +25,7 @@ enum FeedbackAlert {
         }
         let alert = AlertViewController(title: title, message: message) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "Close", attribute: .accent) { context.dispose() }
+            context.addAction(title: String.LocalizationValue("Close"), attribute: .accent) { context.dispose() }
         }
         presenter.present(alert, animated: true)
     }

@@ -121,7 +121,12 @@ final class BrowserViewController: UIViewController {
             object: nil
         )
 
-        NotificationCenter.default.addObserver(self, selector: #selector(refreshTaskIcon), name: .filaSidebarChanged, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshTaskIcon),
+            name: .filaSidebarChanged,
+            object: nil
+        )
 
         for name in [Notification.Name.filaClipboardChanged, .filaTabsChanged] {
             NotificationCenter.default.addObserver(self, selector: #selector(refreshToolbar), name: name, object: nil)
@@ -242,7 +247,9 @@ final class BrowserViewController: UIViewController {
             var prefix = ""
             for component in directory.split(separator: "/") {
                 prefix += "/" + component
-                if let identifier = presentation(prefix)?.applicationIdentifier { _ = await AppFolderDisplay.icon(for: identifier) }
+                if let identifier = presentation(prefix)?.applicationIdentifier {
+                    _ = await AppFolderDisplay.icon(for: identifier)
+                }
             }
             guard let self else { return }
             self.pathBar.setPath(self.directory) { path in
@@ -355,14 +362,22 @@ final class BrowserViewController: UIViewController {
                 ))
                 let height = 84 + UIFont.preferredFont(forTextStyle: .footnote).lineHeight * 2
                 let group = NSCollectionLayoutGroup.horizontal(
-                    layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(height)),
+                    layoutSize: NSCollectionLayoutSize(
+                        widthDimension: .fractionalWidth(1),
+                        heightDimension: .absolute(height)
+                    ),
                     subitem: item,
                     count: columns
                 )
                 group.interItemSpacing = .fixed(FilaUI.Spacing.small)
                 let section = NSCollectionLayoutSection(group: group)
                 section.interGroupSpacing = FilaUI.Spacing.small
-                section.contentInsets = .init(top: FilaUI.Spacing.small, leading: FilaUI.Spacing.medium, bottom: FilaUI.Spacing.small, trailing: FilaUI.Spacing.medium)
+                section.contentInsets = .init(
+                    top: FilaUI.Spacing.small,
+                    leading: FilaUI.Spacing.medium,
+                    bottom: FilaUI.Spacing.small,
+                    trailing: FilaUI.Spacing.medium
+                )
                 section.boundarySupplementaryItems = [Self.footerItem()]
                 return section
             }
@@ -378,7 +393,12 @@ final class BrowserViewController: UIViewController {
 
         let gridCell = UICollectionView.CellRegistration<BrowserGridCell, FileNode> { [weak self] cell, _, node in
             guard let self else { return }
-            cell.configure(node: node, path: self.path(of: node), session: self.session, presentation: self.appFolders[node.name])
+            cell.configure(
+                node: node,
+                path: self.path(of: node),
+                session: self.session,
+                presentation: self.appFolders[node.name]
+            )
         }
 
         let footer = UICollectionView.SupplementaryRegistration<BrowserFooterView>(
@@ -389,7 +409,9 @@ final class BrowserViewController: UIViewController {
             view.label.text = self.footerText
         }
 
-        dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { [directory] collection, indexPath, node in
+        dataSource = UICollectionViewDiffableDataSource(
+            collectionView: collectionView
+        ) { [directory] collection, indexPath, node in
             switch AppPreferences.shared.layout(for: directory) {
             case .list:
                 return collection.dequeueConfiguredReusableCell(using: listCell, for: indexPath, item: node)
@@ -564,7 +586,11 @@ final class BrowserViewController: UIViewController {
             guard !Task.isCancelled else { return }
             self.refresher.endRefreshing()
             self.decoratedWithApplications = SystemCapabilities.showsApplications
-            let appFolders = await AppFolderDisplay.load(in: self.directory, entries: self.entries, session: self.session)
+            let appFolders = await AppFolderDisplay.load(
+                in: self.directory,
+                entries: self.entries,
+                session: self.session
+            )
             guard !Task.isCancelled else { return }
             let refreshAppFolders = !self.appFolders.isEmpty || !appFolders.isEmpty
             self.appFolders = appFolders
@@ -760,7 +786,9 @@ final class BrowserViewController: UIViewController {
         let items = selectionToolbar
         let allSelected = count == visible.count && !visible.isEmpty
         items.selectAll.image = UIImage(systemName: allSelected ? "checkmark.circle.fill" : "checkmark.circle")
-        items.selectAll.accessibilityLabel = allSelected ? String(localized: "Deselect All") : String(localized: "Select All")
+        items.selectAll.accessibilityLabel = allSelected
+            ? String(localized: "Deselect All")
+            : String(localized: "Select All")
         items.selectAll.isEnabled = !visible.isEmpty
         items.delete.image = UIImage(systemName: "trash")
         items.delete.accessibilityLabel = isTrash ? String(localized: "Delete Permanently") : deleteTitle
@@ -771,34 +799,83 @@ final class BrowserViewController: UIViewController {
         guard toolbarItems?.first !== items.selectAll else { return }
         if isTrash {
             // Two verbs in the trash: back where it came from, or gone for good.
-            setToolbarItems([items.selectAll, .flexibleSpace(), items.putBack, .flexibleSpace(), items.delete], animated: false)
+            setToolbarItems(
+                [items.selectAll, .flexibleSpace(), items.putBack, .flexibleSpace(), items.delete],
+                animated: false
+            )
         } else if #available(iOS 26.0, *) {
-            setToolbarItems([items.selectAll, .flexibleSpace(), items.copy, items.move, items.compress, .flexibleSpace(), items.delete], animated: shouldAnimateToolbar(animated))
+            setToolbarItems(
+                [
+                    items.selectAll,
+                    .flexibleSpace(),
+                    items.copy,
+                    items.move,
+                    items.compress,
+                    .flexibleSpace(),
+                    items.delete
+                ],
+                animated: shouldAnimateToolbar(animated)
+            )
         } else {
-            setToolbarItems([items.selectAll, .flexibleSpace(), items.copy, .flexibleSpace(), items.move, .flexibleSpace(), items.compress, .flexibleSpace(), items.delete], animated: false)
+            setToolbarItems(
+                [
+                    items.selectAll,
+                    .flexibleSpace(),
+                    items.copy,
+                    .flexibleSpace(),
+                    items.move,
+                    .flexibleSpace(),
+                    items.compress,
+                    .flexibleSpace(),
+                    items.delete
+                ],
+                animated: false
+            )
         }
     }
 
     /// Keep the buttons alive across count changes so UIKit owns the native
     /// glass group transition instead of receiving a new toolbar for every tap.
-    private lazy var selectionToolbar: (selectAll: UIBarButtonItem, copy: UIBarButtonItem, move: UIBarButtonItem, compress: UIBarButtonItem, putBack: UIBarButtonItem, delete: UIBarButtonItem) = {
-        let selectAll = UIBarButtonItem(image: UIImage(systemName: "checkmark.circle"), primaryAction: UIAction { [weak self] _ in
-            guard let self else { return }
-            self.setAllSelected(self.selectedCount != self.visible.count)
-        })
-        let copy = UIBarButtonItem(image: UIImage(systemName: "doc.on.doc"), primaryAction: UIAction { [weak self] _ in self?.commandCopySelection() })
+    private lazy var selectionToolbar: (
+        selectAll: UIBarButtonItem,
+        copy: UIBarButtonItem,
+        move: UIBarButtonItem,
+        compress: UIBarButtonItem,
+        putBack: UIBarButtonItem,
+        delete: UIBarButtonItem
+    ) = {
+        let selectAll = UIBarButtonItem(
+            image: UIImage(systemName: "checkmark.circle"),
+            primaryAction: UIAction { [weak self] _ in
+                guard let self else { return }
+                self.setAllSelected(self.selectedCount != self.visible.count)
+            }
+        )
+        let copy = UIBarButtonItem(
+            image: UIImage(systemName: "doc.on.doc"),
+            primaryAction: UIAction { [weak self] _ in self?.commandCopySelection() }
+        )
         copy.accessibilityLabel = String(localized: "Copy")
-        let move = UIBarButtonItem(image: UIImage(systemName: "scissors"), primaryAction: UIAction { [weak self] _ in self?.commandMoveSelection() })
+        let move = UIBarButtonItem(
+            image: UIImage(systemName: "scissors"),
+            primaryAction: UIAction { [weak self] _ in self?.commandMoveSelection() }
+        )
         move.accessibilityLabel = String(localized: "Move")
-        let compress = UIBarButtonItem(image: UIImage(systemName: "doc.zipper"), primaryAction: UIAction { [weak self] _ in
-            guard let self else { return }
-            FileActions(presenter: self, directory: self.directory).promptCompress(self.selectedPaths())
-        })
+        let compress = UIBarButtonItem(
+            image: UIImage(systemName: "doc.zipper"),
+            primaryAction: UIAction { [weak self] _ in
+                guard let self else { return }
+                FileActions(presenter: self, directory: self.directory).promptCompress(self.selectedPaths())
+            }
+        )
         compress.accessibilityLabel = String(localized: "Compress")
-        let putBack = UIBarButtonItem(image: UIImage(systemName: "arrow.uturn.backward"), primaryAction: UIAction { [weak self] _ in
-            guard let self else { return }
-            self.putBack(self.selectedPaths())
-        })
+        let putBack = UIBarButtonItem(
+            image: UIImage(systemName: "arrow.uturn.backward"),
+            primaryAction: UIAction { [weak self] _ in
+                guard let self else { return }
+                self.putBack(self.selectedPaths())
+            }
+        )
         putBack.accessibilityLabel = String(localized: "Put Back")
         let delete = UIBarButtonItem(image: UIImage(systemName: "trash"), primaryAction: UIAction { [weak self] _ in
             self?.commandDeleteSelection()
@@ -808,7 +885,14 @@ final class BrowserViewController: UIViewController {
             selectAll.sharesBackground = false
             putBack.sharesBackground = false
             delete.sharesBackground = false
-            for (item, identifier) in [(selectAll, "selectAll"), (copy, "copy"), (move, "move"), (compress, "compress"), (putBack, "putBack"), (delete, "delete")] {
+            for (item, identifier) in [
+                (selectAll, "selectAll"),
+                (copy, "copy"),
+                (move, "move"),
+                (compress, "compress"),
+                (putBack, "putBack"),
+                (delete, "delete")
+            ] {
                 item.identifier = identifier
             }
         }
@@ -887,10 +971,16 @@ final class BrowserViewController: UIViewController {
     }
 
     private lazy var browsingToolbar: [UIBarButtonItem] = {
-        let search = UIBarButtonItem(systemItem: .search, primaryAction: UIAction { [weak self] _ in self?.presentSearch() })
-        let tabs = UIBarButtonItem(image: UIImage(systemName: "square.on.square"), primaryAction: UIAction { [weak self] _ in
-            self?.shell?.presentTabSwitcher()
-        })
+        let search = UIBarButtonItem(
+            systemItem: .search,
+            primaryAction: UIAction { [weak self] _ in self?.presentSearch() }
+        )
+        let tabs = UIBarButtonItem(
+            image: UIImage(systemName: "square.on.square"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.shell?.presentTabSwitcher()
+            }
+        )
         tabs.accessibilityLabel = String(localized: "Tabs")
         if #available(iOS 26.0, *) {
             search.sharesBackground = false
@@ -986,7 +1076,8 @@ final class BrowserViewController: UIViewController {
     /// was the whole of "push and pop feel backwards".
     func open(directory path: String) {
         guard let navigation = navigationController else { return }
-        if let existing = navigation.viewControllers.last(where: { ($0 as? BrowserViewController)?.directory == path }) {
+        if let existing = navigation.viewControllers
+            .last(where: { ($0 as? BrowserViewController)?.directory == path }) {
             navigation.popToViewController(existing, animated: true)
             return
         }
@@ -1017,16 +1108,46 @@ final class BrowserViewController: UIViewController {
 
     override var keyCommands: [UIKeyCommand]? {
         var commands = [
-            UIKeyCommand(title: String(localized: "Refresh"), action: #selector(commandRefresh), input: "r", modifierFlags: .command),
-            UIKeyCommand(title: String(localized: "Go to Path…"), action: #selector(commandGoToPath), input: "g", modifierFlags: [.command, .shift]),
-            UIKeyCommand(title: String(localized: "Search Here…"), action: #selector(commandSearch), input: "f", modifierFlags: [.command, .shift]),
-            UIKeyCommand(title: String(localized: "Show Hidden Files"), action: #selector(commandToggleHidden), input: ".", modifierFlags: .command),
+            UIKeyCommand(
+                title: String(localized: "Refresh"),
+                action: #selector(commandRefresh),
+                input: "r",
+                modifierFlags: .command
+            ),
+            UIKeyCommand(
+                title: String(localized: "Go to Path…"),
+                action: #selector(commandGoToPath),
+                input: "g",
+                modifierFlags: [.command, .shift]
+            ),
+            UIKeyCommand(
+                title: String(localized: "Search Here…"),
+                action: #selector(commandSearch),
+                input: "f",
+                modifierFlags: [.command, .shift]
+            ),
+            UIKeyCommand(
+                title: String(localized: "Show Hidden Files"),
+                action: #selector(commandToggleHidden),
+                input: ".",
+                modifierFlags: .command
+            ),
         ]
         // Nothing is created in or pasted into the trash, so the keys are not
         // offered there either.
         if !isTrash {
-            commands.append(UIKeyCommand(title: String(localized: "New Folder"), action: #selector(commandNewFolder), input: "n", modifierFlags: [.command, .shift]))
-            commands.append(UIKeyCommand(title: String(localized: "Paste"), action: #selector(commandPaste), input: "v", modifierFlags: .command))
+            commands.append(UIKeyCommand(
+                title: String(localized: "New Folder"),
+                action: #selector(commandNewFolder),
+                input: "n",
+                modifierFlags: [.command, .shift]
+            ))
+            commands.append(UIKeyCommand(
+                title: String(localized: "Paste"),
+                action: #selector(commandPaste),
+                input: "v",
+                modifierFlags: .command
+            ))
         }
         return commands
     }

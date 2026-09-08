@@ -32,7 +32,9 @@ enum FailureText {
         case .notFound:
             parts.append(String(localized: "This item no longer exists."))
         case .wrongPassword:
-            parts.append(String(localized: "The archive password is missing or incorrect. Enter the password and try again."))
+            parts.append(String(
+                localized: "The archive password is missing or incorrect. Enter the password and try again."
+            ))
         default:
             break
         }

@@ -66,9 +66,12 @@ final class SidebarViewController: UIViewController {
         return item
     }()
     private lazy var tasksItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "tray.and.arrow.down.fill"), primaryAction: UIAction { [weak self] _ in
-            self?.presentTasks()
-        })
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "tray.and.arrow.down.fill"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.presentTasks()
+            }
+        )
         item.accessibilityLabel = String(localized: "Tasks")
         return item
     }()
@@ -94,7 +97,9 @@ final class SidebarViewController: UIViewController {
         if navigationItem.leftBarButtonItem !== settings { navigationItem.leftBarButtonItem = settings }
         let dismissItem = presentingViewController != nil ? doneItem : nil
         let items = [columnToggle ?? dismissItem, running > 0 ? tasksItem : nil].compactMap { $0 }
-        if (navigationItem.rightBarButtonItems ?? []) != items { navigationItem.setRightBarButtonItems(items, animated: animated) }
+        if (navigationItem.rightBarButtonItems ?? []) != items {
+            navigationItem.setRightBarButtonItems(items, animated: animated)
+        }
     }
 
     deinit {
@@ -115,7 +120,9 @@ final class SidebarViewController: UIViewController {
             guard let self, let sections = self.dataSource?.snapshot().sectionIdentifiers,
                   sections.indices.contains(section) else { return nil }
             let identifier = sections[section]
-            let configuration = UICollectionLayoutListConfiguration(appearance: environment.traitCollection.horizontalSizeClass == .regular ? .sidebar : .insetGrouped).with {
+            let configuration = UICollectionLayoutListConfiguration(
+                appearance: environment.traitCollection.horizontalSizeClass == .regular ? .sidebar : .insetGrouped
+            ).with {
                 $0.headerMode = identifier.title == nil ? .none : .firstItemInSection
                 $0.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
                     self?.swipeActions(at: indexPath)
@@ -154,8 +161,18 @@ final class SidebarViewController: UIViewController {
         for name in [Notification.Name.filaSidebarChanged, .filaPreferencesChanged] {
             NotificationCenter.default.addObserver(self, selector: #selector(rebuild), name: name, object: nil)
         }
-        NotificationCenter.default.addObserver(self, selector: #selector(probeTrash), name: .filaJobFinished, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(loadMounts), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(probeTrash),
+            name: .filaJobFinished,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(loadMounts),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
         rebuild()
         Task { [weak self] in
             await FileSession.shared.ready()
@@ -203,7 +220,9 @@ final class SidebarViewController: UIViewController {
         let path = SidebarLocation.trashDirectory(backend: backend)
         trashProbe?.cancel()
         trashProbe = Task { [weak self, session] in
-            let page = try? await session.perform(retryOnDisconnect: true) { try await $0.list(directory: path, cursor: 0) }
+            let page = try? await session.perform(retryOnDisconnect: true) {
+                try await $0.list(directory: path, cursor: 0)
+            }
             guard let self, !Task.isCancelled else { return }
             let hasItems = page?.entries.isEmpty == false
             guard hasItems != self.trashHasItems else { return }
@@ -340,7 +359,9 @@ final class SidebarViewController: UIViewController {
                 snapshot.appendSections([entry.0])
             }
         }
-        let animate = view.window != nil && !previous.sectionIdentifiers.isEmpty && !UIAccessibility.isReduceMotionEnabled
+        let animate = view.window != nil
+            && !previous.sectionIdentifiers.isEmpty
+            && !UIAccessibility.isReduceMotionEnabled
         let outlines = sections.map { section, items in
             var outline = NSDiffableDataSourceSectionSnapshot<Item>()
             if section.title != nil {
@@ -421,7 +442,10 @@ final class SidebarViewController: UIViewController {
             var loaded = Set<String>()
             for path in paths where loaded.insert(path).inserted {
                 guard !Task.isCancelled else { return }
-                guard let details = try? await session.perform(retryOnDisconnect: true, { try await $0.details(of: path) }) else { continue }
+                guard let details = try? await session.perform(
+                    retryOnDisconnect: true,
+                    { try await $0.details(of: path) }
+                ) else { continue }
                 guard !Task.isCancelled else { return }
                 let node = details.node
                 let presentation = AppFolderDisplay.presentation(for: path, apps: apps)

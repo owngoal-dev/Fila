@@ -24,12 +24,18 @@ extension TextViewerViewController {
         var current = 0
         var position = 0
         while position < text.length {
-            let match = text.range(of: term, options: [.caseInsensitive], range: NSRange(location: position, length: text.length - position))
+            let match = text.range(
+                of: term,
+                options: [.caseInsensitive],
+                range: NSRange(location: position, length: text.length - position)
+            )
             guard match.location != NSNotFound, match.length > 0 else { break }
             count += 1
             if first == nil { first = match }
             last = match
-            if forwards ? target == nil && match.location >= NSMaxRange(selection) : NSMaxRange(match) <= selection.location {
+            if forwards
+                ? target == nil && match.location >= NSMaxRange(selection)
+                : NSMaxRange(match) <= selection.location {
                 target = match
                 current = count
             }

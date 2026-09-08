@@ -134,7 +134,10 @@ public enum FilaLog {
     /// from `filad`'s `main`. Lines written before it are kept — they just
     /// carry the default source.
     public static func start(_ source: Source, capacityBytes: Int? = nil) {
-        state.start(source, capacityBytes: capacityBytes ?? (source == .daemon ? daemonCapacityBytes : appCapacityBytes))
+        state.start(
+            source,
+            capacityBytes: capacityBytes ?? (source == .daemon ? daemonCapacityBytes : appCapacityBytes)
+        )
     }
 
     /// Lines below this are dropped before they are formatted. `.info` by

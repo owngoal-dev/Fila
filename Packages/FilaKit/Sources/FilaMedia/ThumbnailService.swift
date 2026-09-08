@@ -116,7 +116,8 @@ public actor ThumbnailService {
     /// length that is no longer true.
     private func render(descriptor: Int32, name: String, maxPixelSize: Int) async -> CGImage? {
         var status = stat()
-        guard fstat(descriptor, &status) == 0, status.st_mode & S_IFMT == S_IFREG, status.st_size > 0 else { return nil }
+        guard fstat(descriptor, &status) == 0, status.st_mode & S_IFMT == S_IFREG,
+              status.st_size > 0 else { return nil }
         let byteCount = Int64(status.st_size)
         guard byteCount <= PreviewLimits.fileByteCount else { return nil }
 

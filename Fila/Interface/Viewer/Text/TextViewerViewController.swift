@@ -61,7 +61,12 @@ final class TextViewerViewController: UIViewController {
     }
 
     private lazy var cancelItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(stopEditing))
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "xmark"),
+            style: .plain,
+            target: self,
+            action: #selector(stopEditing)
+        )
         item.accessibilityLabel = String(localized: "Cancel")
         return item
     }()
@@ -69,13 +74,19 @@ final class TextViewerViewController: UIViewController {
     // Edit and Save are bar buttons, not menu rows: the mode a page is in
     // has to be visible without opening anything, and leaving it is one tap.
     private lazy var editItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "pencil"), primaryAction: UIAction { [weak self] _ in self?.startEditing() })
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "pencil"),
+            primaryAction: UIAction { [weak self] _ in self?.startEditing() }
+        )
         item.accessibilityLabel = String(localized: "Edit")
         return item
     }()
 
     private lazy var saveItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "checkmark"), primaryAction: UIAction { [weak self] _ in self?.save() })
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "checkmark"),
+            primaryAction: UIAction { [weak self] _ in self?.save() }
+        )
         item.accessibilityLabel = String(localized: "Save")
         return item
     }()
@@ -109,7 +120,7 @@ final class TextViewerViewController: UIViewController {
         guard let message = pendingNotice, presentedViewController == nil else { return }
         pendingNotice = nil
         let alert = AlertViewController(title: title ?? details.node.name, message: message) { context in
-            context.addAction(title: "Close") { context.dispose() }
+            context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
         }
         present(alert, animated: true)
     }
@@ -163,7 +174,9 @@ final class TextViewerViewController: UIViewController {
         // ask for the blurred material there; iOS 26's scroll edge effect
         // already blurs whatever passes beneath.
         if #unavailable(iOS 26.0) {
-            navigationItem.scrollEdgeAppearance = UINavigationBarAppearance().then { $0.configureWithDefaultBackground() }
+            navigationItem.scrollEdgeAppearance = UINavigationBarAppearance().then {
+                $0.configureWithDefaultBackground()
+            }
         }
 
         // Presented as a sheet, the pull-to-dismiss gesture is what would
@@ -195,7 +208,9 @@ final class TextViewerViewController: UIViewController {
                     FilePresentation.byteLabel(file.byteCount)
                 )
             } else if encoding != .utf8 {
-                pendingNotice = String(localized: "This file is not valid UTF-8. It is shown and saved without changing the bytes.")
+                pendingNotice = String(
+                    localized: "This file is not valid UTF-8. It is shown and saved without changing the bytes."
+                )
             }
         } catch {
             pendingNotice = FailureMessage.text(for: error)
@@ -360,7 +375,11 @@ final class TextViewerViewController: UIViewController {
             image: UIImage(systemName: "paintbrush"),
             children: [
                 toggle,
-                UIMenu(title: String(localized: "Language"), options: .displayInline, children: [automatic] + languages),
+                UIMenu(
+                    title: String(localized: "Language"),
+                    options: .displayInline,
+                    children: [automatic] + languages
+                ),
             ]
         )
         return [find, wrap, highlight]
@@ -407,7 +426,10 @@ final class TextViewerViewController: UIViewController {
             return
         }
         guard data.count <= ViewerLimits.editableTextByteCount else {
-            presentSaveFailure(ViewerFailure.tooLarge(byteCount: Int64(data.count), limit: ViewerLimits.editableTextByteCount))
+            presentSaveFailure(ViewerFailure.tooLarge(
+                byteCount: Int64(data.count),
+                limit: ViewerLimits.editableTextByteCount
+            ))
             return
         }
         isSaving = true
@@ -444,13 +466,13 @@ final class TextViewerViewController: UIViewController {
     private func confirmDiscarding(_ leave: @escaping () -> Void) {
         guard !isSaving else { return }
         let alert = AlertViewController(
-            title: "Unsaved Changes",
-            message: "Leaving now discards what you typed. The file on disk is unchanged."
+            title: String.LocalizationValue("Unsaved Changes"),
+            message: String.LocalizationValue("Leaving now discards what you typed. The file on disk is unchanged.")
         ) { context in
-            context.addAction(title: "Cancel") {
+            context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
             }
-            context.addAction(title: "Discard", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("Discard"), attribute: .accent) {
                 context.dispose { leave() }
             }
         }
@@ -459,11 +481,11 @@ final class TextViewerViewController: UIViewController {
 
     private func presentSaveFailure(_ error: Error) {
         let alert = AlertViewController(
-            title: "Unable to Save",
+            title: String(localized: "Unable to Save"),
             message: FailureMessage.text(for: error, whileWriting: true)
         ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }

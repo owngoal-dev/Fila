@@ -156,8 +156,10 @@ enum FilePresentation {
         case let .artwork(name):
             return UIImage(named: "FileIcons/\(name)-large")?.withRenderingMode(.alwaysOriginal)
         case let .symbol(name):
-            return UIImage(systemName: name, withConfiguration: UIImage.SymbolConfiguration(pointSize: largeSide / 2, weight: .regular))?
-                .withRenderingMode(.alwaysTemplate)
+            return UIImage(
+                systemName: name,
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: largeSide / 2, weight: .regular)
+            )?.withRenderingMode(.alwaysTemplate)
         }
     }
 

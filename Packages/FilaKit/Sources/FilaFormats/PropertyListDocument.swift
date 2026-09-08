@@ -89,7 +89,10 @@ public extension PropertyListValue {
         set { self = PropertyListValue.replacing(path[...], in: self, with: newValue) }
     }
 
-    private static func value(at path: ArraySlice<PropertyListPathComponent>, in value: PropertyListValue) -> PropertyListValue? {
+    private static func value(
+        at path: ArraySlice<PropertyListPathComponent>,
+        in value: PropertyListValue
+    ) -> PropertyListValue? {
         guard let head = path.first else { return value }
         switch (head, value) {
         case let (.key(name), .dictionary(entries)):

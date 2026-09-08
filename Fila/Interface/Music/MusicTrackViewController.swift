@@ -32,7 +32,11 @@ final class MusicTrackViewController: UITableViewController {
                 tableView.reloadData()
             } catch {
                 guard let self, !Task.isCancelled else { return }
-                tableView.backgroundView = StatusView(content: .message(symbol: "music.note", title: String(localized: "Music Unavailable"), detail: error.localizedDescription))
+                tableView.backgroundView = StatusView(content: .message(
+                    symbol: "music.note",
+                    title: String(localized: "Music Unavailable"),
+                    detail: error.localizedDescription
+                ))
             }
         }
     }
@@ -68,8 +72,12 @@ final class MusicTrackViewController: UITableViewController {
         let original = details.values[field] ?? ""
         let alert = AlertInputViewController(
             title: field.title,
-            message: "Updates this song in the device’s music library. A backup is saved before the change.",
-            placeholder: .noPlaceholder, text: original, doneButtonText: "Save"
+            message: String.LocalizationValue(
+                "Updates this song in the device’s music library. A backup is saved before the change."
+            ),
+            placeholder: .noPlaceholder,
+            text: original,
+            doneButtonText: String.LocalizationValue("Save")
         ) { [weak self] value in
             guard let self, value != original else { return }
             save(field, original: original, value: value)
@@ -87,14 +95,22 @@ final class MusicTrackViewController: UITableViewController {
                 tableView.reloadData()
             }
             do {
-                details = try await MusicLibraryEditor.shared.save(id: track.id, field: field, original: original, value: value)
+                details = try await MusicLibraryEditor.shared.save(
+                    id: track.id,
+                    field: field,
+                    original: original,
+                    value: value
+                )
                 let savedTitle = details?.values[.title] ?? ""
                 title = savedTitle.isEmpty ? String(localized: "Song Details") : savedTitle
                 Toast.show(String(localized: "Saved"))
             } catch {
-                let alert = AlertViewController(title: String(localized: "Unable to Save"), message: error.localizedDescription) { context in
+                let alert = AlertViewController(
+                    title: String(localized: "Unable to Save"),
+                    message: error.localizedDescription
+                ) { context in
                     context.allowSimpleDispose()
-                    context.addAction(title: "OK") { context.dispose() }
+                    context.addAction(title: String.LocalizationValue("OK")) { context.dispose() }
                 }
                 if viewIfLoaded?.window != nil { present(alert, animated: true) }
                 else { FeedbackAlert.show(String(localized: "Unable to Save"), message: error.localizedDescription) }

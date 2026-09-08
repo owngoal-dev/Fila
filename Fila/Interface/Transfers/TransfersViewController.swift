@@ -24,9 +24,12 @@ final class TransfersViewController: UIViewController {
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, UUID>!
     private var observation: AnyCancellable?
-    private lazy var clearItem = UIBarButtonItem(image: UIImage(named: "broom"), primaryAction: UIAction { [weak self] _ in
-        self?.center.clearFinished()
-    }).then {
+    private lazy var clearItem = UIBarButtonItem(
+        image: UIImage(named: "broom"),
+        primaryAction: UIAction { [weak self] _ in
+            self?.center.clearFinished()
+        }
+    ).then {
         $0.accessibilityLabel = String(localized: "Clear")
     }
 

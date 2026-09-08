@@ -52,7 +52,9 @@ actor MusicLibraryEditor {
             expected = String(number)
         } else {
             guard !value.utf8.contains(0), value.utf8.count <= 16_384 else {
-                throw error(String(localized: "This value is too long or includes a character that cannot be saved. Change it and try again."))
+                throw error(String(localized:
+                    "This value is too long or includes a character that cannot be saved. Change it and try again."
+                ))
             }
             replacement = value
             expected = value
@@ -86,7 +88,9 @@ actor MusicLibraryEditor {
             }
         } else { status = MPMediaLibrary.authorizationStatus() }
         guard status == .authorized else {
-            throw error(String(localized: "Fila does not have access to Music. Allow access in Settings, then try again."))
+            throw error(String(
+                localized: "Fila does not have access to Music. Allow access in Settings, then try again."
+            ))
         }
     }
 
@@ -97,7 +101,8 @@ actor MusicLibraryEditor {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
                                                 attributes: [.posixPermissions: 0o700])
         do {
-            try MusicLibraryDatabase(path: Self.databasePath).backup(to: directory.appendingPathComponent("MediaLibrary.sqlitedb"))
+            try MusicLibraryDatabase(path: Self.databasePath)
+                .backup(to: directory.appendingPathComponent("MediaLibrary.sqlitedb"))
         } catch {
             try? FileManager.default.removeItem(at: directory)
             throw error
@@ -106,7 +111,9 @@ actor MusicLibraryEditor {
 
     func nativeLibrary() throws -> NativeMusicLibrary {
         guard MPMediaLibrary.authorizationStatus() == .authorized else {
-            throw error(String(localized: "Fila does not have access to Music. Allow access in Settings, then try again."))
+            throw error(String(
+                localized: "Fila does not have access to Music. Allow access in Settings, then try again."
+            ))
         }
         guard FileManager.default.isReadableFile(atPath: Self.databasePath) else { throw unavailable() }
         return try NativeMusicLibrary(expectedDatabasePath: Self.databasePath)

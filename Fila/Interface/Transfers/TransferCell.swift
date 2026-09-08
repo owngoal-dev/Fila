@@ -189,7 +189,8 @@ final class TransferCell: UICollectionViewListCell {
     private static func workingAmount(_ progress: JobProgress?) -> String {
         guard let progress else { return String(localized: "Preparing…") }
         if progress.bytesTotal > 0 {
-            return FilePresentation.byteLabel(progress.bytesDone) + " / " + FilePresentation.byteLabel(progress.bytesTotal)
+            return FilePresentation.byteLabel(progress.bytesDone)
+                + " / " + FilePresentation.byteLabel(progress.bytesTotal)
         }
         if progress.itemsTotal > 0 { return "\(progress.itemsDone) / \(progress.itemsTotal)" }
         if progress.bytesDone > 0 { return FilePresentation.byteLabel(progress.bytesDone) }

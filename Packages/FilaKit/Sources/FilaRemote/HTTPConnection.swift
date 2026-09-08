@@ -21,7 +21,11 @@ final class HTTPConnection {
     private let ioTimeout: TimeAmount
     private var responseStarted = false
 
-    init(inbound: NIOAsyncChannelInboundStream<HTTPServerRequestPart>, channel: Channel, ioTimeout: TimeAmount = .seconds(readTimeoutSeconds)) {
+    init(
+        inbound: NIOAsyncChannelInboundStream<HTTPServerRequestPart>,
+        channel: Channel,
+        ioTimeout: TimeAmount = .seconds(readTimeoutSeconds)
+    ) {
         self.inbound = inbound.makeAsyncIterator()
         self.channel = channel
         self.ioTimeout = ioTimeout

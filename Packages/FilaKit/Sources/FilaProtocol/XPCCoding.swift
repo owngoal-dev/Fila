@@ -341,7 +341,8 @@ public extension JobRequest {
     }
 
     init?(decoding request: xpc_object_t) {
-        guard let kind = FilaJobKind(rawValue: xpc_dictionary_get_uint64(request, FilaWireKey.jobKind)) else { return nil }
+        guard let kind = FilaJobKind(rawValue: xpc_dictionary_get_uint64(request, FilaWireKey.jobKind))
+        else { return nil }
         guard let array = xpc_dictionary_get_array(request, FilaWireKey.sources) else { return nil }
         var sources: [String] = []
         for index in 0 ..< xpc_array_get_count(array) {
@@ -521,7 +522,8 @@ public extension JobEvent {
     /// Returns nil when the message is not a job event.
     static func decode(_ message: xpc_object_t) -> (jobIdentifier: UInt64, event: JobEvent)? {
         guard xpc_get_type(message) == FilaXPC.typeDictionary else { return nil }
-        guard xpc_dictionary_get_uint64(message, FilaWireKey.operation) == FilaOperation.jobEvent.rawValue else { return nil }
+        guard xpc_dictionary_get_uint64(message, FilaWireKey.operation) == FilaOperation.jobEvent.rawValue
+        else { return nil }
         let identifier = xpc_dictionary_get_uint64(message, FilaWireKey.jobIdentifier)
         let path = xpc_dictionary_get_string(message, FilaWireKey.path).map { String(cString: $0) }
         if xpc_dictionary_get_bool(message, FilaWireKey.jobPhase) {
@@ -530,7 +532,8 @@ public extension JobEvent {
                 code: code,
                 systemError: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(message, FilaWireKey.errno)),
                 path: path,
-                reason: xpc_dictionary_get_string(message, FilaWireKey.failureReason).flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
+                reason: xpc_dictionary_get_string(message, FilaWireKey.failureReason)
+                    .flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
             )))
         }
         return (identifier, .progress(JobProgress(
@@ -561,7 +564,8 @@ public extension FilaFailure {
             code: code,
             systemError: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(reply, FilaWireKey.errno)),
             path: xpc_dictionary_get_string(reply, FilaWireKey.path).map { String(cString: $0) },
-            reason: xpc_dictionary_get_string(reply, FilaWireKey.failureReason).flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
+            reason: xpc_dictionary_get_string(reply, FilaWireKey.failureReason)
+                .flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
         )
     }
 }

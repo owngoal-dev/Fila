@@ -57,7 +57,12 @@ final class FileSharingViewController: UIViewController {
         }
         buildDataSource()
         apply()
-        NotificationCenter.default.addObserver(self, selector: #selector(serverChanged), name: .filaRemoteServerChanged, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(serverChanged),
+            name: .filaRemoteServerChanged,
+            object: nil
+        )
     }
 
     @objc private func serverChanged() { apply() }
@@ -70,12 +75,16 @@ final class FileSharingViewController: UIViewController {
             guard case let .qrCode(address) = row else { return }
             cell.show(address)
         }
-        let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(elementKind: UICollectionView.elementKindSectionHeader) { [weak self] view, _, indexPath in
+        let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+            elementKind: UICollectionView.elementKindSectionHeader
+        ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedHeader()
             content.text = self?.dataSource.sectionIdentifier(for: indexPath.section).flatMap(Self.header)
             view.contentConfiguration = content
         }
-        let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(elementKind: UICollectionView.elementKindSectionFooter) { [weak self] view, _, indexPath in
+        let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+            elementKind: UICollectionView.elementKindSectionFooter
+        ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedFooter()
             content.text = self?.dataSource.sectionIdentifier(for: indexPath.section).flatMap(Self.footer)
             view.contentConfiguration = content
@@ -97,21 +106,28 @@ final class FileSharingViewController: UIViewController {
     private func apply() {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         let addresses = center.addresses
-        snapshot.appendSections(addresses.isEmpty ? [.server, .credentials, .background, .connections] : Section.allCases)
+        snapshot.appendSections(
+            addresses.isEmpty ? [.server, .credentials, .background, .connections] : Section.allCases
+        )
         var server: [Row] = [.status]
         if let failure = center.startFailure { server.append(.failure(failure)) }
         snapshot.appendItems(server, toSection: .server)
         snapshot.appendItems([.userName, .password, .port, .sharedFolder], toSection: .credentials)
         snapshot.appendItems([.keepsRunning], toSection: .background)
         let entries = center.log.prefix(Self.visibleConnectionCount)
-        snapshot.appendItems(entries.isEmpty ? [.noConnections] : entries.map { .connection($0.id) } + [.clearConnections], toSection: .connections)
+        snapshot.appendItems(
+            entries.isEmpty ? [.noConnections] : entries.map { .connection($0.id) } + [.clearConnections],
+            toSection: .connections
+        )
         if let first = addresses.first {
             // The first address is the first non-cellular, non-VPN interface —
             // Wi-Fi on a phone. A second interface is rare and typed by hand.
             snapshot.appendItems([.qrCode(first)], toSection: .qrCode)
         }
         let previous = Set(dataSource.snapshot().itemIdentifiers)
-        snapshot.reconfigureItems([.status, .userName, .password, .port, .sharedFolder].filter { previous.contains($0) })
+        snapshot.reconfigureItems(
+            [.status, .userName, .password, .port, .sharedFolder].filter { previous.contains($0) }
+        )
         dataSource.apply(snapshot, animatingDifferences: false)
     }
 
@@ -139,7 +155,9 @@ final class FileSharingViewController: UIViewController {
             content.textProperties.font = .preferredFont(forTextStyle: .headline)
             content.textProperties.numberOfLines = 0
             content.secondaryText = center.isRunning
-                ? (center.addresses.isEmpty ? String(localized: "No network address yet.") : center.addresses.joined(separator: "\n"))
+                ? (center.addresses.isEmpty
+                    ? String(localized: "No network address yet.")
+                    : center.addresses.joined(separator: "\n"))
                 : String(localized: "Ready to share with devices on your network.")
             content.secondaryTextProperties.color = .secondaryLabel
             content.secondaryTextProperties.numberOfLines = 0
@@ -231,7 +249,7 @@ final class FileSharingViewController: UIViewController {
             message: message,
             placeholder: .noPlaceholder,
             text: value,
-            doneButtonText: "Save"
+            doneButtonText: String.LocalizationValue("Save")
         ) { [weak self] text in
             switch row {
             case .userName: AppPreferences.shared.serverUsername = text
@@ -358,7 +376,10 @@ private final class QRCodeCell: UICollectionViewListCell {
         guard let output = filter.outputImage else { return nil }
         // Quiet zone: the generator draws none, and a scanner needs one.
         let padded = output.extent.insetBy(dx: -4, dy: -4)
-        let transform = CGAffineTransform(scaleX: side * UIScreen.main.scale / padded.width, y: side * UIScreen.main.scale / padded.height)
+        let transform = CGAffineTransform(
+            scaleX: side * UIScreen.main.scale / padded.width,
+            y: side * UIScreen.main.scale / padded.height
+        )
         // Nearest sampling keeps module edges hard at a fractional scale.
         let scaled = output.samplingNearest().transformed(by: transform)
         guard let rendered = CIContext().createCGImage(scaled, from: padded.applying(transform)) else { return nil }

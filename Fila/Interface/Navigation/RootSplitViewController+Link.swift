@@ -168,7 +168,7 @@ extension RootSplitViewController {
     private func alert(title: String, message: String) {
         let alert = AlertViewController(title: title, message: message) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }

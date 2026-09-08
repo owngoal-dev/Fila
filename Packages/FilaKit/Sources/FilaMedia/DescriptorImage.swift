@@ -18,7 +18,10 @@ enum DescriptorImage {
     static func thumbnail(descriptor: Int32, byteCount: Int64, maxPixelSize: Int) -> CGImage? {
         let reads = ReadLog()
         guard let provider = provider(descriptor: descriptor, byteCount: byteCount, reads: reads),
-              let source = CGImageSourceCreateWithDataProvider(provider, [kCGImageSourceShouldCache: false] as CFDictionary)
+              let source = CGImageSourceCreateWithDataProvider(
+                  provider,
+                  [kCGImageSourceShouldCache: false] as CFDictionary
+              )
         else { return nil }
         guard ImagePreview.hasSupportedDimensions(source) else { return nil }
         let options: [CFString: Any] = [

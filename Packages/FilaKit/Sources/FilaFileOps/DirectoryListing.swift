@@ -30,7 +30,9 @@ public final class DirectoryListing {
     }
 
     /// The next page, and whether the directory is exhausted.
-    public func nextPage(limit: Int = FilaProtocol.directoryPageEntryCount) throws -> (entries: [FileNode], isFinal: Bool) {
+    public func nextPage(
+        limit: Int = FilaProtocol.directoryPageEntryCount
+    ) throws -> (entries: [FileNode], isFinal: Bool) {
         lastUsed = Date()
         guard let handle else { return ([], true) }
         let descriptor = dirfd(handle)

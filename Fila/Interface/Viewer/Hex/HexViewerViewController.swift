@@ -61,7 +61,11 @@ final class HexViewerViewController: UIViewController {
         ) { [weak self] _ in self?.goToOffset() }]
         container?.refreshBarItems()
         if file.byteCount == 0 {
-            table.backgroundView = StatusView(content: .message(symbol: "doc", title: String(localized: "Empty File"), detail: nil))
+            table.backgroundView = StatusView(content: .message(
+                symbol: "doc",
+                title: String(localized: "Empty File"),
+                detail: nil
+            ))
         }
     }
 
@@ -72,7 +76,8 @@ final class HexViewerViewController: UIViewController {
         let characterWidth = "0".size(withAttributes: [.font: font]).width
         let newWidth = width >= characterWidth * 68 ? 16 : 8
         let offsetDigits = max(8, String(max(0, file.byteCount - 1), radix: 16).count)
-        let lines = ceil(CGFloat(offsetDigits) * characterWidth / width) + ceil(CGFloat(newWidth * 4 + 4) * characterWidth / width)
+        let lines = ceil(CGFloat(offsetDigits) * characterWidth / width)
+            + ceil(CGFloat(newWidth * 4 + 4) * characterWidth / width)
         // A fixed height keeps row bookkeeping constant for multi-gigabyte
         // files. Derive it from the current font instead of asking Auto Layout
         // to estimate hundreds of millions of individual row heights.
@@ -83,7 +88,11 @@ final class HexViewerViewController: UIViewController {
         table.rowHeight = rowHeight
         table.reloadData()
         if offset < file.byteCount {
-            table.scrollToRow(at: IndexPath(row: Int(offset / Int64(bytesPerRow)), section: 0), at: .top, animated: false)
+            table.scrollToRow(
+                at: IndexPath(row: Int(offset / Int64(bytesPerRow)), section: 0),
+                at: .top,
+                animated: false
+            )
         }
     }
 
@@ -123,11 +132,11 @@ final class HexViewerViewController: UIViewController {
 
     @objc private func goToOffset() {
         let alert = AlertInputViewController(
-            title: "Go to Offset",
-            message: "Enter a decimal offset, or a hexadecimal offset with a 0x prefix.",
+            title: String.LocalizationValue("Go to Offset"),
+            message: String.LocalizationValue("Enter a decimal offset, or a hexadecimal offset with a 0x prefix."),
             placeholder: .noPlaceholder,
             text: "",
-            doneButtonText: "Go"
+            doneButtonText: String.LocalizationValue("Go")
         ) { [weak self] text in
             guard let self else { return }
             // Silently doing nothing is how this read as broken: a typo and a
@@ -151,12 +160,12 @@ final class HexViewerViewController: UIViewController {
 
     private func explain(_ message: String) {
         let alert = AlertViewController(
-            title: "Go to Offset",
+            title: String(localized: "Go to Offset"),
             message: message
         ) { [weak self] context in
             context.allowSimpleDispose()
-            context.addAction(title: "Close") { context.dispose() }
-            context.addAction(title: "Go to Offset", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
+            context.addAction(title: String.LocalizationValue("Go to Offset"), attribute: .accent) {
                 context.dispose { self?.goToOffset() }
             }
         }
@@ -205,7 +214,9 @@ final class HexRowCell: UITableViewCell {
     static let identifier = "HexRow"
 
     private let line = UILabel()
-    static var font: UIFont { UIFontMetrics(forTextStyle: .body).scaledFont(for: .monospacedSystemFont(ofSize: 13, weight: .regular)) }
+    static var font: UIFont {
+        UIFontMetrics(forTextStyle: .body).scaledFont(for: .monospacedSystemFont(ofSize: 13, weight: .regular))
+    }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -241,7 +252,10 @@ final class HexRowCell: UITableViewCell {
             if index == width / 2 - 1 { hex += " " }
         }
         line.font = Self.font
-        let text = NSMutableAttributedString(string: String(format: "%08llx\n", offset), attributes: [.foregroundColor: UIColor.secondaryLabel])
+        let text = NSMutableAttributedString(
+            string: String(format: "%08llx\n", offset),
+            attributes: [.foregroundColor: UIColor.secondaryLabel]
+        )
         text.append(NSAttributedString(string: hex + " |" + ascii + "|", attributes: [.foregroundColor: UIColor.label]))
         line.attributedText = text
     }

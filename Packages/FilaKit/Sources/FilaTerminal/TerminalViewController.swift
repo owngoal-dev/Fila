@@ -68,7 +68,11 @@ public final class TerminalViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis"),
             menu: UIMenu(children: [
-                UIAction(title: String(localized: "End Session"), image: UIImage(systemName: "stop"), attributes: .destructive) { [weak self] _ in
+                UIAction(
+                    title: String(localized: "End Session"),
+                    image: UIImage(systemName: "stop"),
+                    attributes: .destructive
+                ) { [weak self] _ in
                     self?.endSession()
                 },
             ])
@@ -227,8 +231,10 @@ public final class TerminalViewController: UIViewController {
             return
         }
         authentication = context
-        context.evaluatePolicy(.deviceOwnerAuthentication,
-                               localizedReason: String(localized: "Authenticate to run a terminal session as root.")) { [weak self] success, error in
+        context.evaluatePolicy(
+            .deviceOwnerAuthentication,
+            localizedReason: String(localized: "Authenticate to run a terminal session as root.")
+        ) { [weak self] success, error in
             Task { @MainActor [weak self] in
                 guard let self, !self.isFinished else { return }
                 self.authentication = nil

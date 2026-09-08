@@ -70,7 +70,9 @@ final class FileActions {
             ]
         )] : []
         let properties: [UIMenuElement] = includesProperties ? [
-            UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in showProperties(path) },
+            UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in
+                showProperties(path)
+            },
         ] : []
         let install = installAction(path, node: node, confirm: confirm).map { [$0] } ?? []
         let previewActions: [UIMenuElement] = preview.map { open in
@@ -99,17 +101,34 @@ final class FileActions {
             UIAction(title: String(localized: "Move"), image: UIImage(systemName: "scissors")) { _ in
                 confirm { FileClipboard.shared.take([path], cut: true) }
             },
-            UIAction(title: String(localized: "Rename…"), image: UIImage(systemName: "pencil")) { [self] _ in confirm { self.promptRename(path) } },
+            UIAction(title: String(localized: "Rename…"), image: UIImage(systemName: "pencil")) { [self] _ in
+                confirm { self.promptRename(path) }
+            },
             compressAction(paths: { [path] }, confirm: confirm),
         ]
         let opening: [UIMenuElement] = [
-            UIAction(title: String(localized: "Open With…"), image: UIImage(systemName: "square.and.arrow.up")) { [self] _ in confirm { self.share([path]) } },
+            UIAction(
+                title: String(localized: "Open With…"),
+                image: UIImage(systemName: "square.and.arrow.up")
+            ) { [self] _ in
+                confirm { self.share([path]) }
+            },
         ] + run + install
         var destructive: [UIMenuElement] = [
-            UIAction(title: Self.deleteTitle, image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in confirm { self.delete([path]) } },
+            UIAction(
+                title: Self.deleteTitle,
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { [self] _ in
+                confirm { self.delete([path]) }
+            },
         ]
         if AppPreferences.shared.allowsGuardOverride {
-            destructive.append(UIAction(title: String(localized: "Override Protection…"), image: UIImage(systemName: "exclamationmark.octagon"), attributes: .destructive) { [self] _ in
+            destructive.append(UIAction(
+                title: String(localized: "Override Protection…"),
+                image: UIImage(systemName: "exclamationmark.octagon"),
+                attributes: .destructive
+            ) { [self] _ in
                 confirm { self.promptOverriddenDelete([path]) }
             })
         }
@@ -136,14 +155,28 @@ final class FileActions {
             UIMenu(
                 options: .displayInline,
                 children: additional + [
-                    UIAction(title: String(localized: "Put Back"), image: UIImage(systemName: "arrow.uturn.backward")) { [self] _ in confirm { self.putBack([path]) } },
-                    UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in showProperties(path) },
+                    UIAction(
+                        title: String(localized: "Put Back"),
+                        image: UIImage(systemName: "arrow.uturn.backward")
+                    ) { [self] _ in
+                        confirm { self.putBack([path]) }
+                    },
+                    UIAction(
+                        title: String(localized: "Properties"),
+                        image: UIImage(systemName: "info.circle")
+                    ) { [self] _ in
+                        showProperties(path)
+                    },
                 ]
             ),
             UIMenu(
                 options: .displayInline,
                 children: [
-                    UIAction(title: String(localized: "Delete Permanently"), image: UIImage(systemName: "trash"), attributes: .destructive) { [self] _ in
+                    UIAction(
+                        title: String(localized: "Delete Permanently"),
+                        image: UIImage(systemName: "trash"),
+                        attributes: .destructive
+                    ) { [self] _ in
                         confirm { self.delete([path], permanently: true) }
                     },
                 ]
@@ -164,11 +197,11 @@ final class FileActions {
                 let name = failure.path.map { ($0 as NSString).lastPathComponent } ?? ""
                 if let presenter = activePresenter {
                     let alert = AlertViewController(
-                        title: "Cannot Put Back",
+                        title: String(localized: "Cannot Put Back"),
                         message: String(localized: "The original location of “\(name)” was not recorded. It can only be deleted permanently.")
                     ) { context in
                         context.allowSimpleDispose()
-                        context.addAction(title: "OK", attribute: .accent) {
+                        context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                             context.dispose()
                         }
                     }
@@ -189,7 +222,12 @@ final class FileActions {
     /// Offered only while `SystemCapabilities.runsPrograms` says so; and without
     /// `filad` the terminal itself refuses, for either identity — see
     /// `DaemonLink.openTerminal` — so nothing here pretends otherwise.
-    private func runAction(_ path: String, user: TerminalUser, title: String, confirm: @escaping (@escaping () -> Void) -> Void) -> UIAction {
+    private func runAction(
+        _ path: String,
+        user: TerminalUser,
+        title: String,
+        confirm: @escaping (@escaping () -> Void) -> Void
+    ) -> UIAction {
         // Root is marked destructive so the menu itself says which of the two
         // is the one to think about; the terminal spawns as soon as it appears.
         UIAction(title: title, attributes: user == .root ? .destructive : []) { [self] _ in
@@ -226,7 +264,9 @@ final class FileActions {
             do {
                 let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
                 guard let presenter = activePresenter else { return }
-                presenter.presentAsSheet(UINavigationController(rootViewController: PropertiesViewController(details: details, link: session.link)))
+                presenter.presentAsSheet(UINavigationController(
+                    rootViewController: PropertiesViewController(details: details, link: session.link)
+                ))
             } catch { report(error) }
         }
     }
@@ -235,18 +275,22 @@ final class FileActions {
         guard let presenter = activePresenter else { return }
         let source = URL(fileURLWithPath: path)
         let alert = AlertInputViewController(
-            title: "Rename",
-            message: "Enter a new name. The item stays in the same folder.",
+            title: String.LocalizationValue("Rename"),
+            message: String.LocalizationValue("Enter a new name. The item stays in the same folder."),
             placeholder: .noPlaceholder,
             text: source.lastPathComponent,
-            doneButtonText: "Rename"
+            doneButtonText: String.LocalizationValue("Rename")
         ) { name in
             guard name != source.lastPathComponent else { return }
             guard !name.isEmpty, name != ".", name != "..", !name.contains("/"), !name.contains("\0") else {
                 self.report(FilaFailure(code: .invalidRequest, systemError: EINVAL, path: name))
                 return
             }
-            self.rename(path, to: source.deletingLastPathComponent().appendingPathComponent(name).path, replacingExisting: false)
+            self.rename(
+                path,
+                to: source.deletingLastPathComponent().appendingPathComponent(name).path,
+                replacingExisting: false
+            )
         }
         presenter.present(alert, animated: true)
     }
@@ -255,7 +299,9 @@ final class FileActions {
         Task {
             do {
                 try await withSourceLocked {
-                    try await session.perform { try await $0.rename(source, to: destination, exclusive: !replacingExisting) }
+                    try await session.perform {
+                        try await $0.rename(source, to: destination, exclusive: !replacingExisting)
+                    }
                 }
                 NotificationCenter.default.post(name: .filaJobFinished, object: [directory])
                 didRemove()
@@ -282,7 +328,9 @@ final class FileActions {
 
     func promptCompress(_ paths: [String]) {
         guard !paths.isEmpty, let presenter = activePresenter else { return }
-        let base = paths.count == 1 ? URL(fileURLWithPath: paths[0]).deletingPathExtension().lastPathComponent : URL(fileURLWithPath: directory).lastPathComponent
+        let base = paths.count == 1
+            ? URL(fileURLWithPath: paths[0]).deletingPathExtension().lastPathComponent
+            : URL(fileURLWithPath: directory).lastPathComponent
         CompressViewController.present(
             from: presenter,
             suggestedName: base.isEmpty ? "Archive" : base,
@@ -312,7 +360,8 @@ final class FileActions {
                     title: OperationCenter.Kind.compress.runningTitle,
                     subtitle: OperationCenter.describe(paths, destination: directory)
                 )
-                guard let operation = center.operation(forJob: identifier), let presenter = activePresenter else { return }
+                guard let operation = center.operation(forJob: identifier),
+                      let presenter = activePresenter else { return }
                 OperationCoverViewController.present(for: operation.id, from: presenter, center: center)
             } catch { report(error) }
         }
@@ -369,7 +418,7 @@ final class FileActions {
     func confirmDestruction(title: String, message: String, confirm: String, handler: @escaping () -> Void) {
         guard let presenter = activePresenter else { return }
         let alert = AlertViewController(title: title, message: message) { context in
-            context.addAction(title: "Cancel") {
+            context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
             }
             context.addAction(title: confirm, attribute: .accent) {
@@ -388,11 +437,11 @@ final class FileActions {
         }
         if let failure = error as? FilaFailure { presenter.report(failure); return }
         let alert = AlertViewController(
-            title: "Operation Failed",
+            title: String(localized: "Operation Failed"),
             message: FailureMessage.text(for: error)
         ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }
@@ -402,7 +451,9 @@ final class FileActions {
     private func freeArchivePath(base: String, format: ArchiveFormat, in directory: String) async throws -> String {
         for index in 1 ... Int.max {
             try Task.checkCancellation()
-            let name = index == 1 ? "\(base).\(format.filenameExtension)" : "\(base) \(index).\(format.filenameExtension)"
+            let name = index == 1
+                ? "\(base).\(format.filenameExtension)"
+                : "\(base) \(index).\(format.filenameExtension)"
             let candidate = URL(fileURLWithPath: directory, isDirectory: true).appendingPathComponent(name).path
             do {
                 _ = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: candidate) }

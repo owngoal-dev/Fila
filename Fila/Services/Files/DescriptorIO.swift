@@ -14,7 +14,9 @@ enum DescriptorIO {
         defer { close(descriptor) }
         var status = stat()
         guard fstat(descriptor, &status) == 0 else { throw FilaFailure(errno: errno) }
-        guard status.st_mode & S_IFMT == S_IFREG, status.st_size >= 0, limit >= 0 else { throw FilaFailure(errno: EINVAL) }
+        guard status.st_mode & S_IFMT == S_IFREG, status.st_size >= 0, limit >= 0 else {
+            throw FilaFailure(errno: EINVAL)
+        }
         var data = Data()
         var buffer = [UInt8](repeating: 0, count: chunkByteCount)
         while data.count < limit {

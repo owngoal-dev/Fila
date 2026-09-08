@@ -144,12 +144,22 @@ final class RootSplitViewController: UISplitViewController {
     func configureSidebarButton(for controller: UIViewController, leadingItems: [UIBarButtonItem]? = nil) {
         guard controller === content.visibleTop, let navigation = controller.navigationController,
               let index = navigation.viewControllers.firstIndex(of: controller) else { return }
-        prepareNavigationItems(for: controller, in: navigation, ancestors: Array(navigation.viewControllers.prefix(index)), leadingItems: leadingItems)
+        prepareNavigationItems(
+            for: controller,
+            in: navigation,
+            ancestors: Array(navigation.viewControllers.prefix(index)),
+            leadingItems: leadingItems
+        )
     }
 
     /// The destination need not be in the stack yet. The tab supplies its future
     /// ancestors before UIKit starts rendering the push or pop transition.
-    func prepareNavigationItems(for controller: UIViewController, in navigation: UINavigationController, ancestors: [UIViewController], leadingItems: [UIBarButtonItem]? = nil) {
+    func prepareNavigationItems(
+        for controller: UIViewController,
+        in navigation: UINavigationController,
+        ancestors: [UIViewController],
+        leadingItems: [UIBarButtonItem]? = nil
+    ) {
         let item = controller.navigationItem
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
@@ -160,7 +170,9 @@ final class RootSplitViewController: UISplitViewController {
         if !controller.isEditing, !item.hidesBackButton {
             if !ancestors.isEmpty, buttons.isEmpty {
                 back.menu = UIMenu(children: ancestors.reversed().map { destination in
-                    UIAction(title: destination.navigationItem.title ?? destination.title ?? String(localized: "Back")) { [weak self, weak destination] _ in
+                    UIAction(
+                        title: destination.navigationItem.title ?? destination.title ?? String(localized: "Back")
+                    ) { [weak self, weak destination] _ in
                         guard let destination else { return }
                         self?.navigateBack(to: destination)
                     }
@@ -267,7 +279,10 @@ final class RootSplitViewController: UISplitViewController {
     func openInNewTab(_ path: String) {
         content.captureCurrentTab()
         guard let tab = BrowserTabStore.shared.open(path) else {
-            FeedbackAlert.show(String(localized: "Too Many Tabs"), message: String(localized: "This folder opened in the current tab. Close a tab to open a new one."))
+            FeedbackAlert.show(
+                String(localized: "Too Many Tabs"),
+                message: String(localized: "This folder opened in the current tab. Close a tab to open a new one.")
+            )
             confirmLeavingContent { [weak self] in
                 guard let self else { return }
                 if let browser = self.content.navigation?.topViewController as? BrowserViewController {
@@ -392,7 +407,10 @@ final class RootSplitViewController: UISplitViewController {
 }
 
 extension RootSplitViewController: UISplitViewControllerDelegate {
-    func splitViewController(_ splitViewController: UISplitViewController, willChangeTo displayMode: UISplitViewController.DisplayMode) {
+    func splitViewController(
+        _ splitViewController: UISplitViewController,
+        willChangeTo displayMode: UISplitViewController.DisplayMode
+    ) {
         announcedDisplayMode = displayMode
         animateToggleTransfer = true
         content.refreshSidebarButton()

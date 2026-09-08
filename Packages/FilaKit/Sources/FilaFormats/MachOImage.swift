@@ -88,10 +88,14 @@ public struct MachOImage: Sendable {
         guard magic.count == 4 else { throw FormatFailure.notRecognised }
 
         switch [UInt8](magic) {
-        case [0xCA, 0xFE, 0xBA, 0xBE]: (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: true, is64: false), true)
-        case [0xBE, 0xBA, 0xFE, 0xCA]: (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: false, is64: false), true)
-        case [0xCA, 0xFE, 0xBA, 0xBF]: (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: true, is64: true), true)
-        case [0xBF, 0xBA, 0xFE, 0xCA]: (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: false, is64: true), true)
+        case [0xCA, 0xFE, 0xBA, 0xBE]:
+            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: true, is64: false), true)
+        case [0xBE, 0xBA, 0xFE, 0xCA]:
+            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: false, is64: false), true)
+        case [0xCA, 0xFE, 0xBA, 0xBF]:
+            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: true, is64: true), true)
+        case [0xBF, 0xBA, 0xFE, 0xCA]:
+            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: false, is64: true), true)
         default: (slices, isUniversal) = ([try Self.slice(reader, at: 0, byteCount: reader.byteCount)], false)
         }
     }
@@ -152,8 +156,10 @@ public struct MachOImage: Sendable {
             let base = index * entrySize
             let offset: Int64, byteCount: Int64
             if is64 {
-                guard let checkedOffset = Int64(exactly: try table.integer(at: base + 8, bigEndian: bigEndian) as UInt64),
-                      let checkedCount = Int64(exactly: try table.integer(at: base + 16, bigEndian: bigEndian) as UInt64) else {
+                guard
+                    let checkedOffset = Int64(exactly: try table.integer(at: base + 8, bigEndian: bigEndian) as UInt64),
+                    let checkedCount = Int64(exactly: try table.integer(at: base + 16, bigEndian: bigEndian) as UInt64)
+                else {
                     throw FormatFailure.damaged("one of its architectures is invalid")
                 }
                 offset = checkedOffset
@@ -170,7 +176,10 @@ public struct MachOImage: Sendable {
             let swapped = magic == 0xCEFAEDFE || magic == 0xCFFAEDFE
             let commands: UInt32 = try header.integer(at: 20, bigEndian: swapped)
             guard Int64(commands) <= remainingCommands else {
-                throw FormatFailure.tooLarge(byteCount: maximumLoadCommandByteCount + 1, limit: maximumLoadCommandByteCount)
+                throw FormatFailure.tooLarge(
+                    byteCount: maximumLoadCommandByteCount + 1,
+                    limit: maximumLoadCommandByteCount
+                )
             }
             remainingCommands -= Int64(commands)
             return try slice(reader, at: offset, byteCount: byteCount)
@@ -220,14 +229,18 @@ public struct MachOImage: Sendable {
         guard Int64(commandsByteCount) <= min(byteCount - Int64(headerByteCount), maximumLoadCommandByteCount) else {
             throw FormatFailure.damaged("its header describes more data than the file holds")
         }
-        guard commandCount <= 16_384, UInt64(commandCount) * 8 <= commandsByteCount else { throw FormatFailure.damaged("its header is too large to read") }
+        guard commandCount <= 16_384, UInt64(commandCount) * 8 <= commandsByteCount else {
+            throw FormatFailure.damaged("its header is too large to read")
+        }
 
         let commands = try reader.read(at: offset + (is64 ? 32 : 28), count: Int(commandsByteCount))
         func word(_ at: Int) throws -> UInt32 { try commands.integer(at: at, bigEndian: bigEndian) }
 
         var cursor = 0
         for _ in 0 ..< commandCount {
-            guard cursor + 8 <= commands.count else { throw FormatFailure.damaged("its load command list is truncated") }
+            guard cursor + 8 <= commands.count else {
+                throw FormatFailure.damaged("its load command list is truncated")
+            }
             let command = try word(cursor)
             let size = Int(try word(cursor + 4))
             guard size >= 8, size % (is64 ? 8 : 4) == 0, size <= commands.count - cursor else {
@@ -243,8 +256,11 @@ public struct MachOImage: Sendable {
                     bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
                 ))
 
-            case LoadCommand.loadDylib, LoadCommand.loadWeakDylib, LoadCommand.reexportDylib, LoadCommand.loadUpwardDylib:
-                if let name = try dylibName(commands, at: cursor, size: size, word: word) { slice.linkedLibraries.append(name) }
+            case LoadCommand.loadDylib, LoadCommand.loadWeakDylib,
+                 LoadCommand.reexportDylib, LoadCommand.loadUpwardDylib:
+                if let name = try dylibName(commands, at: cursor, size: size, word: word) {
+                    slice.linkedLibraries.append(name)
+                }
 
             case LoadCommand.identifyDylib:
                 slice.installName = try dylibName(commands, at: cursor, size: size, word: word)
@@ -274,7 +290,12 @@ public struct MachOImage: Sendable {
     /// A `dylib_command` stores its name as an offset from the start of the
     /// command, so a hostile one can point anywhere; the string is clamped to
     /// the command it belongs to.
-    private static func dylibName(_ commands: Data, at cursor: Int, size: Int, word: (Int) throws -> UInt32) throws -> String? {
+    private static func dylibName(
+        _ commands: Data,
+        at cursor: Int,
+        size: Int,
+        word: (Int) throws -> UInt32
+    ) throws -> String? {
         guard size >= 24 else { return nil }
         let nameOffset = Int(try word(cursor + 8))
         guard nameOffset >= 12, nameOffset < size else { return nil }

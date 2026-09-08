@@ -109,7 +109,10 @@ public final class FileJob: @unchecked Sendable {
     /// A compress or an extract runs in `fila-archive` — see
     /// `ArchiveHelperRun` — and only where a helper was configured. The
     /// in-process backend never reaches this: it runs the same job itself.
-    private func archive(report: @escaping (JobProgress) -> Void, note: @escaping (String) -> Void) throws -> FilaFailure {
+    private func archive(
+        report: @escaping (JobProgress) -> Void,
+        note: @escaping (String) -> Void
+    ) throws -> FilaFailure {
         guard let helper = operations.archiveHelper else {
             throw FilaFailure(code: .invalidRequest, systemError: ENOSYS)
         }
@@ -164,7 +167,12 @@ public final class FileJob: @unchecked Sendable {
             var parent = FilaPath.directory(of: source)
             while parent != source {
                 guard !sourceSet.contains(parent) else {
-                    throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: source, reason: .overlappingSources)
+                    throw FilaFailure(
+                        code: .invalidRequest,
+                        systemError: EINVAL,
+                        path: source,
+                        reason: .overlappingSources
+                    )
                 }
                 if parent == "/" { break }
                 parent = FilaPath.directory(of: parent)
@@ -181,7 +189,12 @@ public final class FileJob: @unchecked Sendable {
             let directory = try destinationDirectory()
             targets = try sources.map { try target(in: directory, for: $0) }
             guard Set(targets).count == targets.count else {
-                throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: directory, reason: .conflictingNames)
+                throw FilaFailure(
+                    code: .invalidRequest,
+                    systemError: EINVAL,
+                    path: directory,
+                    reason: .conflictingNames
+                )
             }
         }
 
@@ -253,7 +266,12 @@ public final class FileJob: @unchecked Sendable {
             return target
         }
         guard sourceMetadata.st_dev != targetMetadata.st_dev || sourceMetadata.st_ino != targetMetadata.st_ino else {
-            throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: target, reason: source == target ? .sameLocation : .sameItem)
+            throw FilaFailure(
+                code: .invalidRequest,
+                systemError: EINVAL,
+                path: target,
+                reason: source == target ? .sameLocation : .sameItem
+            )
         }
         // An approved replacement must report the destruction guard first,
         // even when the source and destination also have incompatible types.
@@ -283,7 +301,13 @@ public final class FileJob: @unchecked Sendable {
         return target
     }
 
-    private func copy(_ source: String, to target: String, overwrite: Bool, tally: JobTally, prepare: (String) throws -> Void = { _ in }) throws {
+    private func copy(
+        _ source: String,
+        to target: String,
+        overwrite: Bool,
+        tally: JobTally,
+        prepare: (String) throws -> Void = { _ in }
+    ) throws {
         // Publish only a complete copy. Cancellation or a failed read leaves
         // the previous destination intact, including when overwrite was approved.
         let temporary = try operations.resolveForWrite(
@@ -323,7 +347,11 @@ public final class FileJob: @unchecked Sendable {
         _ = try operations.resolveForWrite(path)
         guard let state = removefile_state_alloc() else { throw FilaFailure(errno: ENOMEM, path: path) }
         defer { removefile_state_free(state) }
-        removefile_state_set(state, UInt32(REMOVEFILE_STATE_CONFIRM_CALLBACK), unsafeBitCast(filaDiscardCopy, to: UnsafeRawPointer.self))
+        removefile_state_set(
+            state,
+            UInt32(REMOVEFILE_STATE_CONFIRM_CALLBACK),
+            unsafeBitCast(filaDiscardCopy, to: UnsafeRawPointer.self)
+        )
         guard removefile(path, state, removefile_flags_t(REMOVEFILE_RECURSIVE)) == 0 || Darwin.errno == ENOENT else {
             throw FilaFailure(errno: Darwin.errno, path: path)
         }
@@ -468,11 +496,20 @@ public final class FileJob: @unchecked Sendable {
             throw FilaFailure(errno: EMLINK, path: trashed)
         }
         if keepingExisting { return }
-        try operations.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.originAttribute, Data(source.utf8))), at: trashed)
+        try operations.setAttributes(
+            AttributeChange(extendedAttribute: (FilaTrash.originAttribute, Data(source.utf8))),
+            at: trashed
+        )
         if let identity = request.trashID {
-            try operations.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, Data(identity.uuidString.utf8))), at: trashed)
+            try operations.setAttributes(
+                AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, Data(identity.uuidString.utf8))),
+                at: trashed
+            )
         } else {
-            try? operations.setAttributes(AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, nil)), at: trashed)
+            try? operations.setAttributes(
+                AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, nil)),
+                at: trashed
+            )
         }
     }
 

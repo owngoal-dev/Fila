@@ -180,7 +180,10 @@ final class TabContainerViewController: UIViewController {
 
     private static func browsers(for tab: BrowserTab) -> [UIViewController] {
         tab.stack.enumerated().map { index, path in
-            let browser = BrowserViewController(directory: path, select: index == tab.stack.count - 1 ? tab.selection : nil)
+            let browser = BrowserViewController(
+                directory: path,
+                select: index == tab.stack.count - 1 ? tab.selection : nil
+            )
             browser.restoredScrollOffset = tab.offsets[path]
             return browser
         }
@@ -232,7 +235,9 @@ final class TabContainerViewController: UIViewController {
         if overview(in: displayed) != nil { return }
         captureCurrentTab()
         capturePreview()
-        let overview = UINavigationController(rootViewController: TabSwitcherViewController(content: self, deferring: deferring))
+        let overview = UINavigationController(
+            rootViewController: TabSwitcherViewController(content: self, deferring: deferring)
+        )
         // Only the tab navigations have this container as their delegate, which
         // is what unhides a toolbar; the overview's Close All bar is unhidden here.
         overview.isToolbarHidden = false
@@ -353,7 +358,8 @@ final class TabContainerViewController: UIViewController {
         let content = contentRect(of: previous)
         return { [self] in
             view.layoutIfNeeded()
-            guard let card = opening?.cardFrame(for: id, in: view, scrollingIntoView: true) else { return crossfade(snapshot) }
+            guard let card = opening?.cardFrame(for: id, in: view, scrollingIntoView: true)
+            else { return crossfade(snapshot) }
             snapshot.frame = view.bounds
             view.addSubview(snapshot)
             zoom(page: snapshot, content: content, backdrop: next.view, card: card, expanding: false)
@@ -364,7 +370,8 @@ final class TabContainerViewController: UIViewController {
     /// screen's view inside its safe area, which is what `capturePreview`
     /// draws — in the container's coordinates.
     private func contentRect(of controller: UIViewController?) -> CGRect {
-        guard let page = (controller as? UINavigationController)?.topViewController?.viewIfLoaded else { return view.bounds }
+        guard let page = (controller as? UINavigationController)?.topViewController?.viewIfLoaded
+        else { return view.bounds }
         return page.convert(page.bounds.inset(by: page.safeAreaInsets), to: view)
     }
 
@@ -450,13 +457,21 @@ final class TabContainerViewController: UIViewController {
 }
 
 extension TabContainerViewController: UINavigationControllerDelegate {
-    func navigationController(_ navigation: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+    func navigationController(
+        _ navigation: UINavigationController,
+        willShow viewController: UIViewController,
+        animated: Bool
+    ) {
         shell?.configureSidebarButton(for: viewController)
         navigation.setNavigationBarHidden(false, animated: animated)
         navigation.setToolbarHidden(viewController.toolbarItems?.isEmpty != false, animated: animated)
     }
 
-    func navigationController(_ navigation: UINavigationController, didShow viewController: UIViewController, animated _: Bool) {
+    func navigationController(
+        _ navigation: UINavigationController,
+        didShow viewController: UIViewController,
+        animated _: Bool
+    ) {
         guard navigation === self.navigation else { return }
         // A cancelled interactive pop never reaches willShow for the controller
         // that stays; give it the sidebar toggle back here.

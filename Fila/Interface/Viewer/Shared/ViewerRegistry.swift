@@ -217,10 +217,16 @@ final class ViewerContainerViewController: UIViewController {
                 ) { [weak self] _ in self?.reopen(as: format) }
             }
         )
-        let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
+        let tabs = UIAction(
+            title: String(localized: "Tabs"),
+            image: UIImage(systemName: "square.on.square")
+        ) { [weak self] _ in
             self?.shell?.presentTabSwitcher()
         }
-        menuItem.menu = UIMenu(children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs]) + FilaMenu.groups([tabs]))
+        menuItem.menu = UIMenu(
+            children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs])
+                + FilaMenu.groups([tabs])
+        )
     }
 
     /// Nested editors and virtual archive directories use their real file's
@@ -280,11 +286,11 @@ final class ViewerContainerViewController: UIViewController {
                 try self?.present(format: format, file: file)
             } catch {
                 let alert = AlertViewController(
-                    title: "Unable to Open This File",
+                    title: String(localized: "Unable to Open This File"),
                     message: FailureMessage.text(for: error)
                 ) { context in
                     context.allowSimpleDispose()
-                    context.addAction(title: "OK", attribute: .accent) {
+                    context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                         context.dispose()
                     }
                 }

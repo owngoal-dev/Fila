@@ -18,10 +18,16 @@ final class KeyValueListViewController: UITableViewController {
         entries = rows.enumerated().map { Entry(index: $0.offset, label: $0.element.0, value: $0.element.1) }
         super.init(style: .insetGrouped)
         self.title = title
-        let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
+        let tabs = UIAction(
+            title: String(localized: "Tabs"),
+            image: UIImage(systemName: "square.on.square")
+        ) { [weak self] _ in
             self?.shell?.presentTabSwitcher()
         }
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [tabs]))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis"),
+            menu: UIMenu(children: [tabs])
+        )
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
     }
 
@@ -56,7 +62,11 @@ final class KeyValueListViewController: UITableViewController {
                         $0.secondaryText = entry.value
                         $0.textProperties.font = .preferredFont(forTextStyle: .body)
                         $0.textProperties.numberOfLines = 0
-                        $0.secondaryTextProperties.font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(for: .monospacedSystemFont(ofSize: FilaUI.Font.monospacedBodySize, weight: .regular))
+                        $0.secondaryTextProperties.font = UIFontMetrics(forTextStyle: .subheadline)
+                            .scaledFont(for: .monospacedSystemFont(
+                                ofSize: FilaUI.Font.monospacedBodySize,
+                                weight: .regular
+                            ))
                         $0.secondaryTextProperties.numberOfLines = 0
                         $0.secondaryTextProperties.lineBreakMode = .byCharWrapping
                     }
@@ -72,12 +82,18 @@ final class KeyValueListViewController: UITableViewController {
         source.applySnapshotUsingReloadData(snapshot)
     }
 
-    override func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+    override func tableView(
+        _ tableView: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
         guard let entry = source.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            UIMenu(children: [UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
-                UIPasteboard.general.string = entry.value
-            }])
+            UIMenu(children: [
+                UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
+                    UIPasteboard.general.string = entry.value
+                }
+            ])
         }
     }
 }

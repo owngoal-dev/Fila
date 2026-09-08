@@ -52,7 +52,9 @@ public struct MusicLibraryDatabase: Sendable {
         var completed = false
         defer { if !completed { unlink(destination.path) } }
         var target: OpaquePointer?
-        guard sqlite3_open_v2(destination.path, &target, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK else {
+        guard sqlite3_open_v2(destination.path, &target, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil)
+            == SQLITE_OK
+        else {
             let error = failure(target)
             sqlite3_close(target)
             throw error
@@ -70,7 +72,9 @@ public struct MusicLibraryDatabase: Sendable {
             if status == SQLITE_BUSY || status == SQLITE_LOCKED { sqlite3_sleep(20) }
         } while status == SQLITE_OK || status == SQLITE_BUSY || status == SQLITE_LOCKED
         let finished = sqlite3_backup_finish(backup)
-        guard status == SQLITE_DONE, finished == SQLITE_OK else { throw failure(target, code: finished == SQLITE_OK ? status : finished) }
+        guard status == SQLITE_DONE, finished == SQLITE_OK else {
+            throw failure(target, code: finished == SQLITE_OK ? status : finished)
+        }
         let check = try prepare("PRAGMA quick_check", in: target)
         defer { sqlite3_finalize(check) }
         guard sqlite3_step(check) == SQLITE_ROW, text(check, 0) == "ok", sqlite3_step(check) == SQLITE_DONE else {
@@ -109,7 +113,10 @@ public struct MusicLibraryDatabase: Sendable {
     private func failure(_ database: OpaquePointer?, code: Int32? = nil) -> NSError {
         let code = code ?? sqlite3_errcode(database)
         return NSError(domain: "SQLite", code: Int(code), userInfo: [
-            NSLocalizedDescriptionKey: String(localized: "The music library is not available. Try again.", bundle: .module),
+            NSLocalizedDescriptionKey: String(
+                localized: "The music library is not available. Try again.",
+                bundle: .module
+            ),
         ])
     }
 }

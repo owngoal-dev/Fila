@@ -7249,7 +7249,6 @@
       }
     },
     "Cannot Move to Trash" : {
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -19365,7 +19364,6 @@
       }
     },
     "File Name" : {
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -28353,7 +28351,6 @@
       }
     },
     "Mount Points" : {
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -36098,7 +36095,6 @@
       }
     },
     "Preview" : {
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -46382,7 +46378,6 @@
       }
     },
     "The archive does not report all extracted file sizes. There may not be enough space to finish extracting." : {
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47000,7 +46995,6 @@
     },
     "The extracted files need approximately %1$@, more than %2$@ of the %3$@ available at the destination." : {
       "comment" : "Low-space warning before extracting. %1$@ is the size needed, %2$@ the share of free space it crosses (formatted per locale, never a literal %), %3$@ the space available. Several languages put %2$@ last.",
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -48464,7 +48458,6 @@
       }
     },
     "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone." : {
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

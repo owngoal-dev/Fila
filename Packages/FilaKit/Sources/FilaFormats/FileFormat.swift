@@ -58,10 +58,14 @@ private func signatureMatch(_ head: Data) -> FileFormat? {
     if hasPrefix([0x89, 0x50, 0x4E, 0x47]) { return .image } // png
     if hasPrefix([0x47, 0x49, 0x46, 0x38]) { return .image } // gif
     // Mach-O, thin and fat, both byte orders.
-    for magic in [[0xCF, 0xFA, 0xED, 0xFE], [0xCE, 0xFA, 0xED, 0xFE], [0xCA, 0xFE, 0xBA, 0xBE], [0xBE, 0xBA, 0xFE, 0xCA]] {
+    for magic in [
+        [0xCF, 0xFA, 0xED, 0xFE], [0xCE, 0xFA, 0xED, 0xFE],
+        [0xCA, 0xFE, 0xBA, 0xBE], [0xBE, 0xBA, 0xFE, 0xCA]
+    ] {
         if hasPrefix(magic.map(UInt8.init)) { return .machO }
     }
-    if let text = String(data: head.prefix(64), encoding: .utf8), text.hasPrefix("<?xml") || text.hasPrefix("<!DOCTYPE plist") {
+    if let text = String(data: head.prefix(64), encoding: .utf8),
+       text.hasPrefix("<?xml") || text.hasPrefix("<!DOCTYPE plist") {
         return .propertyList
     }
     // tar's only signature is 257 bytes in, which is why `detectionByteCount`
@@ -82,7 +86,8 @@ private func extensionMatch(_ name: String) -> FileFormat? {
     case "pdf": .pdf
     case "db", "sqlite", "sqlite3": .sqlite
     case "dylib", "so", "a", "framework": .machO
-    case "txt", "md", "json", "log", "sh", "conf", "cfg", "ini", "yml", "yaml", "c", "h", "m", "mm", "swift", "js", "py", "rb", "html", "css", "xml", "pl", "list": .text
+    case "txt", "md", "json", "log", "sh", "conf", "cfg", "ini", "yml", "yaml", "c", "h", "m",
+         "mm", "swift", "js", "py", "rb", "html", "css", "xml", "pl", "list": .text
     default: nil
     }
 }

@@ -85,7 +85,9 @@ final class FileSharingServer {
             }
             resolvingRoot = false
             guard let root, root.node.kind == .directory else {
-                startFailure = String(localized: "The shared folder is unavailable. Choose another folder and start sharing again.")
+                startFailure = String(
+                    localized: "The shared folder is unavailable. Choose another folder and start sharing again."
+                )
                 refresh()
                 return
             }

@@ -67,7 +67,10 @@ final class LicensesViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        navigationController?.pushViewController(LicenseTextViewController(entry: entries[indexPath.row]), animated: true)
+        navigationController?.pushViewController(
+            LicenseTextViewController(entry: entries[indexPath.row]),
+            animated: true
+        )
     }
 }
 

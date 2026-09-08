@@ -4,7 +4,11 @@ import UIKit
 // MARK: - Drag and drop
 
 extension BrowserViewController: UICollectionViewDragDelegate {
-    func collectionView(_: UICollectionView, itemsForBeginning _: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+    func collectionView(
+        _: UICollectionView,
+        itemsForBeginning _: UIDragSession,
+        at indexPath: IndexPath
+    ) -> [UIDragItem] {
         // A trashed item leaves the trash by Put Back, which knows where it
         // belongs; a drag would carry its origin note along as junk.
         guard !isTrash, let node = dataSource.itemIdentifier(for: indexPath) else { return [] }
@@ -51,7 +55,9 @@ extension BrowserViewController: UICollectionViewDropDelegate {
 
     /// The folder under the pointer, or this one.
     private func dropTarget(at indexPath: IndexPath?) -> String {
-        if let indexPath, let node = dataSource.itemIdentifier(for: indexPath), node.isNavigable { return path(of: node) }
+        if let indexPath, let node = dataSource.itemIdentifier(for: indexPath), node.isNavigable {
+            return path(of: node)
+        }
         return directory
     }
 

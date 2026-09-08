@@ -191,7 +191,9 @@ struct ListDirectoryIntent: AppIntent {
 @available(iOS 16.0, *)
 struct FindFilesIntent: AppIntent {
     static var title: LocalizedStringResource = "Find Files"
-    static var description = IntentDescription("Searches a folder and its subfolders for names containing the text you enter.")
+    static var description = IntentDescription(
+        "Searches a folder and its subfolders for names containing the text you enter."
+    )
 
     @Parameter(title: "Name Contains")
     var query: String

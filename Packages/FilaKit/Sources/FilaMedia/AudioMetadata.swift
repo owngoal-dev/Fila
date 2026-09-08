@@ -33,7 +33,8 @@ public struct AudioMetadata {
             guard let identifier = item.identifier else { continue }
             if [.commonIdentifierArtwork, .iTunesMetadataCoverArt, .id3MetadataAttachedPicture,
                 .quickTimeMetadataArtwork].contains(identifier) {
-                if result.artwork == nil, let data = try? await item.load(.dataValue), !data.isEmpty, data.count <= 16 * 1_024 * 1_024 {
+                if result.artwork == nil, let data = try? await item.load(.dataValue),
+                   !data.isEmpty, data.count <= 16 * 1_024 * 1_024 {
                     result.artwork = data
                 }
                 continue
@@ -107,7 +108,8 @@ public struct AudioMetadata {
     static func numberPair(text: String) -> (number: Int?, count: Int?) {
         let parts = text.split(separator: "/", omittingEmptySubsequences: false)
         func positive(_ value: Substring?) -> Int? {
-            guard let value, let number = Int(value.trimmingCharacters(in: .whitespaces)), number > 0 else { return nil }
+            guard let value, let number = Int(value.trimmingCharacters(in: .whitespaces)),
+                  number > 0 else { return nil }
             return number
         }
         return (positive(parts.first), parts.count == 2 ? positive(parts.last) : nil)

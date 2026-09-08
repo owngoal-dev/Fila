@@ -3,7 +3,6 @@
   "strings" : {
     "a property list with this many values or nesting levels" : {
       "comment" : "Fills “Fila does not support this: %@.” — a sentence fragment, lowercase, no full stop.",
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -87,7 +86,6 @@
     },
     "it is not a property list" : {
       "comment" : "Fills “This file is damaged: %@.” — a sentence fragment, lowercase, no full stop.",
-      "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {

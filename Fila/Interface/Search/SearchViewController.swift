@@ -92,7 +92,12 @@ final class SearchViewController: UIViewController {
         // This Folder finds everything in the folder the user just left, so a
         // parent path under every row would repeat one fact per hit.
         let cell = UICollectionView.CellRegistration<IconRowCell, FileSearchResult> { [weak self] cell, _, hit in
-            cell.configure(name: hit.node.name, detail: self?.scope == .folder ? nil : hit.directory, image: FilePresentation.image(for: hit.node), highlight: self?.query)
+            cell.configure(
+                name: hit.node.name,
+                detail: self?.scope == .folder ? nil : hit.directory,
+                image: FilePresentation.image(for: hit.node),
+                highlight: self?.query
+            )
             cell.accessories = hit.node.isNavigable ? [.disclosureIndicator()] : []
         }
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, hit in
@@ -102,7 +107,9 @@ final class SearchViewController: UIViewController {
         // a page that looked complete would be a lie the user cannot detect.
         // The footer exists only while there is something to confess (see
         // `layout(footer:)`).
-        let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(elementKind: UICollectionView.elementKindSectionFooter) { [weak self] cell, _, _ in
+        let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+            elementKind: UICollectionView.elementKindSectionFooter
+        ) { [weak self] cell, _, _ in
             var content = UIListContentConfiguration.plainFooter()
             content.text = self?.footerText
             cell.contentConfiguration = content
@@ -130,7 +137,11 @@ final class SearchViewController: UIViewController {
         // Deactivate only when navigation leaves this page, not when the
         // search controller itself is being presented. Keep its query and
         // results attached so Back does not rebuild the search interface.
-        if isMovingFromParent || navigationController?.topViewController !== self || isBeingDismissed || navigationController?.isBeingDismissed == true {
+        if isMovingFromParent
+            || navigationController?.topViewController !== self
+            || isBeingDismissed
+            || navigationController?.isBeingDismissed == true
+        {
             navigationItem.searchController?.isActive = false
         }
     }
@@ -141,13 +152,22 @@ final class SearchViewController: UIViewController {
     }
 
     private func updateScopeMenu() {
-        let options: [(Scope, String)] = [(.folder, String(localized: "This Folder")), (.subfolders, String(localized: "Subfolders"))]
+        let options: [(Scope, String)] = [
+            (.folder, String(localized: "This Folder")),
+            (.subfolders, String(localized: "Subfolders"))
+        ]
         let actions = options.map { option, title in
-            UIAction(title: title, image: UIImage(systemName: option == .folder ? "folder" : "square.stack.3d.up"), state: scope == option ? .on : .off) { [weak self] _ in
+            UIAction(
+                title: title,
+                image: UIImage(systemName: option == .folder ? "folder" : "square.stack.3d.up"),
+                state: scope == option ? .on : .off
+            ) { [weak self] _ in
                 self?.selectScope(option)
             }
         }
-        navigationItem.rightBarButtonItem?.menu = UIMenu(children: [FilaMenu.selection(title: String(localized: "Search In"), actions: actions)])
+        navigationItem.rightBarButtonItem?.menu = UIMenu(children: [
+            FilaMenu.selection(title: String(localized: "Search In"), actions: actions)
+        ])
     }
 
     private func selectScope(_ scope: Scope) {
@@ -196,7 +216,11 @@ final class SearchViewController: UIViewController {
                     self.failure = FailureText.summary(for: failure)
                 } catch {}
             } else {
-                let skipped = await FileSearch.run(root: self.root, needle: needle, session: self.session) { directory in
+                let skipped = await FileSearch.run(
+                    root: self.root,
+                    needle: needle,
+                    session: self.session
+                ) { directory in
                     guard !Task.isCancelled, self.searchID == searchID else { return }
                     self.currentDirectory = directory
                     guard Date().timeIntervalSince(self.lastProgressDraw) > 0.2 else { return }
@@ -257,10 +281,14 @@ final class SearchViewController: UIViewController {
         guard scope == .subfolders, !hits.isEmpty else { return nil }
         var lines: [String] = []
         if hits.count >= FileSearch.resultLimit {
-            lines.append(String(localized: "Showing the first \(FileSearch.resultLimit) matches. Try a more specific name."))
+            lines.append(
+                String(localized: "Showing the first \(FileSearch.resultLimit) matches. Try a more specific name.")
+            )
         }
         if skippedLinks > 0 {
-            lines.append(String(localized: "Symbolic links were not followed, so items they point to were not searched."))
+            lines.append(
+                String(localized: "Symbolic links were not followed, so items they point to were not searched.")
+            )
         }
         return lines.isEmpty ? nil : lines.joined(separator: "\n")
     }
@@ -309,7 +337,11 @@ final class SearchViewController: UIViewController {
     private var status: StatusView.Content? {
         guard hits.isEmpty else { return nil }
         if let failure {
-            return .message(symbol: "exclamationmark.triangle", title: String(localized: "Unable to Read Folder"), detail: failure)
+            return .message(
+                symbol: "exclamationmark.triangle",
+                title: String(localized: "Unable to Read Folder"),
+                detail: failure
+            )
         }
         if isSearching {
             return .loading(String(localized: "Searching…"), detail: currentDirectory)
@@ -317,8 +349,12 @@ final class SearchViewController: UIViewController {
         guard !query.isEmpty else {
             return .message(
                 symbol: "magnifyingglass",
-                title: scope == .folder ? String(localized: "Search This Folder") : String(localized: "Search Subfolders"),
-                detail: scope == .subfolders ? String(localized: "Enter a name, then tap Search to include subfolders.") : nil
+                title: scope == .folder
+                    ? String(localized: "Search This Folder")
+                    : String(localized: "Search Subfolders"),
+                detail: scope == .subfolders
+                    ? String(localized: "Enter a name, then tap Search to include subfolders.")
+                    : nil
             )
         }
         let detail = scope == .folder
@@ -372,17 +408,27 @@ extension SearchViewController: UICollectionViewDelegate {
     }
 
     /// The shared file menu also lets a search result reveal its location.
-    func collectionView(_: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+    func collectionView(
+        _: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point _: CGPoint
+    ) -> UIContextMenuConfiguration? {
         guard let hit = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             guard let self else { return nil }
             var additional: [UIMenuElement] = [
-                UIAction(title: String(localized: "Reveal in Folder"), image: UIImage(systemName: "folder")) { [weak self] _ in
+                UIAction(
+                    title: String(localized: "Reveal in Folder"),
+                    image: UIImage(systemName: "folder")
+                ) { [weak self] _ in
                     self?.shell?.follow(.reveal(hit.path))
                 },
             ]
             if hit.node.isNavigable {
-                additional.append(UIAction(title: String(localized: "Open in New Tab"), image: UIImage(systemName: "plus.square.on.square")) { [weak self] _ in
+                additional.append(UIAction(
+                    title: String(localized: "Open in New Tab"),
+                    image: UIImage(systemName: "plus.square.on.square")
+                ) { [weak self] _ in
                     self?.shell?.openInNewTab(hit.path)
                 })
             }
@@ -392,7 +438,15 @@ extension SearchViewController: UICollectionViewDelegate {
                 self.folderEntries?.removeAll { $0 == hit.node }
                 self.apply()
             }
-            return UIMenu(title: hit.node.name, children: actions.menuElements(for: hit.path, node: hit.node, additional: additional, preview: { [weak self] in self?.open(hit) }))
+            return UIMenu(
+                title: hit.node.name,
+                children: actions.menuElements(
+                    for: hit.path,
+                    node: hit.node,
+                    additional: additional,
+                    preview: { [weak self] in self?.open(hit) }
+                )
+            )
         }
     }
 }

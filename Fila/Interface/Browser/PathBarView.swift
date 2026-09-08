@@ -118,7 +118,10 @@ final class PathBarView: UIScrollView {
         text.attributedText = line
         text.accessibilityLabel = path
         text.accessibilityCustomActions = actions
-        textWidth?.update(offset: ceil(text.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)).width))
+        textWidth?.update(offset: ceil(text.sizeThatFits(CGSize(
+            width: CGFloat.greatestFiniteMagnitude,
+            height: CGFloat.greatestFiniteMagnitude
+        )).width))
         if shouldReveal { revealCurrentComponent() }
     }
 
@@ -135,8 +138,10 @@ final class PathBarView: UIScrollView {
     /// A chevron drawn as a symbol attachment, so it sits on the text's own
     /// baseline and scales with it, with one space of the same font either side.
     private static var separator: NSAttributedString {
-        let chevron = UIImage(systemName: "chevron.right", withConfiguration: UIImage.SymbolConfiguration(font: font, scale: .small))?
-            .withTintColor(.tertiaryLabel, renderingMode: .alwaysOriginal)
+        let chevron = UIImage(
+            systemName: "chevron.right",
+            withConfiguration: UIImage.SymbolConfiguration(font: font, scale: .small)
+        )?.withTintColor(.tertiaryLabel, renderingMode: .alwaysOriginal)
         let line = NSMutableAttributedString(string: "  ", attributes: [.font: font])
         if let chevron { line.append(NSAttributedString(attachment: NSTextAttachment(image: chevron))) }
         line.append(NSAttributedString(string: "  ", attributes: [.font: font]))
@@ -175,7 +180,12 @@ final class PathBarView: UIScrollView {
            let end = text.position(from: start, offset: currentRange.length),
            let range = text.textRange(from: start, to: end) {
             let glyphs = text.convert(text.firstRect(for: range), to: self)
-            marker.frame = CGRect(x: glyphs.minX, y: glyphs.maxY - Self.font.descender.magnitude - Self.markerHeight, width: glyphs.width, height: Self.markerHeight)
+            marker.frame = CGRect(
+                x: glyphs.minX,
+                y: glyphs.maxY - Self.font.descender.magnitude - Self.markerHeight,
+                width: glyphs.width,
+                height: Self.markerHeight
+            )
         }
         marker.isHidden = marker.frame.isEmpty || marker.frame.isInfinite
         if abs(bounds.width - lastViewportWidth) > 0.5 {

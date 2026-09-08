@@ -142,7 +142,9 @@ final class OperationCoverViewController: UIViewController {
             $0.addArrangedSubview(cancelButton)
             $0.addArrangedSubview(backgroundButton)
         }
-        let stack = UIStackView(arrangedSubviews: [artwork, titleLabel, subtitleLabel, separator, gauge, currentLabel, countLabel, actionStack]).then {
+        let stack = UIStackView(arrangedSubviews: [
+            artwork, titleLabel, subtitleLabel, separator, gauge, currentLabel, countLabel, actionStack
+        ]).then {
             $0.axis = .vertical
             $0.alignment = .center
             $0.spacing = 16
@@ -171,7 +173,9 @@ final class OperationCoverViewController: UIViewController {
         button.do {
             $0.configuration = UIButton.Configuration.plain().with {
                 $0.title = title
-                $0.baseForegroundColor = accented ? AlertControllerConfiguration.accentForegroundColor : AlertControllerConfiguration.accentColor
+                $0.baseForegroundColor = accented
+                    ? AlertControllerConfiguration.accentForegroundColor
+                    : AlertControllerConfiguration.accentColor
                 $0.background.backgroundColor = accented ? AlertControllerConfiguration.accentColor : .clear
                 $0.background.strokeColor = AlertControllerConfiguration.accentColor
                 $0.background.strokeWidth = 1
@@ -179,7 +183,8 @@ final class OperationCoverViewController: UIViewController {
                 $0.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
                 $0.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
                     var outgoing = incoming
-                    outgoing.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17, weight: accented ? .semibold : .regular))
+                    outgoing.font = UIFontMetrics(forTextStyle: .body)
+                        .scaledFont(for: .systemFont(ofSize: 17, weight: accented ? .semibold : .regular))
                     return outgoing
                 }
             }
@@ -196,7 +201,9 @@ final class OperationCoverViewController: UIViewController {
     private func updateActionAxis() {
         let textWidth = (view.bounds.width - 32 - 8) / 2 - 16
         guard textWidth > 0 else { return }
-        let needsWrapping = [(cancelButton, UIFont.Weight.regular), (backgroundButton, .semibold)].contains { button, weight in
+        let needsWrapping = [
+            (cancelButton, UIFont.Weight.regular), (backgroundButton, .semibold)
+        ].contains { button, weight in
             let font = UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17, weight: weight))
             let height = (button.configuration?.title ?? "").boundingRect(
                 with: CGSize(width: textWidth, height: .greatestFiniteMagnitude),
@@ -305,7 +312,11 @@ final class OperationCoverViewController: UIViewController {
             parts.append(String(format: String(localized: "%lld of %lld"), progress.itemsDone, progress.itemsTotal))
         }
         if progress.bytesTotal > 0 {
-            parts.append(String(format: String(localized: "%@ of %@"), FilePresentation.byteLabel(progress.bytesDone), FilePresentation.byteLabel(progress.bytesTotal)))
+            parts.append(String(
+                format: String(localized: "%@ of %@"),
+                FilePresentation.byteLabel(progress.bytesDone),
+                FilePresentation.byteLabel(progress.bytesTotal)
+            ))
         } else if progress.bytesDone > 0 {
             parts.append(FilePresentation.byteLabel(progress.bytesDone))
         }

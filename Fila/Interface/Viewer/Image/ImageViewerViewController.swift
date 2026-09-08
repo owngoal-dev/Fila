@@ -178,7 +178,9 @@ final class ImageViewerViewController: UIViewController {
         }
         if let tiff = properties[kCGImagePropertyTIFFDictionary] as? [CFString: Any] {
             if let make = tiff[kCGImagePropertyTIFFMake] { rows.append((String(localized: "Camera Make"), "\(make)")) }
-            if let model = tiff[kCGImagePropertyTIFFModel] { rows.append((String(localized: "Camera Model"), "\(model)")) }
+            if let model = tiff[kCGImagePropertyTIFFModel] {
+                rows.append((String(localized: "Camera Model"), "\(model)"))
+            }
         }
         // The coordinates themselves are not shown: this is a file manager, and
         // the answer someone needs before sharing a file is whether they are in

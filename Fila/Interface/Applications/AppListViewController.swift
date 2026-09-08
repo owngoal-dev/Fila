@@ -58,7 +58,11 @@ final class AppListViewController: UIViewController {
             }
         }
         let scopes = AppScope.allCases.map { scope in
-            UIAction(title: scope.title, image: UIImage(systemName: scope == .all ? "square.grid.2x2" : scope == .user ? "person" : "gearshape"), state: preferences.appScope == scope ? .on : .off) { [weak self] _ in
+            UIAction(
+                title: scope.title,
+                image: UIImage(systemName: scope == .all ? "square.grid.2x2" : scope == .user ? "person" : "gearshape"),
+                state: preferences.appScope == scope ? .on : .off
+            ) { [weak self] _ in
                 AppPreferences.shared.appScope = scope
                 self?.apply()
             }
@@ -118,7 +122,12 @@ final class AppListViewController: UIViewController {
             $0.addTarget(self, action: #selector(refresh), for: .valueChanged)
         }
         collectionView.alwaysBounceVertical = true
-        NotificationCenter.default.addObserver(self, selector: #selector(refreshIfVisible), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshIfVisible),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
 
         apply()
     }
@@ -163,11 +172,16 @@ final class AppListViewController: UIViewController {
         let needle = filter.lowercased()
         let matching = apps.filter { app in
             preferences.appScope.includes(app)
-                && (needle.isEmpty || app.name.lowercased().contains(needle) || app.bundleIdentifier.lowercased().contains(needle))
+                && (needle.isEmpty
+                    || app.name.lowercased().contains(needle)
+                    || app.bundleIdentifier.lowercased().contains(needle))
         }
         switch preferences.appSort {
         case .name: return matching.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        case .identifier: return matching.sorted { $0.bundleIdentifier.localizedStandardCompare($1.bundleIdentifier) == .orderedAscending }
+        case .identifier:
+            return matching.sorted {
+                $0.bundleIdentifier.localizedStandardCompare($1.bundleIdentifier) == .orderedAscending
+            }
         }
     }
 
@@ -219,7 +233,11 @@ extension AppListViewController: UISearchResultsUpdating {
 }
 
 extension AppListViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
         guard let app = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             let locations = app.locations.map { location in
@@ -233,7 +251,10 @@ extension AppListViewController: UICollectionViewDelegate {
                 }
             }
             return UIMenu(title: app.name, children: FilaMenu.groups(locations, [
-                UIAction(title: String(localized: "Copy Bundle Identifier"), image: UIImage(systemName: "doc.on.doc")) { _ in
+                UIAction(
+                    title: String(localized: "Copy Bundle Identifier"),
+                    image: UIImage(systemName: "doc.on.doc")
+                ) { _ in
                     UIPasteboard.general.string = app.bundleIdentifier
                 },
             ]))

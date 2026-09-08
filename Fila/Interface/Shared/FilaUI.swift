@@ -25,7 +25,8 @@ enum FilaUI {
         static let monospacedBodySize: CGFloat = 15
 
         static var monospacedBody: UIFont {
-            UIFontMetrics(forTextStyle: .body).scaledFont(for: .monospacedSystemFont(ofSize: monospacedBodySize, weight: .regular))
+            UIFontMetrics(forTextStyle: .body)
+                .scaledFont(for: .monospacedSystemFont(ofSize: monospacedBodySize, weight: .regular))
         }
 
         static var monospacedValue: UIFont {

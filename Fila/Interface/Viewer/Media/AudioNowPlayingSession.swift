@@ -45,13 +45,21 @@ final class AudioNowPlayingSession {
             })
             for name in [AVPlayerItem.timeJumpedNotification, AVPlayerItem.didPlayToEndTimeNotification,
                          AVPlayerItem.failedToPlayToEndTimeNotification] {
-                notifications.append(NotificationCenter.default.addObserver(forName: name, object: item, queue: .main) { [weak self] _ in
+                notifications.append(NotificationCenter.default.addObserver(
+                    forName: name,
+                    object: item,
+                    queue: .main
+                ) { [weak self] _ in
                     Task { @MainActor [weak self] in self?.publish() }
                 })
             }
         }
         for name in [AVAudioSession.interruptionNotification, AVAudioSession.routeChangeNotification] {
-            notifications.append(NotificationCenter.default.addObserver(forName: name, object: AVAudioSession.sharedInstance(), queue: .main) { [weak self] notification in
+            notifications.append(NotificationCenter.default.addObserver(
+                forName: name,
+                object: AVAudioSession.sharedInstance(),
+                queue: .main
+            ) { [weak self] notification in
                 Task { @MainActor [weak self] in self?.audioSessionChanged(notification) }
             })
         }
@@ -154,7 +162,8 @@ final class AudioNowPlayingSession {
         ]
         for (key, value) in strings { if let value { info[key] = value } }
         let numbers: [(String, Int?)] = [
-            (MPMediaItemPropertyAlbumTrackNumber, metadata.trackNumber), (MPMediaItemPropertyAlbumTrackCount, metadata.trackCount),
+            (MPMediaItemPropertyAlbumTrackNumber, metadata.trackNumber),
+            (MPMediaItemPropertyAlbumTrackCount, metadata.trackCount),
             (MPMediaItemPropertyDiscNumber, metadata.discNumber), (MPMediaItemPropertyDiscCount, metadata.discCount),
         ]
         for (key, value) in numbers { if let value { info[key] = value } }
@@ -199,10 +208,14 @@ final class AudioNowPlayingSession {
         add(center.togglePlayPauseCommand) { _ in .toggle }
         add(center.stopCommand) { _ in .stop }
         add(center.changePlaybackPositionCommand) { event in
-            guard let event = event as? MPChangePlaybackPositionCommandEvent, event.positionTime.isFinite else { return nil }
+            guard let event = event as? MPChangePlaybackPositionCommandEvent,
+                  event.positionTime.isFinite else { return nil }
             return .seek(event.positionTime)
         }
-        Self.skipIntervals = (center.skipForwardCommand.preferredIntervals, center.skipBackwardCommand.preferredIntervals)
+        Self.skipIntervals = (
+            center.skipForwardCommand.preferredIntervals,
+            center.skipBackwardCommand.preferredIntervals
+        )
         center.skipForwardCommand.preferredIntervals = [15]
         center.skipBackwardCommand.preferredIntervals = [15]
         add(center.skipForwardCommand) { event in

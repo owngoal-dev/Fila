@@ -194,7 +194,11 @@ final class SettingsViewController: UIViewController {
                 keyPath: \.redirectsScriptInterpreters
             )
         case .allowsGuardOverride:
-            configureToggle(cell, title: String(localized: "Allow Overriding Protection"), keyPath: \.allowsGuardOverride)
+            configureToggle(
+                cell,
+                title: String(localized: "Allow Overriding Protection"),
+                keyPath: \.allowsGuardOverride
+            )
         case .protection:
             configureDisclosure(cell, title: String(localized: "System Protection"))
         case .about:
@@ -213,7 +217,11 @@ final class SettingsViewController: UIViewController {
             // The protocol is what the two processes agreed on, so with no
             // daemon there is nothing to report — the version this build was
             // compiled with is not an agreement with anybody.
-            configureFact(cell, title: String(localized: "Protocol Version"), value: privileged.map { String($0.protocolVersion) } ?? "—")
+            configureFact(
+                cell,
+                title: String(localized: "Protocol Version"),
+                value: privileged.map { String($0.protocolVersion) } ?? "—"
+            )
         case .installRoot:
             // Likewise the bootstrap prefix: `InstallRoot` derives it from the
             // daemon's own `proc_pidpath`, and there is no daemon here.
@@ -276,7 +284,11 @@ final class SettingsViewController: UIViewController {
             }
         })
         button.sizeToFit()
-        cell.accessories = [.customView(configuration: .init(customView: button, placement: .trailing(), reservedLayoutWidth: .actual))]
+        cell.accessories = [.customView(configuration: .init(
+            customView: button,
+            placement: .trailing(),
+            reservedLayoutWidth: .actual
+        ))]
     }
 
     /// The handshake, but only when it came from `filad`. Every About row that
@@ -333,7 +345,9 @@ final class SettingsViewController: UIViewController {
         case .fileOperations:
             return String(localized: "Move deleted items to the trash so they can be put back.")
         case .systemFeatures:
-            return String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
+            return String(
+                localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working."
+            )
         case .scripts:
             return String(localized: "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
         case .guardOverride:

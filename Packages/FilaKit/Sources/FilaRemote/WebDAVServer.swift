@@ -204,7 +204,10 @@ public final class WebDAVServer: @unchecked Sendable {
                 return channel.eventLoop.makeSucceededVoidFuture()
             }
             .childChannelOption(NIOTSChannelOptions.maximumReceiveLength, value: HTTPConnection.chunkByteCount)
-            .childChannelOption(ChannelOptions.writeBufferWaterMark, value: .init(low: HTTPConnection.chunkByteCount, high: 2 * HTTPConnection.chunkByteCount))
+            .childChannelOption(
+                ChannelOptions.writeBufferWaterMark,
+                value: .init(low: HTTPConnection.chunkByteCount, high: 2 * HTTPConnection.chunkByteCount)
+            )
             .childChannelInitializer { [weak self] channel in
                 guard let self else { return channel.eventLoop.makeFailedFuture(HTTPFailure.closed) }
                 return channel.eventLoop.makeCompletedFuture {

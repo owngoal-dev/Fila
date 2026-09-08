@@ -43,7 +43,8 @@ final class AppearanceSettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         switch Section(rawValue: section) {
-        case .systemFeatures: String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
+        case .systemFeatures:
+            String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
         case .presets: String(localized: "Drag to reorder. Turn off a place to hide it.")
         default: nil
         }
@@ -93,14 +94,25 @@ final class AppearanceSettingsViewController: UITableViewController {
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle { .none }
-    override func tableView(_ tableView: UITableView, shouldIndentWhileEditingRowAt indexPath: IndexPath) -> Bool { false }
+    override func tableView(
+        _ tableView: UITableView,
+        editingStyleForRowAt indexPath: IndexPath
+    ) -> UITableViewCell.EditingStyle { .none }
+
+    override func tableView(
+        _ tableView: UITableView,
+        shouldIndentWhileEditingRowAt indexPath: IndexPath
+    ) -> Bool { false }
 
     override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         indexPath.section == Section.presets.rawValue
     }
 
-    override func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt source: IndexPath, toProposedIndexPath proposed: IndexPath) -> IndexPath {
+    override func tableView(
+        _ tableView: UITableView,
+        targetIndexPathForMoveFromRowAt source: IndexPath,
+        toProposedIndexPath proposed: IndexPath
+    ) -> IndexPath {
         guard proposed.section == source.section else {
             return IndexPath(row: proposed.section < source.section ? 0 : presets.count - 1, section: source.section)
         }

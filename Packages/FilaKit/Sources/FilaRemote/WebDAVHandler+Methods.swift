@@ -188,20 +188,37 @@ extension WebDAVHandler {
     /// Only the types a build emits are served; `index.html` is reachable
     /// solely through a directory GET, where it gets its CSP.
     func asset(named name: String, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
-        let types = ["js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8", "map": "application/json", "png": "image/png"]
+        let types = [
+            "js": "text/javascript; charset=utf-8",
+            "css": "text/css; charset=utf-8",
+            "map": "application/json",
+            "png": "image/png"
+        ]
         guard let webRoot = configuration.webRoot,
               let contentType = types[(name as NSString).pathExtension.lowercased()]
         else {
             try await respond(http, 404)
             return 404
         }
-        return try await serveLocal(webRoot.appendingPathComponent(name), contentType: contentType, headers: [], on: http, includeBody: includeBody)
+        return try await serveLocal(
+            webRoot.appendingPathComponent(name),
+            contentType: contentType,
+            headers: [],
+            on: http,
+            includeBody: includeBody
+        )
     }
 
     /// A file of the app's own bundle, read with this process's rights. Not the
     /// user's data, so `service` is not involved; a bundle is immutable while
     /// the app runs, which is why size from `fstat` is trusted for the length.
-    private func serveLocal(_ url: URL, contentType: String, headers: [(String, String)], on http: HTTPConnection, includeBody: Bool) async throws -> Int {
+    private func serveLocal(
+        _ url: URL,
+        contentType: String,
+        headers: [(String, String)],
+        on http: HTTPConnection,
+        includeBody: Bool
+    ) async throws -> Int {
         let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW)
         guard descriptor >= 0 else {
             try await respond(http, 404)
@@ -215,7 +232,11 @@ extension WebDAVHandler {
         }
         let size = Int64(found.st_size)
         try await stream {
-            try await http.write(head(200, headers: [("Content-Type", contentType), ("Cache-Control", "no-cache")] + headers, contentLength: Int(size)))
+            try await http.write(head(
+                200,
+                headers: [("Content-Type", contentType), ("Cache-Control", "no-cache")] + headers,
+                contentLength: Int(size)
+            ))
             guard includeBody else { return }
             try await send(descriptor: descriptor, offset: 0, count: size, to: http)
         }
@@ -444,7 +465,12 @@ extension WebDAVHandler {
     /// copy. Everything the failure path does is shaped by that: it puts the
     /// staged tree back where it came from, and it deletes the staging
     /// directory only once it is empty.
-    private func transfer(_ kind: FilaJobKind, from source: String, to destination: String, overwrite: Bool) async throws {
+    private func transfer(
+        _ kind: FilaJobKind,
+        from source: String,
+        to destination: String,
+        overwrite: Bool
+    ) async throws {
         let staging = RemotePath.join(RemotePath.parent(of: destination), ".fila-dav-\(UUID().uuidString)")
         let staged = RemotePath.join(staging, RemotePath.name(of: source))
         try await service.create(.directory, at: staging)

@@ -65,6 +65,8 @@ IPA_VERIFIER        := $(ROOT_DIR)/Scripts/verify-ipa.sh
 VERSION_APPLIER     := $(ROOT_DIR)/Scripts/apply-version.sh
 DEVICE_INSTALLER    := $(ROOT_DIR)/Scripts/install-device.sh
 UI_LIBRARY_CHECK    := $(ROOT_DIR)/Scripts/check-ui-libraries.sh
+LOCALIZATION_CHECK  := $(ROOT_DIR)/Scripts/check-localization.sh
+EXTRACTED_STRINGS   := $(ROOT_DIR)/Scripts/check-extracted-strings.py
 WEBUI_BUILDER       := $(ROOT_DIR)/Scripts/build-webui.sh
 
 # `make install` talks to the device over a usbmuxd forward (`iproxy 2333 22`),
@@ -165,7 +167,7 @@ check:
 	@test -f "$(CONTROL_TEMPLATE)" || { echo "error: Debian control template is missing" >&2; exit 66; }
 	@command -v zip >/dev/null || { echo "error: zip is required" >&2; exit 69; }
 	@test -f "$(PACKAGE_DIR)/Package.swift" || { echo "error: Packages/FilaKit/Package.swift is missing" >&2; exit 66; }
-	@for script in "$(DEB_PACKAGER)" "$(DEB_VERIFIER)" "$(IPA_PACKAGER)" "$(IPA_VERIFIER)" "$(VERSION_APPLIER)" "$(XCODEBUILD_WRAPPER)" "$(DEVICE_INSTALLER)" "$(UI_LIBRARY_CHECK)" "$(WEBUI_BUILDER)"; do \
+	@for script in "$(DEB_PACKAGER)" "$(DEB_VERIFIER)" "$(IPA_PACKAGER)" "$(IPA_VERIFIER)" "$(VERSION_APPLIER)" "$(XCODEBUILD_WRAPPER)" "$(DEVICE_INSTALLER)" "$(UI_LIBRARY_CHECK)" "$(LOCALIZATION_CHECK)" "$(WEBUI_BUILDER)"; do \
 		test -x "$$script" || { echo "error: $$script is not executable" >&2; exit 66; }; \
 	done
 	@for xcconfig in Version Base Development Release; do \
@@ -189,6 +191,7 @@ check:
 			|| { echo "error: missing Xcode target $$target" >&2; exit 65; }; \
 	done
 	@"$(UI_LIBRARY_CHECK)"
+	@"$(LOCALIZATION_CHECK)"
 	@Scripts/check-process-launch.sh
 
 # The FilaKit tests, on the Mac, against a real filesystem. This is where a
@@ -214,6 +217,7 @@ _build-ios: bump-build
 		-scheme "$(SCHEME)" \
 		-destination "generic/platform=iOS" \
 		build
+	@python3 "$(EXTRACTED_STRINGS)" "$(DERIVED_DATA)"
 
 # The simulator exercises the shell through the local backend. The real
 # daemon and its privileges are verified on vphone.

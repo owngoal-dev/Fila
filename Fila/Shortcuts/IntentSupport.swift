@@ -259,15 +259,21 @@ struct IntentFailure: LocalizedError {
     let errorDescription: String?
 
     static func invalidPath(_ path: String) -> IntentFailure {
-        IntentFailure(errorDescription: String(localized: "“\(path)” is not an absolute path. Enter a path that starts with /."))
+        IntentFailure(errorDescription: String(
+            localized: "“\(path)” is not an absolute path. Enter a path that starts with /."
+        ))
     }
 
     static func invalidName(_ name: String) -> IntentFailure {
-        IntentFailure(errorDescription: String(localized: "“\(name)” is not a valid name. Enter a name without slashes, and do not use “.” or “..”."))
+        IntentFailure(errorDescription: String(
+            localized: "“\(name)” is not a valid name. Enter a name without slashes, and do not use “.” or “..”."
+        ))
     }
 
     static func invalidBundleIdentifier(_ bundleIdentifier: String) -> IntentFailure {
-        IntentFailure(errorDescription: String(localized: "“\(bundleIdentifier)” is not a valid bundle identifier. Enter a different identifier."))
+        IntentFailure(errorDescription: String(
+            localized: "“\(bundleIdentifier)” is not a valid bundle identifier. Enter a different identifier."
+        ))
     }
 
     static func invalidSearch(_ query: String) -> IntentFailure {
@@ -294,7 +300,9 @@ struct IntentFailure: LocalizedError {
     }
 
     static func tooLarge(_ path: String) -> IntentFailure {
-        IntentFailure(errorDescription: String(localized: "“\(path)” is too large to read as text. Choose a smaller file."))
+        IntentFailure(errorDescription: String(
+            localized: "“\(path)” is too large to read as text. Choose a smaller file."
+        ))
     }
 
     static func tooManyEntries(_ path: String) -> IntentFailure {

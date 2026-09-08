@@ -168,12 +168,16 @@ final class ArchiveBrowserViewController: UIViewController {
             content.secondaryTextProperties.color = .secondaryLabel
             content.imageProperties.maximumSize = CGSize(width: 40, height: 40)
             cell.contentConfiguration = content
-            cell.accessories = canOpen ? [.multiselect(), .disclosureIndicator(displayed: .whenNotEditing)] : [.multiselect()]
+            cell.accessories = canOpen
+                ? [.multiselect(), .disclosureIndicator(displayed: .whenNotEditing)]
+                : [.multiselect()]
         }
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, row in
             collection.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: row)
         }
-        let footer = UICollectionView.SupplementaryRegistration<BrowserFooterView>(elementKind: UICollectionView.elementKindSectionFooter) { [weak self] footer, _, _ in
+        let footer = UICollectionView.SupplementaryRegistration<BrowserFooterView>(
+            elementKind: UICollectionView.elementKindSectionFooter
+        ) { [weak self] footer, _, _ in
             let count = self?.members?.count ?? 0
             footer.label.text = count == ArchiveReader.maximumEntryCount
                 ? String(format: String(localized: "Showing the first %lld entries."), Int64(count)) : nil
@@ -200,7 +204,9 @@ final class ArchiveBrowserViewController: UIViewController {
         super.setEditing(editing, animated: animated)
         collectionView.isEditing = editing
         if !editing {
-            for path in collectionView.indexPathsForSelectedItems ?? [] { collectionView.deselectItem(at: path, animated: false) }
+            for path in collectionView.indexPathsForSelectedItems ?? [] {
+                collectionView.deselectItem(at: path, animated: false)
+            }
         }
         refreshActions()
     }
@@ -209,13 +215,24 @@ final class ArchiveBrowserViewController: UIViewController {
         let hasMembers = (members ?? []).contains { !$0.entry.isRootDirectory }
         let canSelect = hasMembers && (!isViewLoaded || progress.isHidden)
         let canExtract = canSelect && (!isEditing || !(collectionView.indexPathsForSelectedItems ?? []).isEmpty)
-        let select = UIAction(title: isEditing ? String(localized: "Done") : String(localized: "Select"), image: UIImage(systemName: "checklist"), attributes: canSelect ? [] : .disabled) { [weak self] _ in
+        let select = UIAction(
+            title: isEditing ? String(localized: "Done") : String(localized: "Select"),
+            image: UIImage(systemName: "checklist"),
+            attributes: canSelect ? [] : .disabled
+        ) { [weak self] _ in
             guard let self else { return }
             self.setEditing(!self.isEditing, animated: true)
         }
-        let extractTitle = isEditing ? String(localized: "Extract Selection")
-            : members?.count == ArchiveReader.maximumEntryCount ? String(localized: "Extract Listed Entries") : String(localized: "Extract All")
-        let extract = UIAction(title: extractTitle, image: UIImage(systemName: "archivebox"), attributes: canExtract ? [] : .disabled) { [weak self] _ in
+        let extractTitle = isEditing
+            ? String(localized: "Extract Selection")
+            : members?.count == ArchiveReader.maximumEntryCount
+            ? String(localized: "Extract Listed Entries")
+            : String(localized: "Extract All")
+        let extract = UIAction(
+            title: extractTitle,
+            image: UIImage(systemName: "archivebox"),
+            attributes: canExtract ? [] : .disabled
+        ) { [weak self] _ in
             self?.promptForDestination()
         }
         if let container = parent as? ViewerContainerViewController {
@@ -224,10 +241,17 @@ final class ArchiveBrowserViewController: UIViewController {
             container.childMenuElements = [select, extract]
             container.refreshBarItems()
         } else {
-            let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
+            let tabs = UIAction(
+                title: String(localized: "Tabs"),
+                image: UIImage(systemName: "square.on.square")
+            ) { [weak self] _ in
                 self?.shell?.presentTabSwitcher()
             }
-            menuItem.menu = UIMenu(children: FilaMenu.groups([select, extract]) + (fileActionsOwner?.fileMenuElements(presenting: self) ?? []) + FilaMenu.groups([tabs]))
+            menuItem.menu = UIMenu(
+                children: FilaMenu.groups([select, extract])
+                    + (fileActionsOwner?.fileMenuElements(presenting: self) ?? [])
+                    + FilaMenu.groups([tabs])
+            )
             navigationItem.rightBarButtonItem = menuItem
         }
     }
@@ -257,7 +281,9 @@ final class ArchiveBrowserViewController: UIViewController {
         snapshot.appendSections([0])
         snapshot.appendItems(items)
         dataSource.apply(snapshot, animatingDifferences: false)
-        collectionView.showStatus(items.isEmpty ? .message(symbol: "archivebox", title: String(localized: "No Entries")) : nil)
+        collectionView.showStatus(
+            items.isEmpty ? .message(symbol: "archivebox", title: String(localized: "No Entries")) : nil
+        )
         refreshActions()
     }
 
@@ -331,7 +357,8 @@ final class ArchiveBrowserViewController: UIViewController {
 
     private func promptForDestination() {
         if isEditing {
-            let items = (collectionView.indexPathsForSelectedItems ?? []).compactMap { dataSource.itemIdentifier(for: $0) }
+            let items = (collectionView.indexPathsForSelectedItems ?? [])
+                .compactMap { dataSource.itemIdentifier(for: $0) }
             chooseDestination(for: entries(for: items))
         } else {
             chooseDestination(for: directory.isEmpty ? members ?? [] : entries(for: [.directory(directory)]))
@@ -364,9 +391,16 @@ final class ArchiveBrowserViewController: UIViewController {
     ///
     /// An encrypted member is asked for its password before the job starts;
     /// a wrong one comes back as `.wrongPassword` and is asked again.
-    private func extract(_ selection: [Row], to destination: String, password: String? = nil, spaceConfirmed: Bool = false) {
+    private func extract(
+        _ selection: [Row],
+        to destination: String,
+        password: String? = nil,
+        spaceConfirmed: Bool = false
+    ) {
         if password == nil, selection.contains(where: { $0.entry.isEncrypted }) {
-            return promptPassword { [weak self] password in self?.extract(selection, to: destination, password: password) }
+            return promptPassword { [weak self] password in
+                self?.extract(selection, to: destination, password: password)
+            }
         }
         setEditing(false, animated: true)
         let request = JobRequest(
@@ -398,10 +432,15 @@ final class ArchiveBrowserViewController: UIViewController {
                                 ArchiveSpaceEstimate.warningFraction.formatted(.percent),
                                 FilePresentation.byteLabel(available)
                             )
-                        let alert = AlertViewController(title: "Low Storage Space", message: message) { [weak self] context in
-                            context.addAction(title: "Close") { context.dispose() }
-                            context.addAction(title: "Extract", attribute: .accent) {
-                                context.dispose { self?.extract(selection, to: destination, password: password, spaceConfirmed: true) }
+                        let alert = AlertViewController(
+                            title: String(localized: "Low Storage Space"),
+                            message: message
+                        ) { [weak self] context in
+                            context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
+                            context.addAction(title: String.LocalizationValue("Extract"), attribute: .accent) {
+                                context.dispose {
+                                    self?.extract(selection, to: destination, password: password, spaceConfirmed: true)
+                                }
                             }
                         }
                         self.present(alert, animated: true)
@@ -418,7 +457,9 @@ final class ArchiveBrowserViewController: UIViewController {
                     guard outcome.code == .wrongPassword else { return }
                     // The cover is still on its way out; give it the beat.
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        self?.promptPassword { [weak self] password in self?.extract(selection, to: destination, password: password) }
+                        self?.promptPassword { [weak self] password in
+                            self?.extract(selection, to: destination, password: password)
+                        }
                     }
                 }
                 guard let self, let operation = center.operation(forJob: identifier) else { return }
@@ -444,11 +485,11 @@ final class ArchiveBrowserViewController: UIViewController {
 
     private func promptPassword(_ handler: @escaping (String) -> Void) {
         let alert = AlertInputViewController(
-            title: "Enter Password",
-            message: "This archive is encrypted. Enter its password to extract.",
-            placeholder: "Password",
+            title: String.LocalizationValue("Enter Password"),
+            message: String.LocalizationValue("This archive is encrypted. Enter its password to extract."),
+            placeholder: String.LocalizationValue("Password"),
             text: "",
-            doneButtonText: "Extract"
+            doneButtonText: String.LocalizationValue("Extract")
         ) { password in
             guard !password.isEmpty else { return }
             handler(password)
@@ -496,11 +537,20 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             guard let self else { return nil }
-            var actions = [UIAction(title: String(localized: "Extract"), image: UIImage(systemName: "archivebox")) { _ in
+            var actions = [UIAction(
+                title: String(localized: "Extract"),
+                image: UIImage(systemName: "archivebox")
+            ) { _ in
                 self.chooseDestination(for: self.entries(for: [item]))
             }]
             if case let .member(row) = item, Self.isNested(row.entry) {
-                actions.insert(UIAction(title: String(localized: "Open"), image: UIImage(systemName: "arrow.right")) { _ in self.descend(into: row) }, at: 0)
+                actions.insert(
+                    UIAction(
+                        title: String(localized: "Open"),
+                        image: UIImage(systemName: "arrow.right")
+                    ) { _ in self.descend(into: row) },
+                    at: 0
+                )
             }
             return UIMenu(children: actions)
         }
@@ -547,7 +597,9 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     index += 1
                     guard index == row.index else { continue }
                     guard candidate.declaredPath == entry.declaredPath else {
-                        throw ViewerFailure.unsupportedContent(String(localized: "The archive changed while it was open. Open it again."))
+                        throw ViewerFailure.unsupportedContent(
+                            String(localized: "The archive changed while it was open. Open it again.")
+                        )
                     }
                     guard FileManager.default.createFile(atPath: staged.path, contents: nil) else {
                         throw ViewerFailure.writeFailed(EACCES)
@@ -555,11 +607,16 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     let output = open(staged.path, O_WRONLY | O_TRUNC)
                     guard output >= 0 else { throw ViewerFailure.writeFailed(errno) }
                     defer { close(output) }
-                    try reader.read(into: output, maximumByteCount: ViewerLimits.containerCopyByteCount) { _, _ in !Task.isCancelled }
+                    try reader.read(
+                        into: output,
+                        maximumByteCount: ViewerLimits.containerCopyByteCount
+                    ) { _, _ in !Task.isCancelled }
                     found = true
                 }
                 guard found else {
-                    throw ViewerFailure.unsupportedContent(String(localized: "This entry is no longer in the archive. Open it again."))
+                    throw ViewerFailure.unsupportedContent(
+                        String(localized: "This entry is no longer in the archive. Open it again.")
+                    )
                 }
                 guard !Task.isCancelled else { return }
                 // The child owns the staged file and removes it when it goes, so
@@ -572,7 +629,8 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     self?.collectionView.isHidden = false
                     self?.refreshActions()
                     guard let self, let navigation = self.navigationController,
-                          navigation.topViewController === self || navigation.topViewController === self.parent else { return false }
+                          navigation.topViewController === self
+                              || navigation.topViewController === self.parent else { return false }
                     navigation.pushViewController(
                         ArchiveBrowserViewController(
                             title: entry.name,
@@ -604,11 +662,11 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
 
     private func report(_ error: Error) {
         let alert = AlertViewController(
-            title: "Unable to Open This File",
+            title: String(localized: "Unable to Open This File"),
             message: FailureMessage.text(for: error)
         ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }

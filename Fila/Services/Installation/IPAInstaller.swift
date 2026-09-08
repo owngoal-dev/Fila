@@ -17,7 +17,12 @@ import ObjectiveC
 /// class receives its own `+` messages), so the same trick reaches them.
 /// `installApplication:` takes a file URL and an `MIInstallOptions`.
 @objc private protocol IXInstallCoordinator {
-    func installApplication(_ url: URL, consumeSource: Bool, options: AnyObject?, completion: @escaping (AnyObject?, AnyObject?) -> Void)
+    func installApplication(
+        _ url: URL,
+        consumeSource: Bool,
+        options: AnyObject?,
+        completion: @escaping (AnyObject?, AnyObject?) -> Void
+    )
 }
 
 /// Installs an `.ipa` for the file menu's Install… action using the runtime chain
@@ -99,22 +104,27 @@ enum IPAInstaller {
             let descriptor = open(url.path, O_RDONLY)
             guard descriptor >= 0 else { throw FilaFailure(code: .operationFailed, systemError: errno, path: url.path) }
             defer { close(descriptor) }
-            let notAnApp = ViewerFailure.unsupportedContent(String(localized: "“\(url.lastPathComponent)” is not an app package. Choose an .ipa that contains one app."))
+            let notAnApp = ViewerFailure.unsupportedContent(String(
+                localized: "“\(url.lastPathComponent)” is not an app package. Choose an .ipa that contains one app."
+            ))
             let reader = try ArchiveReader(descriptor: descriptor)
             var found: Manifest?
             while let entry = try reader.next() {
                 let parts = entry.declaredPath.split(separator: "/")
-                guard parts.count == 3, parts[0] == "Payload", parts[1].hasSuffix(".app"), parts[2] == "Info.plist" else { continue }
+                guard parts.count == 3, parts[0] == "Payload", parts[1].hasSuffix(".app"),
+                      parts[2] == "Info.plist" else { continue }
                 let data = try reader.data(maximumByteCount: 4 * 1024 * 1024)
                 guard found == nil,
-                      let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+                      let plist = try PropertyListSerialization
+                          .propertyList(from: data, options: [], format: nil) as? [String: Any],
                       let bundleID = plist["CFBundleIdentifier"] as? String, !bundleID.isEmpty
                 else { throw notAnApp }
                 let bundleName = String(parts[1])
                 let name = (plist["CFBundleDisplayName"] as? String) ?? (plist["CFBundleName"] as? String)
                 found = Manifest(
                     bundleID: bundleID,
-                    displayName: name.flatMap { $0.isEmpty ? nil : $0 } ?? (bundleName as NSString).deletingPathExtension
+                    displayName: name.flatMap { $0.isEmpty ? nil : $0 }
+                        ?? (bundleName as NSString).deletingPathExtension
                 )
             }
             guard let found else { throw notAnApp }
@@ -135,7 +145,8 @@ enum IPAInstaller {
         if let packageType, !packageType.isEmpty { options["PackageType"] = packageType }
         let result: (ok: Bool, error: NSError?) = await Task.detached {
             var error: NSError?
-            let ok = unsafeBitCast(workspace, to: LSInstallWorkspace.self).installApplication(ipa, withOptions: options, error: &error)
+            let ok = unsafeBitCast(workspace, to: LSInstallWorkspace.self)
+                .installApplication(ipa, withOptions: options, error: &error)
             return (ok, error)
         }.value
         if result.ok { return .installed }
@@ -155,7 +166,10 @@ enum IPAInstaller {
         }
         // A class without the selector raises, and an ObjC exception cannot be
         // caught here: the workspace path (iOS 15) is what runs instead.
-        guard class_getClassMethod(coordinatorClass, NSSelectorFromString("installApplication:consumeSource:options:completion:")) != nil else {
+        guard class_getClassMethod(
+            coordinatorClass,
+            NSSelectorFromString("installApplication:consumeSource:options:completion:")
+        ) != nil else {
             return .unsupported("IXAppInstallCoordinator has no installApplication:consumeSource:options:completion:")
         }
         var options: AnyObject?

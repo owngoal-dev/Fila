@@ -16,10 +16,16 @@ enum AppFolderDisplay {
     private static let bundleRoot = "/var/containers/Bundle/Application"
     private static let groupRoot = "/var/mobile/Containers/Shared/AppGroup"
 
-    static func load(in directory: String, entries: [FileNode], session: FileSession) async -> [String: AppFolderPresentation] {
+    static func load(
+        in directory: String,
+        entries: [FileNode],
+        session: FileSession
+    ) async -> [String: AppFolderPresentation] {
         let root = displayPath(directory)
         guard [dataRoot, bundleRoot, groupRoot].contains(root)
-            || entries.contains(where: { $0.kind == .directory && URL(fileURLWithPath: $0.name).pathExtension.lowercased() == "app" }) else { return [:] }
+            || entries.contains(where: {
+                $0.kind == .directory && URL(fileURLWithPath: $0.name).pathExtension.lowercased() == "app"
+            }) else { return [:] }
         let apps = await InstalledAppCatalog.load(session: session)
         guard !Task.isCancelled else { return [:] }
         var result = presentations(for: apps).reduce(into: [String: AppFolderPresentation]()) { matches, entry in
@@ -36,7 +42,8 @@ enum AppFolderDisplay {
         let byIdentifier = Dictionary(apps.map { ($0.bundleIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
         for entry in entries where entry.kind == .directory && result[entry.name] == nil {
             guard !Task.isCancelled else { return result }
-            guard let identifier = await containerIdentifier(at: root + "/" + entry.name, session: session) else { continue }
+            guard let identifier = await containerIdentifier(at: root + "/" + entry.name, session: session)
+            else { continue }
             let owner = byIdentifier[identifier]
             result[entry.name] = AppFolderPresentation(
                 name: owner?.name ?? (root == groupRoot ? identifier : InstalledApp.name(identifier: identifier)),
@@ -59,7 +66,8 @@ enum AppFolderDisplay {
         let metadata = path + "/.com.apple.mobile_container_manager.metadata.plist"
         let identifier: String? = await {
             guard let data = try? await session.read(metadata, limit: 64 * 1024),
-                  let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+                  let plist = try? PropertyListSerialization
+                      .propertyList(from: data, options: [], format: nil) as? [String: Any],
                   let identifier = plist["MCMMetadataIdentifier"] as? String, !identifier.isEmpty else { return nil }
             return identifier
         }()
@@ -159,7 +167,10 @@ final class AppFolderPreviewViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        let image = UIImageView(image: AppFolderDisplay.cachedIcon(for: presentation.applicationIdentifier) ?? AppFolderDisplay.placeholderIcon).then {
+        let image = UIImageView(
+            image: AppFolderDisplay.cachedIcon(for: presentation.applicationIdentifier)
+                ?? AppFolderDisplay.placeholderIcon
+        ).then {
             $0.contentMode = .scaleAspectFit
             $0.tintColor = .systemBrown
             $0.isAccessibilityElement = false

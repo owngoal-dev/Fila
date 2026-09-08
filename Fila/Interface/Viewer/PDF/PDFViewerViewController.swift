@@ -51,7 +51,12 @@ final class PDFViewerViewController: UIViewController {
             make.leading.trailing.equalTo(view.layoutMarginsGuide)
             make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-FilaUI.Spacing.small)
         }
-        NotificationCenter.default.addObserver(self, selector: #selector(updatePage), name: .PDFViewPageChanged, object: pdfView)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updatePage),
+            name: .PDFViewPageChanged,
+            object: pdfView
+        )
 
         do {
             let data = try file.readAll(limit: ViewerLimits.inMemoryDocumentByteCount)
@@ -83,6 +88,10 @@ final class PDFViewerViewController: UIViewController {
 
     @objc private func updatePage() {
         guard let document = pdfView.document, let page = pdfView.currentPage else { return }
-        pageLabel.text = String(format: String(localized: "Page %lld of %lld"), Int64(document.index(for: page) + 1), Int64(document.pageCount))
+        pageLabel.text = String(
+            format: String(localized: "Page %lld of %lld"),
+            Int64(document.index(for: page) + 1),
+            Int64(document.pageCount)
+        )
     }
 }

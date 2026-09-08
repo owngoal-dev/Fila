@@ -73,8 +73,14 @@ extension MachOImage {
                 guard size >= minimum else { throw FormatFailure.damaged("a load command is truncated") }
                 // One fully validated command per iterator. Unknown commands
                 // never enter the upstream pointer conversion dispatch.
-                var iterator = MachOFile.LoadCommands.Iterator(data: bytes, numberOfCommands: 1, isSwapped: slice.isBigEndian)
-                guard let decoded = iterator.next() else { throw FormatFailure.damaged("a load command could not be read") }
+                var iterator = MachOFile.LoadCommands.Iterator(
+                    data: bytes,
+                    numberOfCommands: 1,
+                    isSwapped: slice.isBigEndian
+                )
+                guard let decoded = iterator.next() else {
+                    throw FormatFailure.damaged("a load command could not be read")
+                }
                 try Self.apply(decoded, bytes: bytes, slice: slice, into: &result)
             }
             cursor += size
@@ -92,7 +98,12 @@ extension MachOImage {
         0x32: 24, 0x2A: 16, 0x8000_0028: 24, // build/source versions, entry point
     ]
 
-    private static func apply(_ command: MachOKit.LoadCommand, bytes: Data, slice: Slice, into result: inout Inspection) throws {
+    private static func apply(
+        _ command: MachOKit.LoadCommand,
+        bytes: Data,
+        slice: Slice,
+        into result: inout Inspection
+    ) throws {
         switch command {
         case let .segment64(segment):
             result.segments.append(try segmentSummary(
@@ -104,16 +115,21 @@ extension MachOImage {
         case let .segment(segment):
             result.segments.append(try segmentSummary(
                 name: fixedString(bytes, at: 8, count: 16), address: UInt64(segment.layout.vmaddr),
-                size: UInt64(segment.layout.vmsize), offset: UInt64(segment.layout.fileoff), fileSize: UInt64(segment.layout.filesize),
+                size: UInt64(segment.layout.vmsize),
+                offset: UInt64(segment.layout.fileoff),
+                fileSize: UInt64(segment.layout.filesize),
                 protection: segment.initialProtection, sections: segment.layout.nsects,
                 bytes: bytes, headerSize: 56, sectionSize: 68, slice: slice
             ))
         case let .buildVersion(version):
-            guard UInt64(version.layout.ntools) * 8 <= bytes.count - 24 else { throw FormatFailure.damaged("its version information is truncated") }
+            guard UInt64(version.layout.ntools) * 8 <= bytes.count - 24 else {
+                throw FormatFailure.damaged("its version information is truncated")
+            }
             result.platform = version.platform.description
             result.minimumOS = version.minos.description
             result.sdk = version.sdk.description
-        case let .versionMinMacosx(version), let .versionMinIphoneos(version), let .versionMinTvos(version), let .versionMinWatchos(version):
+        case let .versionMinMacosx(version), let .versionMinIphoneos(version),
+             let .versionMinTvos(version), let .versionMinWatchos(version):
             result.minimumOS = version.version.description
             // MachOKit 0.52.2's legacy sdk accessor reads the version field;
             // preserve the actual SDK word rather than repeating the minimum OS.
@@ -132,7 +148,9 @@ extension MachOImage {
             result.encryptedByteCount = info.layout.cryptsize
         case let .sourceVersion(version): result.sourceVersion = version.version.description
         case let .main(entry):
-            guard entry.layout.entryoff < slice.byteCount else { throw FormatFailure.damaged("its entry offset is outside this architecture") }
+            guard entry.layout.entryoff < slice.byteCount else {
+                throw FormatFailure.damaged("its entry offset is outside this architecture")
+            }
             result.entryOffset = entry.layout.entryoff
         case let .symtab(table):
             let symbolSize: UInt64 = slice.isSixtyFourBit ? 16 : 12
@@ -191,11 +209,15 @@ extension MachOImage {
         let index = try reader.read(at: signature.offset + 12, count: count * 8)
         for number in 0 ..< count {
             let offset = Int64(try index.bigEndian(at: number * 8 + 4) as UInt32)
-            guard offset >= 12 + count * 8, offset <= length - 8 else { throw FormatFailure.damaged("its code signature is invalid") }
+            guard offset >= 12 + count * 8, offset <= length - 8 else {
+                throw FormatFailure.damaged("its code signature is invalid")
+            }
             let blobHeader = try reader.read(at: signature.offset + offset, count: 8)
             guard try blobHeader.bigEndian(at: 0) as UInt32 == 0xFADE_0C02 else { continue }
             let blobLength = Int64(try blobHeader.bigEndian(at: 4) as UInt32)
-            guard blobLength >= 44, blobLength <= length - offset else { throw FormatFailure.damaged("its code signature is truncated") }
+            guard blobLength >= 44, blobLength <= length - offset else {
+                throw FormatFailure.damaged("its code signature is truncated")
+            }
             let directory = try reader.read(at: signature.offset + offset, count: Int(min(blobLength, 52)))
             let version: UInt32 = try directory.bigEndian(at: 8)
             let flags: UInt32 = try directory.bigEndian(at: 12)
@@ -203,8 +225,13 @@ extension MachOImage {
             func string(_ relative: Int64) throws -> String? {
                 guard relative != 0 else { return nil }
                 let minimum: Int64 = version >= 0x20200 ? 52 : 44
-                guard relative >= minimum, relative < blobLength else { throw FormatFailure.damaged("its signing identifier is invalid") }
-                let bytes = try reader.read(at: signature.offset + offset + relative, count: Int(min(4096, blobLength - relative)))
+                guard relative >= minimum, relative < blobLength else {
+                    throw FormatFailure.damaged("its signing identifier is invalid")
+                }
+                let bytes = try reader.read(
+                    at: signature.offset + offset + relative,
+                    count: Int(min(4096, blobLength - relative))
+                )
                 return try Self.terminatedString(bytes, at: 0, limit: bytes.count)
             }
             result.isAdHoc = flags & 2 != 0

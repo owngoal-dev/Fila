@@ -68,13 +68,17 @@ final class FileProviderSettingsViewController: UITableViewController {
     }
 
     override func numberOfSections(in _: UITableView) -> Int { 2 }
-    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 1 : actions.count }
+    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
+        section == 0 ? 1 : actions.count
+    }
 
     override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         var content = cell.defaultContentConfiguration()
         if indexPath.section == 0 {
-            content.text = location?.isDefault == true ? String(localized: "Fila Documents") : String(localized: "Selected Folder")
+            content.text = location?.isDefault == true
+                ? String(localized: "Fila Documents")
+                : String(localized: "Selected Folder")
             cell.selectionStyle = .none
         } else {
             switch actions[indexPath.row] {
@@ -136,7 +140,7 @@ final class FileProviderSettingsViewController: UITableViewController {
         FilaLog.error("File Provider location change failed: \(error)")
         let alert = AlertViewController(title: String(localized: "Cannot Use Folder"), message: message) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "Close", attribute: .accent) { context.dispose() }
+            context.addAction(title: String.LocalizationValue("Close"), attribute: .accent) { context.dispose() }
         }
         present(alert, animated: true)
     }

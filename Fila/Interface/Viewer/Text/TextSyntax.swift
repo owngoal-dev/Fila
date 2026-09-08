@@ -165,7 +165,8 @@ final class ScaledEditorTheme: EditorTheme {
     static func theme(for traits: UITraitCollection) -> ScaledEditorTheme {
         ScaledEditorTheme(
             base: traits.userInterfaceStyle == .dark ? OneDarkTheme() : TomorrowTheme(),
-            pointSize: UIFontMetrics(forTextStyle: .body).scaledValue(for: FilaUI.Font.monospacedBodySize, compatibleWith: traits)
+            pointSize: UIFontMetrics(forTextStyle: .body)
+                .scaledValue(for: FilaUI.Font.monospacedBodySize, compatibleWith: traits)
         )
     }
 

@@ -341,10 +341,29 @@ present(alert, animated: true)
 ```
 
 Title, message, placeholder, and action titles are
-`String.LocalizationValue`. Pass the literal so Xcode extracts the key.
+`String.LocalizationValue`, and the literal must be **wrapped in the
+initializer** — `String.LocalizationValue("Enter Password")`, never the
+bare `"Enter Password"`:
+
+```swift
+context.addAction(title: String.LocalizationValue("Cancel")) {
+    context.dispose()
+}
+```
+
+A bare literal at one of those arguments compiles and runs, and Xcode's
+extractor records nothing. It was measured: the same literal is extracted
+through `String.LocalizationValue(...)`, through a typed local, and
+through `String(localized:)`, and is invisible only when written straight
+at the argument and converted implicitly. Forty-two keys got in that way,
+survived on `extractionState: manual`, and would have shipped English in
+twelve languages the moment someone believed the marker was cruft.
+`Scripts/check-localization.sh` fails the build on a bare literal at
+these five labels.
+
 The package also has a `String` overload marked `@_disfavoredOverload`:
-a `String(localized:)` argument, or any already-resolved string, becomes
-the lookup key and ships English on a Chinese device. Computed copy
+any already-resolved string becomes the lookup key, so a raw English
+`String` variable ships English on a Chinese device. Computed copy
 (`FailureMessage.text(for:)`, a path) is the `String` overload on
 purpose — it is not a catalogue key.
 
@@ -645,6 +664,22 @@ of `{key, comment, location}`. Include generated App Shortcuts metadata even
 when its `source` is a label rather than a filesystem path.
 Those are the exact keys the runtime will look up. Diff that set against the
 catalogue and require `missing = 0` and `orphaned = 0`.
+`Scripts/check-extracted-strings.py` is that diff and `make build` runs it.
+
+**Skip `GeneratedStringSymbols_Localizable.stringsdata`.** Xcode generates it
+*from the catalogue*, not from source, so counting it compares the catalogue
+with itself and reports a flawless match no matter how many keys nothing
+extracts. It said 706/706, `missing = 0`, `orphaned = 0`, over forty-two keys
+that no source produced.
+
+**No catalogue carries `extractionState`.** `manual` means "keep this key even
+though I cannot find it", which is how twenty-five orphans accumulated unnoticed
+— nothing prunes what Xcode does not own. Without the field, a key that loses
+its last call site is marked `stale` on the next build and someone sees it. If a
+key needs the marker to survive, that is the call site hiding the literal from
+the extractor; fix the call site (see AlertController above), do not annotate
+the catalogue. `Scripts/check-localization.sh` fails `make check` on any
+`extractionState` in any `.xcstrings`.
 
 **A grep for `String(localized:)` is not a substitute and will lie to you in
 two specific ways.** It cannot see SwiftUI's bare `Text("Grid")`, and it cannot
@@ -653,15 +688,21 @@ as `%lld selected`, so the grep sees the interpolation and never the key.
 App Intents' `LocalizedStringResource` literals land in the same catalogue and
 are invisible to grep for the same reason.
 
-**And the `.stringsdata` set has a blind spot of its own: Xcode's extractor
-only walks the app target.** A `String(localized:)` inside
-`Packages/FilaKit/Sources` never reaches a `.stringsdata`, so a diff against
-that set alone reports a clean catalogue while an entire module ships English —
-which is exactly what happened to `FilaTerminal`, ten strings at once, under a
-check that said 469/469. Package-target strings have to be scraped instead,
-which is the weaker method and inherits the interpolation hole above: keep
-strings in package targets plain, with no interpolated keys, so that a scrape
-can see all of them.
+**The extractor walks one target at a time, and the app's `.stringsdata` is
+only the app's.** A `String(localized:)` inside `Packages/FilaKit/Sources` never
+reaches the app's set, so a diff against that alone reports a clean catalogue
+while an entire module ships English — which is exactly what happened to
+`FilaTerminal`, ten strings at once, under a check that said 469/469.
+
+So a target that shows the user a sentence owns its own catalogue: the package
+declares `defaultLocalization`, the target takes
+`resources: [.process("Resources")]`, and the call site names its bundle —
+`String(localized: "…", bundle: .module)`. It then emits its own `.stringsdata`
+under `FilaKit.build/…/<Target>-t.build/`, and is diffed like any other target
+rather than scraped. `FilaFormats` and `FilaMedia` are set up this way, and the
+app carries `CFBundleAllowMixedLocalizations` so it resolves strings out of
+those resource bundles. Add a new target to the table in
+`Scripts/check-extracted-strings.py` when it grows its first string.
 
 Two rules the catalogue enforces on itself: a translation keeps every format
 specifier with the same type and count, and uses positional forms (`%1$@`,

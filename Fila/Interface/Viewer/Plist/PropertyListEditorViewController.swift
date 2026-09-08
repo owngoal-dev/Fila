@@ -48,12 +48,22 @@ final class PropertyListEditorViewController: UIViewController {
         return item
     }()
     private lazy var cancelItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(cancelEditing))
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "xmark"),
+            style: .plain,
+            target: self,
+            action: #selector(cancelEditing)
+        )
         item.accessibilityLabel = String(localized: "Cancel")
         return item
     }()
     private lazy var backItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "chevron.backward"), style: .plain, target: self, action: #selector(goBackOneLevel))
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.backward"),
+            style: .plain,
+            target: self,
+            action: #selector(goBackOneLevel)
+        )
         item.accessibilityLabel = String(localized: "Back")
         return item
     }()
@@ -158,7 +168,8 @@ final class PropertyListEditorViewController: UIViewController {
         backItem.isEnabled = !document.isSaving
         isModalInPresentation = document.hasUnsavedChanges || document.isSaving
         navigationController?.isModalInPresentation = isModalInPresentation
-        navigationController?.interactivePopGestureRecognizer?.isEnabled = !document.isSaving && (!path.isEmpty || !document.hasUnsavedChanges)
+        navigationController?.interactivePopGestureRecognizer?.isEnabled =
+            !document.isSaving && (!path.isEmpty || !document.hasUnsavedChanges)
         if let container = parent as? ViewerContainerViewController {
             navigationItem.rightBarButtonItem = nil
             container.childMenuElements = menuElements()
@@ -168,10 +179,15 @@ final class PropertyListEditorViewController: UIViewController {
             container.refreshBarItems()
         } else {
             let owner = document.rootController?.parent as? ViewerContainerViewController
-            let tabs = UIAction(title: String(localized: "Tabs"), image: UIImage(systemName: "square.on.square")) { [weak self] _ in
+            let tabs = UIAction(
+                title: String(localized: "Tabs"),
+                image: UIImage(systemName: "square.on.square")
+            ) { [weak self] _ in
                 self?.shell?.presentTabSwitcher()
             }
-            let elements = FilaMenu.groups(menuElements()) + (owner?.fileMenuElements(presenting: self) ?? []) + FilaMenu.groups([tabs])
+            let elements = FilaMenu.groups(menuElements())
+                + (owner?.fileMenuElements(presenting: self) ?? [])
+                + FilaMenu.groups([tabs])
             menuItem.menu = UIMenu(children: elements)
             menuItem.isEnabled = !document.isSaving
             navigationItem.rightBarButtonItem = menuItem
@@ -190,16 +206,26 @@ final class PropertyListEditorViewController: UIViewController {
             image: UIImage(systemName: "checkmark"),
             attributes: document.hasUnsavedChanges && !document.isSaving ? [] : .disabled
         ) { [weak self] _ in self?.save() }
-        let actions = [(String(localized: "Save as Binary"), PropertyListSerialization.PropertyListFormat.binary),
-                       (String(localized: "Save as XML"), PropertyListSerialization.PropertyListFormat.xml)].map { title, format in
-            UIAction(title: title, attributes: document.isSaving ? .disabled : [], state: document.format == format ? .on : .off) { [weak self] _ in
+        let actions = [
+            (String(localized: "Save as Binary"), PropertyListSerialization.PropertyListFormat.binary),
+            (String(localized: "Save as XML"), PropertyListSerialization.PropertyListFormat.xml)
+        ].map { title, format in
+            UIAction(
+                title: title,
+                attributes: document.isSaving ? .disabled : [],
+                state: document.format == format ? .on : .off
+            ) { [weak self] _ in
                 guard let self, !self.document.isSaving, self.document.format != format else { return }
                 self.document.format = format
                 self.document.hasUnsavedChanges = true
                 self.refresh()
             }
         }
-        let format = UIMenu(title: String(localized: "Format"), image: UIImage(systemName: "doc.badge.gearshape"), children: actions)
+        let format = UIMenu(
+            title: String(localized: "Format"),
+            image: UIImage(systemName: "doc.badge.gearshape"),
+            children: actions
+        )
         return [save, format]
     }
 
@@ -209,13 +235,19 @@ final class PropertyListEditorViewController: UIViewController {
         case let .dictionary(pairs):
             rows = pairs.map { Row(path: path + [.key($0.key)], label: $0.key, value: $0.value) }
         case let .array(items):
-            rows = items.enumerated().map { Row(path: path + [.index($0.offset)], label: String($0.offset), value: $0.element) }
+            rows = items.enumerated().map {
+                Row(path: path + [.index($0.offset)], label: String($0.offset), value: $0.element)
+            }
         default:
             rows = [Row(path: path, label: String(localized: "Value"), value: value)]
         }
         table.reloadData()
         if rows.isEmpty {
-            table.backgroundView = StatusView(content: .message(symbol: "list.bullet", title: String(localized: "No Entries"), detail: nil))
+            table.backgroundView = StatusView(content: .message(
+                symbol: "list.bullet",
+                title: String(localized: "No Entries"),
+                detail: nil
+            ))
         } else {
             table.backgroundView = nil
         }
@@ -256,13 +288,13 @@ final class PropertyListEditorViewController: UIViewController {
         }
         prepareToPresent()
         let alert = AlertViewController(
-            title: "Unsaved Changes",
-            message: "Leaving now discards your changes. The file on disk is unchanged."
+            title: String.LocalizationValue("Unsaved Changes"),
+            message: String.LocalizationValue("Leaving now discards your changes. The file on disk is unchanged.")
         ) { [weak self] context in
-            context.addAction(title: "Cancel") {
+            context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
             }
-            context.addAction(title: "Discard", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("Discard"), attribute: .accent) {
                 context.dispose {
                     guard let self else { return }
                     if let (root, format) = self.document.saved {
@@ -329,11 +361,11 @@ final class PropertyListEditorViewController: UIViewController {
     private func rename(_ row: Row) {
         guard case .key = row.path.last else { return }
         let alert = AlertInputViewController(
-            title: "Rename Key",
-            message: "Keys in the same dictionary must be unique.",
+            title: String.LocalizationValue("Rename Key"),
+            message: String.LocalizationValue("Keys in the same dictionary must be unique."),
             placeholder: .noPlaceholder,
             text: row.label,
-            doneButtonText: "Done"
+            doneButtonText: String.LocalizationValue("Done")
         ) { [weak self] name in
             guard let self, !name.isEmpty, name != row.label else { return }
             let sibling = Array(row.path.dropLast()) + [.key(name)]
@@ -376,9 +408,9 @@ final class PropertyListEditorViewController: UIViewController {
             return
         }
         let alert = AlertInputViewController(
-            title: "Add Entry",
-            message: "Keys in the same dictionary must be unique.",
-            placeholder: "Key",
+            title: String.LocalizationValue("Add Entry"),
+            message: String.LocalizationValue("Keys in the same dictionary must be unique."),
+            placeholder: String.LocalizationValue("Key"),
             text: ""
         ) { [weak self] key in
             guard let self, !key.isEmpty else { return }
@@ -394,7 +426,7 @@ final class PropertyListEditorViewController: UIViewController {
     private func showError(_ message: String) {
         let alert = AlertViewController(title: "Unable to Make This Change", message: message) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }
@@ -402,7 +434,8 @@ final class PropertyListEditorViewController: UIViewController {
     }
 
     private func save() {
-        guard document.canEdit, !document.isSaving, let root = document.root, case let .file(details, _, link) = document.source else { return }
+        guard document.canEdit, !document.isSaving, let root = document.root,
+              case let .file(details, _, link) = document.source else { return }
         document.isSaving = true
         refresh()
         let format = document.format
@@ -434,7 +467,9 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         content.text = row.label
         content.textProperties.font = .preferredFont(forTextStyle: .body)
         content.textProperties.numberOfLines = 0
-        content.secondaryText = row.value.isContainer ? row.value.typeName + " · " + row.value.summary : row.value.summary
+        content.secondaryText = row.value.isContainer
+            ? row.value.typeName + " · " + row.value.summary
+            : row.value.summary
         content.secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
         content.secondaryTextProperties.numberOfLines = 0
         content.secondaryTextProperties.color = .secondaryLabel
@@ -482,28 +517,50 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         tableView.deselectRow(at: indexPath, animated: true)
         let row = rows[indexPath.row]
         if row.value.isContainer {
-            navigationController?.pushViewController(PropertyListEditorViewController(document: document, row: row), animated: true)
+            navigationController?.pushViewController(
+                PropertyListEditorViewController(document: document, row: row),
+                animated: true
+            )
         } else if document.isEditing {
             edit(row)
         } else {
-            navigationController?.pushViewController(KeyValueListViewController(title: row.label, rows: [(row.value.typeName, row.value.summary)]), animated: true)
+            navigationController?.pushViewController(
+                KeyValueListViewController(title: row.label, rows: [(row.value.typeName, row.value.summary)]),
+                animated: true
+            )
         }
     }
 
-    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+    func tableView(
+        _ tableView: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
         let row = rows[indexPath.row]
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             guard let self else { return nil }
-            var actions: [UIMenuElement] = [UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in UIPasteboard.general.string = row.value.summary }]
+            var actions: [UIMenuElement] = [
+                UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
+                    UIPasteboard.general.string = row.value.summary
+                }
+            ]
             if self.document.isEditing, !self.document.isSaving {
                 if row.value.isContainer {
                     actions.append(self.addEntryMenu(for: row))
                 }
                 if case .key = row.path.last {
-                    actions.append(UIAction(title: String(localized: "Rename Key"), image: UIImage(systemName: "pencil")) { _ in self.rename(row) })
+                    actions.append(
+                        UIAction(title: String(localized: "Rename Key"), image: UIImage(systemName: "pencil")) { _ in
+                            self.rename(row)
+                        }
+                    )
                 }
                 if !row.path.isEmpty {
-                    actions.append(UIAction(title: String(localized: "Delete"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+                    actions.append(UIAction(
+                        title: String(localized: "Delete"),
+                        image: UIImage(systemName: "trash"),
+                        attributes: .destructive
+                    ) { _ in
                         self.apply { $0.replacing(row.path, with: nil) }
                     })
                 }

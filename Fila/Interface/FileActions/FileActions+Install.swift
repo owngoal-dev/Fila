@@ -37,7 +37,10 @@ extension FileActions {
         default:
             return nil
         }
-        return UIAction(title: String(localized: "Install…"), image: UIImage(systemName: "arrow.down.app")) { _ in confirm(install) }
+        return UIAction(
+            title: String(localized: "Install…"),
+            image: UIImage(systemName: "arrow.down.app")
+        ) { _ in confirm(install) }
     }
 
     /// Reads the package's identity first, and refuses Fila's own: its postinst
@@ -65,10 +68,14 @@ extension FileActions {
                     title: String(localized: "Install Package?"),
                     message: String(localized: "Installs “\(name)” as root with dpkg. A faulty package can damage the system environment or leave the device unable to start. This cannot be undone.")
                 ) { context in
-                    context.addAction(title: "Cancel") { context.dispose { cleanup() } }
-                    context.addAction(title: "Install", attribute: .accent) {
+                    context.addAction(title: String.LocalizationValue("Cancel")) { context.dispose { cleanup() } }
+                    context.addAction(title: String.LocalizationValue("Install"), attribute: .accent) {
                         context.dispose {
-                            if !self.openTerminal(.installPackage(path: staged.path), user: .root, onProcessExit: cleanup) {
+                            if !self.openTerminal(
+                                .installPackage(path: staged.path),
+                                user: .root,
+                                onProcessExit: cleanup
+                            ) {
                                 cleanup()
                             }
                         }
@@ -89,12 +96,15 @@ extension FileActions {
     /// while the card is up.
     private func promptInstallApp(_ path: String) {
         guard !Self.appInstallInFlight else {
-            FeedbackAlert.show(String(localized: "Installation in Progress"), message: String(localized: "Wait for the current installation to finish, then try again."))
+            FeedbackAlert.show(
+                String(localized: "Installation in Progress"),
+                message: String(localized: "Wait for the current installation to finish, then try again.")
+            )
             return
         }
         Self.appInstallInFlight = true
         Task {
-            let progress = await presentProgress(title: "Reading App…")
+            let progress = await presentProgress(title: String.LocalizationValue("Reading App…"))
             let staged: URL
             let manifest: IPAInstaller.Manifest
             do {
@@ -119,13 +129,13 @@ extension FileActions {
                 title: "Install App?",
                 message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleID)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified.")
             ) { context in
-                context.addAction(title: "Cancel") {
+                context.addAction(title: String.LocalizationValue("Cancel")) {
                     context.dispose {
                         try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
                         Self.appInstallInFlight = false
                     }
                 }
-                context.addAction(title: "Install", attribute: .accent) {
+                context.addAction(title: String.LocalizationValue("Install"), attribute: .accent) {
                     context.dispose { Task { await self.installApp(path, staged: staged, manifest: manifest) } }
                 }
             }
@@ -137,7 +147,7 @@ extension FileActions {
     /// the identifier. The system or another installer may have changed it, so
     /// uninstall remains an explicit user action in Applications.
     private func installApp(_ path: String, staged: URL, manifest: IPAInstaller.Manifest) async {
-        let progress = await presentProgress(title: "Installing App…")
+        let progress = await presentProgress(title: String.LocalizationValue("Installing App…"))
         let outcome = await IPAInstaller.install(ipaAt: staged, packageType: "Developer")
         // An unanswered request may still be reading its source. Preserve the
         // workspace and keep further requests disabled for this session.
@@ -161,7 +171,9 @@ extension FileActions {
                 domain: "IPAInstaller",
                 code: -1,
                 userInfo: [
-                    NSLocalizedDescriptionKey: String(localized: "The installer is still working. Check Applications before trying again.")
+                    NSLocalizedDescriptionKey: String(
+                        localized: "The installer is still working. Check Applications before trying again."
+                    )
                 ]
             ))
         case let .failed(domain, code, message):
@@ -180,7 +192,10 @@ extension FileActions {
     /// once rather than after the delete path's reveal delay.
     private func presentProgress(title: String.LocalizationValue) async -> AlertProgressIndicatorViewController? {
         guard let presenter = activePresenter else { return nil }
-        let progress = AlertProgressIndicatorViewController(title: title, message: "Large packages take time.")
+        let progress = AlertProgressIndicatorViewController(
+            title: title,
+            message: String.LocalizationValue("Large packages take time.")
+        )
         await withCheckedContinuation { continuation in
             presenter.present(progress, animated: true) { continuation.resume() }
         }
@@ -202,10 +217,10 @@ extension FileActions {
             return
         }
         let alert = AlertViewController(title: "Cannot Install", message: message) { context in
-            context.addAction(title: "Cancel") {
+            context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
             }
-            context.addAction(title: "Open With…", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("Open With…"), attribute: .accent) {
                 context.dispose { self.share([path]) }
             }
         }

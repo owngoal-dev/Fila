@@ -86,7 +86,12 @@ final class MachOInspectorViewController: UIViewController {
                     var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
                     for (index, architecture) in architectures.enumerated() {
                         let entitlements = architecture.2.map(Self.displayValue)
-                        let built = Self.rows(for: architecture.0, inspection: architecture.1, entitlements: entitlements, isUniversal: architectures.count > 1)
+                        let built = Self.rows(
+                            for: architecture.0,
+                            inspection: architecture.1,
+                            entitlements: entitlements,
+                            isUniversal: architectures.count > 1
+                        )
                         let items = built.map { Item(slice: index, label: $0.label) }
                         for (item, row) in zip(items, built) { self.rows[item] = row }
                         self.names.append(architecture.0.architecture)
@@ -173,23 +178,31 @@ final class MachOInspectorViewController: UIViewController {
         }))
 
         var details: [String] = []
-        if isUniversal { details.append(String(localized: "Slice Size") + ": " + FilePresentation.byteLabel(architecture.byteCount)) }
+        if isUniversal {
+            details.append(String(localized: "Slice Size") + ": " + FilePresentation.byteLabel(architecture.byteCount))
+        }
         if let name = architecture.installName { details.append(String(localized: "Install Name") + ": " + name) }
         if let platform = inspection.platform { details.append(String(localized: "Platform") + ": " + platform) }
         if let minimum = inspection.minimumOS { details.append(String(localized: "Minimum OS") + ": " + minimum) }
         if let sdk = inspection.sdk { details.append(String(localized: "SDK") + ": " + sdk) }
         if let source = inspection.sourceVersion { details.append(String(localized: "Source Version") + ": " + source) }
-        if let entry = inspection.entryOffset { details.append(String(localized: "Entry Offset") + ": " + String(format: "0x%llX", entry)) }
+        if let entry = inspection.entryOffset {
+            details.append(String(localized: "Entry Offset") + ": " + String(format: "0x%llX", entry))
+        }
         if let count = inspection.symbolCount { details.append(String(localized: "Symbols") + ": " + String(count)) }
         if let uuid = architecture.uuid { details.append(String(localized: "UUID") + ": " + uuid.uuidString) }
-        if !inspection.flags.isEmpty { details.append(String(localized: "Flags") + ": " + inspection.flags.joined(separator: ", ")) }
+        if !inspection.flags.isEmpty {
+            details.append(String(localized: "Flags") + ": " + inspection.flags.joined(separator: ", "))
+        }
         let encryption: String
         if let method = inspection.encryptionMethod, method != 0 {
             encryption = String(format: String(localized: "Encrypted, method %u, %@ region"), method,
                                 FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0)))
         } else { encryption = String(localized: "Not encrypted") }
         details.append(String(localized: "Encryption") + ": " + encryption)
-        if let identifier = inspection.signingIdentifier { details.append(String(localized: "Signing Identifier") + ": " + identifier) }
+        if let identifier = inspection.signingIdentifier {
+            details.append(String(localized: "Signing Identifier") + ": " + identifier)
+        }
         if let team = inspection.teamIdentifier { details.append(String(localized: "Team Identifier") + ": " + team) }
         rows.append(.list(String(localized: "Details"), details))
         return rows
@@ -238,9 +251,11 @@ extension MachOInspectorViewController: UITableViewDelegate {
         guard let item = dataSource.itemIdentifier(for: indexPath),
               case let .fact(_, value) = rows[item] else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            UIMenu(children: [UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
-                UIPasteboard.general.string = value
-            }])
+            UIMenu(children: [
+                UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
+                    UIPasteboard.general.string = value
+                }
+            ])
         }
     }
 

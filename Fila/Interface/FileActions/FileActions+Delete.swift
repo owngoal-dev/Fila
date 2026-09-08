@@ -131,7 +131,8 @@ extension FileActions {
                     do {
                         _ = try await session.perform { try await $0.details(of: path) }
                         remaining.append(path)
-                    } catch let failure as FilaFailure where failure.code == .notFound || failure.systemError == ENOENT {
+                    } catch let failure as FilaFailure
+                        where failure.code == .notFound || failure.systemError == ENOENT {
                         continue
                     }
                 }

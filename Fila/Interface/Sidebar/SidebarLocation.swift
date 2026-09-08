@@ -25,21 +25,54 @@ extension SidebarLocation {
     /// `hello` and is simply absent on a rootful layout.
     static func jumpList(backend: DaemonLink.Backend?) -> [SidebarLocation] {
         guard let backend else { return [] }
-        let inbox = SidebarLocation(position: .inbox, title: String(localized: "Inbox"), icon: .artwork("inbox"), path: inboxDirectory)
+        let inbox = SidebarLocation(
+            position: .inbox,
+            title: String(localized: "Inbox"),
+            icon: .artwork("inbox"),
+            path: inboxDirectory
+        )
         if case .local(.container) = backend {
-            return [SidebarLocation(position: .root, title: String(localized: "Home"), icon: .artwork("home"), path: NSHomeDirectory()), inbox]
+            return [
+                SidebarLocation(
+                    position: .root,
+                    title: String(localized: "Home"),
+                    icon: .artwork("home"),
+                    path: NSHomeDirectory()
+                ),
+                inbox
+            ]
         }
         let installRoot: String?
         if case let .daemon(root) = backend { installRoot = root } else { installRoot = nil }
         var places = [
-            SidebarLocation(position: .root, title: String(localized: "Root"), icon: .artwork("drive-internal"), path: "/"),
-            SidebarLocation(position: .mobile, title: String(localized: "Mobile"), icon: .artwork("home"), path: "/var/mobile"),
-            SidebarLocation(position: .pictures, title: String(localized: "Pictures"), icon: .artwork("pictures"), path: "/var/mobile/Media/DCIM"),
+            SidebarLocation(
+                position: .root,
+                title: String(localized: "Root"),
+                icon: .artwork("drive-internal"),
+                path: "/"
+            ),
+            SidebarLocation(
+                position: .mobile,
+                title: String(localized: "Mobile"),
+                icon: .artwork("home"),
+                path: "/var/mobile"
+            ),
+            SidebarLocation(
+                position: .pictures,
+                title: String(localized: "Pictures"),
+                icon: .artwork("pictures"),
+                path: "/var/mobile/Media/DCIM"
+            ),
             inbox,
         ]
         if let installRoot, !installRoot.isEmpty {
             places.insert(
-                SidebarLocation(position: .bootstrap, title: String(localized: "Bootstrap"), icon: .artwork("bootstrap"), path: installRoot),
+                SidebarLocation(
+                    position: .bootstrap,
+                    title: String(localized: "Bootstrap"),
+                    icon: .artwork("bootstrap"),
+                    path: installRoot
+                ),
                 at: 1
             )
         }
@@ -50,7 +83,12 @@ extension SidebarLocation {
         places = places.filter { FileManager.default.fileExists(atPath: $0.path) }
         // Not filtered: the trash is root-owned 0700 on a daemon, so the app
         // cannot see whether it exists, and the daemon lists it fine.
-        places.append(SidebarLocation(position: .trash, title: String(localized: "Trash"), icon: .artwork("trash"), path: trashDirectory(backend: backend)))
+        places.append(SidebarLocation(
+            position: .trash,
+            title: String(localized: "Trash"),
+            icon: .artwork("trash"),
+            path: trashDirectory(backend: backend)
+        ))
         return places
     }
 

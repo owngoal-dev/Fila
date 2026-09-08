@@ -151,12 +151,20 @@ final class IconRowCell: UICollectionViewListCell {
 
     // MARK: - Content
 
-    func configure(name: String, detail: String? = nil, image: UIImage?, nameColor: UIColor = .label, tintColor: UIColor = .secondaryLabel, highlight: String? = nil) {
+    func configure(
+        name: String,
+        detail: String? = nil,
+        image: UIImage?,
+        nameColor: UIColor = .label,
+        tintColor: UIColor = .secondaryLabel,
+        highlight: String? = nil
+    ) {
         nameLabel.textColor = nameColor
         // A search hit tints the part that matched, the way a mention is
         // tinted: the text itself is left exactly as it is, so a list of
         // near-identical names says why each one is there.
-        if let highlight, !highlight.isEmpty, let range = name.range(of: highlight, options: [.caseInsensitive, .diacriticInsensitive]) {
+        if let highlight, !highlight.isEmpty,
+           let range = name.range(of: highlight, options: [.caseInsensitive, .diacriticInsensitive]) {
             let text = NSMutableAttributedString(string: name, attributes: [.foregroundColor: nameColor])
             text.addAttribute(.foregroundColor, value: UIColor.tintColor, range: NSRange(range, in: name))
             nameLabel.attributedText = text
@@ -226,7 +234,8 @@ final class IconRowCell: UICollectionViewListCell {
         let image = FilePresentation.image(for: node)
         configure(
             name: presentation?.name ?? node.name,
-            detail: presentation.map { [$0.detail, node.name].compactMap { $0 }.joined(separator: " · ") } ?? Self.detail(for: node),
+            detail: presentation.map { [$0.detail, node.name].compactMap { $0 }.joined(separator: " · ") }
+                ?? Self.detail(for: node),
             image: image,
             nameColor: presentation == nil ? .label : .systemBrown
         )

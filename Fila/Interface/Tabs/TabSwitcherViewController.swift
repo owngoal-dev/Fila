@@ -45,7 +45,12 @@ final class TabSwitcherViewController: UIViewController {
         buildDataSource()
         apply(animated: false)
         collectionView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(reorder(_:))))
-        NotificationCenter.default.addObserver(self, selector: #selector(tabsChanged), name: .filaTabsChanged, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(tabsChanged),
+            name: .filaTabsChanged,
+            object: nil
+        )
     }
 
     private static func makeLayout() -> UICollectionViewLayout {
@@ -53,9 +58,12 @@ final class TabSwitcherViewController: UIViewController {
             let inset = FilaUI.Spacing.large
             let spacing = FilaUI.Spacing.medium
             let width = max(1, environment.container.effectiveContentSize.width - 2 * inset)
-            let minimum: CGFloat = environment.traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 280 : 160
+            let minimum: CGFloat = environment.traitCollection.preferredContentSizeCategory
+                .isAccessibilityCategory ? 280 : 160
             let columns = max(1, Int((width + spacing) / (minimum + spacing)))
-            let item = NSCollectionLayoutItem(layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230)))
+            let item = NSCollectionLayoutItem(
+                layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230))
+            )
             let group = NSCollectionLayoutGroup.horizontal(
                 layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230)),
                 subitem: item,
@@ -90,9 +98,12 @@ final class TabSwitcherViewController: UIViewController {
     }
 
     private func buildBars() {
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), primaryAction: UIAction { [weak self] _ in
-            self?.content?.showCurrentTab()
-        })
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "xmark"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.content?.showCurrentTab()
+            }
+        )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
         // A new tab starts somewhere chosen: the plus offers the same folders
         // the sidebar does, and the tab opens and is shown at once.
@@ -104,9 +115,12 @@ final class TabSwitcherViewController: UIViewController {
             self?.shell?.closeAllTabs()
         })
         closeAll.tintColor = .systemRed
-        let settings = UIBarButtonItem(image: UIImage(systemName: "gearshape"), primaryAction: UIAction { [weak self] _ in
-            self?.shell?.presentSettings()
-        }).then {
+        let settings = UIBarButtonItem(
+            image: UIImage(systemName: "gearshape"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.shell?.presentSettings()
+            }
+        ).then {
             $0.accessibilityLabel = String(localized: "Settings")
         }
         let places = UIBarButtonItem(image: UIImage(systemName: "bookmark"), primaryAction: UIAction { [weak self] _ in
@@ -128,7 +142,12 @@ final class TabSwitcherViewController: UIViewController {
     private func newTabMenuElements() -> [UIMenuElement] {
         let full = BrowserTabStore.shared.isFull
         func open(_ path: String, title: String, image: UIImage?, subtitle: String? = nil) -> UIAction {
-            UIAction(title: title, subtitle: subtitle, image: image, attributes: full ? .disabled : []) { [weak self] _ in
+            UIAction(
+                title: title,
+                subtitle: subtitle,
+                image: image,
+                attributes: full ? .disabled : []
+            ) { [weak self] _ in
                 self?.shell?.openInNewTab(path)
             }
         }
@@ -142,8 +161,12 @@ final class TabSwitcherViewController: UIViewController {
             }
             return open(place.path, title: place.title, image: image)
         }
-        let favorites = preferences.favorites.map { open($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0) }
-        let recents = preferences.recents.prefix(8).map { open($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0) }
+        let favorites = preferences.favorites.map {
+            open($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
+        }
+        let recents = preferences.recents.prefix(8).map {
+            open($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0)
+        }
         let locations = [
             UIMenu(title: String(localized: "Places"), options: .displayInline, children: places),
             UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
@@ -169,7 +192,8 @@ final class TabSwitcherViewController: UIViewController {
             collectionView.layoutIfNeeded()
             visible = collectionView.bounds.inset(by: collectionView.adjustedContentInset)
         }
-        guard visible.intersects(frame), let cell = collectionView.cellForItem(at: indexPath) as? TabCardCell else { return nil }
+        guard visible.intersects(frame),
+              let cell = collectionView.cellForItem(at: indexPath) as? TabCardCell else { return nil }
         cell.layoutIfNeeded()
         return cell.convert(cell.previewFrame, to: target)
     }
@@ -211,7 +235,9 @@ final class TabSwitcherViewController: UIViewController {
     @objc private func reorder(_ gesture: UILongPressGestureRecognizer) {
         switch gesture.state {
         case .began:
-            guard let indexPath = collectionView.indexPathForItem(at: gesture.location(in: collectionView)) else { return }
+            guard let indexPath = collectionView.indexPathForItem(
+                at: gesture.location(in: collectionView)
+            ) else { return }
             collectionView.beginInteractiveMovementForItem(at: indexPath)
         case .changed:
             collectionView.updateInteractiveMovementTargetPosition(gesture.location(in: collectionView))
@@ -258,13 +284,17 @@ private final class TabGridLayout: UICollectionViewCompositionalLayout {
         deleted = []
     }
 
-    override func initialLayoutAttributesForAppearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    override func initialLayoutAttributesForAppearingItem(
+        at itemIndexPath: IndexPath
+    ) -> UICollectionViewLayoutAttributes? {
         let attributes = super.initialLayoutAttributesForAppearingItem(at: itemIndexPath)
         if inserted.contains(itemIndexPath) { Self.recede(attributes) }
         return attributes
     }
 
-    override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+    override func finalLayoutAttributesForDisappearingItem(
+        at itemIndexPath: IndexPath
+    ) -> UICollectionViewLayoutAttributes? {
         let attributes = super.finalLayoutAttributesForDisappearingItem(at: itemIndexPath)
         if deleted.contains(itemIndexPath) { Self.recede(attributes) }
         return attributes
@@ -311,7 +341,12 @@ private final class TabCardCell: UICollectionViewCell {
             $0.alignment = .center
             $0.spacing = FilaUI.Spacing.compact
             $0.isLayoutMarginsRelativeArrangement = true
-            $0.directionalLayoutMargins = .init(top: FilaUI.Spacing.small, leading: FilaUI.Spacing.medium, bottom: FilaUI.Spacing.small, trailing: FilaUI.Spacing.compact)
+            $0.directionalLayoutMargins = .init(
+                top: FilaUI.Spacing.small,
+                leading: FilaUI.Spacing.medium,
+                bottom: FilaUI.Spacing.small,
+                trailing: FilaUI.Spacing.compact
+            )
         }
 
         imageView.do {
@@ -366,7 +401,8 @@ private final class TabCardCell: UICollectionViewCell {
     private func updateBorder() {
         let current = accessibilityTraits.contains(.selected)
         contentView.layer.borderWidth = current ? 2 : 1
-        contentView.layer.borderColor = (current ? tintColor : UIColor.separator).resolvedColor(with: traitCollection).cgColor
+        contentView.layer.borderColor = (current ? tintColor : UIColor.separator)
+            .resolvedColor(with: traitCollection).cgColor
     }
 
     @objc private func close() { onClose?() }

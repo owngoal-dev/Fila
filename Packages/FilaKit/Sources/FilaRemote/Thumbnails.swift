@@ -27,7 +27,13 @@ extension WebDAVHandler {
         return nil
     }
 
-    func thumbnail(path: String, side: Int, node: FileNode, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
+    func thumbnail(
+        path: String,
+        side: Int,
+        node: FileNode,
+        on http: HTTPConnection,
+        includeBody: Bool
+    ) async throws -> Int {
         guard let png = await Thumbnailer.png(for: path, side: side) else {
             try await respond(http, 404)
             return 404
@@ -54,7 +60,9 @@ enum Thumbnailer {
             scale: 1,
             representationTypes: .thumbnail
         )
-        guard let representation = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request) else {
+        guard
+            let representation = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
+        else {
             return nil
         }
         let data = NSMutableData()

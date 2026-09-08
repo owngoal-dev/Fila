@@ -87,11 +87,18 @@ final class ClipboardViewController: UIViewController {
         self.clipboard = clipboard
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Clipboard")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
-            UIAction(title: String(localized: "Clear"), image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
-                self?.confirmClear()
-            },
-        ]))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis"),
+            menu: UIMenu(children: [
+                UIAction(
+                    title: String(localized: "Clear"),
+                    image: UIImage(systemName: "trash"),
+                    attributes: .destructive
+                ) { [weak self] _ in
+                    self?.confirmClear()
+                },
+            ])
+        )
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
     }
 
@@ -279,13 +286,13 @@ final class ClipboardViewController: UIViewController {
 
     private func confirmClear() {
         let alert = AlertViewController(
-            title: "Clear Clipboard?",
-            message: "Your files stay where they are. You will have nothing left to paste."
+            title: String.LocalizationValue("Clear Clipboard?"),
+            message: String.LocalizationValue("Your files stay where they are. You will have nothing left to paste.")
         ) { [weak self] context in
-            context.addAction(title: "Cancel") {
+            context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
             }
-            context.addAction(title: "Clear", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("Clear"), attribute: .accent) {
                 context.dispose {
                     self?.clipboard.clear()
                     self?.reload()
@@ -322,10 +329,14 @@ final class ClipboardViewController: UIViewController {
         guard !paths.isEmpty else { return nil }
         guard !missingPaths.isEmpty else { return nil }
         guard missingPaths.count > 1 else {
-            return String(localized: "One of these items no longer exists. Remove it from the clipboard before pasting.")
+            return String(
+                localized: "One of these items no longer exists. Remove it from the clipboard before pasting."
+            )
         }
         return String(
-            format: String(localized: "%lld of these items no longer exist. Remove them from the clipboard before pasting."),
+            format: String(
+                localized: "%lld of these items no longer exist. Remove them from the clipboard before pasting."
+            ),
             Int64(missingPaths.count)
         )
     }
@@ -374,7 +385,10 @@ extension ClipboardViewController: UITableViewDelegate {
         // "Remove", never "Delete": this takes the path off the clipboard and
         // touches nothing on disk, and a red Delete on a file manager's screen
         // had better mean the other thing.
-        let action = UIContextualAction(style: .destructive, title: String(localized: "Remove")) { [weak self] _, _, done in
+        let action = UIContextualAction(
+            style: .destructive,
+            title: String(localized: "Remove")
+        ) { [weak self] _, _, done in
             self?.remove(path)
             done(true)
         }

@@ -26,7 +26,11 @@ extension OperationCenter {
         }
     }
 
-    private func locate(_ origins: [String], identity: UUID, inTrashOf mountPoint: String) async throws -> [String: String] {
+    private func locate(
+        _ origins: [String],
+        identity: UUID,
+        inTrashOf mountPoint: String
+    ) async throws -> [String: String] {
         guard let backend = session.hello?.backend else { return [:] }
         let directory = SidebarLocation.trashDirectory(backend: backend, volume: mountPoint)
         let wanted = Set(origins)
@@ -81,7 +85,12 @@ extension OperationCenter {
 
     private func restore(_ path: String, to original: String, identity: UUID? = nil) async throws {
         let outcome = try await awaitJob(
-            JobRequest(kind: .restore, sources: [path], destination: (original as NSString).deletingLastPathComponent, trashID: identity),
+            JobRequest(
+                kind: .restore,
+                sources: [path],
+                destination: (original as NSString).deletingLastPathComponent,
+                trashID: identity
+            ),
             kind: .move,
             subtitle: Self.describe([path], destination: original),
             feedback: .silent

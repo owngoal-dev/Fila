@@ -76,7 +76,10 @@ extension MusicLibraryEditor {
             // No library record refers to this file unless the native call
             // returned success. Cleanup waits for the backend's final verdict.
             do {
-                let result = try await center.awaitJob(JobRequest(kind: .delete, sources: [destination]), kind: .delete, subtitle: name, feedback: .silent)
+                let result = try await center.awaitJob(
+                    JobRequest(kind: .delete, sources: [destination]),
+                    kind: .delete, subtitle: name, feedback: .silent
+                )
                 if result.code != .success, result.systemError != ENOENT { throw result }
             } catch { FilaLog.error("Music import cleanup failed at \(destination): \(error)") }
             throw error

@@ -22,7 +22,10 @@ public final class TerminalOutputViewController: UIViewController {
     /// Original lines, without terminal styling or display-width wrapping.
     private var transcript = ""
     private let grid = Grid()
-    private lazy var session = InMemoryTerminalSession(write: { _ in }, resize: { [grid] in grid.columns = Int($0.columns) })
+    private lazy var session = InMemoryTerminalSession(
+        write: { _ in },
+        resize: { [grid] in grid.columns = Int($0.columns) }
+    )
     /// The cursor column after the last `append`, so a line appended after a
     /// tag wraps with a hanging indent under its text rather than at column 0.
     private var column = 0
@@ -122,7 +125,8 @@ public final class TerminalOutputViewController: UIViewController {
     private func render(_ clean: String, style: TextStyle) {
         loadViewIfNeeded()
         navigationItem.rightBarButtonItem?.isEnabled = !transcript.isEmpty
-        column = clean.lastIndex(of: "\n").map { clean.distance(from: clean.index(after: $0), to: clean.endIndex) } ?? column + clean.count
+        column = clean.lastIndex(of: "\n")
+            .map { clean.distance(from: clean.index(after: $0), to: clean.endIndex) } ?? column + clean.count
         let body = clean.replacingOccurrences(of: "\n", with: "\r\n")
         session.receive(style == .plain ? body : "\u{1B}[\(style.rawValue)m" + body + "\u{1B}[0m")
     }

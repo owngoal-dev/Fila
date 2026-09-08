@@ -10,7 +10,7 @@ enum PermanentDeleteConfirmation {
         defer { AlertControllerConfiguration.accentColor = accent }
         let alert = AlertViewController(title: title, message: message) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "Cancel") { context.dispose() }
+            context.addAction(title: String.LocalizationValue("Cancel")) { context.dispose() }
             context.addAction(title: confirmTitle, attribute: .accent) {
                 context.dispose { confirm() }
             }

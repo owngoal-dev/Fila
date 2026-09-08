@@ -4,7 +4,11 @@ import Foundation
 import LibArchive
 
 extension ArchiveFormat {
-    fileprivate func configure(_ handle: OpaquePointer, zipCompression: ZipCompression, encryption: ZipEncryption?) -> Int32 {
+    fileprivate func configure(
+        _ handle: OpaquePointer,
+        zipCompression: ZipCompression,
+        encryption: ZipEncryption?
+    ) -> Int32 {
         if self == .zip {
             let status = archive_write_set_format_zip(handle)
             guard status == ARCHIVE_OK else { return status }
@@ -105,17 +109,29 @@ public final class ArchiveWriter: @unchecked Sendable {
         guard let handle = archive_write_new() else { throw FormatFailure.system(errno: ENOMEM) }
         let output = ArchiveOutput(descriptor: descriptor)
         do {
-            let configuration = format.configure(handle, zipCompression: zipCompression, encryption: password == nil ? nil : encryption)
+            let configuration = format.configure(
+                handle,
+                zipCompression: zipCompression,
+                encryption: password == nil ? nil : encryption
+            )
             guard configuration == ARCHIVE_OK else {
-                throw FormatFailure.damaged(archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created")
+                throw FormatFailure.damaged(
+                    archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created"
+                )
             }
             try Self.check(handle, archive_write_set_bytes_in_last_block(handle, 1))
             if let password { try Self.check(handle, archive_write_set_passphrase(handle, password)) }
-            try Self.check(handle, archive_write_open(handle, Unmanaged.passUnretained(output).toOpaque(), nil, { _, context, buffer, count in
-                guard let context, let buffer else { return -1 }
-                return Unmanaged<ArchiveOutput>.fromOpaque(context).takeUnretainedValue()
-                    .write(buffer, count: count)
-            }, nil), output: output)
+            try Self.check(handle, archive_write_open(
+                handle,
+                Unmanaged.passUnretained(output).toOpaque(),
+                nil,
+                { _, context, buffer, count in
+                    guard let context, let buffer else { return -1 }
+                    return Unmanaged<ArchiveOutput>.fromOpaque(context).takeUnretainedValue()
+                        .write(buffer, count: count)
+                },
+                nil
+            ), output: output)
         } catch {
             _ = withExtendedLifetime(output) { archive_write_free(handle) }
             throw error
@@ -131,7 +147,15 @@ public final class ArchiveWriter: @unchecked Sendable {
     deinit { _ = withExtendedLifetime(output) { archive_write_free(handle) } }
 
     public func addDirectory(_ path: String, mode: mode_t = 0o755, modified: Date = Date()) throws {
-        try append(path, filetype: S_IFDIR, mode: mode, modified: modified, byteCount: 0, linkTarget: nil, progress: nil) { nil }
+        try append(
+            path,
+            filetype: S_IFDIR,
+            mode: mode,
+            modified: modified,
+            byteCount: 0,
+            linkTarget: nil,
+            progress: nil
+        ) { nil }
     }
 
     public func addSymbolicLink(
@@ -140,14 +164,30 @@ public final class ArchiveWriter: @unchecked Sendable {
         mode: mode_t = 0o777,
         modified: Date = Date()
     ) throws {
-        try append(path, filetype: S_IFLNK, mode: mode, modified: modified, byteCount: 0, linkTarget: target, progress: nil) { nil }
+        try append(
+            path,
+            filetype: S_IFLNK,
+            mode: mode,
+            modified: modified,
+            byteCount: 0,
+            linkTarget: target,
+            progress: nil
+        ) { nil }
     }
 
     /// For content already in memory and known to be small — a symlink target,
     /// a `control` file. Anything on disk goes through `addFile`.
     public func addData(_ path: String, _ data: Data, mode: mode_t = 0o644, modified: Date = Date()) throws {
         var sent = false
-        try append(path, filetype: S_IFREG, mode: mode, modified: modified, byteCount: Int64(data.count), linkTarget: nil, progress: nil) {
+        try append(
+            path,
+            filetype: S_IFREG,
+            mode: mode,
+            modified: modified,
+            byteCount: Int64(data.count),
+            linkTarget: nil,
+            progress: nil
+        ) {
             defer { sent = true }
             return sent ? nil : data
         }
@@ -236,7 +276,9 @@ public final class ArchiveWriter: @unchecked Sendable {
                 var sent = 0
                 while sent < raw.count {
                     let put = archive_write_data(handle, base.advanced(by: sent), raw.count - sent)
-                    guard put > 0 else { throw output.failure.map { FormatFailure.system(errno: $0) } ?? archiveFailure(handle) }
+                    guard put > 0 else {
+                        throw output.failure.map { FormatFailure.system(errno: $0) } ?? archiveFailure(handle)
+                    }
                     sent += put
                 }
             }

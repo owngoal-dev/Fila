@@ -57,7 +57,9 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
                     let staging = try await session.makeTemporaryDirectory()
                     do {
                         let file = try await prepareImport { try await prepare(index, staging) }
-                        let outcome = try await performTransfer(JobRequest(kind: .copy, sources: [file.path], destination: directory))
+                        let outcome = try await performTransfer(
+                            JobRequest(kind: .copy, sources: [file.path], destination: directory)
+                        )
                         if outcome.code != .success { throw outcome }
                     } catch {
                         try FileManager.default.removeItem(at: staging)
@@ -72,9 +74,12 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
                     FeedbackAlert.show(String(localized: "Import Failed"), message: message)
                     return
                 }
-                let alert = AlertViewController(title: "Import Failed", message: message) { context in
+                let alert = AlertViewController(
+                    title: String(localized: "Import Failed"),
+                    message: message
+                ) { context in
                     context.allowSimpleDispose()
-                    context.addAction(title: "OK", attribute: .accent) { context.dispose() }
+                    context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) { context.dispose() }
                 }
                 present(alert, animated: true)
             }
@@ -83,7 +88,8 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
 
     private func prepareImport(_ body: () async throws -> URL) async throws -> URL {
         let progress = AlertProgressIndicatorViewController(
-            title: "Preparing…", message: "Loading the selected file for import."
+            title: String.LocalizationValue("Preparing…"),
+            message: String.LocalizationValue("Loading the selected file for import.")
         )
         let reveal = Task { @MainActor in
             do { try await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000)) }

@@ -129,7 +129,9 @@ extension PropertyListValue {
         case let value as [Any]:
             self = .array(value.map(PropertyListValue.init))
         case let value as [String: Any]:
-            self = .dictionary(value.sorted { $0.key < $1.key }.map { (key: $0.key, value: PropertyListValue($0.value)) })
+            self = .dictionary(
+                value.sorted { $0.key < $1.key }.map { (key: $0.key, value: PropertyListValue($0.value)) }
+            )
         default:
             self = .readOnly(Self.readOnlySummary(object))
         }
@@ -139,7 +141,8 @@ extension PropertyListValue {
     /// integer. Read that display value only; never instantiate archived objects
     /// or turn this presentation form into a writable replacement value.
     private static func readOnlySummary(_ object: Any) -> String {
-        guard let data = try? PropertyListSerialization.data(fromPropertyList: ["value": object], format: .xml, options: 0),
+        guard let data = try? PropertyListSerialization
+            .data(fromPropertyList: ["value": object], format: .xml, options: 0),
               let xml = String(data: data, encoding: .utf8),
               let key = xml.range(of: "<key>CF$UID</key>"),
               let start = xml.range(of: "<integer>", range: key.upperBound ..< xml.endIndex),

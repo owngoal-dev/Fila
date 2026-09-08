@@ -85,7 +85,9 @@ public enum ArchivePath {
     /// Remove the compound tar suffix as one format, preserving dots in names.
     public static func extractionFolderName(for name: String) -> String {
         let file = (name as NSString).lastPathComponent
-        let suffixes = [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.zstd", ".tar.lzma", ".tar.lz4", ".tar.lz", ".tar.Z"]
+        let suffixes = [
+            ".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.zstd", ".tar.lzma", ".tar.lz4", ".tar.lz", ".tar.Z"
+        ]
         if let suffix = suffixes.first(where: { file.lowercased().hasSuffix($0.lowercased()) }) {
             return String(file.dropLast(suffix.count))
         }
@@ -289,7 +291,11 @@ public final class ArchiveReader: @unchecked Sendable {
     /// writing — in the app, that is one `filad` handed back for a single path
     /// it had already checked.
     @discardableResult
-    public func read(into destination: Int32, maximumByteCount: Int64 = .max, progress: ProgressHandler? = nil) throws -> Int64 {
+    public func read(
+        into destination: Int32,
+        maximumByteCount: Int64 = .max,
+        progress: ProgressHandler? = nil
+    ) throws -> Int64 {
         if let size = currentByteCount, size > maximumByteCount {
             throw FormatFailure.tooLarge(byteCount: size, limit: maximumByteCount)
         }
@@ -355,9 +361,14 @@ public final class ArchiveReader: @unchecked Sendable {
         var entries: [ArchiveEntry] = []
         var remainingBytes = maximumListingByteCount
         while entries.count < maximumEntryCount, let entry = try reader.next() {
-            let bytes = entry.declaredPath.utf8.count + (entry.linkTarget?.utf8.count ?? 0) + (entry.hardLinkTarget?.utf8.count ?? 0)
+            let bytes = entry.declaredPath.utf8.count
+                + (entry.linkTarget?.utf8.count ?? 0)
+                + (entry.hardLinkTarget?.utf8.count ?? 0)
             guard bytes <= remainingBytes else {
-                throw FormatFailure.tooLarge(byteCount: Int64(maximumListingByteCount) + 1, limit: Int64(maximumListingByteCount))
+                throw FormatFailure.tooLarge(
+                    byteCount: Int64(maximumListingByteCount) + 1,
+                    limit: Int64(maximumListingByteCount)
+                )
             }
             remainingBytes -= bytes
             entries.append(entry)
@@ -409,7 +420,8 @@ public final class ArchiveReader: @unchecked Sendable {
                 ? Date(timeIntervalSince1970: Double(archive_entry_mtime(entry)))
                 : nil,
             linkTarget: Self.string(archive_entry_symlink_utf8(entry)) ?? Self.string(archive_entry_symlink(entry)),
-            hardLinkTarget: Self.string(archive_entry_hardlink_utf8(entry)) ?? Self.string(archive_entry_hardlink(entry)),
+            hardLinkTarget: Self.string(archive_entry_hardlink_utf8(entry))
+                ?? Self.string(archive_entry_hardlink(entry)),
             isEncrypted: archive_entry_is_data_encrypted(entry) != 0
         )
     }
@@ -447,7 +459,8 @@ public final class ArchiveReader: @unchecked Sendable {
 
     private static func strippingCompressionSuffix(_ name: String) -> String {
         let lowered = name.lowercased()
-        for suffix in [".gz", ".bz2", ".xz", ".lzma", ".zst", ".lz4", ".Z"] where lowered.hasSuffix(suffix.lowercased()) {
+        for suffix in [".gz", ".bz2", ".xz", ".lzma", ".zst", ".lz4", ".Z"]
+            where lowered.hasSuffix(suffix.lowercased()) {
             return String(name.dropLast(suffix.count))
         }
         return name

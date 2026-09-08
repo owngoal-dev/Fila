@@ -33,7 +33,9 @@ enum FileImport {
                     guard let url else { throw FilaFailure(errno: EIO) }
                     var name = suggestedName ?? url.lastPathComponent
                     if (name as NSString).pathExtension.isEmpty {
-                        let suffix = url.pathExtension.isEmpty ? UTType(identifier)?.preferredFilenameExtension : url.pathExtension
+                        let suffix = url.pathExtension.isEmpty
+                            ? UTType(identifier)?.preferredFilenameExtension
+                            : url.pathExtension
                         if let suffix, !suffix.isEmpty { name += "." + suffix }
                     }
                     // The provider deletes its URL when this callback returns.

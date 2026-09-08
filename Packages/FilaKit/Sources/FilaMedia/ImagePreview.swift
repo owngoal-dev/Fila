@@ -8,7 +8,10 @@ import ImageIO
 public enum ImagePreview {
     public static func make(data: Data) -> CGImage? {
         guard data.count <= PreviewLimits.fileByteCount,
-              let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary)
+              let source = CGImageSourceCreateWithData(
+                  data as CFData,
+                  [kCGImageSourceShouldCache: false] as CFDictionary
+              )
         else { return nil }
         guard hasSupportedDimensions(source) else { return nil }
         return CGImageSourceCreateThumbnailAtIndex(source, 0, [

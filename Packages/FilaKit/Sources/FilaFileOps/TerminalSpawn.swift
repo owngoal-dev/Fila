@@ -7,15 +7,28 @@ import Foundation
 /// Starts a terminal session through the daemon’s internal session-holder mode.
 enum TerminalSpawn {
     private static let ptyAllocationLock = NSLock()
-    static func run(_ plan: TerminalPlan, sessionHolder: String, columns: UInt16, rows: UInt16) throws -> TerminalLaunch {
+    static func run(
+        _ plan: TerminalPlan,
+        sessionHolder: String,
+        columns: UInt16,
+        rows: UInt16
+    ) throws -> TerminalLaunch {
         func checked(_ error: Int32) throws {
-            guard error == 0 else { throw FilaFailure(code: .operationFailed, systemError: error, path: plan.executable) }
+            guard error == 0 else {
+                throw FilaFailure(code: .operationFailed, systemError: error, path: plan.executable)
+            }
         }
         // A session holder establishes the controlling terminal and credentials,
         // then uses an ordinary posix_spawn for the program. Neither process
         // forks or replaces itself; the holder remains waitable until cleanup.
-        let arguments = [sessionHolder, "--terminal-session", plan.credential.map { String($0.uid) } ?? "-",
-                         String(plan.credential?.gid ?? 0), plan.workingDirectory ?? "/", plan.executable] + plan.arguments
+        let arguments = [
+            sessionHolder,
+            "--terminal-session",
+            plan.credential.map { String($0.uid) } ?? "-",
+            String(plan.credential?.gid ?? 0),
+            plan.workingDirectory ?? "/",
+            plan.executable
+        ] + plan.arguments
         let argv = CStringArray(arguments)
         let envp = CStringArray(plan.environment.map { "\($0.key)=\($0.value)" }.sorted())
         defer { argv.deallocate(); envp.deallocate() }
@@ -61,7 +74,10 @@ enum TerminalSpawn {
         sigemptyset(&mask)
         try checked(posix_spawnattr_setsigdefault(&attributes, &defaults))
         try checked(posix_spawnattr_setsigmask(&attributes, &mask))
-        try checked(posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_CLOEXEC_DEFAULT | POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK)))
+        try checked(posix_spawnattr_setflags(
+            &attributes,
+            Int16(POSIX_SPAWN_CLOEXEC_DEFAULT | POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK)
+        ))
         var pid: pid_t = -1
         try checked(posix_spawn(&pid, sessionHolder, &actions, &attributes, argv.pointer, envp.pointer))
         close(report[1])

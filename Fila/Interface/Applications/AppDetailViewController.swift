@@ -27,7 +27,12 @@ final class AppDetailViewController: UITableViewController {
         super.init(style: .insetGrouped)
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: String(localized: "Open"), primaryAction: UIAction { _ in
             if !InstalledAppCatalog.open(app) {
-                FeedbackAlert.show(String(localized: "Unable to Open App"), message: String(localized: "iOS could not open this app. It may be unavailable or may not have an interface."))
+                FeedbackAlert.show(
+                    String(localized: "Unable to Open App"),
+                    message: String(
+                        localized: "iOS could not open this app. It may be unavailable or may not have an interface."
+                    )
+                )
             }
         })
     }
@@ -109,7 +114,10 @@ final class AppDetailViewController: UITableViewController {
                     $0.text = location.title
                     $0.image = icon
                     $0.imageProperties.maximumSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
-                    $0.imageProperties.reservedLayoutSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
+                    $0.imageProperties.reservedLayoutSize = CGSize(
+                        width: FilaUI.IconSize.file,
+                        height: FilaUI.IconSize.file
+                    )
                     $0.textProperties.numberOfLines = 0
                 }
                 $0.selectionStyle = .default
@@ -122,12 +130,19 @@ final class AppDetailViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard indexPath.section >= 2 else { return }
-        navigationController?.pushViewController(BrowserViewController(directory: app.locations[indexPath.section - 2].path), animated: true)
+        navigationController?.pushViewController(
+            BrowserViewController(directory: app.locations[indexPath.section - 2].path),
+            animated: true
+        )
     }
 
     /// Every row's fact is copyable; the identifier and the paths are what
     /// people came to fetch.
-    override func tableView(_: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+    override func tableView(
+        _: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point _: CGPoint
+    ) -> UIContextMenuConfiguration? {
         let (title, text): (String, String) = switch Section(rawValue: indexPath.section) {
         case .header: (String(localized: "Copy Bundle Identifier"), app.bundleIdentifier)
         case .details: (String(localized: "Copy"), app.details[indexPath.row].value)

@@ -149,7 +149,8 @@ final class AppPreferences {
 
     var presetOrder: [SidebarLocation.Position] {
         get {
-            let saved = (defaults.array(forKey: "presetOrder") as? [Int] ?? []).compactMap(SidebarLocation.Position.init(rawValue:))
+            let saved = (defaults.array(forKey: "presetOrder") as? [Int] ?? [])
+                .compactMap(SidebarLocation.Position.init(rawValue:))
             var seen = Set<SidebarLocation.Position>()
             return (saved + SidebarLocation.Position.allCases).filter { seen.insert($0).inserted }
         }
@@ -285,7 +286,12 @@ final class AppPreferences {
     }
 
     static var defaultServerRoot: String {
-        (try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).path)
+        (try? FileManager.default.url(
+            for: .documentDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ).path)
             ?? NSHomeDirectory() + "/Documents"
     }
 

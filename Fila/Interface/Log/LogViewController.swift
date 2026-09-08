@@ -156,7 +156,10 @@ final class LogViewController: UIViewController {
     private func makeLayout() -> UICollectionViewLayout {
         rowHeight = LogRowCell.height()
         let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(rowHeight))
-        let group = NSCollectionLayoutGroup.vertical(layoutSize: size, subitems: [NSCollectionLayoutItem(layoutSize: size)])
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: size,
+            subitems: [NSCollectionLayoutItem(layoutSize: size)]
+        )
         return UICollectionViewCompositionalLayout(section: NSCollectionLayoutSection(group: group))
     }
 
@@ -164,7 +167,9 @@ final class LogViewController: UIViewController {
         let cell = UICollectionView.CellRegistration<LogRowCell, FilaLog.Record> { cell, _, record in
             cell.show(record)
         }
-        dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, record in
+        dataSource = UICollectionViewDiffableDataSource(
+            collectionView: collectionView
+        ) { collection, indexPath, record in
             collection.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: record)
         }
     }
@@ -431,7 +436,8 @@ extension LogViewController: UICollectionViewDelegate {
         // Within a row of the bottom counts as at the bottom: a rubber-band
         // bounce must not silently turn following off.
         guard scrollView.isDragging || scrollView.isDecelerating else { return }
-        let distance = scrollView.contentSize.height + scrollView.adjustedContentInset.bottom - scrollView.bounds.height - scrollView.contentOffset.y
+        let distance = scrollView.contentSize.height + scrollView.adjustedContentInset.bottom
+            - scrollView.bounds.height - scrollView.contentOffset.y
         isFollowing = distance <= rowHeight
     }
 

@@ -17,7 +17,13 @@ final class SaveDestinationViewController: UIViewController {
         let fileTypes: Set<String>?
         let confirm: (URL) -> Void
 
-        init(folderName: String?, message: String?, picksFiles: Bool, fileTypes: Set<String>? = nil, confirm: @escaping (URL) -> Void) {
+        init(
+            folderName: String?,
+            message: String?,
+            picksFiles: Bool,
+            fileTypes: Set<String>? = nil,
+            confirm: @escaping (URL) -> Void
+        ) {
             self.folderName = folderName
             self.message = message
             self.picksFiles = picksFiles
@@ -34,22 +40,38 @@ final class SaveDestinationViewController: UIViewController {
     private let pathBar = PathBarView()
     private let list = UICollectionView(
         frame: .zero,
-        collectionViewLayout: UICollectionViewCompositionalLayout.list(using: UICollectionLayoutListConfiguration(appearance: .plain))
+        collectionViewLayout: UICollectionViewCompositionalLayout.list(
+            using: UICollectionLayoutListConfiguration(appearance: .plain)
+        )
     )
-    private let rowCell = UICollectionView.CellRegistration<IconRowCell, FileNode> { cell, _, node in cell.configure(node) }
+    private let rowCell = UICollectionView.CellRegistration<IconRowCell, FileNode> { cell, _, node in
+        cell.configure(node)
+    }
     private let nameField = UITextField()
     private var folders: [FileNode] = []
     private var work: Task<Void, Never>?
     private var availability: Availability = .unavailable
 
     private lazy var cancelItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(cancel))
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "xmark"),
+            style: .plain,
+            target: self,
+            action: #selector(cancel)
+        )
         item.accessibilityLabel = String(localized: "Cancel")
         return item
     }()
     private lazy var confirmItem: UIBarButtonItem = {
-        let item = UIBarButtonItem(image: UIImage(systemName: "checkmark"), style: .done, target: self, action: #selector(commit))
-        item.accessibilityLabel = selection.picksFiles ? String(localized: "Choose This Folder") : String(localized: "Save Here")
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "checkmark"),
+            style: .done,
+            target: self,
+            action: #selector(commit)
+        )
+        item.accessibilityLabel = selection.picksFiles
+            ? String(localized: "Choose This Folder")
+            : String(localized: "Save Here")
         return item
     }()
     private lazy var menuItem: UIBarButtonItem = {
@@ -58,8 +80,27 @@ final class SaveDestinationViewController: UIViewController {
         return item
     }()
 
-    convenience init(directory: URL, folderName: String? = nil, message: String? = nil, picksFiles: Bool = false, fileTypes: Set<String>? = nil, link: DaemonLink, confirm: @escaping (URL) -> Void) {
-        self.init(directory: directory, link: link, selection: Selection(folderName: folderName, message: message, picksFiles: picksFiles || fileTypes != nil, fileTypes: fileTypes, confirm: confirm), isRoot: true)
+    convenience init(
+        directory: URL,
+        folderName: String? = nil,
+        message: String? = nil,
+        picksFiles: Bool = false,
+        fileTypes: Set<String>? = nil,
+        link: DaemonLink,
+        confirm: @escaping (URL) -> Void
+    ) {
+        self.init(
+            directory: directory,
+            link: link,
+            selection: Selection(
+                folderName: folderName,
+                message: message,
+                picksFiles: picksFiles || fileTypes != nil,
+                fileTypes: fileTypes,
+                confirm: confirm
+            ),
+            isRoot: true
+        )
     }
 
     private init(directory: URL, link: DaemonLink, selection: Selection, isRoot: Bool = false) {
@@ -101,7 +142,12 @@ final class SaveDestinationViewController: UIViewController {
                 $0.axis = .vertical
                 $0.spacing = FilaUI.Spacing.small
                 $0.isLayoutMarginsRelativeArrangement = true
-                $0.directionalLayoutMargins = .init(top: FilaUI.Spacing.medium, leading: FilaUI.Spacing.large, bottom: FilaUI.Spacing.medium, trailing: FilaUI.Spacing.large)
+                $0.directionalLayoutMargins = .init(
+                    top: FilaUI.Spacing.medium,
+                    leading: FilaUI.Spacing.large,
+                    bottom: FilaUI.Spacing.medium,
+                    trailing: FilaUI.Spacing.large
+                )
                 $0.backgroundColor = .secondarySystemBackground
             }
             if selection.folderName != nil {
@@ -165,12 +211,23 @@ final class SaveDestinationViewController: UIViewController {
         cancelItem.isEnabled = availability != .creatingFolder
         menuItem.isEnabled = availability != .creatingFolder
         menuItem.menu = UIMenu(children: FilaMenu.groups([
-            UIAction(title: String(localized: "New Folder"), image: UIImage(systemName: "folder.badge.plus"), attributes: availability == .ready ? [] : .disabled) { [weak self] _ in
+            UIAction(
+                title: String(localized: "New Folder"),
+                image: UIImage(systemName: "folder.badge.plus"),
+                attributes: availability == .ready ? [] : .disabled
+            ) { [weak self] _ in
                 self?.promptNewFolder()
             },
-            UIAction(title: String(localized: "Refresh"), image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in self?.load() },
+            UIAction(
+                title: String(localized: "Refresh"),
+                image: UIImage(systemName: "arrow.clockwise")
+            ) { [weak self] _ in
+                self?.load()
+            },
         ], [
-            UIAction(title: String(localized: "Cancel"), image: UIImage(systemName: "xmark")) { [weak self] _ in self?.cancel() },
+            UIAction(title: String(localized: "Cancel"), image: UIImage(systemName: "xmark")) { [weak self] _ in
+                self?.cancel()
+            },
         ]))
         navigationItem.rightBarButtonItems = selection.fileTypes == nil ? [confirmItem, menuItem] : [menuItem]
         navigationItem.hidesBackButton = availability == .creatingFolder
@@ -202,12 +259,15 @@ final class SaveDestinationViewController: UIViewController {
                     self.folders.append(contentsOf: page.entries.filter { node in
                         if node.isNavigable { return true }
                         if let types = self.selection.fileTypes {
-                            return node.kind == .regular && types.contains((node.name as NSString).pathExtension.lowercased())
+                            return node.kind == .regular
+                                && types.contains((node.name as NSString).pathExtension.lowercased())
                         }
                         return picksFiles
                     })
                     self.folders.sort {
-                        $0.isNavigable != $1.isNavigable ? $0.isNavigable : $0.name.localizedStandardCompare($1.name) == .orderedAscending
+                        $0.isNavigable != $1.isNavigable
+                            ? $0.isNavigable
+                            : $0.name.localizedStandardCompare($1.name) == .orderedAscending
                     }
                     self.list.reloadData()
                     self.availability = .ready
@@ -215,7 +275,9 @@ final class SaveDestinationViewController: UIViewController {
                     else if page.cursor == 0 {
                         let title: String
                         if self.selection.fileTypes != nil { title = String(localized: "No Audio Files") }
-                        else { title = picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders") }
+                        else {
+                            title = picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
+                        }
                         self.list.backgroundView = StatusView(content: .message(
                             symbol: "folder", title: title
                         ))
@@ -228,7 +290,11 @@ final class SaveDestinationViewController: UIViewController {
                 self.availability = .unavailable
                 self.folders = []
                 self.list.reloadData()
-                self.list.backgroundView = StatusView(content: .message(symbol: "exclamationmark.triangle", title: String(localized: "Unable to Read Folder"), detail: FailureMessage.text(for: error)))
+                self.list.backgroundView = StatusView(content: .message(
+                    symbol: "exclamationmark.triangle",
+                    title: String(localized: "Unable to Read Folder"),
+                    detail: FailureMessage.text(for: error)
+                ))
                 self.refreshActions()
             }
         }
@@ -237,16 +303,24 @@ final class SaveDestinationViewController: UIViewController {
     private func showAncestor(_ url: URL) {
         view.endEditing(true)
         guard let navigation = navigationController else { return }
-        if let existing = navigation.viewControllers.first(where: { ($0 as? SaveDestinationViewController)?.directory.path == url.path }) {
+        if let existing = navigation.viewControllers.first(where: {
+            ($0 as? SaveDestinationViewController)?.directory.path == url.path
+        }) {
             navigation.popToViewController(existing, animated: true)
         } else {
-            navigation.setViewControllers([SaveDestinationViewController(directory: url, link: link, selection: selection, isRoot: true)], animated: false)
+            navigation.setViewControllers(
+                [SaveDestinationViewController(directory: url, link: link, selection: selection, isRoot: true)],
+                animated: false
+            )
         }
     }
 
     private func open(_ url: URL) {
         view.endEditing(true)
-        navigationController?.pushViewController(SaveDestinationViewController(directory: url, link: link, selection: selection), animated: true)
+        navigationController?.pushViewController(
+            SaveDestinationViewController(directory: url, link: link, selection: selection),
+            animated: true
+        )
     }
 
     @objc private func nameChanged() {
@@ -260,11 +334,11 @@ final class SaveDestinationViewController: UIViewController {
 
     private func promptNewFolder() {
         let alert = AlertInputViewController(
-            title: "New Folder",
-            message: "The folder is created in the current location.",
-            placeholder: "Folder name",
+            title: String.LocalizationValue("New Folder"),
+            message: String.LocalizationValue("The folder is created in the current location."),
+            placeholder: String.LocalizationValue("Folder name"),
             text: "",
-            doneButtonText: "Create"
+            doneButtonText: String.LocalizationValue("Create")
         ) { [weak self] name in
             guard let self else { return }
             guard Self.isValidName(name) else {
@@ -287,7 +361,9 @@ final class SaveDestinationViewController: UIViewController {
                 try await link.create(.directory, at: url.path)
                 guard let self else { return }
                 self.load()
-                if self.viewIfLoaded?.window != nil, self.navigationController?.topViewController === self { self.open(url) }
+                if self.viewIfLoaded?.window != nil, self.navigationController?.topViewController === self {
+                    self.open(url)
+                }
             } catch {
                 guard let self else { return }
                 self.availability = .ready
@@ -298,9 +374,12 @@ final class SaveDestinationViewController: UIViewController {
     }
 
     private func showError(_ message: String) {
-        let alert = AlertViewController(title: "Unable to Create Folder", message: message) { context in
+        let alert = AlertViewController(
+            title: String(localized: "Unable to Create Folder"),
+            message: message
+        ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }
@@ -313,7 +392,8 @@ final class SaveDestinationViewController: UIViewController {
         guard selection.fileTypes == nil, confirmItem.isEnabled else { return }
         confirmItem.isEnabled = false
         work?.cancel()
-        let destination = selection.folderName.map { directory.appendingPathComponent($0, isDirectory: true) } ?? directory
+        let destination = selection.folderName
+            .map { directory.appendingPathComponent($0, isDirectory: true) } ?? directory
         dismiss(animated: true) { [selection] in selection.confirm(destination) }
     }
 }
@@ -321,7 +401,10 @@ final class SaveDestinationViewController: UIViewController {
 extension SaveDestinationViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int { folders.count }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
         collectionView.dequeueConfiguredReusableCell(using: rowCell, for: indexPath, item: folders[indexPath.item])
     }
 

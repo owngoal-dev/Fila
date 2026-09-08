@@ -103,7 +103,11 @@ private final class ActionIndicatorView: SPIndicatorView {
         }
         if let action = item.action {
             accessibilityTraits = .button
-            accessibilityCustomActions = [UIAccessibilityCustomAction(name: action.title, target: self, selector: #selector(activateAction))]
+            accessibilityCustomActions = [UIAccessibilityCustomAction(
+                name: action.title,
+                target: self,
+                selector: #selector(activateAction)
+            )]
             addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapped)))
         }
     }

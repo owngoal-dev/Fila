@@ -16,7 +16,7 @@ extension UIViewController {
             message: Self.failureMessage(for: failure)
         ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }

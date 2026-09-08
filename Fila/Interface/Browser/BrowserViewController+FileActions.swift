@@ -52,7 +52,15 @@ extension BrowserViewController {
             })
         }
 
-        return UIMenu(title: node.name, children: fileActions.menuElements(for: path, node: node, additional: file, preview: { [weak self] in self?.open(node) }))
+        return UIMenu(
+            title: node.name,
+            children: fileActions.menuElements(
+                for: path,
+                node: node,
+                additional: file,
+                preview: { [weak self] in self?.open(node) }
+            )
+        )
     }
 
     /// Takes the trash's place in the folder menu, where New would be. Not
@@ -117,20 +125,39 @@ extension BrowserViewController {
             }
         }
         let view = UIMenu(options: .displayInline, children: [
-            UIMenu(title: String(localized: "View"), image: UIImage(systemName: "square.grid.2x2"), options: .singleSelection, children: layouts),
-            UIMenu(title: String(localized: "Hidden Files"), image: UIImage(systemName: "eye.slash"), options: .singleSelection, children: hidden),
-            UIMenu(title: String(localized: "Sort By"), image: UIImage(systemName: "arrow.up.arrow.down"), children: sortMenuElements()),
+            UIMenu(
+                title: String(localized: "View"),
+                image: UIImage(systemName: "square.grid.2x2"),
+                options: .singleSelection,
+                children: layouts
+            ),
+            UIMenu(
+                title: String(localized: "Hidden Files"),
+                image: UIImage(systemName: "eye.slash"),
+                options: .singleSelection,
+                children: hidden
+            ),
+            UIMenu(
+                title: String(localized: "Sort By"),
+                image: UIImage(systemName: "arrow.up.arrow.down"),
+                children: sortMenuElements()
+            ),
         ])
         let more: [UIMenuElement] = [
             selectAction,
             UIAction(
-                title: preferences.isFavorite(directory) ? String(localized: "Remove from Favorites") : String(localized: "Add to Favorites"),
+                title: preferences.isFavorite(directory)
+                    ? String(localized: "Remove from Favorites")
+                    : String(localized: "Add to Favorites"),
                 image: UIImage(systemName: preferences.isFavorite(directory) ? "star.slash" : "star")
             ) { [weak self] _ in
                 guard let self else { return }
                 AppPreferences.shared.toggleFavorite(self.directory)
             },
-            UIAction(title: String(localized: "Open in New Tab"), image: UIImage(systemName: "plus.square.on.square")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Open in New Tab"),
+                image: UIImage(systemName: "plus.square.on.square")
+            ) { [weak self] _ in
                 guard let self else { return }
                 self.shell?.openInNewTab(self.directory)
             },
@@ -138,7 +165,11 @@ extension BrowserViewController {
         // The browser's Go menu changes the current location; More acts on
         // the current folder. Keep these separate from the overview's new-tab menu.
         let navigation: [UIMenuElement] = [
-            UIMenu(title: String(localized: "Go"), image: UIImage(systemName: "arrow.right.circle"), children: goMenuElements()),
+            UIMenu(
+                title: String(localized: "Go"),
+                image: UIImage(systemName: "arrow.right.circle"),
+                children: goMenuElements()
+            ),
             UIMenu(title: String(localized: "More"), image: UIImage(systemName: "ellipsis.circle"), children: more),
         ]
         return FilaMenu.groups([folderAction]) + [view] + FilaMenu.groups(navigation)
@@ -146,7 +177,13 @@ extension BrowserViewController {
 
     private func goMenuElements() -> [UIMenuElement] {
         let preferences = AppPreferences.shared
-        func destination(_ path: String, title: String, image: UIImage?, subtitle: String? = nil, isFile: Bool = false) -> UIAction {
+        func destination(
+            _ path: String,
+            title: String,
+            image: UIImage?,
+            subtitle: String? = nil,
+            isFile: Bool = false
+        ) -> UIAction {
             UIAction(title: title, subtitle: subtitle, image: image) { [weak self] _ in
                 if isFile { self?.shell?.follow(.view(path)) }
                 else { self?.open(directory: path) }
@@ -165,14 +202,23 @@ extension BrowserViewController {
             destination($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
         }
         let recents = preferences.recents.prefix(8).map {
-            destination($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0, isFile: preferences.recentFiles.contains($0))
+            destination(
+                $0,
+                title: name(of: $0),
+                image: UIImage(systemName: "clock"),
+                subtitle: $0,
+                isFile: preferences.recentFiles.contains($0)
+            )
         }
         let locations = [
             UIMenu(title: String(localized: "Places"), image: UIImage(systemName: "folder"), children: places),
             UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
             UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
         ].filter { !$0.children.isEmpty }
-        let path = UIAction(title: String(localized: "Go to Path…"), image: UIImage(systemName: "arrow.right.circle")) { [weak self] _ in
+        let path = UIAction(
+            title: String(localized: "Go to Path…"),
+            image: UIImage(systemName: "arrow.right.circle")
+        ) { [weak self] _ in
             self?.promptGoToPath()
         }
         // Named destinations come first; manual path entry stays last.
@@ -188,7 +234,10 @@ extension BrowserViewController {
             .kind: String(localized: "Kind"),
         ]
         let keys = FileSortKey.allCases.map { key in
-            UIAction(title: titles[key] ?? key.rawValue, state: preferences.sortKey == key ? .on : .off) { [weak self] _ in
+            UIAction(
+                title: titles[key] ?? key.rawValue,
+                state: preferences.sortKey == key ? .on : .off
+            ) { [weak self] _ in
                 let preferences = AppPreferences.shared
                 preferences.sortKey = key
                 self?.viewPreferenceChanged(relayout: false)
@@ -211,23 +260,41 @@ extension BrowserViewController {
 
     func newMenu() -> UIMenu {
         UIMenu(title: String(localized: "New"), image: UIImage(systemName: "plus"), children: FilaMenu.groups([
-            UIAction(title: String(localized: "Folder"), image: UIImage(systemName: "folder.badge.plus")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Folder"),
+                image: UIImage(systemName: "folder.badge.plus")
+            ) { [weak self] _ in
                 self?.promptCreate(.directory)
             },
-            UIAction(title: String(localized: "Text File"), image: UIImage(systemName: "doc.badge.plus")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Text File"),
+                image: UIImage(systemName: "doc.badge.plus")
+            ) { [weak self] _ in
                 self?.promptCreate(.emptyFile)
             },
-            UIAction(title: String(localized: "Symbolic Link"), image: UIImage(systemName: "arrowshape.turn.up.right")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Symbolic Link"),
+                image: UIImage(systemName: "arrowshape.turn.up.right")
+            ) { [weak self] _ in
                 self?.promptCreateLink()
             },
         ], [
-            UIAction(title: String(localized: "Import Photos…"), image: UIImage(systemName: "photo.on.rectangle")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Import Photos…"),
+                image: UIImage(systemName: "photo.on.rectangle")
+            ) { [weak self] _ in
                 self?.importPhotos()
             },
-            UIAction(title: String(localized: "Import Files…"), image: UIImage(systemName: "square.and.arrow.down")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Import Files…"),
+                image: UIImage(systemName: "square.and.arrow.down")
+            ) { [weak self] _ in
                 self?.importDocuments()
             },
-            UIAction(title: String(localized: "Download from URL…"), image: UIImage(systemName: "arrow.down.circle")) { [weak self] _ in
+            UIAction(
+                title: String(localized: "Download from URL…"),
+                image: UIImage(systemName: "arrow.down.circle")
+            ) { [weak self] _ in
                 self?.promptDownload()
             },
         ]))
@@ -347,16 +414,16 @@ extension BrowserViewController {
     func promptDrop(sources: [String], target: String) {
         let alert = AlertViewController(
             title: (target as NSString).lastPathComponent,
-            message: "Copy keeps the originals. Move takes them out of their current folder."
+            message: String(localized: "Copy keeps the originals. Move takes them out of their current folder.")
         ) { [weak self] context in
             context.allowSimpleDispose()
-            context.addAction(title: "Cancel") { context.dispose() }
-            context.addAction(title: "Copy Here") {
+            context.addAction(title: String.LocalizationValue("Cancel")) { context.dispose() }
+            context.addAction(title: String.LocalizationValue("Copy Here")) {
                 context.dispose {
                     self?.transfer(JobRequest(kind: .copy, sources: sources, destination: target))
                 }
             }
-            context.addAction(title: "Move Here", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("Move Here"), attribute: .accent) {
                 context.dispose {
                     self?.transfer(JobRequest(kind: .move, sources: sources, destination: target))
                 }
@@ -410,7 +477,12 @@ extension BrowserViewController {
                 if paste != nil {
                     message += "\n\n" + String(localized: "Check the source and destination folders before trying again. Some items may already have been transferred.")
                 }
-                FeedbackAlert.show(request.kind == .move ? String(localized: "Unable to Move Items") : String(localized: "Unable to Copy Items"), message: message)
+                FeedbackAlert.show(
+                    request.kind == .move
+                        ? String(localized: "Unable to Move Items")
+                        : String(localized: "Unable to Copy Items"),
+                    message: message
+                )
             }
         }
     }
@@ -437,13 +509,13 @@ extension BrowserViewController {
         }
         return await withCheckedContinuation { continuation in
             let alert = AlertViewController(
-                title: "Replace Existing Items?",
-                message: "Items with the same names will be replaced, not moved to the trash. This cannot be undone. Non-empty folders cannot be replaced."
+                title: String.LocalizationValue("Replace Existing Items?"),
+                message: String.LocalizationValue("Items with the same names will be replaced, not moved to the trash. This cannot be undone. Non-empty folders cannot be replaced.")
             ) { context in
-                context.addAction(title: "Cancel") {
+                context.addAction(title: String.LocalizationValue("Cancel")) {
                     context.dispose { continuation.resume(returning: false) }
                 }
-                context.addAction(title: "Replace", attribute: .accent) {
+                context.addAction(title: String.LocalizationValue("Replace"), attribute: .accent) {
                     context.dispose { continuation.resume(returning: true) }
                 }
             }

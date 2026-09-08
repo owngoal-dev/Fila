@@ -168,7 +168,10 @@ final class PropertiesViewController: UIViewController {
     private func installActionsMenu() {
         let path = details.path
         let node = details.node
-        let actions = FileActions(presenter: self, directory: (path as NSString).deletingLastPathComponent) { [weak self] in
+        let actions = FileActions(
+            presenter: self,
+            directory: (path as NSString).deletingLastPathComponent
+        ) { [weak self] in
             self?.dismiss(animated: true)
         }
         let more = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
@@ -194,7 +197,10 @@ final class PropertiesViewController: UIViewController {
             switch item.row {
             case .summary:
                 guard let self else { return cell }
-                let preview = table.dequeueReusableCell(withIdentifier: "Preview", for: indexPath) as! PropertiesPreviewCell
+                let preview = table.dequeueReusableCell(
+                    withIdentifier: "Preview",
+                    for: indexPath
+                ) as! PropertiesPreviewCell
                 preview.show(
                     image: previewImage ?? FilePresentation.largeImage(for: details.node),
                     title: URL(fileURLWithPath: details.path).lastPathComponent,
@@ -292,7 +298,9 @@ final class PropertiesViewController: UIViewController {
             rows.append(.note(String(localized: "The device needs this item to start up, so Fila will not delete, move or replace it. You can still edit what is inside it.")))
         }
         if details.node.isImmutable {
-            rows.append(.note(String(localized: "This item is locked. Unlock it under Flags in Advanced Information to change or delete it.")))
+            rows.append(.note(String(
+                localized: "This item is locked. Unlock it under Flags in Advanced Information to change or delete it."
+            )))
         }
         return rows
     }
@@ -466,9 +474,12 @@ final class PropertiesViewController: UIViewController {
         case .owner: editOwner()
         case .group: editGroup()
         case .flags:
-            navigationController?.pushViewController(FileFlagsEditorViewController(flags: details.node.systemFlags) { [weak self] flags in
-                self?.apply(AttributeChange(systemFlags: flags))
-            }, animated: true)
+            navigationController?.pushViewController(
+                FileFlagsEditorViewController(flags: details.node.systemFlags) { [weak self] flags in
+                    self?.apply(AttributeChange(systemFlags: flags))
+                },
+                animated: true
+            )
         case .advanced:
             let advanced = PropertiesViewController(details: details, link: link, showsAdvanced: true)
             advanced.applyRecursively = applyRecursively
@@ -511,13 +522,17 @@ final class PropertiesViewController: UIViewController {
     /// Numeric only. A name lookup would go through `getpwnam`, which reads the
     /// passwd file as `mobile` and misses every account a bootstrap adds; a uid
     /// is unambiguous and is what the syscall takes anyway.
-    private func promptForIdentifier(title: String.LocalizationValue, current: UInt32, apply: @escaping (UInt32) -> Void) {
+    private func promptForIdentifier(
+        title: String.LocalizationValue,
+        current: UInt32,
+        apply: @escaping (UInt32) -> Void
+    ) {
         let alert = AlertInputViewController(
             title: title,
-            message: "Enter a numeric ID. 0 is root, 501 is mobile.",
+            message: String.LocalizationValue("Enter a numeric ID. 0 is root, 501 is mobile."),
             placeholder: .noPlaceholder,
             text: String(current),
-            doneButtonText: "Set"
+            doneButtonText: String.LocalizationValue("Set")
         ) { text in
             guard let value = UInt32(text) else { return }
             apply(value)
@@ -556,11 +571,11 @@ final class PropertiesViewController: UIViewController {
 
     private func report(_ error: Error) {
         let alert = AlertViewController(
-            title: "Unable to Change Item",
+            title: String(localized: "Unable to Change Item"),
             message: FailureMessage.text(for: error, whileWriting: true)
         ) { context in
             context.allowSimpleDispose()
-            context.addAction(title: "OK", attribute: .accent) {
+            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
                 context.dispose()
             }
         }
@@ -644,7 +659,11 @@ extension PropertiesViewController: UITableViewDelegate {
         if case let .disclosure(_, _, action) = row { open(action) }
     }
 
-    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+    func tableView(
+        _ tableView: UITableView,
+        contextMenuConfigurationForRowAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
         guard let row = dataSource.itemIdentifier(for: indexPath)?.row else { return nil }
         let value: String
         switch row {
@@ -653,9 +672,11 @@ extension PropertiesViewController: UITableViewDelegate {
         }
         guard !value.isEmpty else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            UIMenu(children: [UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
-                UIPasteboard.general.string = value
-            }])
+            UIMenu(children: [
+                UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
+                    UIPasteboard.general.string = value
+                }
+            ])
         }
     }
 }
