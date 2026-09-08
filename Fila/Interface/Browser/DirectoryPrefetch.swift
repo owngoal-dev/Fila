@@ -2,8 +2,8 @@ import FilaProtocol
 import UIKit
 
 /// Disposable presentation data. Every destination still lists again after appearing.
-/// One worker drains each listing so speculative reads do not fill the daemon's
-/// cursor registry and evict the listing the user is actually waiting for.
+/// One bounded worker yields to foreground reads. Cancelling it releases the
+/// listing cursor and discards late data before it can enter the cache.
 @MainActor
 final class DirectoryPrefetch {
     static let shared = DirectoryPrefetch()
@@ -19,10 +19,12 @@ final class DirectoryPrefetch {
     private var pending: [String] = []
     private var activePath: String?
     private var worker: Task<Void, Never>?
+    private var foregroundReads: Set<UUID> = []
+    private static let entryLimit = 2048
 
     private init() {
-        cache.countLimit = 64
-        cache.totalCostLimit = DirectoryReader.maximumEntryCount
+        cache.countLimit = 16
+        cache.totalCostLimit = Self.entryLimit * 4
         for name in [Notification.Name.filaJobFinished, UIApplication.didReceiveMemoryWarningNotification,
                      UIApplication.didEnterBackgroundNotification] {
             NotificationCenter.default.addObserver(self, selector: #selector(invalidate), name: name, object: nil)
@@ -30,32 +32,57 @@ final class DirectoryPrefetch {
     }
 
     func entries(in path: String) -> [FileNode]? {
-        // An older snapshot is still useful during the push. The destination
-        // refreshes after appearing, even if the user paused before tapping.
-        cache.object(forKey: path as NSString)?.entries
+        freshListing(in: path)?.entries
     }
 
     func store(_ entries: [FileNode], in path: String) {
+        guard entries.count <= Self.entryLimit else {
+            cache.removeObject(forKey: path as NSString)
+            return
+        }
         cache.setObject(Listing(entries), forKey: path as NSString, cost: max(1, entries.count))
     }
 
+    /// A foreground request owns a token, so an old cancellation cannot resume
+    /// speculation while a newer request is still receiving pages.
+    func beginForegroundRead() -> UUID {
+        let id = UUID()
+        foregroundReads.insert(id)
+        cancelPending()
+        return id
+    }
+
+    func endForegroundRead(_ id: UUID) {
+        foregroundReads.remove(id)
+    }
+
+    func cancelPending() {
+        worker?.cancel()
+        worker = nil
+        activePath = nil
+        pending.removeAll()
+    }
+
     func prefetch(_ paths: [String]) {
-        guard FileSession.shared.hello != nil, UIApplication.shared.applicationState != .background else { return }
-        for path in paths where freshListing(in: path) == nil && activePath != path && !pending.contains(path) {
-            pending.append(path)
-        }
-        // Scrolling quickly must not leave minutes of offscreen work queued.
-        if pending.count > 128 { pending.removeFirst(pending.count - 128) }
+        guard foregroundReads.isEmpty, FileSession.shared.hello != nil,
+              UIApplication.shared.applicationState != .background else { return }
+        var seen = Set<String>()
+        let candidates = Array(paths.filter { seen.insert($0).inserted && freshListing(in: $0) == nil }.prefix(4))
+        if let activePath, !candidates.contains(activePath) { cancelPending() }
+        pending = candidates.filter { $0 != activePath }
         guard worker == nil, !pending.isEmpty else { return }
         worker = Task(priority: .utility) { [weak self] in
-            guard let self else { return }
+            // Scrolling and push animations get the file service first.
+            do { try await Task.sleep(nanoseconds: 300_000_000) } catch { return }
+            guard let self, !Task.isCancelled else { return }
             while !pending.isEmpty {
                 let path = pending.removeFirst()
                 guard freshListing(in: path) == nil else { continue }
                 activePath = path
-                let entries = try? await DirectoryReader.entries(in: path, session: .shared)
+                // This nonisolated async function assembles bounded data on the
+                // generic executor. Only cache publication returns to MainActor.
+                let entries = try? await DirectoryReader.entries(in: path, session: .shared, limit: Self.entryLimit)
                 guard !Task.isCancelled else { return }
-                // A foreground refresh that finished meanwhile owns the newer result.
                 if freshListing(in: path) == nil {
                     cache.setObject(Listing(entries), forKey: path as NSString, cost: max(1, entries?.count ?? 0))
                 }
@@ -81,10 +108,7 @@ final class DirectoryPrefetch {
     }
 
     @objc private func invalidate() {
-        worker?.cancel()
-        worker = nil
-        activePath = nil
-        pending.removeAll()
+        cancelPending()
         cache.removeAllObjects()
     }
 }

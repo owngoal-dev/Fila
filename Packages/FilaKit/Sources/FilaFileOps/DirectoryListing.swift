@@ -142,6 +142,10 @@ public final class ListingRegistry {
         return (page.entries, identifier)
     }
 
+    public func close(cursor: UInt64) {
+        listings.removeValue(forKey: cursor)?.close()
+    }
+
     public func closeAll() {
         for listing in listings.values {
             listing.close()

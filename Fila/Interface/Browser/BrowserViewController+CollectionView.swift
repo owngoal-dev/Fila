@@ -4,11 +4,16 @@ import UIKit
 // MARK: - Collection view
 
 extension BrowserViewController: UICollectionViewDelegate {
-    func collectionView(_: UICollectionView, willDisplay _: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        guard viewIfLoaded?.window != nil, !isTrash,
-              navigationController?.topViewController === self,
-              let node = dataSource.itemIdentifier(for: indexPath), node.isNavigable else { return }
-        DirectoryPrefetch.shared.prefetch([path(of: node)])
+    func scrollViewWillBeginDragging(_: UIScrollView) {
+        DirectoryPrefetch.shared.cancelPending()
+    }
+
+    func scrollViewDidEndDragging(_: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate { prefetchVisibleDirectories() }
+    }
+
+    func scrollViewDidEndDecelerating(_: UIScrollView) {
+        prefetchVisibleDirectories()
     }
 
     func collectionView(_: UICollectionView, shouldBeginMultipleSelectionInteractionAt indexPath: IndexPath) -> Bool {

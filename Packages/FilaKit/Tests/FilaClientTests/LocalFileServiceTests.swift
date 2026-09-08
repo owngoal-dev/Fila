@@ -37,6 +37,22 @@ struct LocalFileServiceTests {
         #expect(page.isFinal)
     }
 
+    @Test("The client releases an abandoned listing through its selected backend")
+    func cancelsListing() async throws {
+        for index in 0 ... FilaProtocol.directoryPageEntryCount { scratch.file("entry-\(index)") }
+        let link = try await link()
+        let page = try await link.list(directory: scratch.root)
+        #expect(!page.isFinal)
+        try await link.closeDirectory(cursor: page.cursor)
+        let failure = await #expect(throws: FilaFailure.self) {
+            _ = try await link.list(directory: scratch.root, cursor: page.cursor)
+        }
+        #expect(failure?.systemError == ESTALE)
+        let replacement = try await link.list(directory: scratch.root)
+        #expect(replacement.entries.count == FilaProtocol.directoryPageEntryCount)
+        try await link.closeDirectory(cursor: replacement.cursor)
+    }
+
     @Test("Creates, stats and opens a file")
     func createsAndReads() async throws {
         let link = try await link()

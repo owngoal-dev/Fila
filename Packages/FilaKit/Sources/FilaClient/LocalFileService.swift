@@ -124,6 +124,10 @@ final class LocalFileService: FileService, @unchecked Sendable {
         return .user
     }
 
+    func closeDirectory(cursor: UInt64) async throws {
+        try await run("closeDirectory") { self.listings.close(cursor: cursor) }
+    }
+
     func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage {
         try await run("list \(directory)") {
             let page = try self.listings.page(directory: directory, cursor: cursor)

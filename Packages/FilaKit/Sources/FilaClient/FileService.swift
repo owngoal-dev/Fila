@@ -18,6 +18,7 @@ import Foundation
 protocol FileService: AnyObject, Sendable {
     func hello() async throws -> DaemonLink.Hello
     func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage
+    func closeDirectory(cursor: UInt64) async throws
     func details(of path: String) async throws -> FileDetails
     func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32
     func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws

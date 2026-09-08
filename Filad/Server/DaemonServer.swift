@@ -235,6 +235,9 @@ final class DaemonServer: @unchecked Sendable {
             xpc_dictionary_set_value(reply, FilaWireKey.entries, entries)
             xpc_dictionary_set_uint64(reply, FilaWireKey.cursor, page.cursor)
 
+        case .closeDirectory:
+            peer.listings.close(cursor: xpc_dictionary_get_uint64(message, FilaWireKey.cursor))
+
         case .statPath:
             let details = try operations.details(of: string(FilaWireKey.path, in: message))
             xpc_dictionary_set_value(reply, FilaWireKey.details, details.encoded())

@@ -32,8 +32,7 @@ public enum FilaProtocol {
     public static let concurrentListingsPerPeer = 8
 
     /// A listing that has not been asked for its next page in this long is
-    /// closed. The app abandons a listing whenever the user navigates away, and
-    /// nothing tells the daemon about that.
+    /// closed. Explicit cancellation closes it earlier; this also covers older clients.
     public static let listingIdleTimeoutSeconds = 30.0
 
     /// Hard ceiling on any single reply. Nothing but metadata ever travels over
@@ -192,6 +191,9 @@ public enum FilaOperation: UInt64, Sendable, CaseIterable {
 
     /// Read the kernel mount table for the sidebar.
     case mountPoints = 19
+
+    /// Release a paged listing owned by this peer, without reading another page.
+    case closeDirectory = 20
 }
 
 public extension FilaOperation {
@@ -201,6 +203,7 @@ public extension FilaOperation {
         switch self {
         case .hello: "hello"
         case .listDirectory: "list"
+        case .closeDirectory: "closeDirectory"
         case .statPath: "stat"
         case .openPath: "open"
         case .createNode: "create"

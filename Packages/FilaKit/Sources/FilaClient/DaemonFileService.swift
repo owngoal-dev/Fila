@@ -52,6 +52,12 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         )
     }
 
+    func closeDirectory(cursor: UInt64) async throws {
+        _ = try await send(.closeDirectory) { request in
+            xpc_dictionary_set_uint64(request, FilaWireKey.cursor, cursor)
+        }
+    }
+
     func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage {
         let reply = try await send(.listDirectory) { request in
             xpc_dictionary_set_string(request, FilaWireKey.path, directory)

@@ -304,6 +304,10 @@ public final class DaemonLink: @unchecked Sendable {
 
     // MARK: - Requests
 
+    public func closeDirectory(cursor: UInt64) async throws {
+        try await service().closeDirectory(cursor: cursor)
+    }
+
     public func list(directory: String, cursor: UInt64 = 0) async throws -> DirectoryPage {
         try await service().list(directory: directory, cursor: cursor)
     }

@@ -29,6 +29,7 @@ final class BrowserViewController: UIViewController {
     private var visible: [FileNode] = []
     private var loadTask: Task<Void, Never>?
     private var hasPrefetchedListing = false
+    private var preparedForNavigation = false
     var appFolders: [String: AppFolderPresentation] = [:]
     private var volume: VolumeInfo?
     /// The directory listing has not finished yet. Only the first load replaces
@@ -161,7 +162,8 @@ final class BrowserViewController: UIViewController {
     /// Called before push/replace, so UIKit captures an already populated destination.
     func prepareForNavigation() {
         loadViewIfNeeded()
-        guard loadTask == nil, !hasPrefetchedListing else { return }
+        guard !preparedForNavigation else { return }
+        preparedForNavigation = true
         if let cached = DirectoryPrefetch.shared.entries(in: directory) {
             entries = cached
             hasPrefetchedListing = true
@@ -196,8 +198,12 @@ final class BrowserViewController: UIViewController {
         restoreScrollOffsetIfArrived()
         AppPreferences.shared.lastDirectory = directory
         reload()
-        prefetchVisibleDirectories()
-        DirectoryPrefetch.shared.prefetchSidebar()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        loadTask?.cancel()
+        DirectoryPrefetch.shared.cancelPending()
     }
 
     /// Only explicit use records a directory; appearing or dwelling never does.
@@ -574,6 +580,9 @@ final class BrowserViewController: UIViewController {
     /// feel instant even though it is two hundred round trips. A refresh keeps
     /// existing rows until the complete listing can replace them in one diff.
     func reload() {
+        // Retained tabs also receive operation notifications. They refresh on
+        // appearance, without competing with the tab the user is viewing.
+        guard viewIfLoaded?.window != nil, navigationController?.topViewController === self else { return }
         // The tap that started a delete returns long before the delete does —
         // it is an XPC round trip away — so its result routinely lands while
         // the context menu is still animating shut. Replacing the listing then
@@ -593,7 +602,12 @@ final class BrowserViewController: UIViewController {
             appFolders = [:]
             applySnapshot(animated: false)
         }
+        let foregroundRead = DirectoryPrefetch.shared.beginForegroundRead()
         loadTask = Task { [weak self] in
+            defer {
+                DirectoryPrefetch.shared.endForegroundRead(foregroundRead)
+                if !Task.isCancelled { self?.prefetchVisibleDirectories() }
+            }
             guard let self else { return }
             var pending: [FileNode] = []
             var received = 0
@@ -665,7 +679,7 @@ final class BrowserViewController: UIViewController {
             }
             guard !Task.isCancelled else { return }
             refresher.endRefreshing()
-            if viewIfLoaded?.window != nil { DirectoryPrefetch.shared.prefetchSidebar() }
+
             decoratedWithApplications = SystemCapabilities.showsApplications
             let appFolders = await AppFolderDisplay.load(
                 in: directory,
@@ -767,7 +781,8 @@ final class BrowserViewController: UIViewController {
     }
 
     func prefetchVisibleDirectories() {
-        guard viewIfLoaded?.window != nil, navigationController?.topViewController === self else { return }
+        guard !isListing, !collectionView.isDragging, !collectionView.isDecelerating,
+              viewIfLoaded?.window != nil, navigationController?.topViewController === self else { return }
         var paths = collectionView.indexPathsForVisibleItems.sorted().compactMap { index -> String? in
             guard !isTrash, let node = dataSource.itemIdentifier(for: index), node.isNavigable else { return nil }
             return path(of: node)

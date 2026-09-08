@@ -77,6 +77,25 @@ struct DirectoryListingTests {
         #expect(registry.count == 0)
     }
 
+    @Test("Cancelling one listing releases its handle and leaves another cursor usable")
+    func closesOnlyRequestedCursor() throws {
+        for index in 0 ..< 5 { scratch.file("f\(index)") }
+        let registry = ListingRegistry()
+        let cancelled = try registry.page(directory: scratch.root, cursor: 0, limit: 1)
+        let foreground = try registry.page(directory: scratch.root, cursor: 0, limit: 1)
+        registry.close(cursor: cancelled.cursor)
+        registry.close(cursor: cancelled.cursor)
+        registry.close(cursor: 0)
+        #expect(registry.count == 1)
+        let failure = #expect(throws: FilaFailure.self) {
+            _ = try registry.page(directory: scratch.root, cursor: cancelled.cursor)
+        }
+        #expect(failure?.systemError == ESTALE)
+        let remaining = try registry.page(directory: scratch.root, cursor: foreground.cursor)
+        #expect(remaining.entries.count == 4)
+        #expect(registry.count == 0)
+    }
+
     @Test("Only so many listings stay open per peer, oldest evicted")
     func capsOpenListings() throws {
         for index in 0 ... FilaProtocol.concurrentListingsPerPeer {
