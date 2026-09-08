@@ -62,15 +62,20 @@ public actor ThumbnailService {
 
     /// Identify Mach-O artwork without decoding content or trusting execute bits.
     /// Uses the thumbnail queue so scrolling cannot exhaust descriptors.
-    public func isMachO(path: String, modified: Double, byteCount: Int64,
-                        open: @escaping @Sendable () async throws -> Int32) async -> Bool {
+    public func isMachO(path: String, modified: Double, byteCount: Int64, cacheResult: Bool = true,
+                        open: @escaping @Sendable () async throws -> Int32) async -> Bool
+    {
         guard byteCount >= 4, !Task.isCancelled else { return false }
         let key = "\(path)@\(modified.bitPattern)@\(byteCount)" as NSString
-        if let hit = executableIcons.object(forKey: key) { return hit.boolValue }
+        if cacheResult, let hit = executableIcons.object(forKey: key) {
+            return hit.boolValue
+        }
         await acquire()
         defer { release() }
         guard !Task.isCancelled else { return false }
-        if let hit = executableIcons.object(forKey: key) { return hit.boolValue }
+        if cacheResult, let hit = executableIcons.object(forKey: key) {
+            return hit.boolValue
+        }
         guard let descriptor = try? await open(), descriptor >= 0 else { return false }
         defer { close(descriptor) }
         var status = stat()
@@ -79,7 +84,9 @@ public actor ThumbnailService {
         let count = head.withUnsafeMutableBytes { pread(descriptor, $0.baseAddress, 4, 0) }
         guard count == 4 else { return false }
         let result = FileFormat.detect(head: head, name: "") == .machO
-        executableIcons.setObject(NSNumber(value: result), forKey: key)
+        if cacheResult {
+            executableIcons.setObject(NSNumber(value: result), forKey: key)
+        }
         return result
     }
 

@@ -64,6 +64,38 @@
           }
         }
       }
+    },
+    "Save to Fila": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to Fila"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存储到 Fila"
+          }
+        }
+      }
+    },
+    "Saved %lld of %lld files to Inbox.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved %lld of %lld files to Inbox."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已将 %2$lld 个文件中的 %1$lld 个存储到收件箱。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

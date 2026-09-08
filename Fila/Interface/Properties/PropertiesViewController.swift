@@ -130,7 +130,11 @@ final class PropertiesViewController: UIViewController {
             do {
                 let updated = try await link.details(of: path)
                 guard !Task.isCancelled else { return }
-                if details.node != updated.node {
+                let previous = details.node
+                let current = updated.node
+                if previous.inode != current.inode || previous.size != current.size
+                    || previous.modified != current.modified || previous.kind != current.kind
+                {
                     checksumTask?.cancel()
                     checksumTask = nil
                     checksums = nil
@@ -139,7 +143,9 @@ final class PropertiesViewController: UIViewController {
                 }
                 details = updated
                 rebuild()
-                if !showsAdvanced { loadPreview(); loadMediaInformation() }
+                if !showsAdvanced {
+                    loadPreview(); loadMediaInformation()
+                }
             } catch {
                 guard !Task.isCancelled else { return }
                 FeedbackAlert.show(String(localized: "Unable to Read This File"), message: FailureMessage.text(for: error))
@@ -167,6 +173,7 @@ final class PropertiesViewController: UIViewController {
         let link = link
         previewTask = Task { [weak self] in
             let image: UIImage?
+            var maximumSide: CGFloat = 192
             if let executable = await FilePresentation.executableImage(for: path, node: node, session: .shared, large: true) {
                 image = executable
             } else if node.kind == .regular {
@@ -190,6 +197,7 @@ final class PropertiesViewController: UIViewController {
                     return descriptor
                 }
                 image = rendered.map { UIImage(cgImage: $0) }
+                maximumSide = 512
             } else if node.isNavigable {
                 let apps = await InstalledAppCatalog.load(session: .shared)
                 if let identifier = AppFolderDisplay.presentation(for: path, apps: apps)?.applicationIdentifier {
@@ -202,7 +210,7 @@ final class PropertiesViewController: UIViewController {
             }
             guard !Task.isCancelled, let self, details.path == path, let image else { return }
             previewImage = image
-            previewMaximumSide = node.kind == .regular ? 512 : 192
+            previewMaximumSide = maximumSide
             // The summary identity is stable; refresh only its visible cell.
             for case let cell as PropertiesPreviewCell in self.table.visibleCells {
                 cell.show(
@@ -269,11 +277,16 @@ final class PropertiesViewController: UIViewController {
                 content.text = label
                 content.secondaryText = value
                 content.secondaryTextProperties.numberOfLines = 1
+                content.prefersSideBySideTextAndSecondaryText = true
                 if isMonospaced {
                     content.secondaryTextProperties.font = FilaUI.Font.monospacedValue
                     content.secondaryTextProperties.lineBreakMode = .byTruncatingMiddle
                 }
                 cell.contentConfiguration = content
+                if item.section == .checksums {
+                    cell.accessoryType = .disclosureIndicator
+                    cell.selectionStyle = .default
+                }
 
             case let .disclosure(label, value, _):
                 var content = UIListContentConfiguration.valueCell()
@@ -309,7 +322,17 @@ final class PropertiesViewController: UIViewController {
             return cell
         }
         dataSource.header = { $0.title }
-        dataSource.footer = { [weak self] section in section == .item ? self?.details.path : nil }
+        dataSource.footer = { [weak self] section in
+            if section == .item {
+                return self?.details.path
+            }
+            if section == .checksums {
+                return self?.checksums == nil
+                    ? String(localized: "Calculate checksums to compare files. Large files may take a while.")
+                    : String(localized: "Tap a checksum to view it in full. Touch and hold to copy.")
+            }
+            return nil
+        }
     }
 
     /// The whole screen, from `details`, every time anything about it changes.
@@ -342,9 +365,11 @@ final class PropertiesViewController: UIViewController {
                         rows.append(.fact(label: String(localized: "Duration"), value: formatter.string(from: duration) ?? "", isMonospaced: false))
                     }
                     if let rate = mediaInformation.frameRate {
-                        rows.append(.fact(label: String(localized: "Frame Rate"), value: String(localized: "\(rate.formatted(.number.precision(.fractionLength(0...3)))) fps"), isMonospaced: false))
+                        rows.append(.fact(label: String(localized: "Frame Rate"), value: String(localized: "\(rate.formatted(.number.precision(.fractionLength(0 ... 3)))) fps"), isMonospaced: false))
                     }
-                    if !rows.isEmpty { summary.append((.media, rows)) }
+                    if !rows.isEmpty {
+                        summary.insert((.media, rows), at: 2)
+                    }
                 }
                 if let checksums {
                     summary.append((.checksums, [
@@ -375,6 +400,10 @@ final class PropertiesViewController: UIViewController {
         for (section, rows) in result {
             snapshot.appendSections([section])
             snapshot.appendItems(rows.map { Item(section: section, row: $0) }, toSection: section)
+        }
+        if snapshot.sectionIdentifiers.contains(.checksums),
+           dataSource.snapshot().sectionIdentifiers.contains(.checksums) {
+            snapshot.reloadSections([.checksums])
         }
         dataSource.apply(snapshot, animatingDifferences: true)
     }
@@ -603,19 +632,20 @@ final class PropertiesViewController: UIViewController {
         checksumTask = task
         rebuild()
         Task { [weak self] in
-            do {
-                let result = try await task.value
-                guard !task.isCancelled, let self, checksumTask == task else { return }
-                checksums = result
-            } catch {
-                if !task.isCancelled { self?.report(error) }
+            let result = await task.result
+            guard let self, checksumTask == task else { return }
+            checksumTask = nil
+            if !task.isCancelled {
+                switch result {
+                case let .success(value): checksums = value
+                case let .failure(error):
+                    let message = (error as? POSIXError)?.code == .EBUSY
+                        ? String(localized: "The file changed during calculation. Try again.")
+                        : FailureMessage.text(for: error)
+                    FeedbackAlert.show(String(localized: "Unable to Calculate Checksums"), message: message)
+                }
             }
-            guard let self else { return }
-            // A refresh may already have cancelled and discarded this calculation.
-            if checksumTask == task {
-                checksumTask = nil
-                rebuild()
-            }
+            rebuild()
         }
     }
 
@@ -811,9 +841,17 @@ final class PropertiesViewController: UIViewController {
 extension PropertiesViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        guard let row = dataSource.itemIdentifier(for: indexPath)?.row else { return }
-        if case let .disclosure(_, _, action) = row {
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        if case let .disclosure(_, _, action) = item.row {
             open(action)
+        } else if item.section == .checksums, case let .fact(label, value, _) = item.row {
+            let alert = AlertViewController(title: label, message: value) { context in
+                context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
+                context.addAction(title: String.LocalizationValue("Copy"), attribute: .accent) {
+                    context.dispose { UIPasteboard.general.string = value }
+                }
+            }
+            present(alert, animated: true)
         }
     }
 

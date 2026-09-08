@@ -128,14 +128,20 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
-    /// A standard Back item preserves the guarded history menu while allowing
-    /// the sidebar toggle to move between columns independently.
     private func makeTabButton() -> UIBarButtonItem {
         UIBarButtonItem(image: UIImage(systemName: "square.on.square"), primaryAction: UIAction { [weak self] _ in
             self?.content.showTabSwitcher()
-        }).then { $0.accessibilityLabel = String(localized: "Tabs") }
+        }).then {
+            $0.accessibilityLabel = String(localized: "Tabs")
+            if #available(iOS 26.0, *) {
+                $0.identifier = "tabs"
+                $0.sharesBackground = false
+            }
+        }
     }
 
+    /// A standard Back item preserves the guarded history menu while allowing
+    /// the sidebar toggle to move between columns independently.
     private func makeNavigationBack() -> UIBarButtonItem {
         UIBarButtonItem(
             image: UIImage(systemName: "chevron.backward"),

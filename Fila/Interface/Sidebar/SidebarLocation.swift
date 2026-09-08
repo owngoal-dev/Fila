@@ -117,10 +117,9 @@ extension SidebarLocation {
         return places
     }
 
-    /// Where the system puts a file shared into Fila — *Copy to Fila* — and
-    /// where one stays until it is moved somewhere. Inside the app's own
-    /// container, which is the one place every backend can write, so it is
-    /// made here rather than waiting for the first share to make it.
+    /// Save to Fila's shared Inbox. Open In imports retain the system's
+    /// Documents/Inbox until the user chooses a destination. Without a
+    /// provisioned App Group, the app still exposes that local Inbox.
     static var inboxDirectory: String {
         if let identifier = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
            let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier),

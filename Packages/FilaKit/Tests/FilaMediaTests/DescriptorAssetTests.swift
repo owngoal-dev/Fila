@@ -9,6 +9,47 @@ import Testing
 /// failing, and nothing else in this project would catch that.
 @Suite("Descriptor-backed assets")
 struct DescriptorAssetTests {
+    @Test("Video properties include duration, display dimensions and frame rate")
+    func videoInformation() async throws {
+        try await withScratchAsync { directory in
+            let file = directory.appendingPathComponent("clip.mov")
+            try await writeMovie(to: file, frames: 30)
+            let descriptor = try openForReading(file)
+            defer { close(descriptor) }
+            let info = try await FileMediaInformation.read(descriptor: descriptor, name: file.lastPathComponent)
+            #expect(info.width == 160)
+            #expect(info.height == 120)
+            #expect(try #require(info.duration) > 0.9)
+            #expect(try abs(#require(info.frameRate) - 30) < 0.1)
+        }
+    }
+
+    @Test("Audio properties report duration without inventing video dimensions")
+    func audioInformation() async throws {
+        try await withScratchAsync { directory in
+            let file = directory.appendingPathComponent("tone.wav")
+            var data = Data()
+            func text(_ value: String) {
+                data.append(contentsOf: value.utf8)
+            }
+            func word(_ value: UInt16) {
+                var little = value.littleEndian; withUnsafeBytes(of: &little) { data.append(contentsOf: $0) }
+            }
+            func integer(_ value: UInt32) {
+                var little = value.littleEndian; withUnsafeBytes(of: &little) { data.append(contentsOf: $0) }
+            }
+            text("RIFF"); integer(16036); text("WAVEfmt "); integer(16)
+            word(1); word(1); integer(8000); integer(16000); word(2); word(16)
+            text("data"); integer(16000); data.append(Data(count: 16000))
+            try data.write(to: file)
+            let descriptor = try openForReading(file)
+            defer { close(descriptor) }
+            let info = try await FileMediaInformation.read(descriptor: descriptor, name: file.lastPathComponent)
+            #expect(try abs(#require(info.duration) - 1) < 0.01)
+            #expect(info.width == nil && info.height == nil && info.frameRate == nil)
+        }
+    }
+
     @Test("A movie plays through a descriptor, with nothing copied anywhere")
     func assetOverDescriptor() async throws {
         try await withScratchAsync { directory in

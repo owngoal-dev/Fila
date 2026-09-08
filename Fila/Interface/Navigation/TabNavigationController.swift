@@ -7,6 +7,8 @@ final class TabNavigationController: UINavigationController {
     weak var owner: RootSplitViewController?
 
     func prepareToolbar(for controller: UIViewController) {
+        // These library screens expose Tabs in the leading navigation bar.
+        guard !(controller is AppListViewController || controller is MusicLibraryViewController) else { return }
         var items = controller.toolbarItems ?? []
         guard !items.contains(where: { $0.accessibilityIdentifier == "fila.tabs" }) else { return }
         if #available(iOS 26.0, *), items.isEmpty, controller.navigationItem.searchController != nil {
@@ -32,7 +34,8 @@ final class TabNavigationController: UINavigationController {
 
     override func setToolbarHidden(_ hidden: Bool, animated: Bool) {
         if let topViewController { prepareToolbar(for: topViewController) }
-        super.setToolbarHidden(false, animated: animated)
+        let hasItems = topViewController?.toolbarItems?.isEmpty == false
+        super.setToolbarHidden(!hasItems, animated: animated)
     }
 
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {

@@ -298,13 +298,10 @@ final class IconRowCell: UICollectionViewListCell {
         // "show hidden" is turned on to see.
         iconView.alpha = node.isHidden ? 0.6 : 1
 
-        accessories = [
-            .multiselect(displayed: .whenEditing),
-            .disclosureIndicator(
-                displayed: .whenNotEditing,
-                options: .init(isHidden: !node.isNavigable, reservedLayoutWidth: .standard)
-            ),
-        ]
+        accessories = [.multiselect(displayed: .whenEditing)]
+        if node.isNavigable {
+            accessories.append(.disclosureIndicator(displayed: .whenNotEditing))
+        }
 
         accessibilityLabel = [nameLabel.text, sizeLabel.text, detailLabel.text]
             .compactMap(\.self)

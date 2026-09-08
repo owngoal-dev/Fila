@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
-INPUTS = ["Fila", "Filad", "FilaArchive", "FilaFileProvider", "Fila.xcodeproj", "Configuration", "Packaging", "Licenses", "Scripts", "WebUI", "Packages/FilaKit", "Makefile"]
+INPUTS = ["Fila", "Filad", "FilaArchive", "FilaFileProvider", "FilaSaveAction", "Fila.xcodeproj", "Configuration", "Packaging", "Licenses", "Scripts", "WebUI", "Packages/FilaKit", "Makefile"]
 PRODUCTS = ["Fila.app", "filad", "fila-archive"]
 
 

@@ -32,6 +32,8 @@
 		FA7000000000000000000051 /* FilaProtocol in Frameworks */ = {isa = PBXBuildFile; productRef = FA7000000000000000000041 /* FilaProtocol */; };
 		FA7000000000000000000052 /* FilaFileOps in Frameworks */ = {isa = PBXBuildFile; productRef = FA7000000000000000000042 /* FilaFileOps */; };
 		FA7000000000000000000053 /* FilaFormats in Frameworks */ = {isa = PBXBuildFile; productRef = FA7000000000000000000043 /* FilaFormats */; };
+		FA8000000000000000000012 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = FA8000000000000000000014 /* SnapKit */; };
+		FA8000000000000000000013 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = FA8000000000000000000015 /* Then */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,6 +160,8 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				FA800000000000000000000E /* FilaFileOps in Frameworks */,
+				FA8000000000000000000012 /* SnapKit in Frameworks */,
+				FA8000000000000000000013 /* Then in Frameworks */,
 			);
 		};
 		FA7000000000000000000012 /* Frameworks */ = {
@@ -302,6 +306,8 @@
 			name = FilaSaveAction;
 			packageProductDependencies = (
 				FA800000000000000000000D /* FilaFileOps */,
+				FA8000000000000000000014 /* SnapKit */,
+				FA8000000000000000000015 /* Then */,
 			);
 			productName = FilaSaveAction;
 			productReference = FA8000000000000000000001 /* FilaSaveAction.appex */;
@@ -1044,6 +1050,16 @@
 		FA7000000000000000000043 /* FilaFormats */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FilaFormats;
+		};
+		FA8000000000000000000014 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 507CA7A4304C275A00EC22A7 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		FA8000000000000000000015 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 507CA7AA304C27B300EC22A7 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -17,7 +17,7 @@ struct ThumbnailTests {
         try await withScratchAsync { directory in
             let file = directory.appendingPathComponent("launchd")
             let service = ThumbnailService()
-            for (index, bytes) in [Data([0xcf, 0xfa, 0xed, 0xfe]), Data([0xca, 0xfe, 0xba, 0xbf]), Data("text".utf8)].enumerated() {
+            for (index, bytes) in [Data([0xCF, 0xFA, 0xED, 0xFE]), Data([0xCA, 0xFE, 0xBA, 0xBF]), Data("text".utf8)].enumerated() {
                 try bytes.write(to: file)
                 #expect(chmod(file.path, 0o777) == 0)
                 let found = await service.isMachO(path: file.path, modified: Double(index), byteCount: 4) { try openForReading(file) }
