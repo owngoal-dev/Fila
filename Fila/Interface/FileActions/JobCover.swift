@@ -7,13 +7,15 @@ import UIKit
 /// progress card waits out — work that finishes in a blink shows nothing.
 ///
 /// `settle` exists because the card closes itself the moment its job leaves the
-/// running list. Where one went up, its dismissal is still animating when the
-/// caller has its result, and an alert presented into that beat never appears.
+/// running list, and an alert presented into that dismissal never appears. It
+/// waits for the card to actually be gone, and for a job that never showed one
+/// it does not wait at all.
 @MainActor
 final class JobCover {
     private let center: OperationCenter
     private let presenter: () -> UIViewController?
-    private var shown = false
+    private var isShowing = false
+    private var pending: (() -> Void)?
 
     init(center: OperationCenter, presenter: @escaping () -> UIViewController?) {
         self.center = center
@@ -22,12 +24,23 @@ final class JobCover {
 
     func show(_ identifier: UInt64) {
         guard let presenter = presenter(), let operation = center.operation(forJob: identifier) else { return }
-        shown = true
-        OperationCoverViewController.present(for: operation.id, from: presenter, center: center)
+        OperationCoverViewController.present(
+            for: operation.id,
+            from: presenter,
+            center: center,
+            shown: { [weak self] in self?.isShowing = true },
+            dismissed: { [weak self] in
+                guard let self else { return }
+                isShowing = false
+                let waiting = pending
+                pending = nil
+                waiting?()
+            }
+        )
     }
 
     func settle(_ complete: @escaping () -> Void) {
-        guard shown else { return complete() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: complete)
+        guard isShowing else { return complete() }
+        pending = complete
     }
 }

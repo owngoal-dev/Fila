@@ -4,6 +4,10 @@ import Then
 import UIKit
 
 /// Running tasks expose their progress; settled tasks become compact receipts.
+///
+/// A receipt and nothing else: no control sits on a row here. Cancel belongs to
+/// the progress card the job is already showing, and a row in a scrolling list
+/// of past results is not where a destructive inverse should be one tap away.
 final class TransferCell: UICollectionViewListCell {
     private let symbolView = UIImageView()
     private let titleLabel = UILabel()
@@ -15,11 +19,6 @@ final class TransferCell: UICollectionViewListCell {
     private let progressView = UIProgressView(progressViewStyle: .default)
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let progressStack = UIStackView()
-    private let undoButton = UIButton(type: .system)
-    private let cancelButton = UIButton(type: .system)
-
-    private var onUndo: (() -> Void)?
-    private var onCancel: (() -> Void)?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -63,19 +62,6 @@ final class TransferCell: UICollectionViewListCell {
         for label in [titleLabel, subtitleLabel, detailLabel, amountLabel, percentageLabel, currentFileLabel] {
             label.adjustsFontForContentSizeCategory = true
         }
-        undoButton.do {
-            $0.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
-            $0.titleLabel?.adjustsFontForContentSizeCategory = true
-            $0.addAction(UIAction { [weak self] _ in self?.onUndo?() }, for: .touchUpInside)
-            $0.setContentCompressionResistancePriority(.required, for: .horizontal)
-        }
-        cancelButton.do {
-            $0.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
-            $0.tintColor = .tertiaryLabel
-            $0.accessibilityLabel = String(localized: "Cancel")
-            $0.addAction(UIAction { [weak self] _ in self?.onCancel?() }, for: .touchUpInside)
-        }
-
         let numbers = UIStackView(arrangedSubviews: [spinner, amountLabel, percentageLabel]).then {
             $0.axis = .horizontal
             $0.alignment = .center
@@ -93,45 +79,27 @@ final class TransferCell: UICollectionViewListCell {
             $0.spacing = FilaUI.Spacing.compact
             $0.setCustomSpacing(FilaUI.Spacing.medium, after: subtitleLabel)
         }
-        let actions = UIStackView(arrangedSubviews: [undoButton, cancelButton]).then {
-            $0.axis = .horizontal
-            // Never stretched to fill the row: a stretched button centres its
-            // title, and two rows' Put Back then sit at different distances
-            // from the trailing edge. The text beside it takes the slack.
-            $0.setContentHuggingPriority(.required, for: .horizontal)
-        }
-        let heading = UIStackView(arrangedSubviews: [text, actions]).then {
-            $0.axis = .horizontal
-            $0.alignment = .top
-            $0.spacing = FilaUI.Spacing.small
-        }
         contentView.addSubview(symbolView)
-        contentView.addSubview(heading)
+        contentView.addSubview(text)
         symbolView.snp.makeConstraints { make in
             make.leading.equalTo(contentView.layoutMarginsGuide)
-            make.top.equalTo(heading)
+            make.top.equalTo(text)
             make.width.height.equalTo(FilaUI.IconSize.file)
         }
-        heading.snp.makeConstraints { make in
+        text.snp.makeConstraints { make in
             make.leading.equalTo(symbolView.snp.trailing).offset(FilaUI.Spacing.medium)
             make.trailing.equalTo(contentView.layoutMarginsGuide)
             make.top.bottom.equalTo(contentView.layoutMarginsGuide).inset(FilaUI.Spacing.compact)
         }
-        cancelButton.snp.makeConstraints { make in
-            make.width.height.equalTo(FilaUI.minimumTapTarget).priority(.high)
-        }
-        undoButton.snp.makeConstraints { make in
-            make.width.height.greaterThanOrEqualTo(FilaUI.minimumTapTarget).priority(.high)
-        }
         separatorLayoutGuide.snp.makeConstraints { make in
-            make.leading.equalTo(heading)
+            make.leading.equalTo(text)
         }
         spinner.setContentHuggingPriority(.required, for: .horizontal)
         spinner.isAccessibilityElement = false
         progressView.isAccessibilityElement = false
     }
 
-    func configure(_ operation: OperationCenter.Operation, center: OperationCenter) {
+    func configure(_ operation: OperationCenter.Operation) {
         symbolView.image = UIImage(systemName: operation.kind.symbol)
         symbolView.tintColor = operation.isRunning ? tintColor : .secondaryLabel
         titleLabel.text = operation.succeeded ? operation.kind.completionTitle : operation.title
@@ -139,11 +107,6 @@ final class TransferCell: UICollectionViewListCell {
         subtitleLabel.isHidden = operation.subtitle.isEmpty
         subtitleLabel.numberOfLines = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 0 : 1
 
-        undoButton.isHidden = operation.undo == nil
-        undoButton.setTitle(operation.undo?.title, for: .normal)
-        onUndo = { center.undo(operation) }
-        cancelButton.isHidden = !operation.isCancellable
-        onCancel = { center.cancel(operation) }
         progressStack.isHidden = !operation.isRunning
         detailLabel.isHidden = true
         detailLabel.text = nil
@@ -178,7 +141,8 @@ final class TransferCell: UICollectionViewListCell {
             )
         }
 
-        // Keep the text together for VoiceOver while leaving row actions reachable.
+        // One element: the whole row is one sentence, and nothing on it is a
+        // control VoiceOver would have to reach past it.
         titleLabel.superview?.isAccessibilityElement = true
         titleLabel.superview?.accessibilityLabel = [
             titleLabel.text, operation.subtitle, detailLabel.text,

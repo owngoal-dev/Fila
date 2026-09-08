@@ -32,6 +32,10 @@ final class BrowserViewController: UIViewController {
     /// The directory listing has not finished yet. Only the first load replaces
     /// the initial empty view with a loading panel.
     private(set) var isListing = false
+    /// A context menu is animating shut. Its own cell is part of that
+    /// animation, so a listing must not replace it until the menu is gone.
+    var isMenuDismissing = false
+    private var reloadWasHeld = false
     /// Why the listing stopped, when it stopped before a single row arrived.
     /// A failure partway through a listing is reported as an alert instead —
     /// there are rows on screen by then, and the empty panel is not visible to
@@ -536,7 +540,24 @@ final class BrowserViewController: UIViewController {
     /// the whole reason listings are paged: a directory with 100k entries has to
     /// feel instant even though it is two hundred round trips. A refresh keeps
     /// existing rows until the complete listing can replace them in one diff.
+    /// Runs a held reload, if the menu that was closing took one with it.
+    func endMenuDismissal() {
+        isMenuDismissing = false
+        guard reloadWasHeld else { return }
+        reloadWasHeld = false
+        reload()
+    }
+
     func reload() {
+        // The tap that started a delete returns long before the delete does —
+        // it is an XPC round trip away — so its result routinely lands while
+        // the context menu is still animating shut. Replacing the listing then
+        // pulls the menu's own cell out from under it: the row appears not to
+        // have been deleted, and the animation glitches on its way out.
+        guard !isMenuDismissing else {
+            reloadWasHeld = true
+            return
+        }
         // A completed task remains here, so a loaded empty folder also keeps
         // its current presentation when another request starts.
         let keepsContent = loadTask != nil

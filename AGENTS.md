@@ -393,12 +393,15 @@ an alert for something that has no question and no button. Errors that
 need a title, a reason and Close stay AlertController; `FeedbackAlert` finds
 the active presenter when the original screen is gone. `Toast` is success-only:
 a single line with SPIndicator's `.done` preset, without custom icons or subtitles.
-Its optional Undo action remains available on that same line.
+**Nothing on it is pressable.** An indicator has no room for a control that
+reads as one, and "Moved to Trash · Put Back" was a label people took for a
+button. The same rule holds for the task rows in `TransfersViewController`:
+they are receipts, Cancel lives on the job's own progress card, and a
+destructive inverse is not one tap away in a list of past results.
 
 `Fila/Interface/Feedback/Toast.swift` is the only file that imports
-SPIndicator. It already queues, hosts a passthrough window, and wires
-the one action (Undo) onto the indicator. Extend that wrapper if the
-chrome is wrong; do not fork a second presenter.
+SPIndicator. It already queues and hosts a passthrough window. Extend
+that wrapper if the chrome is wrong; do not fork a second presenter.
 
 ### Grouped rows and alert cards — two rules `make check` enforces
 

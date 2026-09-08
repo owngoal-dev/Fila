@@ -88,7 +88,7 @@ final class TransfersViewController: UIViewController {
     private func buildDataSource() {
         let cell = UICollectionView.CellRegistration<TransferCell, UUID> { [weak self] cell, _, id in
             guard let self, let operation = center.operations.first(where: { $0.id == id }) else { return }
-            cell.configure(operation, center: center)
+            cell.configure(operation)
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
             elementKind: UICollectionView.elementKindSectionHeader

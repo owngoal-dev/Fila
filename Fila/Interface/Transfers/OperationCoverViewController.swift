@@ -12,6 +12,8 @@ final class OperationCoverViewController: UIViewController {
     private let operationID: UUID
     private var observation: AnyCancellable?
     private var isClosing = false
+    /// Fires when this card has finished leaving the screen, exactly once.
+    private var onDismiss: (() -> Void)?
     private var progressAnimation: (from: Float, to: Float, started: CFTimeInterval, link: CADisplayLink)?
 
     private let titleLabel = UILabel()
@@ -24,15 +26,29 @@ final class OperationCoverViewController: UIViewController {
     private let cancelButton = UIButton(type: .system)
     private let actionStack = UIStackView()
 
-    static func present(for operationID: UUID, from presenter: UIViewController, center: OperationCenter) {
+    /// `shown` runs once the card is on screen and `dismissed` once it is off
+    /// again — neither runs at all where the job finished inside the reveal
+    /// delay and no card was ever presented. A caller with an alert of its own
+    /// needs both: one presented into this card's dismissal never appears.
+    static func present(
+        for operationID: UUID,
+        from presenter: UIViewController,
+        center: OperationCenter,
+        shown: @escaping () -> Void = {},
+        dismissed: @escaping () -> Void = {}
+    ) {
         Task { @MainActor [weak presenter] in
             try? await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000))
             guard let presenter, presenter.viewIfLoaded?.window != nil,
                   presenter.presentedViewController == nil, !presenter.isBeingDismissed,
                   center.operations.first(where: { $0.id == operationID })?.isRunning == true else { return }
             let content = OperationCoverViewController(center: center, operationID: operationID)
+            content.onDismiss = dismissed
             let alert = AlertViewController(contentViewController: content)
-            presenter.present(alert, animated: true) { content.update() }
+            presenter.present(alert, animated: true) {
+                shown()
+                content.update()
+            }
         }
     }
 
@@ -65,6 +81,12 @@ final class OperationCoverViewController: UIViewController {
         super.viewDidDisappear(animated)
         observation = nil
         stopProgressAnimation()
+        // Here rather than in `close`, because the screen underneath can take
+        // this card down without asking. Off the row before it runs: whoever
+        // waits for the card to be gone is told once, whichever way it went.
+        let dismissed = onDismiss
+        onDismiss = nil
+        dismissed?()
     }
 
     override func viewDidLayoutSubviews() {

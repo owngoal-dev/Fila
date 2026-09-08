@@ -619,8 +619,8 @@ final class OperationCenter: ObservableObject {
     ///
     /// - Every failure is an alert with its reason and a Close button.
     /// - A cancellation says nothing. The user cancelled it; they know.
-    /// - A success that can be undone is a toast carrying the undo, because an
-    ///   offer nobody sees is not an offer.
+    /// - A success that can be undone is a toast saying so, and the undo itself
+    ///   is the button on its task row — a toast has no room for one.
     /// - `.successOnly`, instant and archive successes get a toast; the archive progress card
     ///   dismisses without announcing the same completion again.
     /// - Everything else already said it, in the transfers list, while it ran.
@@ -632,11 +632,8 @@ final class OperationCenter: ObservableObject {
             return
         }
         guard operation.succeeded else { return }
-        if let undo = operation.undo {
-            Toast.show(
-                operation.kind.completionTitle,
-                action: Toast.Action(title: undo.title) { [weak self] in self?.undo(operation) }
-            )
+        if operation.undo != nil {
+            Toast.show(operation.kind.completionTitle)
         } else if operation.feedback == .successOnly
             || operation.kind.isInstant
             || operation.kind == .compress

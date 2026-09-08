@@ -28,7 +28,16 @@ extension RootSplitViewController {
                 message: String(localized: "\(listed) will be moved into the folder you choose."),
                 link: session.link
             ) { destination in
-                session.operations.move(paths, to: destination.path)
+                // The panel opens on the Inbox, which is where these already
+                // are. Choosing it means "leave them here" — moving a file onto
+                // its own directory is `EEXIST`, not a no-op.
+                let home = destination.resolvingSymlinksInPath().path
+                let moving = paths.filter {
+                    URL(fileURLWithPath: $0).deletingLastPathComponent().resolvingSymlinksInPath().path != home
+                }
+                if !moving.isEmpty {
+                    session.operations.move(moving, to: destination.path)
+                }
                 self.open(destination.path, select: names.count == 1 ? names[0] : nil)
             }
             // On top of whatever is up: a share arriving while Settings is

@@ -84,8 +84,10 @@ final class FileActions {
         } ?? []
         // By name alone: a menu is built from a listing row, and sniffing the
         // bytes of every archive-shaped name would be an `open(2)` per row.
-        // A name that lies costs one failed job, not a wrong file.
-        let extraction: [UIMenuElement] = FileFormat.detect(head: Data(), name: node.name) == .archive ? [
+        // A name that lies costs one failed job, not a wrong file — but a
+        // folder called `Backup.zip` is not an archive under any reading.
+        let isArchive = !node.isNavigable && FileFormat.detect(head: Data(), name: node.name) == .archive
+        let extraction: [UIMenuElement] = isArchive ? [
             UIAction(
                 title: String(localized: "Extract"),
                 image: UIImage(systemName: OperationCenter.Kind.extract.symbol)

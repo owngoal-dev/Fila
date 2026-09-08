@@ -5,20 +5,15 @@ import UIKit
 /// Queued operation feedback rendered and animated by SPIndicator. The window
 /// keeps a completed operation visible across navigation, sheets, and alerts;
 /// touches outside the indicator continue to the screen below it.
+///
+/// One line, and nothing to press. An indicator has no room for a control that
+/// reads as one, and the second half of "Moved to Trash · Put Back" was a label
+/// people took for a button. Undo lives on its task row, which has an actual
+/// button and is still there a minute later.
 @MainActor
 enum Toast {
-    struct Action {
-        let title: String
-        let handler: () -> Void
-    }
-
-    static func show(_ title: String, action: Action? = nil) {
-        presenter.enqueue(Item(title: title, action: action))
-    }
-
-    fileprivate struct Item {
-        let title: String
-        let action: Action?
+    static func show(_ title: String) {
+        presenter.enqueue(title)
     }
 
     private static let presenter = Presenter()
@@ -27,20 +22,20 @@ enum Toast {
 @MainActor
 private final class Presenter {
     private static let sceneAttempts = 10
-    private var queue: [Toast.Item] = []
+    private var queue: [String] = []
     private var window: PassthroughWindow?
-    private var indicator: ActionIndicatorView?
+    private var indicator: SPIndicatorView?
     private var waiting: Task<Void, Never>?
 
-    func enqueue(_ item: Toast.Item) {
-        queue.append(item)
+    func enqueue(_ title: String) {
+        queue.append(title)
         guard window == nil, waiting == nil else { return }
         showNext(attempt: 0)
     }
 
     private func showNext(attempt: Int) {
         waiting = nil
-        guard window == nil, let item = queue.first else { return }
+        guard window == nil, let title = queue.first else { return }
         guard let scene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState == .foregroundActive })
@@ -70,76 +65,22 @@ private final class Presenter {
         host.layoutIfNeeded()
         window = host
 
-        let indicator = ActionIndicatorView(item: item)
+        let indicator = SPIndicatorView(title: title, message: nil, preset: .done).then {
+            $0.titleLabel?.adjustsFontForContentSizeCategory = true
+            $0.titleLabel?.numberOfLines = 1
+            $0.isAccessibilityElement = true
+            $0.accessibilityLabel = title
+        }
         indicator.presentWindow = host
         self.indicator = indicator
-        indicator.present(duration: item.action == nil ? 3 : 6, haptic: .none) { [weak self, weak indicator] in
+        indicator.present(duration: 3, haptic: .none) { [weak self, weak indicator] in
             guard let self, self.indicator === indicator else { return }
             self.indicator = nil
             host.isHidden = true
             window = nil
             showNext(attempt: 0)
         }
-        UIAccessibility.post(notification: .announcement, argument: indicator.accessibilityLabel)
-    }
-}
-
-/// SPIndicator supplies the appearance, layout, drag dismissal, and timing.
-/// The whole indicator activates its one labeled action, including VoiceOver.
-/// The operation's original Undo callback is consumed once.
-@MainActor
-private final class ActionIndicatorView: SPIndicatorView {
-    private var action: Toast.Action?
-    private var isDismissing = false
-
-    init(item: Toast.Item) {
-        action = item.action
-        let title = [item.title, item.action?.title].compactMap(\.self).joined(separator: " · ")
-        super.init(title: title, message: nil, preset: .done)
-        self.do {
-            $0.titleLabel?.adjustsFontForContentSizeCategory = true
-            $0.titleLabel?.numberOfLines = 1
-            $0.isAccessibilityElement = true
-            $0.accessibilityLabel = title
-        }
-        if let action = item.action {
-            accessibilityTraits = .button
-            accessibilityCustomActions = [UIAccessibilityCustomAction(
-                name: action.title,
-                target: self,
-                selector: #selector(activateAction)
-            )]
-            addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapped)))
-        }
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) is not supported")
-    }
-
-    override func dismiss() {
-        // Upstream's timer may fire after a tap or drag already dismissed it.
-        guard !isDismissing else { return }
-        isDismissing = true
-        action = nil
-        super.dismiss()
-    }
-
-    override func accessibilityActivate() -> Bool {
-        activateAction()
-    }
-
-    @objc private func tapped() {
-        _ = activateAction()
-    }
-
-    @objc private func activateAction() -> Bool {
-        guard !isDismissing, let action else { return false }
-        self.action = nil
-        dismiss()
-        action.handler()
-        return true
+        UIAccessibility.post(notification: .announcement, argument: title)
     }
 }
 

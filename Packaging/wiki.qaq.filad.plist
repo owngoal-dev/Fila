@@ -12,8 +12,8 @@
 	<string>root</string>
 	<key>ProcessType</key>
 	<string>Adaptive</string>
-	<!-- Long transfers outlive the app; launchd starts the daemon at load and
-	     respawns it, instead of only on a Mach-service demand. -->
+	<!-- Resident rather than on-demand: launchd starts the daemon at load and
+	     respawns it, so no lookup ever waits for a cold start. -->
 	<key>KeepAlive</key>
 	<true/>
 	<!-- 0022: files the daemon creates are not group- or world-writable. -->
