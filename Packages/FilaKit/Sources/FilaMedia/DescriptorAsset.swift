@@ -95,7 +95,8 @@ public final class DescriptorAsset {
     private static func contentType(descriptor: Int32, name: String) -> String {
         let suffix = (name as NSString).pathExtension
         if !suffix.isEmpty, let type = UTType(filenameExtension: suffix),
-           type.conforms(to: .audiovisualContent) {
+           type.conforms(to: .audiovisualContent)
+        {
             return type.identifier
         }
         var head = [UInt8](repeating: 0, count: 16)
@@ -114,9 +115,15 @@ public final class DescriptorAsset {
         if Array(head[0 ..< 3]) == Array("ID3".utf8) || (head[0] == 0xFF && head[1] & 0xE0 == 0xE0) {
             return UTType.mp3.identifier
         }
-        if Array(head[0 ..< 4]) == Array("RIFF".utf8) { return UTType.wav.identifier }
-        if Array(head[0 ..< 4]) == Array("FORM".utf8) { return UTType.aiff.identifier }
-        if Array(head[0 ..< 4]) == Array("caff".utf8) { return "com.apple.coreaudio-format" }
+        if Array(head[0 ..< 4]) == Array("RIFF".utf8) {
+            return UTType.wav.identifier
+        }
+        if Array(head[0 ..< 4]) == Array("FORM".utf8) {
+            return UTType.aiff.identifier
+        }
+        if Array(head[0 ..< 4]) == Array("caff".utf8) {
+            return "com.apple.coreaudio-format"
+        }
         return UTType.audiovisualContent.identifier
     }
 }
@@ -145,10 +152,10 @@ private final class DescriptorResourceLoader: NSObject, AVAssetResourceLoaderDel
     /// `AVAssetReader` pass of an 82 MB movie: capping here took the bytes
     /// handed to AVFoundation from 219 MB to 95 MB with every sample still
     /// delivered, and holds resident memory to one `readByteCount` per request.
-    private static let responseByteCount: Int64 = 8 * 1_024 * 1_024
+    private static let responseByteCount: Int64 = 8 * 1024 * 1024
     /// One `pread` at a time, so a request is answered out of a buffer this size
     /// rather than out of one the size of the answer.
-    private static let readByteCount: Int64 = 1 * 1_024 * 1_024
+    private static let readByteCount: Int64 = 1 * 1024 * 1024
 
     private let descriptor: Int32
     private let byteCount: Int64
@@ -221,7 +228,9 @@ private final class DescriptorResourceLoader: NSObject, AVAssetResourceLoaderDel
         // Finished even when `end` fell short of what was asked for: a short
         // answer is legal and AVFoundation re-asks from the new offset, which is
         // what keeps a 4 GB film from arriving in one response.
-        if !request.isCancelled { request.finishLoading() }
+        if !request.isCancelled {
+            request.finishLoading()
+        }
         return true
     }
 }

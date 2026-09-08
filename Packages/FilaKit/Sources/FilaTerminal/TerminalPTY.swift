@@ -171,11 +171,17 @@ public final class TerminalPTY: @unchecked Sendable {
                 onOutput?(Data(buffer[0 ..< got]))
                 // A short read means the kernel has no more for now; asking
                 // again only to be told `EAGAIN` costs a syscall per wake.
-                if got < Self.readByteCount { return }
+                if got < Self.readByteCount {
+                    return
+                }
                 continue
             }
-            if got < 0, errno == EINTR { continue }
-            if got < 0, errno == EAGAIN { return }
+            if got < 0, errno == EINTR {
+                continue
+            }
+            if got < 0, errno == EAGAIN {
+                return
+            }
             // Zero is EOF, and `EIO` is what a master reads once the slave's
             // last holder is gone. Both mean the program let go of the
             // terminal, and a read source at EOF fires forever — so stop
@@ -196,7 +202,9 @@ public final class TerminalPTY: @unchecked Sendable {
                 pendingOffset += wrote
                 continue
             }
-            if wrote < 0, errno == EINTR { continue }
+            if wrote < 0, errno == EINTR {
+                continue
+            }
             if wrote < 0, errno == EAGAIN {
                 if !isWriteSourceRunning {
                     isWriteSourceRunning = true
@@ -237,6 +245,8 @@ public final class TerminalPTY: @unchecked Sendable {
         // them until `close` cancels them. What is left is a pump that was
         // never started, or one whose sources are gone and whose descriptor
         // they already closed.
-        if liveSourceCount == 0, !isClosed { Darwin.close(descriptor) }
+        if liveSourceCount == 0, !isClosed {
+            Darwin.close(descriptor)
+        }
     }
 }

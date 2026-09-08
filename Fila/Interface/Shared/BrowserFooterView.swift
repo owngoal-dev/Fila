@@ -30,5 +30,7 @@ final class BrowserFooterView: UICollectionReusableView {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 }

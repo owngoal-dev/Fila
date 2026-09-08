@@ -80,16 +80,28 @@ final class FindBar: UIView {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
-    func becomeFirstResponderOnField() { field.becomeFirstResponder() }
+    func becomeFirstResponderOnField() {
+        field.becomeFirstResponder()
+    }
 
     func showResult(_ text: String?) {
         result.text = text
         result.isHidden = text == nil
     }
 
-    @objc private func findNext() { onFind?(field.text ?? "", true) }
-    @objc private func findPrevious() { onFind?(field.text ?? "", false) }
-    @objc private func dismiss() { onDismiss?() }
+    @objc private func findNext() {
+        onFind?(field.text ?? "", true)
+    }
+
+    @objc private func findPrevious() {
+        onFind?(field.text ?? "", false)
+    }
+
+    @objc private func dismiss() {
+        onDismiss?()
+    }
 }

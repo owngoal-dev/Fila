@@ -73,7 +73,9 @@ public final class DaemonLink: @unchecked Sendable {
         public let entries: [FileNode]
         public let cursor: UInt64
 
-        public var isFinal: Bool { cursor == 0 }
+        public var isFinal: Bool {
+            cursor == 0
+        }
     }
 
     public struct JobUpdate: Sendable {
@@ -221,7 +223,9 @@ public final class DaemonLink: @unchecked Sendable {
     /// registered both surface as a connection-invalid error with no
     /// distinguishing code. The difference is only in XPC's own log line.)
     public func hello() async throws -> Hello {
-        if let bound = current() { return try await bound.hello() }
+        if let bound = current() {
+            return try await bound.hello()
+        }
         do {
             let hello = try await daemon.hello()
             bind(daemon)
@@ -291,7 +295,9 @@ public final class DaemonLink: @unchecked Sendable {
     private func bind(_ service: any FileService) -> any FileService {
         stateLock.lock()
         defer { stateLock.unlock() }
-        if let bound { return bound }
+        if let bound {
+            return bound
+        }
         bound = service
         return service
     }
@@ -386,7 +392,7 @@ public final class DaemonLink: @unchecked Sendable {
     /// must not turn an old close request into a request for a new process.
     public struct TerminalIdentifier: Sendable {
         let value: UInt64
-        // Older daemons have no owner field; they cannot confirm completion.
+        /// Older daemons have no owner field; they cannot confirm completion.
         let owner: String?
     }
 
@@ -407,7 +413,9 @@ public final class DaemonLink: @unchecked Sendable {
         /// nobody can see until it is too late.
         public let userIdentifier: UInt32
 
-        public var isRoot: Bool { userIdentifier == 0 }
+        public var isRoot: Bool {
+            userIdentifier == 0
+        }
     }
 
     /// Open a terminal on `executable`, on `dpkg -i package` (root only), or on
@@ -443,8 +451,12 @@ public final class DaemonLink: @unchecked Sendable {
             throw FilaFailure(code: .notPermitted, path: executable ?? package)
         }
         let reply = try await daemon.send(.openTerminal) { request in
-            if let executable { xpc_dictionary_set_string(request, FilaWireKey.path, executable) }
-            if let package { xpc_dictionary_set_string(request, FilaWireKey.package, package) }
+            if let executable {
+                xpc_dictionary_set_string(request, FilaWireKey.path, executable)
+            }
+            if let package {
+                xpc_dictionary_set_string(request, FilaWireKey.package, package)
+            }
             if let workingDirectory {
                 xpc_dictionary_set_string(request, FilaWireKey.workingDirectory, workingDirectory)
             }
@@ -462,12 +474,17 @@ public final class DaemonLink: @unchecked Sendable {
               let program = xpc_dictionary_get_string(reply, FilaWireKey.path),
               let user = xpc_dictionary_get_value(reply, FilaWireKey.userIdentifier),
               xpc_get_type(user) == FilaXPC.typeUInt64,
-              let userIdentifier = UInt32(exactly: xpc_uint64_get_value(user)) else {
+              let userIdentifier = UInt32(exactly: xpc_uint64_get_value(user))
+        else {
             // The daemon said yes and a process is already running as root.
             // Failing to make sense of the reply is no reason to leave it
             // there — it would hold a session slot until the app quit.
-            if descriptor >= 0 { close(descriptor) }
-            if identifier.value != 0 { _ = try? await closeTerminal(identifier) }
+            if descriptor >= 0 {
+                close(descriptor)
+            }
+            if identifier.value != 0 {
+                _ = try? await closeTerminal(identifier)
+            }
             throw FilaFailure(code: .operationFailed, path: executable ?? package)
         }
         return Terminal(
@@ -486,7 +503,9 @@ public final class DaemonLink: @unchecked Sendable {
     public func closeTerminal(_ identifier: TerminalIdentifier) async throws -> Bool {
         let reply = try await daemon.send(.closeTerminal) { request in
             xpc_dictionary_set_uint64(request, FilaWireKey.terminalIdentifier, identifier.value)
-            if let owner = identifier.owner { xpc_dictionary_set_string(request, FilaWireKey.terminalOwner, owner) }
+            if let owner = identifier.owner {
+                xpc_dictionary_set_string(request, FilaWireKey.terminalOwner, owner)
+            }
         }
         return identifier.owner != nil && xpc_dictionary_get_bool(reply, FilaWireKey.terminalExited)
     }

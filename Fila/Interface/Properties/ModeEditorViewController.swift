@@ -79,7 +79,9 @@ final class ModeEditorViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -119,10 +121,10 @@ final class ModeEditorViewController: UIViewController {
 
             guard case let .bit(bit) = item else {
                 var content = UIListContentConfiguration.valueCell()
-                content.text = String(format: "%04o", self.mode)
+                content.text = String(format: "%04o", mode)
                 content.textProperties.font = UIFontMetrics(forTextStyle: .title2)
                     .scaledFont(for: .monospacedSystemFont(ofSize: 24, weight: .medium))
-                content.secondaryText = PropertiesViewController.rwx(self.mode)
+                content.secondaryText = PropertiesViewController.rwx(mode)
                 content.secondaryTextProperties.font = FilaUI.Font.monospacedValue
                 cell.contentConfiguration = content
                 cell.accessoryType = .disclosureIndicator
@@ -136,29 +138,29 @@ final class ModeEditorViewController: UIViewController {
             cell.selectionStyle = .none
 
             let toggle = UISwitch()
-            toggle.isOn = self.mode & bit.mask != 0
+            toggle.isOn = mode & bit.mask != 0
             toggle.accessibilityLabel = bit.label
             toggle.addAction(UIAction { [weak self, weak toggle] _ in
                 guard let self, let toggle else { return }
-                self.mode = toggle.isOn ? self.mode | bit.mask : self.mode & ~bit.mask
+                mode = toggle.isOn ? mode | bit.mask : mode & ~bit.mask
                 // Only the summary row moves; reconfiguring the whole table
                 // would drop the switch the finger is still on.
-                self.refresh([.octal])
+                refresh([.octal])
             }, for: .valueChanged)
             cell.accessoryView = toggle
             return cell
         }
         dataSource.header = { section in
             switch section {
-            case .octal: return String(localized: "Octal Mode")
-            case .permissions: return String(localized: "Permissions")
-            case .special: return String(localized: "Special")
+            case .octal: String(localized: "Octal Mode")
+            case .permissions: String(localized: "Permissions")
+            case .special: String(localized: "Special")
             }
         }
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.octal, .permissions, .special])
         snapshot.appendItems([.octal], toSection: .octal)
-        snapshot.appendItems((0..<3).map(Item.group), toSection: .permissions)
+        snapshot.appendItems((0 ..< 3).map(Item.group), toSection: .permissions)
         snapshot.appendItems(Self.bits[3].entries.map(Item.bit), toSection: .special)
         dataSource.applySnapshotUsingReloadData(snapshot)
     }
@@ -186,11 +188,11 @@ final class ModeEditorViewController: UIViewController {
             doneButtonText: String.LocalizationValue("Set")
         ) { [weak self] text in
             guard let self, let value = UInt32(text, radix: 8),
-                  (3...4).contains(text.count), value <= 0o7777 else { return }
-            self.mode = mode_t(value)
+                  (3 ... 4).contains(text.count), value <= 0o7777 else { return }
+            mode = mode_t(value)
             // Every switch as well as the summary: an octal typed in here can
             // change any of the twelve bits.
-            self.refresh(self.dataSource.snapshot().itemIdentifiers)
+            refresh(dataSource.snapshot().itemIdentifiers)
         }
         present(alert, animated: true)
     }
@@ -199,7 +201,9 @@ final class ModeEditorViewController: UIViewController {
 extension ModeEditorViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if dataSource.itemIdentifier(for: indexPath) == .octal { promptForOctal() }
+        if dataSource.itemIdentifier(for: indexPath) == .octal {
+            promptForOctal()
+        }
     }
 }
 
@@ -208,7 +212,7 @@ extension ModeEditorViewController: UITableViewDelegate {
 private final class PermissionGroupCell: UITableViewCell {
     private let titleLabel = UILabel()
     private let choices = UIStackView()
-    private let buttons = (0..<3).map { _ in UIButton(type: .system) }
+    private let buttons = (0 ..< 3).map { _ in UIButton(type: .system) }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -223,9 +227,9 @@ private final class PermissionGroupCell: UITableViewCell {
             $0.distribution = .fillEqually
             $0.spacing = FilaUI.Spacing.small
         }
-        buttons.forEach {
-            choices.addArrangedSubview($0)
-            $0.snp.makeConstraints { make in
+        for button in buttons {
+            choices.addArrangedSubview(button)
+            button.snp.makeConstraints { make in
                 make.height.greaterThanOrEqualTo(FilaUI.minimumTapTarget)
             }
         }
@@ -240,7 +244,9 @@ private final class PermissionGroupCell: UITableViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)

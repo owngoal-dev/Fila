@@ -1,10 +1,9 @@
 import Darwin
-import Foundation
-import Testing
-import FilaTestSupport
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import FilaTestSupport
+import Foundation
+import Testing
 
 /// The one place in this project that creates a process, against real
 /// pseudo-terminals and real children.
@@ -59,7 +58,7 @@ struct TerminalLaunchTests {
     }
 
     @Test("Login initialization admits root-controlled targets and rejects user-writable paths")
-    func rootControlledTargets() throws {
+    func rootControlledTargets() {
         #expect(TerminalPlan.isRootControlled("/bin/echo"))
         let scratch = Scratch()
         let executable = scratch.file("program", mode: 0o700)
@@ -100,10 +99,14 @@ struct TerminalLaunchTests {
             let got = buffer.withUnsafeMutableBytes { read(descriptor, $0.baseAddress, 4096) }
             if got > 0 {
                 collected += String(decoding: buffer[0 ..< got], as: UTF8.self)
-                if collected.contains(needle) { return collected }
+                if collected.contains(needle) {
+                    return collected
+                }
                 continue
             }
-            if got < 0, errno == EINTR || errno == EAGAIN { continue }
+            if got < 0, errno == EINTR || errno == EAGAIN {
+                continue
+            }
             break
         }
         return collected
@@ -264,7 +267,9 @@ struct TerminalLaunchTests {
         #expect(kill(leader, 0) != 0)
         #expect(kill(holder, 0) != 0)
         let deadline = Date().addingTimeInterval(5)
-        while kill(child, 0) == 0, Date() < deadline { usleep(10_000) }
+        while kill(child, 0) == 0, Date() < deadline {
+            usleep(10000)
+        }
         #expect(kill(child, 0) != 0)
     }
 

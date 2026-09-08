@@ -40,7 +40,9 @@ final class IconRowCell: UICollectionViewListCell {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     // MARK: - Hierarchy
 
@@ -164,7 +166,8 @@ final class IconRowCell: UICollectionViewListCell {
         // tinted: the text itself is left exactly as it is, so a list of
         // near-identical names says why each one is there.
         if let highlight, !highlight.isEmpty,
-           let range = name.range(of: highlight, options: [.caseInsensitive, .diacriticInsensitive]) {
+           let range = name.range(of: highlight, options: [.caseInsensitive, .diacriticInsensitive])
+        {
             let text = NSMutableAttributedString(string: name, attributes: [.foregroundColor: nameColor])
             text.addAttribute(.foregroundColor, value: UIColor.tintColor, range: NSRange(range, in: name))
             nameLabel.attributedText = text
@@ -186,10 +189,12 @@ final class IconRowCell: UICollectionViewListCell {
         favoriteBadge.isHidden = true
         iconToken = UUID()
         accessories = [.disclosureIndicator()]
-        accessibilityLabel = [name, detail].compactMap { $0 }.joined(separator: ", ")
+        accessibilityLabel = [name, detail].compactMap(\.self).joined(separator: ", ")
     }
 
-    func showFavoriteBadge() { favoriteBadge.isHidden = false }
+    func showFavoriteBadge() {
+        favoriteBadge.isHidden = false
+    }
 
     /// Application artwork: the row's icon for a bundle, the corner badge for
     /// a container. Cached artwork paints now; the rest arrives from
@@ -205,10 +210,12 @@ final class IconRowCell: UICollectionViewListCell {
         }
         // A bundle keeps its type artwork until the real icon lands; a badge
         // has nothing else to show.
-        if asBadge { target.image = AppFolderDisplay.placeholderIcon }
+        if asBadge {
+            target.image = AppFolderDisplay.placeholderIcon
+        }
         Task { [weak self] in
             let image = await AppFolderDisplay.icon(for: identifier)
-            guard let self, self.iconToken == token else { return }
+            guard let self, iconToken == token else { return }
             target.image = image
         }
     }
@@ -221,7 +228,7 @@ final class IconRowCell: UICollectionViewListCell {
         iconToken = token
         Task { [weak self] in
             guard let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session),
-                  let self, self.iconToken == token else { return }
+                  let self, iconToken == token else { return }
             iconView.image = thumbnail
             iconView.contentMode = .scaleAspectFill
             iconView.clipsToBounds = true
@@ -234,7 +241,7 @@ final class IconRowCell: UICollectionViewListCell {
         let image = FilePresentation.image(for: node)
         configure(
             name: presentation?.name ?? node.name,
-            detail: presentation.map { [$0.detail, node.name].compactMap { $0 }.joined(separator: " · ") }
+            detail: presentation.map { [$0.detail, node.name].compactMap(\.self).joined(separator: " · ") }
                 ?? Self.detail(for: node),
             image: image,
             nameColor: presentation == nil ? .label : .systemBrown
@@ -262,7 +269,7 @@ final class IconRowCell: UICollectionViewListCell {
         ]
 
         accessibilityLabel = [nameLabel.text, sizeLabel.text, detailLabel.text]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .filter { !$0.isEmpty }
             .joined(separator: ", ")
     }
@@ -272,7 +279,9 @@ final class IconRowCell: UICollectionViewListCell {
     /// A symlink's target displaces its date because the target is the answer
     /// to the question a link raises, and the row has one line to give.
     private static func detail(for node: FileNode) -> String {
-        if node.kind == .symbolicLink, let link = node.link { return "→ " + link.target }
+        if node.kind == .symbolicLink, let link = node.link {
+            return "→ " + link.target
+        }
         return FilePresentation.dateLabel(node.modified)
     }
 }

@@ -41,7 +41,9 @@ public struct SymbolicLink: Sendable, Hashable {
         self.resolvedKind = resolvedKind
     }
 
-    public var isBroken: Bool { resolvedKind == nil }
+    public var isBroken: Bool {
+        resolvedKind == nil
+    }
 }
 
 /// One entry as a listing reports it: an `lstat` plus the name.
@@ -107,15 +109,21 @@ public struct FileNode: Sendable, Hashable {
     }
 
     /// Dotfile, or the BSD `UF_HIDDEN` flag Finder and Filza both honour.
-    public var isHidden: Bool { name.hasPrefix(".") || systemFlags & UInt32(UF_HIDDEN) != 0 }
+    public var isHidden: Bool {
+        name.hasPrefix(".") || systemFlags & UInt32(UF_HIDDEN) != 0
+    }
 
     /// Locked against modification by `uchg` or `schg`. The daemon runs as root,
     /// so this — not permissions — is what usually stops a delete.
-    public var isImmutable: Bool { systemFlags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE) != 0 }
+    public var isImmutable: Bool {
+        systemFlags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE) != 0
+    }
 
     /// A directory, or a link that resolves to one: what the browser navigates
     /// into. The distinction between the two belongs here and nowhere else.
-    public var isNavigable: Bool { kind == .directory || link?.resolvedKind == .directory }
+    public var isNavigable: Bool {
+        kind == .directory || link?.resolvedKind == .directory
+    }
 }
 
 /// One extended attribute, named and sized. The value is fetched separately —

@@ -18,10 +18,10 @@ import XPC
 /// calls one function in `FilaFileOps`, and encodes the reply; the decisions
 /// that can destroy the user's filesystem live in a module that `swift test`
 /// can reach without a daemon.
-// Dispatch owns isolation here because XPC delivers events on a serial queue.
-// All mutable state, including startup, belongs to controlQueue. Background
-// work captures immutable jobs/connections and returns to that queue before
-// accessing server state; entry points assert that boundary at runtime.
+/// Dispatch owns isolation here because XPC delivers events on a serial queue.
+/// All mutable state, including startup, belongs to controlQueue. Background
+/// work captures immutable jobs/connections and returns to that queue before
+/// accessing server state; entry points assert that boundary at runtime.
 final class DaemonServer: @unchecked Sendable {
     private static let idleExitDelay: DispatchTimeInterval = .seconds(3)
 
@@ -114,7 +114,7 @@ final class DaemonServer: @unchecked Sendable {
         for number in [SIGTERM, SIGINT] {
             // A caught handler resets to SIG_DFL at exec. SIG_IGN would leak
             // into terminal children and make them ignore these signals too.
-            signal(number, { _ in })
+            signal(number) { _ in }
             let source = DispatchSource.makeSignalSource(signal: number, queue: controlQueue)
             source.setEventHandler { [weak self] in self?.stop() }
             source.activate()
@@ -210,9 +210,9 @@ final class DaemonServer: @unchecked Sendable {
     /// doing; logging either as an error would bury the ones that matter.
     private static func level(for code: FilaReplyCode) -> FilaLog.Level {
         switch code {
-        case .notFound, .cancelled: return .verbose
-        case .protectedPath, .notPermitted, .invalidRequest, .wrongPassword: return .warning
-        default: return .error
+        case .notFound, .cancelled: .verbose
+        case .protectedPath, .notPermitted, .invalidRequest, .wrongPassword: .warning
+        default: .error
         }
     }
 
@@ -242,7 +242,7 @@ final class DaemonServer: @unchecked Sendable {
 
         case .listDirectory:
             let page = try peer.listings.page(
-                directory: try string(FilaWireKey.path, in: message),
+                directory: string(FilaWireKey.path, in: message),
                 cursor: xpc_dictionary_get_uint64(message, FilaWireKey.cursor)
             )
             let entries = xpc_array_create(nil, 0)
@@ -253,12 +253,12 @@ final class DaemonServer: @unchecked Sendable {
             xpc_dictionary_set_uint64(reply, FilaWireKey.cursor, page.cursor)
 
         case .statPath:
-            let details = try operations.details(of: try string(FilaWireKey.path, in: message))
+            let details = try operations.details(of: string(FilaWireKey.path, in: message))
             xpc_dictionary_set_value(reply, FilaWireKey.details, details.encoded())
 
         case .openPath:
             let descriptor = try operations.open(
-                try string(FilaWireKey.path, in: message),
+                string(FilaWireKey.path, in: message),
                 flags: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(message, FilaWireKey.openFlags)),
                 mode: mode_t(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.mode))
             )
@@ -274,21 +274,22 @@ final class DaemonServer: @unchecked Sendable {
             }
             try operations.create(
                 template,
-                at: try string(FilaWireKey.path, in: message),
+                at: string(FilaWireKey.path, in: message),
                 mode: optionalMode(FilaWireKey.mode, in: message)
             )
 
         case .rename:
             try operations.rename(
-                try string(FilaWireKey.path, in: message),
-                to: try string(FilaWireKey.destination, in: message),
+                string(FilaWireKey.path, in: message),
+                to: string(FilaWireKey.destination, in: message),
                 exclusive: xpc_dictionary_get_bool(message, FilaWireKey.exclusive),
                 overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard)
             )
 
         case .setAttributes:
             guard let value = xpc_dictionary_get_value(message, FilaWireKey.attributes),
-                  let change = AttributeChange(decoding: value) else {
+                  let change = AttributeChange(decoding: value)
+            else {
                 throw FilaFailure(code: .invalidRequest)
             }
             // ponytail: a recursive change runs to completion on the control
@@ -296,27 +297,29 @@ final class DaemonServer: @unchecked Sendable {
             // It has no progress and no cancellation for the same reason.
             // Making it a job is the upgrade, and it needs wire vocabulary
             // `FilaJobKind` does not have yet.
-            try operations.setAttributes(change, at: try string(FilaWireKey.path, in: message))
+            try operations.setAttributes(change, at: string(FilaWireKey.path, in: message))
 
         case .replaceItem:
             try operations.replaceItem(
-                at: try string(FilaWireKey.destination, in: message),
-                withTemporary: try string(FilaWireKey.path, in: message)
+                at: string(FilaWireKey.destination, in: message),
+                withTemporary: string(FilaWireKey.path, in: message)
             )
 
         case .mountPoints:
             let mounts = xpc_array_create(nil, 0)
-            for mount in try operations.mountPoints() { xpc_array_append_value(mounts, mount.encoded()) }
+            for mount in try operations.mountPoints() {
+                xpc_array_append_value(mounts, mount.encoded())
+            }
             xpc_dictionary_set_value(reply, FilaWireKey.mounts, mounts)
 
         case .volumeInfo:
-            let volume = try operations.volumeInfo(for: try string(FilaWireKey.path, in: message))
+            let volume = try operations.volumeInfo(for: string(FilaWireKey.path, in: message))
             xpc_dictionary_set_value(reply, FilaWireKey.volume, volume.encoded())
 
         case .readExtendedAttribute:
             let value = try operations.extendedAttribute(
-                try string(FilaWireKey.attributeName, in: message),
-                at: try string(FilaWireKey.path, in: message)
+                string(FilaWireKey.attributeName, in: message),
+                at: string(FilaWireKey.path, in: message)
             )
             value.withUnsafeBytes {
                 xpc_dictionary_set_data(reply, FilaWireKey.attributeValue, $0.baseAddress, $0.count)
@@ -353,7 +356,9 @@ final class DaemonServer: @unchecked Sendable {
             // terminals and immediately opened eight more would otherwise have
             // sixteen shells running as root.
             let owner = xpc_dictionary_get_string(message, FilaWireKey.terminalOwner).map { String(cString: $0) }
-            if let owner, owner != peer.terminalOwner { throw FilaFailure(code: .invalidRequest) }
+            if let owner, owner != peer.terminalOwner {
+                throw FilaFailure(code: .invalidRequest)
+            }
             let process = peer.terminals[xpc_dictionary_get_uint64(message, FilaWireKey.terminalIdentifier)]
             process?.terminate()
             // Only the watch callback removes this entry, after group
@@ -516,7 +521,9 @@ final class DaemonServer: @unchecked Sendable {
         xpc_connection_cancel(listener)
         FilaLog.info("filad stopping; cancelling owned work")
         for key in Array(peers.keys) {
-            if let peer = peers[key] { xpc_connection_cancel(peer.connection) }
+            if let peer = peers[key] {
+                xpc_connection_cancel(peer.connection)
+            }
             peerInvalidated(key)
         }
         // Completion callbacks keep the existing idle gate closed until jobs
@@ -532,11 +539,15 @@ final class DaemonServer: @unchecked Sendable {
         // A peer that has gone cannot read progress and cannot be asked what to
         // do about a collision, so its jobs stop rather than run on as root
         // with nobody watching.
-        for job in peer.jobs.values { job.cancel() }
+        for job in peer.jobs.values {
+            job.cancel()
+        }
         // Tty hangup alone can be ignored. Also force the original process
         // groups to stop, then reap the direct children. TerminalProcess does
         // not claim ownership of other job-control groups or detached sessions.
-        for terminal in peer.terminals.values { terminal.terminate() }
+        for terminal in peer.terminals.values {
+            terminal.terminate()
+        }
         scheduleIdleExit()
     }
 
@@ -556,14 +567,14 @@ final class DaemonServer: @unchecked Sendable {
         // An explicit stop needs no reconnect grace after cleanup finishes.
         let delay: DispatchTimeInterval = listener == nil ? .seconds(0) : Self.idleExitDelay
         controlQueue.asyncAfter(deadline: .now() + delay) { [weak self] in
-            guard let self, self.idleGeneration == scheduledGeneration, self.peers.isEmpty else { return }
+            guard let self, idleGeneration == scheduledGeneration, peers.isEmpty else { return }
             // A job survives the peer that started it long enough to finish or
             // to notice it was cancelled. Exiting underneath one would leave a
             // half-copied tree with nobody to report it.
-            guard self.runningJobCount == 0 else { return }
+            guard runningJobCount == 0 else { return }
             // Group signalling must finish and each direct child must be
             // reaped before this owner exits. This is not a descendant count.
-            guard self.liveTerminalCount == 0 else { return }
+            guard liveTerminalCount == 0 else { return }
 
             exit(EXIT_SUCCESS)
         }

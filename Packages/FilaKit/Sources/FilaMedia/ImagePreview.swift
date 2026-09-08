@@ -26,7 +26,7 @@ public enum ImagePreview {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
               let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.int64Value,
               let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.int64Value,
-              width > 0, height > 0, width <= 32_768, height <= 32_768 else { return false }
+              width > 0, height > 0, width <= 32768, height <= 32768 else { return false }
         return width <= 64_000_000 / height
     }
 }

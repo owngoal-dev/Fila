@@ -27,7 +27,7 @@ enum TerminalSpawn {
             plan.credential.map { String($0.uid) } ?? "-",
             String(plan.credential?.gid ?? 0),
             plan.workingDirectory ?? "/",
-            plan.executable
+            plan.executable,
         ] + plan.arguments
         let argv = CStringArray(arguments)
         let envp = CStringArray(plan.environment.map { "\($0.key)=\($0.value)" }.sorted())
@@ -46,7 +46,9 @@ enum TerminalSpawn {
         var transferred = false
         defer {
             close(slave)
-            if !transferred { close(master) }
+            if !transferred {
+                close(master)
+            }
         }
         guard fcntl(master, F_SETFD, FD_CLOEXEC) == 0 else { throw FilaFailure(errno: Darwin.errno) }
         // Sources must survive actions overwriting 0/1/2 and report descriptor 3,
@@ -83,7 +85,9 @@ enum TerminalSpawn {
         close(report[1])
         report[1] = -1
         do {
-            if let error = try readReport(report[0]) { try checked(error) }
+            if let error = try readReport(report[0]) {
+                try checked(error)
+            }
         } catch {
             _ = killpg(pid, SIGKILL)
             _ = kill(pid, SIGKILL)
@@ -115,9 +119,13 @@ enum TerminalSpawn {
             var total = 0
             while total < wanted {
                 let got = read(descriptor, UnsafeMutableRawPointer(buffer).advanced(by: total), wanted - total)
-                if got > 0 { total += got; continue }
+                if got > 0 {
+                    total += got; continue
+                }
                 if got < 0 {
-                    if Darwin.errno == EINTR { continue }
+                    if Darwin.errno == EINTR {
+                        continue
+                    }
                     throw FilaFailure(errno: Darwin.errno)
                 }
                 throw FilaFailure(errno: EIO)
@@ -126,8 +134,6 @@ enum TerminalSpawn {
             return buffer.pointee == 0 ? nil : buffer.pointee
         }
     }
-
-
 }
 
 /// A NULL-terminated argv or environment for posix_spawn.
@@ -138,12 +144,16 @@ private struct CStringArray {
     init(_ values: [String]) {
         count = values.count
         pointer = .allocate(capacity: values.count + 1)
-        for (index, value) in values.enumerated() { pointer[index] = strdup(value) }
+        for (index, value) in values.enumerated() {
+            pointer[index] = strdup(value)
+        }
         pointer[values.count] = nil
     }
 
     func deallocate() {
-        for index in 0 ..< count { free(pointer[index]) }
+        for index in 0 ..< count {
+            free(pointer[index])
+        }
         pointer.deallocate()
     }
 }

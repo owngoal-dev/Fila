@@ -11,7 +11,9 @@ final class FileActions {
     weak var presenter: UIViewController?
     private let directory: String
     let didRemove: () -> Void
-    var session: FileSession { .shared }
+    var session: FileSession {
+        .shared
+    }
 
     init(presenter: UIViewController, directory: String, didRemove: @escaping () -> Void = {}) {
         self.presenter = presenter
@@ -60,7 +62,9 @@ final class FileActions {
         preview: (() -> Void)? = nil,
         confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
     ) -> [UIMenuElement] {
-        if Self.isInTrash(path) { return trashMenuElements(for: path, additional: additional, confirm: confirm) }
+        if Self.isInTrash(path) {
+            return trashMenuElements(for: path, additional: additional, confirm: confirm)
+        }
         let run: [UIMenuElement] = SystemCapabilities.runsPrograms && Self.canRun(node) ? [UIMenu(
             title: String(localized: "Run"),
             image: UIImage(systemName: "play"),
@@ -429,13 +433,19 @@ final class FileActions {
     }
 
     func report(_ error: Error) {
-        if let failure = error as? FilaFailure, failure.code == .success || failure.code == .cancelled { return }
-        if error is CancellationError { return }
+        if let failure = error as? FilaFailure, failure.code == .success || failure.code == .cancelled {
+            return
+        }
+        if error is CancellationError {
+            return
+        }
         guard let presenter = activePresenter else {
             FeedbackAlert.show(String(localized: "Operation Failed"), message: FailureMessage.text(for: error))
             return
         }
-        if let failure = error as? FilaFailure { presenter.report(failure); return }
+        if let failure = error as? FilaFailure {
+            presenter.report(failure); return
+        }
         let alert = AlertViewController(
             title: String(localized: "Operation Failed"),
             message: FailureMessage.text(for: error)

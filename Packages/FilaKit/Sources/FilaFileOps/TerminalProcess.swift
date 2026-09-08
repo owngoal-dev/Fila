@@ -91,7 +91,9 @@ public final class TerminalProcess: @unchecked Sendable {
         } while result < 0 && Darwin.errno == EINTR
         // A still-running child keeps this owner alive. Neither an elapsed
         // retry budget nor an unrelated wait error is evidence of completion.
-        guard result == processIdentifier || (result < 0 && Darwin.errno == ECHILD) else { return }
+        guard result == processIdentifier || (result < 0 && Darwin.errno == ECHILD) else {
+            return
+        }
         settle()
     }
 

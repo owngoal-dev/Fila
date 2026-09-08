@@ -66,7 +66,9 @@ final class StatusView: UIView {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     // MARK: - Hierarchy
 
@@ -164,7 +166,7 @@ final class StatusView: UIView {
         // labels a rotor has to be walked through — unless there is a button,
         // which has to stay reachable on its own.
         isAccessibilityElement = buttonTitle == nil
-        accessibilityLabel = [title, detail].compactMap { $0 }.joined(separator: ", ")
+        accessibilityLabel = [title, detail].compactMap(\.self).joined(separator: ", ")
         accessibilityTraits = isLoading ? .updatesFrequently : .staticText
     }
 }

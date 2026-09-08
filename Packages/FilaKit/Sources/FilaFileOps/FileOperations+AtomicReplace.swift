@@ -43,7 +43,9 @@ public extension FileOperations {
 
         var found = stat()
         let exists = lstat(destination, &found) == 0
-        if !exists, errno != ENOENT { throw FilaFailure(errno: errno, path: destination) }
+        if !exists, errno != ENOENT {
+            throw FilaFailure(errno: errno, path: destination)
+        }
         let original = exists ? found : nil
         if let original {
             // Metadata is written to the temporary before publication. It
@@ -74,7 +76,9 @@ public extension FileOperations {
         }
 
         while fsync(descriptor) != 0 {
-            if errno != EINTR { throw FilaFailure(errno: errno, path: source) }
+            if errno != EINTR {
+                throw FilaFailure(errno: errno, path: source)
+            }
         }
         try filaCheck(destination) { renameat(AT_FDCWD, source, AT_FDCWD, destination) }
 

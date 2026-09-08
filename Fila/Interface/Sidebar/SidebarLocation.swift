@@ -39,11 +39,14 @@ extension SidebarLocation {
                     icon: .artwork("home"),
                     path: NSHomeDirectory()
                 ),
-                inbox
+                inbox,
             ]
         }
-        let installRoot: String?
-        if case let .daemon(root) = backend { installRoot = root } else { installRoot = nil }
+        let installRoot: String? = if case let .daemon(root) = backend {
+            root
+        } else {
+            nil
+        }
         var places = [
             SidebarLocation(
                 position: .root,
@@ -105,7 +108,9 @@ extension SidebarLocation {
     /// Matches the backend's trash: under a relocated bootstrap, otherwise
     /// under the requested volume (the data volume for the sidebar).
     static func trashDirectory(backend: DaemonLink.Backend, volume: String = "/private/var") -> String {
-        if case let .daemon(root) = backend, !root.isEmpty { return FilaTrash.directory(under: root) }
+        if case let .daemon(root) = backend, !root.isEmpty {
+            return FilaTrash.directory(under: root)
+        }
         return FilaTrash.directory(under: volume)
     }
 }

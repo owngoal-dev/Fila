@@ -1,10 +1,9 @@
 import Darwin
 import FilaProtocol
-import Foundation
-import Testing
-import NIOCore
-
 @testable import FilaRemote
+import Foundation
+import NIOCore
+import Testing
 
 /// A running server on loopback, and a client that can speak the verbs
 /// `URLSession` has no convenience method for.
@@ -48,7 +47,9 @@ final class Harness {
                 found = port
                 break
             }
-            if case let .failed(reason) = server.status { throw HarnessFailure.listener(reason) }
+            if case let .failed(reason) = server.status {
+                throw HarnessFailure.listener(reason)
+            }
             try await Task.sleep(nanoseconds: 50_000_000)
         }
         guard let found else { throw HarnessFailure.listener("never became ready") }
@@ -67,8 +68,13 @@ final class Harness {
         let headers: [String: String]
         let body: Data
 
-        var text: String { String(decoding: body, as: UTF8.self) }
-        func header(_ name: String) -> String? { headers[name.lowercased()] }
+        var text: String {
+            String(decoding: body, as: UTF8.self)
+        }
+
+        func header(_ name: String) -> String? {
+            headers[name.lowercased()]
+        }
     }
 
     /// Preserve the target's percent encoding, keeping its query separate
@@ -83,7 +89,8 @@ final class Harness {
         guard var components = URLComponents(string: "http://127.0.0.1:\(port)"),
               let requestTarget = URLComponents(string: target),
               requestTarget.scheme == nil, requestTarget.host == nil,
-              requestTarget.fragment == nil, requestTarget.path.hasPrefix("/") else {
+              requestTarget.fragment == nil, requestTarget.path.hasPrefix("/")
+        else {
             throw HarnessFailure.badURL
         }
         components.percentEncodedPath = requestTarget.percentEncodedPath
@@ -97,7 +104,9 @@ final class Harness {
             let credentials = Data("\(user):\(password)".utf8).base64EncodedString()
             request.setValue("Basic \(credentials)", forHTTPHeaderField: "Authorization")
         }
-        for (name, value) in headers { request.setValue(value, forHTTPHeaderField: name) }
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
 
         let (data, response) = try await session.data(for: request)
         let http = response as! HTTPURLResponse
@@ -155,13 +164,17 @@ struct ServerTests {
         let config = WebDAVServer.Configuration(port: 0, username: "fila", password: "test", root: scratch.root, advertisesBonjour: false)
         for _ in 0 ..< 5 {
             try server.start(config)
-            if delay > 0 { try await Task.sleep(nanoseconds: delay) }
+            if delay > 0 {
+                try await Task.sleep(nanoseconds: delay)
+            }
             server.stop()
             #expect(server.status == .stopped)
         }
         try server.start(config)
         for _ in 0 ..< 100 {
-            if server.isRunning { break }
+            if server.isRunning {
+                break
+            }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         #expect(server.isRunning)
@@ -418,11 +431,13 @@ struct ServerTests {
         defer { server.stop() }
         var port: UInt16?
         for _ in 0 ..< 100 {
-            if case let .running(found) = server.status { port = found; break }
+            if case let .running(found) = server.status {
+                port = found; break
+            }
             try await Task.sleep(nanoseconds: 50_000_000)
         }
         let port_ = try #require(port)
-        var request = URLRequest(url: URL(string: "http://127.0.0.1:\(port_)/")!)
+        var request = try URLRequest(url: #require(URL(string: "http://127.0.0.1:\(port_)/")))
         request.setValue("Basic \(Data("fila:s3cret".utf8).base64EncodedString())", forHTTPHeaderField: "Authorization")
         let (_, response) = try await URLSession(configuration: .ephemeral).data(for: request)
         #expect((response as? HTTPURLResponse)?.statusCode == 404)
@@ -443,8 +458,8 @@ struct ServerTests {
     @Test("Concurrent browser uploads publish exactly one complete file")
     func exclusiveUploads() async throws {
         let harness = try await Harness()
-        let left = Data(repeating: 65, count: 2 * 1_024 * 1_024)
-        let right = Data(repeating: 66, count: 2 * 1_024 * 1_024)
+        let left = Data(repeating: 65, count: 2 * 1024 * 1024)
+        let right = Data(repeating: 66, count: 2 * 1024 * 1024)
         async let first = harness.send("PUT", "/race.bin", headers: ["If-None-Match": "*"], body: left)
         async let second = harness.send("PUT", "/race.bin", headers: ["If-None-Match": "*"], body: right)
         let replies = try await [first, second]
@@ -728,27 +743,27 @@ struct ServerTests {
             .appendingPathComponent("fila-download-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: staging) }
 
-        let source = URL(string: "http://fila:s3cret@127.0.0.1:\(harness.port)/payload.bin")!
+        let source = try #require(URL(string: "http://fila:s3cret@127.0.0.1:\(harness.port)/payload.bin"))
         let reported = Reports()
         let file = try await URLDownload.fetch(source, into: staging) { reported.note($0.received) }
-        #expect(String(decoding: try Data(contentsOf: file), as: UTF8.self) == contents)
+        #expect(try String(decoding: Data(contentsOf: file), as: UTF8.self) == contents)
         // The last report is the whole file: a bar that stops at 90% and then
         // the row says "done" is the shape this assertion exists to prevent.
         #expect(reported.last == Int64(contents.utf8.count), "reports: \(reported.all)")
 
         // A server that answers with something other than the file must not
         // leave that something looking like the file.
-        let missing = URL(string: "http://fila:s3cret@127.0.0.1:\(harness.port)/not-here.bin")!
+        let missing = try #require(URL(string: "http://fila:s3cret@127.0.0.1:\(harness.port)/not-here.bin"))
         await #expect(throws: URLDownload.Failure.httpStatus(404)) {
             try await URLDownload.fetch(missing, into: staging) { _ in }
         }
     }
 
     @Test("A download's name comes from the URL, and cannot be a path")
-    func downloadNames() {
-        #expect(URLDownload.suggestedName(for: URL(string: "http://x/a/b.zip")!) == "b.zip")
-        #expect(URLDownload.suggestedName(for: URL(string: "http://x/")!) == "download")
-        #expect(URLDownload.suggestedName(for: URL(string: "http://x")!) == "download")
+    func downloadNames() throws {
+        #expect(try URLDownload.suggestedName(for: #require(URL(string: "http://x/a/b.zip"))) == "b.zip")
+        #expect(try URLDownload.suggestedName(for: #require(URL(string: "http://x/"))) == "download")
+        #expect(try URLDownload.suggestedName(for: #require(URL(string: "http://x"))) == "download")
         // A traversal collapses into one ordinary name rather than a path.
         #expect(URLDownload.sanitize("../../etc/passwd") == ".._.._etc_passwd")
         #expect(URLDownload.sanitize("..") == nil)
@@ -762,7 +777,9 @@ struct ServerTests {
         _ = try await harness.send("OPTIONS", "/")
         // The client can receive the response before the server resumes to log it.
         for _ in 0 ..< 100 {
-            if harness.server.log.contains(where: { $0.text.contains("OPTIONS / → 200") }) { break }
+            if harness.server.log.contains(where: { $0.text.contains("OPTIONS / → 200") }) {
+                break
+            }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         let lines = harness.server.log.map(\.text)

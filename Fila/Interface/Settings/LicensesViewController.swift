@@ -11,17 +11,23 @@ private struct LicenseEntry: Decodable {
     let url: String
     let text: String
 
-    var summary: String { [license, version].compactMap { $0 }.joined(separator: " · ") }
+    var summary: String {
+        [license, version].compactMap(\.self).joined(separator: " · ")
+    }
 }
 
 /// Adapted from iGhostVT's LicensesView; UIKit owns Fila's navigation stack.
 final class LicensesViewController: UITableViewController {
     private var entries: [LicenseEntry] = []
 
-    init() { super.init(style: .insetGrouped) }
+    init() {
+        super.init(style: .insetGrouped)
+    }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,7 +36,8 @@ final class LicensesViewController: UITableViewController {
         tableView.contentInset.bottom = SettingsFooter.spacing
         if let url = Bundle.main.url(forResource: "Licenses", withExtension: "json"),
            let data = try? Data(contentsOf: url),
-           let decoded = try? JSONDecoder().decode([LicenseEntry].self, from: data) {
+           let decoded = try? JSONDecoder().decode([LicenseEntry].self, from: data)
+        {
             entries = decoded
         }
         if entries.isEmpty {
@@ -45,7 +52,7 @@ final class LicensesViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         entries.count
     }
 
@@ -84,7 +91,9 @@ private final class LicenseTextViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

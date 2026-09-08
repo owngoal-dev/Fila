@@ -91,10 +91,14 @@ enum HTTPAuthentication {
         // Absent means MD5. Anything else is a scheme this does not implement,
         // and answering it with an MD5 comparison would be answering a
         // different question than the client asked.
-        if let algorithm = fields["algorithm"], algorithm.uppercased() != "MD5" { return false }
+        if let algorithm = fields["algorithm"], algorithm.uppercased() != "MD5" {
+            return false
+        }
         // A realm the client made up would mean a different HA1; comparing
         // against ours is what makes the digest specific to this server.
-        if let claimed = fields["realm"], claimed != realm { return false }
+        if let claimed = fields["realm"], claimed != realm {
+            return false
+        }
 
         let ha1 = md5("\(username):\(realm):\(password)")
         let ha2 = md5("\(method):\(uri)")
@@ -139,7 +143,9 @@ enum HTTPAuthentication {
     static func challenges(nonces: DigestNonces, for request: HTTPRequest? = nil) -> [String] {
         let stale = request.map(nonceExpired) ?? false
         var digest = #"Digest realm="\#(realm)", qop="auth", algorithm=MD5, nonce="\#(nonces.issue())", opaque="\#(realm)""#
-        if stale { digest += ", stale=true" }
+        if stale {
+            digest += ", stale=true"
+        }
         return [digest, #"Basic realm="\#(realm)", charset="UTF-8""#]
     }
 
@@ -157,7 +163,9 @@ enum HTTPAuthentication {
     /// alone.
     static func parse(_ header: String) -> [String: String] {
         var text = Substring(header)
-        if text.lowercased().hasPrefix("digest ") { text = text.dropFirst("digest ".count) }
+        if text.lowercased().hasPrefix("digest ") {
+            text = text.dropFirst("digest ".count)
+        }
 
         var fields: [String: String] = [:]
         var name = ""
@@ -167,7 +175,9 @@ enum HTTPAuthentication {
 
         func commit() {
             let key = name.trimmed.lowercased()
-            if !key.isEmpty { fields[key] = value.trimmed.trimmingCharacters(in: CharacterSet(charactersIn: "\"")) }
+            if !key.isEmpty {
+                fields[key] = value.trimmed.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+            }
             name = ""
             value = ""
             readingName = true
@@ -176,7 +186,9 @@ enum HTTPAuthentication {
         for character in text {
             if quoted {
                 value.append(character)
-                if character == "\"" { quoted = false }
+                if character == "\"" {
+                    quoted = false
+                }
                 continue
             }
             switch character {
@@ -188,7 +200,11 @@ enum HTTPAuthentication {
             case ",":
                 commit()
             default:
-                if readingName { name.append(character) } else { value.append(character) }
+                if readingName {
+                    name.append(character)
+                } else {
+                    value.append(character)
+                }
             }
         }
         commit()
@@ -230,7 +246,9 @@ final class DigestNonces: @unchecked Sendable {
         var bytes = [UInt8](repeating: 0, count: 16)
         // `SecRandomCopyBytes` would pull in Security for the same entropy;
         // this is the platform's own CSPRNG.
-        for index in bytes.indices { bytes[index] = UInt8.random(in: 0 ... 255) }
+        for index in bytes.indices {
+            bytes[index] = UInt8.random(in: 0 ... 255)
+        }
         let nonce = Data(bytes).base64EncodedString()
 
         lock.lock()

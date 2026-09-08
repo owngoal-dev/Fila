@@ -9,14 +9,20 @@ enum FileImport {
     static func document(_ source: URL, into directory: URL) async throws -> URL {
         try await Task.detached {
             let accessed = source.startAccessingSecurityScopedResource()
-            defer { if accessed { source.stopAccessingSecurityScopedResource() } }
+            defer {
+                if accessed {
+                    source.stopAccessingSecurityScopedResource()
+                }
+            }
             let coordinator = NSFileCoordinator()
             var coordinationError: NSError?
             var result: Result<URL, Error> = .failure(FilaFailure(errno: EIO, path: source.path))
             coordinator.coordinate(readingItemAt: source, options: [], error: &coordinationError) { url in
                 result = Result { try copy(url, named: source.lastPathComponent, into: directory) }
             }
-            if let coordinationError { throw coordinationError }
+            if let coordinationError {
+                throw coordinationError
+            }
             return try result.get()
         }.value
     }
@@ -29,18 +35,22 @@ enum FileImport {
         return try await withCheckedThrowingContinuation { continuation in
             provider.loadFileRepresentation(forTypeIdentifier: identifier) { url, error in
                 do {
-                    if let error { throw error }
+                    if let error {
+                        throw error
+                    }
                     guard let url else { throw FilaFailure(errno: EIO) }
                     var name = suggestedName ?? url.lastPathComponent
                     if (name as NSString).pathExtension.isEmpty {
                         let suffix = url.pathExtension.isEmpty
                             ? UTType(identifier)?.preferredFilenameExtension
                             : url.pathExtension
-                        if let suffix, !suffix.isEmpty { name += "." + suffix }
+                        if let suffix, !suffix.isEmpty {
+                            name += "." + suffix
+                        }
                     }
                     // The provider deletes its URL when this callback returns.
                     // Finish the clone/copy here, before resuming the caller.
-                    continuation.resume(returning: try copy(url, named: name, into: directory))
+                    try continuation.resume(returning: copy(url, named: name, into: directory))
                 } catch { continuation.resume(throwing: error) }
             }
         }

@@ -23,7 +23,9 @@ final class LogRecordViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

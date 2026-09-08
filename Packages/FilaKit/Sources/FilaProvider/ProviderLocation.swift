@@ -43,7 +43,9 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
     public static func initializeDefault(documentsURL: URL, in groupURL: URL) throws -> ProviderLocation {
         try transaction(in: groupURL) { group, operations in
             let current = try read(group.appendingPathComponent(".fila-provider-location.json"))
-            if let current, !current.isDefault { return current }
+            if let current, !current.isDefault {
+                return current
+            }
             let path = try FilaPath.resolve(documentsURL.path)
             let generation = current.flatMap { $0.displayPath == path ? $0.generation : nil } ?? UUID()
             let value = try make(url: documentsURL, isDefault: true, generation: generation, group: group)
@@ -63,9 +65,9 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
 
     private static func make(url: URL, isDefault: Bool, generation: UUID, group: URL) throws -> ProviderLocation {
         try validateFolder(url, groupURL: group)
-        return ProviderLocation(
+        return try ProviderLocation(
             generation: generation,
-            displayPath: try FilaPath.resolve(url.path),
+            displayPath: FilaPath.resolve(url.path),
             isDefault: isDefault
         )
     }
@@ -74,7 +76,7 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
         guard url.isFileURL, !url.path.utf8.contains(0) else { throw Failure.unavailableFolder }
         let path = try FilaPath.resolve(url.path)
         if let groupURL {
-            let group = URL(fileURLWithPath: try FilaPath.resolve(groupURL.path)).pathComponents
+            let group = try URL(fileURLWithPath: FilaPath.resolve(groupURL.path)).pathComponents
             let selected = URL(fileURLWithPath: path).pathComponents
             guard !selected.starts(with: group), !group.starts(with: selected) else {
                 throw Failure.recursiveLocation
@@ -92,7 +94,7 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
     }
 
     private static func transaction<T>(in groupURL: URL, _ body: (URL, FileOperations) throws -> T) throws -> T {
-        let group = URL(fileURLWithPath: try FilaPath.resolve(groupURL.path), isDirectory: true)
+        let group = try URL(fileURLWithPath: FilaPath.resolve(groupURL.path), isDirectory: true)
         let operations = FileOperations(bootstrapRoot: group.path, writableRoot: group.path)
         let descriptor = try operations.open(group.appendingPathComponent(".fila-provider-location.lock").path,
                                              flags: O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC, mode: 0o600)
@@ -115,7 +117,9 @@ public struct ProviderLocation: Codable, Equatable, Sendable {
     private static func read(_ url: URL) throws -> ProviderLocation? {
         let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
         guard descriptor >= 0 else {
-            if errno == ENOENT { return nil }
+            if errno == ENOENT {
+                return nil
+            }
             throw Failure.invalidConfiguration
         }
         let file = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)

@@ -54,10 +54,10 @@ enum IPAInstaller {
 
         var describe: String {
             switch self {
-            case .installed: return "installed"
-            case let .failed(domain, code, message): return "FAILED \(domain) \(code): \(message)"
-            case let .unsupported(reason): return "unsupported: \(reason)"
-            case .timedOut: return "install outcome unknown: no completion in 60s"
+            case .installed: "installed"
+            case let .failed(domain, code, message): "FAILED \(domain) \(code): \(message)"
+            case let .unsupported(reason): "unsupported: \(reason)"
+            case .timedOut: "install outcome unknown: no completion in 60s"
             }
         }
 
@@ -79,11 +79,14 @@ enum IPAInstaller {
         let viaCoordinator = await installViaCoordination(ipa, packageType: packageType)
         if case .unsupported = viaCoordinator {
             let viaWorkspace = await installViaWorkspace(ipa, packageType: packageType)
-            if case .unsupported = viaWorkspace { return viaCoordinator }
+            if case .unsupported = viaWorkspace {
+                return viaCoordinator
+            }
             return viaWorkspace
         }
         return viaCoordinator
     }
+
     /// What the Install… card says about a package, read from the package
     /// itself: the bundle identifier installd will register it under (and the
     /// name of the placeholder to remove if it refuses), and a name to show.
@@ -116,7 +119,7 @@ enum IPAInstaller {
                 let data = try reader.data(maximumByteCount: 4 * 1024 * 1024)
                 guard found == nil,
                       let plist = try PropertyListSerialization
-                          .propertyList(from: data, options: [], format: nil) as? [String: Any],
+                      .propertyList(from: data, options: [], format: nil) as? [String: Any],
                       let bundleID = plist["CFBundleIdentifier"] as? String, !bundleID.isEmpty
                 else { throw notAnApp }
                 let bundleName = String(parts[1])
@@ -142,14 +145,18 @@ enum IPAInstaller {
     private static func installViaWorkspace(_ ipa: URL, packageType: String?) async -> Outcome {
         guard let workspace = workspace() else { return .unsupported("LSApplicationWorkspace unavailable") }
         var options: [String: Any] = [:]
-        if let packageType, !packageType.isEmpty { options["PackageType"] = packageType }
+        if let packageType, !packageType.isEmpty {
+            options["PackageType"] = packageType
+        }
         let result: (ok: Bool, error: NSError?) = await Task.detached {
             var error: NSError?
             let ok = unsafeBitCast(workspace, to: LSInstallWorkspace.self)
                 .installApplication(ipa, withOptions: options, error: &error)
             return (ok, error)
         }.value
-        if result.ok { return .installed }
+        if result.ok {
+            return .installed
+        }
         guard let error = result.error else { return .failed(domain: "?", code: 0, message: "no error") }
         // The iOS 16+ stub: not a real failure, a "use the other API" signal.
         if error.domain == "NSOSStatusErrorDomain", error.code == -4 {
@@ -175,7 +182,8 @@ enum IPAInstaller {
         var options: AnyObject?
         if let packageType, !packageType.isEmpty,
            let optionsClass = NSClassFromString("MIInstallOptions") as? NSObject.Type,
-           let instance = optionsClass.perform(NSSelectorFromString("alloc"))?.takeUnretainedValue() as? NSObject {
+           let instance = optionsClass.perform(NSSelectorFromString("alloc"))?.takeUnretainedValue() as? NSObject
+        {
             options = instance.perform(NSSelectorFromString("initWithLegacyOptionsDictionary:"),
                                        with: ["PackageType": packageType])?.takeUnretainedValue()
         }
@@ -226,8 +234,12 @@ enum IPAInstaller {
     /// The most specific text an error carries: installd puts the real reason
     /// (`0xe800801c …`) in the recovery suggestion, not the description.
     private static func describe(_ error: NSError) -> String {
-        if let suggestion = error.userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String { return suggestion }
-        if let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError { return underlying.localizedDescription }
+        if let suggestion = error.userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String {
+            return suggestion
+        }
+        if let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError {
+            return underlying.localizedDescription
+        }
         return error.localizedDescription
     }
 }

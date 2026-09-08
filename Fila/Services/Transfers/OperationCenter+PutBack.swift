@@ -77,10 +77,14 @@ extension OperationCenter {
                 }
                 try await restore(path, to: origin)
             } catch {
-                if firstFailure == nil { firstFailure = error }
+                if firstFailure == nil {
+                    firstFailure = error
+                }
             }
         }
-        if let firstFailure { throw firstFailure }
+        if let firstFailure {
+            throw firstFailure
+        }
     }
 
     private func restore(_ path: String, to original: String, identity: UUID? = nil) async throws {

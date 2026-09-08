@@ -89,14 +89,14 @@ public struct MachOImage: Sendable {
 
         switch [UInt8](magic) {
         case [0xCA, 0xFE, 0xBA, 0xBE]:
-            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: true, is64: false), true)
+            (slices, isUniversal) = try (Self.fatSlices(reader, bigEndian: true, is64: false), true)
         case [0xBE, 0xBA, 0xFE, 0xCA]:
-            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: false, is64: false), true)
+            (slices, isUniversal) = try (Self.fatSlices(reader, bigEndian: false, is64: false), true)
         case [0xCA, 0xFE, 0xBA, 0xBF]:
-            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: true, is64: true), true)
+            (slices, isUniversal) = try (Self.fatSlices(reader, bigEndian: true, is64: true), true)
         case [0xBF, 0xBA, 0xFE, 0xCA]:
-            (slices, isUniversal) = (try Self.fatSlices(reader, bigEndian: false, is64: true), true)
-        default: (slices, isUniversal) = ([try Self.slice(reader, at: 0, byteCount: reader.byteCount)], false)
+            (slices, isUniversal) = try (Self.fatSlices(reader, bigEndian: false, is64: true), true)
+        default: (slices, isUniversal) = try ([Self.slice(reader, at: 0, byteCount: reader.byteCount)], false)
         }
     }
 
@@ -109,7 +109,7 @@ public struct MachOImage: Sendable {
     /// entitlements themselves: a code signature on a large binary is mostly
     /// page hashes, and there is no reason to pull megabytes of those in to
     /// find a two-kilobyte plist.
-    public func entitlements(of slice: Slice, maximumByteCount: Int64 = 128 * 1_024) throws -> PropertyListDocument? {
+    public func entitlements(of slice: Slice, maximumByteCount: Int64 = 128 * 1024) throws -> PropertyListDocument? {
         guard let signature = slice.signature, signature.byteCount >= 12 else { return nil }
 
         let index = try reader.readUpTo(at: signature.offset, count: min(Int(signature.byteCount), 12 + 64 * 8))
@@ -157,23 +157,23 @@ public struct MachOImage: Sendable {
             let offset: Int64, byteCount: Int64
             if is64 {
                 guard
-                    let checkedOffset = Int64(exactly: try table.integer(at: base + 8, bigEndian: bigEndian) as UInt64),
-                    let checkedCount = Int64(exactly: try table.integer(at: base + 16, bigEndian: bigEndian) as UInt64)
+                    let checkedOffset = try Int64(exactly: table.integer(at: base + 8, bigEndian: bigEndian) as UInt64),
+                    let checkedCount = try Int64(exactly: table.integer(at: base + 16, bigEndian: bigEndian) as UInt64)
                 else {
                     throw FormatFailure.damaged("one of its architectures is invalid")
                 }
                 offset = checkedOffset
                 byteCount = checkedCount
             } else {
-                offset = Int64(try table.integer(at: base + 8, bigEndian: bigEndian) as UInt32)
-                byteCount = Int64(try table.integer(at: base + 12, bigEndian: bigEndian) as UInt32)
+                offset = try Int64(table.integer(at: base + 8, bigEndian: bigEndian) as UInt32)
+                byteCount = try Int64(table.integer(at: base + 12, bigEndian: bigEndian) as UInt32)
             }
             guard offset >= Int64(8 + Int(count) * entrySize) else {
                 throw FormatFailure.damaged("its architecture list is invalid")
             }
             let header = try reader.read(at: offset, count: 24)
             let magic: UInt32 = try header.littleEndian(at: 0)
-            let swapped = magic == 0xCEFAEDFE || magic == 0xCFFAEDFE
+            let swapped = magic == 0xCEFA_EDFE || magic == 0xCFFA_EDFE
             let commands: UInt32 = try header.integer(at: 20, bigEndian: swapped)
             guard Int64(commands) <= remainingCommands else {
                 throw FormatFailure.tooLarge(
@@ -204,15 +204,17 @@ public struct MachOImage: Sendable {
         }
         let headerByteCount = is64 ? 32 : 28
         guard byteCount >= headerByteCount else { throw FormatFailure.damaged("its Mach-O header is truncated") }
-        func headerWord(_ at: Int) throws -> UInt32 { try header.integer(at: at, bigEndian: bigEndian) }
+        func headerWord(_ at: Int) throws -> UInt32 {
+            try header.integer(at: at, bigEndian: bigEndian)
+        }
 
-        let cpuType = Int32(bitPattern: try headerWord(4))
-        let cpuSubtype = Int32(bitPattern: try headerWord(8))
-        var slice = Slice(
+        let cpuType = try Int32(bitPattern: headerWord(4))
+        let cpuSubtype = try Int32(bitPattern: headerWord(8))
+        var slice = try Slice(
             cpuType: cpuType,
             cpuSubtype: cpuSubtype,
             architecture: architectureName(cpuType: cpuType, cpuSubtype: cpuSubtype),
-            fileType: FileType(rawValue: try headerWord(12)),
+            fileType: FileType(rawValue: headerWord(12)),
             isSixtyFourBit: is64,
             isBigEndian: bigEndian,
             offset: offset,
@@ -229,12 +231,14 @@ public struct MachOImage: Sendable {
         guard Int64(commandsByteCount) <= min(byteCount - Int64(headerByteCount), maximumLoadCommandByteCount) else {
             throw FormatFailure.damaged("its header describes more data than the file holds")
         }
-        guard commandCount <= 16_384, UInt64(commandCount) * 8 <= commandsByteCount else {
+        guard commandCount <= 16384, UInt64(commandCount) * 8 <= commandsByteCount else {
             throw FormatFailure.damaged("its header is too large to read")
         }
 
         let commands = try reader.read(at: offset + (is64 ? 32 : 28), count: Int(commandsByteCount))
-        func word(_ at: Int) throws -> UInt32 { try commands.integer(at: at, bigEndian: bigEndian) }
+        func word(_ at: Int) throws -> UInt32 {
+            try commands.integer(at: at, bigEndian: bigEndian)
+        }
 
         var cursor = 0
         for _ in 0 ..< commandCount {
@@ -242,7 +246,7 @@ public struct MachOImage: Sendable {
                 throw FormatFailure.damaged("its load command list is truncated")
             }
             let command = try word(cursor)
-            let size = Int(try word(cursor + 4))
+            let size = try Int(word(cursor + 4))
             guard size >= 8, size % (is64 ? 8 : 4) == 0, size <= commands.count - cursor else {
                 throw FormatFailure.damaged("part of its header is the wrong size")
             }
@@ -271,8 +275,8 @@ public struct MachOImage: Sendable {
 
             case LoadCommand.codeSignature:
                 guard size >= 16 else { break }
-                let dataOffset = Int64(try word(cursor + 8))
-                let dataByteCount = Int64(try word(cursor + 12))
+                let dataOffset = try Int64(word(cursor + 8))
+                let dataByteCount = try Int64(word(cursor + 12))
                 slice.isCodeSigned = true
                 if dataByteCount > 0, dataOffset + dataByteCount <= byteCount {
                     slice.signature = SignatureLocation(offset: offset + dataOffset, byteCount: dataByteCount)
@@ -297,7 +301,7 @@ public struct MachOImage: Sendable {
         word: (Int) throws -> UInt32
     ) throws -> String? {
         guard size >= 24 else { return nil }
-        let nameOffset = Int(try word(cursor + 8))
+        let nameOffset = try Int(word(cursor + 8))
         guard nameOffset >= 12, nameOffset < size else { return nil }
         return try commands.string(at: cursor + nameOffset, count: size - nameOffset)
     }

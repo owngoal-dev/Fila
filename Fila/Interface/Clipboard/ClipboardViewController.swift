@@ -103,7 +103,9 @@ final class ClipboardViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -115,7 +117,6 @@ final class ClipboardViewController: UIViewController {
         table.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
-
 
         installModalDoneButton()
     }
@@ -169,7 +170,7 @@ final class ClipboardViewController: UIViewController {
         }
         dataSource.header = { [weak self] section in
             guard let self, section == .items, !self.paths.isEmpty else { return nil }
-            return self.summary
+            return summary
         }
         dataSource.footer = { [weak self] section in self?.footer(for: section) }
     }
@@ -201,7 +202,9 @@ final class ClipboardViewController: UIViewController {
     private func reconfigure(_ path: String) {
         var snapshot = dataSource.snapshot()
         let rows = snapshot.itemIdentifiers.filter {
-            if case let .entry(entry) = $0 { return entry.path == path }
+            if case let .entry(entry) = $0 {
+                return entry.path == path
+            }
             return false
         }
         guard !rows.isEmpty else { return }
@@ -235,16 +238,18 @@ final class ClipboardViewController: UIViewController {
         let paths = paths
         survey = Task { [weak self] in
             for path in paths {
-                if Task.isCancelled { return }
+                if Task.isCancelled {
+                    return
+                }
                 guard let self else { return }
-                let status = await Self.status(of: path, session: self.session)
+                let status = await Self.status(of: path, session: session)
                 guard !Task.isCancelled, self.paths == paths else { return }
-                let wasMissing = self.missingPaths.contains(path)
-                self.statuses[path] = status
+                let wasMissing = missingPaths.contains(path)
+                statuses[path] = status
                 if case .missing = status, !wasMissing {
-                    self.applySnapshot()
+                    applySnapshot()
                 } else {
-                    self.reconfigure(path)
+                    reconfigure(path)
                 }
             }
         }
@@ -252,7 +257,7 @@ final class ClipboardViewController: UIViewController {
 
     private static func status(of path: String, session: FileSession) async -> Status {
         do {
-            return .present(try await session.perform(retryOnDisconnect: true) {
+            return try await .present(session.perform(retryOnDisconnect: true) {
                 try await $0.details(of: path)
             })
         } catch let failure as FilaFailure where failure.code == .notFound || failure.systemError == ENOENT {
@@ -268,7 +273,13 @@ final class ClipboardViewController: UIViewController {
     }
 
     private var missingPaths: [String] {
-        paths.filter { if case .missing? = statuses[$0] { return true } else { return false } }
+        paths.filter {
+            if case .missing? = statuses[$0] {
+                true
+            } else {
+                false
+            }
+        }
     }
 
     // MARK: - Actions
@@ -280,7 +291,9 @@ final class ClipboardViewController: UIViewController {
     }
 
     private func removeMissing() {
-        for path in missingPaths { clipboard.remove(path) }
+        for path in missingPaths {
+            clipboard.remove(path)
+        }
         reload()
     }
 
@@ -361,9 +374,9 @@ final class ClipboardViewController: UIViewController {
 extension ClipboardViewController: UITableViewDelegate {
     private static func symbol(for status: Status) -> String {
         switch status {
-        case .checking, .unknown: return "questionmark.circle"
-        case .missing: return "exclamationmark.triangle"
-        case let .present(details): return details.node.isNavigable ? "folder" : "doc"
+        case .checking, .unknown: "questionmark.circle"
+        case .missing: "exclamationmark.triangle"
+        case let .present(details): details.node.isNavigable ? "folder" : "doc"
         }
     }
 
@@ -377,7 +390,7 @@ extension ClipboardViewController: UITableViewDelegate {
     }
 
     func tableView(
-        _ tableView: UITableView,
+        _: UITableView,
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
     ) -> UISwipeActionsConfiguration? {
         guard case let .entry(entry)? = dataSource.itemIdentifier(for: indexPath) else { return nil }

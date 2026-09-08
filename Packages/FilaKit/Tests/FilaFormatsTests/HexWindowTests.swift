@@ -1,7 +1,6 @@
+@testable import FilaFormats
 import Foundation
 import Testing
-
-@testable import FilaFormats
 
 @Suite("Hex windows")
 struct HexWindowTests {
@@ -20,19 +19,19 @@ struct HexWindowTests {
     func readsAWindow() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("blob.bin")
-            let payload = samplePayload(byteCount: 5_000)
+            let payload = samplePayload(byteCount: 5000)
             try payload.write(to: url)
 
             try withDescriptor(reading: url) { descriptor in
                 let window = try HexWindow(descriptor: descriptor)
-                #expect(window.byteCount == 5_000)
+                #expect(window.byteCount == 5000)
                 #expect(window.rowCount() == 313)
 
                 // Near the end, where an off-by-one in the clamp shows up.
-                #expect(try window.read(at: 4_980, count: 16) == payload[4_980 ..< 4_996])
-                #expect(try window.read(at: 4_990, count: 16) == payload[4_990 ..< 5_000])
-                #expect(try window.read(at: 4_096, count: 16) == payload[4_096 ..< 4_112])
-                #expect(try window.rows(312 ..< 313) == payload[4_992 ..< 5_000])
+                #expect(try window.read(at: 4980, count: 16) == payload[4980 ..< 4996])
+                #expect(try window.read(at: 4990, count: 16) == payload[4990 ..< 5000])
+                #expect(try window.read(at: 4096, count: 16) == payload[4096 ..< 4112])
+                #expect(try window.rows(312 ..< 313) == payload[4992 ..< 5000])
             }
         }
     }

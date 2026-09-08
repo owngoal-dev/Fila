@@ -1,6 +1,6 @@
+@testable import FilaProvider
 import Foundation
 import Testing
-@testable import FilaProvider
 
 private func locationFixture(_ body: (URL, URL, URL) throws -> Void) throws {
     let base = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).resolvingSymlinksInPath()

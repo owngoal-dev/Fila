@@ -29,7 +29,9 @@ final class RootSplitViewController: UISplitViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,7 +71,9 @@ final class RootSplitViewController: UISplitViewController {
     /// tab, into the visible column. The navigation controllers stay parented.
     private func syncContentColumn() {
         content.move(to: isCollapsed ? compactContent : wideContent)
-        if content.navigation == nil { content.showCurrentTab() }
+        if content.navigation == nil {
+            content.showCurrentTab()
+        }
         content.refreshSidebarButton()
     }
 
@@ -93,7 +97,9 @@ final class RootSplitViewController: UISplitViewController {
         for controller: UIViewController,
         make: () -> UIBarButtonItem
     ) -> UIBarButtonItem {
-        if let item = table.object(forKey: controller) { return item }
+        if let item = table.object(forKey: controller) {
+            return item
+        }
         let item = make()
         table.setObject(item, forKey: controller)
         return item
@@ -104,12 +110,12 @@ final class RootSplitViewController: UISplitViewController {
             image: UIImage(systemName: "sidebar.leading"),
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
-                if self.isCollapsed {
-                    self.presentSidebar()
-                } else if self.displayMode == .secondaryOnly {
-                    self.show(.primary)
+                if isCollapsed {
+                    presentSidebar()
+                } else if displayMode == .secondaryOnly {
+                    show(.primary)
                 } else {
-                    self.hide(.primary)
+                    hide(.primary)
                 }
             }
         ).then {
@@ -179,7 +185,8 @@ final class RootSplitViewController: UISplitViewController {
                 })
                 buttons.insert(back, at: 0)
             } else if ancestors.isEmpty, buttons.isEmpty,
-                      let browser = controller as? BrowserViewController, browser.directory != "/" {
+                      let browser = controller as? BrowserViewController, browser.directory != "/"
+            {
                 back.menu = nil
                 buttons.insert(back, at: 0)
             }
@@ -188,7 +195,9 @@ final class RootSplitViewController: UISplitViewController {
             navigation.interactivePopGestureRecognizer?.delegate = self
             // On a phone, Places lives in the tab overview's bottom toolbar.
             // Wide layouts keep the control that restores the sidebar column.
-            if !isCollapsed, !inSidebar { buttons.append(toggle) }
+            if !isCollapsed, !inSidebar {
+                buttons.append(toggle)
+            }
         }
         item.leftItemsSupplementBackButton = false
         // UIKit's animated item swap fades the arriving and departing buttons
@@ -217,14 +226,17 @@ final class RootSplitViewController: UISplitViewController {
         let destination = requested ?? navigation.viewControllers[navigation.viewControllers.count - 2]
         let perform = { [weak self, weak source, weak navigation, weak destination] in
             guard let self, let source, let navigation, let destination,
-                  self.content.visibleTop === source,
+                  content.visibleTop === source,
                   navigation.topViewController === source,
                   navigation.viewControllers.contains(where: { $0 === destination }),
                   destination !== source else { return }
             navigation.popToViewController(destination, animated: true)
         }
-        if let confirm = (source as? ViewerContainerViewController)?.confirmReplacement { confirm({}, perform) }
-        else { perform() }
+        if let confirm = (source as? ViewerContainerViewController)?.confirmReplacement {
+            confirm({}, perform)
+        } else {
+            perform()
+        }
     }
 
     /// Re-roots the current tab at `path`, without retaining the old location.
@@ -234,14 +246,16 @@ final class RootSplitViewController: UISplitViewController {
     /// something Back should walk out of through somebody's Documents. Back out
     /// of the jump climbs `/etc`'s own chain instead. Each parent is created
     /// only when Back opens it, so an unseen ancestor is never a recent visit.
-    // The compact column already hosts content. show(.secondary) while
-    // collapsed asks UIKit to push its navigation wrapper and crashes on iOS 18.
+    /// The compact column already hosts content. show(.secondary) while
+    /// collapsed asks UIKit to push its navigation wrapper and crashes on iOS 18.
     func open(_ path: String, select: String? = nil) {
         confirmLeavingContent { [weak self] in
             guard let self else { return }
-            self.dismissSidebarSheet()
-            self.content.showRoot(path, select: select)
-            if !self.isCollapsed { self.show(.secondary) }
+            dismissSidebarSheet()
+            content.showRoot(path, select: select)
+            if !isCollapsed {
+                show(.secondary)
+            }
         }
     }
 
@@ -262,9 +276,11 @@ final class RootSplitViewController: UISplitViewController {
     func replace(_ viewController: UIViewController) {
         confirmLeavingContent { [weak self] in
             guard let self else { return }
-            self.dismissSidebarSheet()
-            self.content.navigation?.setViewControllers([viewController], animated: false)
-            if !self.isCollapsed { self.show(.secondary) }
+            dismissSidebarSheet()
+            content.navigation?.setViewControllers([viewController], animated: false)
+            if !isCollapsed {
+                show(.secondary)
+            }
         }
     }
 
@@ -285,10 +301,10 @@ final class RootSplitViewController: UISplitViewController {
             )
             confirmLeavingContent { [weak self] in
                 guard let self else { return }
-                if let browser = self.content.navigation?.topViewController as? BrowserViewController {
+                if let browser = content.navigation?.topViewController as? BrowserViewController {
                     browser.open(directory: path)
                 } else {
-                    self.content.showRoot(path, select: nil)
+                    content.showRoot(path, select: nil)
                 }
             }
             return
@@ -316,7 +332,9 @@ final class RootSplitViewController: UISplitViewController {
         content.captureCurrentTab()
         BrowserTabStore.shared.openFromLink(path)
         content.showCurrentTab()
-        if !isCollapsed { show(.secondary) }
+        if !isCollapsed {
+            show(.secondary)
+        }
     }
 
     /// The overview covers the content, without dismissing any document.
@@ -352,8 +370,8 @@ final class RootSplitViewController: UISplitViewController {
         content.confirmClosingTab(id) { [weak self] in
             guard let self else { return }
             BrowserTabStore.shared.close(id)
-            self.content.removeClosedTabs()
-            self.closeTabs(ids.dropFirst())
+            content.removeClosedTabs()
+            closeTabs(ids.dropFirst())
         }
     }
 
@@ -367,12 +385,15 @@ final class RootSplitViewController: UISplitViewController {
         let finish = { [weak self, weak navigation, weak source] in
             // Saving may finish after a tab switch. Its permission applies
             // only to the page that asked, never to a newly selected editor.
-            guard let self, self.content.navigation === navigation,
+            guard let self, content.navigation === navigation,
                   navigation?.topViewController === source else { return }
             leave()
         }
-        if let confirm = viewer?.confirmReplacement { confirm({}, finish) }
-        else { leave() }
+        if let confirm = viewer?.confirmReplacement {
+            confirm({}, finish)
+        } else {
+            leave()
+        }
     }
 
     /// Called when the app goes away. The stack is already written down on
@@ -408,7 +429,7 @@ final class RootSplitViewController: UISplitViewController {
 
 extension RootSplitViewController: UISplitViewControllerDelegate {
     func splitViewController(
-        _ splitViewController: UISplitViewController,
+        _: UISplitViewController,
         willChangeTo displayMode: UISplitViewController.DisplayMode
     ) {
         announcedDisplayMode = displayMode
@@ -416,10 +437,15 @@ extension RootSplitViewController: UISplitViewControllerDelegate {
         content.refreshSidebarButton()
         animateToggleTransfer = false
     }
-    func splitViewControllerDidCollapse(_: UISplitViewController) { syncContentColumn() }
-    func splitViewControllerDidExpand(_: UISplitViewController) { syncContentColumn() }
-}
 
+    func splitViewControllerDidCollapse(_: UISplitViewController) {
+        syncContentColumn()
+    }
+
+    func splitViewControllerDidExpand(_: UISplitViewController) {
+        syncContentColumn()
+    }
+}
 
 extension RootSplitViewController: UIGestureRecognizerDelegate {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {

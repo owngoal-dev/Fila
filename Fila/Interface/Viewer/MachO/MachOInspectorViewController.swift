@@ -17,9 +17,9 @@ final class MachOInspectorViewController: UIViewController {
         /// The left column, and half of the row's identity.
         var label: String {
             switch self {
-            case let .fact(label, _): return label
-            case .entitlements: return String(localized: "Entitlements")
-            case let .list(label, _): return label
+            case let .fact(label, _): label
+            case .entitlements: String(localized: "Entitlements")
+            case let .list(label, _): label
             }
         }
     }
@@ -46,14 +46,16 @@ final class MachOInspectorViewController: UIViewController {
     private var names: [String] = []
     private var rows: [Item: Row] = [:]
 
-    init(details: FileDetails, file: DescriptorFile, link: DaemonLink) {
+    init(details: FileDetails, file: DescriptorFile, link _: DaemonLink) {
         self.file = file
         super.init(nibName: nil, bundle: nil)
         title = URL(fileURLWithPath: details.path).lastPathComponent
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,7 +77,7 @@ final class MachOInspectorViewController: UIViewController {
                     let image = try FilaFormats.MachOImage(descriptor: descriptor)
                     return try image.slices.map { slice in
                         try Task.checkCancellation()
-                        return (slice, try image.inspect(slice), try image.entitlements(of: slice)?.root)
+                        return try (slice, image.inspect(slice), image.entitlements(of: slice)?.root)
                     }
                 }
                 do {
@@ -93,13 +95,15 @@ final class MachOInspectorViewController: UIViewController {
                             isUniversal: architectures.count > 1
                         )
                         let items = built.map { Item(slice: index, label: $0.label) }
-                        for (item, row) in zip(items, built) { self.rows[item] = row }
-                        self.names.append(architecture.0.architecture)
+                        for (item, row) in zip(items, built) {
+                            rows[item] = row
+                        }
+                        names.append(architecture.0.architecture)
                         snapshot.appendSections([index])
                         snapshot.appendItems(items, toSection: index)
                     }
-                    self.table.backgroundView = nil
-                    self.dataSource.apply(snapshot, animatingDifferences: false, completion: nil)
+                    table.backgroundView = nil
+                    dataSource.apply(snapshot, animatingDifferences: false, completion: nil)
                 } catch {
                     guard !Task.isCancelled else { return }
                     self?.showFailure(error)
@@ -154,16 +158,20 @@ final class MachOInspectorViewController: UIViewController {
 
     private static func rows(for architecture: FilaFormats.MachOImage.Slice,
                              inspection: FilaFormats.MachOImage.Inspection,
-                             entitlements: PropertyListValue?, isUniversal: Bool) -> [Row] {
+                             entitlements: PropertyListValue?, isUniversal: Bool) -> [Row]
+    {
         var rows: [Row] = [
             .fact(String(localized: "Type"), fileType(architecture.fileType)),
             .fact(String(localized: "Signature"), architecture.isCodeSigned
-                  ? (inspection.isAdHoc == true ? String(localized: "Ad hoc") : String(localized: "Signed"))
-                  : String(localized: "None")),
+                ? (inspection.isAdHoc == true ? String(localized: "Ad hoc") : String(localized: "Signed"))
+                : String(localized: "None")),
             .list(String(localized: "Linked Libraries"), architecture.linkedLibraries),
         ]
-        if let entitlements { rows.append(.entitlements(entitlements)) }
-        else { rows.append(.fact(String(localized: "Entitlements"), String(localized: "None"))) }
+        if let entitlements {
+            rows.append(.entitlements(entitlements))
+        } else {
+            rows.append(.fact(String(localized: "Entitlements"), String(localized: "None")))
+        }
         rows.append(.list(String(localized: "Runpaths"), inspection.runpaths))
         rows.append(.list(String(localized: "Load Commands"), inspection.loadCommands))
         rows.append(.list(String(localized: "Segments"), inspection.segments.map { segment in
@@ -181,72 +189,88 @@ final class MachOInspectorViewController: UIViewController {
         if isUniversal {
             details.append(String(localized: "Slice Size") + ": " + FilePresentation.byteLabel(architecture.byteCount))
         }
-        if let name = architecture.installName { details.append(String(localized: "Install Name") + ": " + name) }
-        if let platform = inspection.platform { details.append(String(localized: "Platform") + ": " + platform) }
-        if let minimum = inspection.minimumOS { details.append(String(localized: "Minimum OS") + ": " + minimum) }
-        if let sdk = inspection.sdk { details.append(String(localized: "SDK") + ": " + sdk) }
-        if let source = inspection.sourceVersion { details.append(String(localized: "Source Version") + ": " + source) }
+        if let name = architecture.installName {
+            details.append(String(localized: "Install Name") + ": " + name)
+        }
+        if let platform = inspection.platform {
+            details.append(String(localized: "Platform") + ": " + platform)
+        }
+        if let minimum = inspection.minimumOS {
+            details.append(String(localized: "Minimum OS") + ": " + minimum)
+        }
+        if let sdk = inspection.sdk {
+            details.append(String(localized: "SDK") + ": " + sdk)
+        }
+        if let source = inspection.sourceVersion {
+            details.append(String(localized: "Source Version") + ": " + source)
+        }
         if let entry = inspection.entryOffset {
             details.append(String(localized: "Entry Offset") + ": " + String(format: "0x%llX", entry))
         }
-        if let count = inspection.symbolCount { details.append(String(localized: "Symbols") + ": " + String(count)) }
-        if let uuid = architecture.uuid { details.append(String(localized: "UUID") + ": " + uuid.uuidString) }
+        if let count = inspection.symbolCount {
+            details.append(String(localized: "Symbols") + ": " + String(count))
+        }
+        if let uuid = architecture.uuid {
+            details.append(String(localized: "UUID") + ": " + uuid.uuidString)
+        }
         if !inspection.flags.isEmpty {
             details.append(String(localized: "Flags") + ": " + inspection.flags.joined(separator: ", "))
         }
-        let encryption: String
-        if let method = inspection.encryptionMethod, method != 0 {
-            encryption = String(format: String(localized: "Encrypted, method %u, %@ region"), method,
-                                FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0)))
-        } else { encryption = String(localized: "Not encrypted") }
+        let encryption = if let method = inspection.encryptionMethod, method != 0 {
+            String(format: String(localized: "Encrypted, method %u, %@ region"), method,
+                   FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0)))
+        } else {
+            String(localized: "Not encrypted")
+        }
         details.append(String(localized: "Encryption") + ": " + encryption)
         if let identifier = inspection.signingIdentifier {
             details.append(String(localized: "Signing Identifier") + ": " + identifier)
         }
-        if let team = inspection.teamIdentifier { details.append(String(localized: "Team Identifier") + ": " + team) }
+        if let team = inspection.teamIdentifier {
+            details.append(String(localized: "Team Identifier") + ": " + team)
+        }
         rows.append(.list(String(localized: "Details"), details))
         return rows
     }
 
     private static func displayValue(_ value: FilaFormats.PropertyListValue) -> PropertyListValue {
         switch value {
-        case let .boolean(value): return .boolean(value)
-        case let .integer(value): return .integer(value)
-        case let .real(value): return .real(value)
-        case let .string(value): return .string(value)
-        case let .date(value): return .date(value)
-        case let .data(value): return .data(value)
-        case let .array(values): return .array(values.map(displayValue))
+        case let .boolean(value): .boolean(value)
+        case let .integer(value): .integer(value)
+        case let .real(value): .real(value)
+        case let .string(value): .string(value)
+        case let .date(value): .date(value)
+        case let .data(value): .data(value)
+        case let .array(values): .array(values.map(displayValue))
         case let .dictionary(values):
-            return .dictionary(values.keys.sorted().map { (key: $0, value: displayValue(values[$0]!)) })
+            .dictionary(values.keys.sorted().map { (key: $0, value: displayValue(values[$0]!)) })
         }
     }
 
     private static func fileType(_ value: FilaFormats.MachOImage.FileType?) -> String {
         switch value {
-        case .object: return String(localized: "Object File")
-        case .executable: return String(localized: "Executable")
-        case .core: return String(localized: "Core Dump")
-        case .dynamicLibrary: return String(localized: "Dynamic Library")
-        case .dynamicLinker: return String(localized: "Dynamic Linker")
-        case .bundle: return String(localized: "Bundle")
-        case .dynamicLibraryStub: return String(localized: "Library Stub")
-        case .debugSymbols: return String(localized: "Debug Symbols")
-        case .kernelExtension: return String(localized: "Kernel Extension")
-        case .fileSet: return String(localized: "File Set")
-        case .fixedVMLibrary: return String(localized: "Fixed VM Library")
-        case .preload: return String(localized: "Preload File")
-        case nil: return String(localized: "Unknown")
+        case .object: String(localized: "Object File")
+        case .executable: String(localized: "Executable")
+        case .core: String(localized: "Core Dump")
+        case .dynamicLibrary: String(localized: "Dynamic Library")
+        case .dynamicLinker: String(localized: "Dynamic Linker")
+        case .bundle: String(localized: "Bundle")
+        case .dynamicLibraryStub: String(localized: "Library Stub")
+        case .debugSymbols: String(localized: "Debug Symbols")
+        case .kernelExtension: String(localized: "Kernel Extension")
+        case .fileSet: String(localized: "File Set")
+        case .fixedVMLibrary: String(localized: "Fixed VM Library")
+        case .preload: String(localized: "Preload File")
+        case nil: String(localized: "Unknown")
         }
     }
-
 }
 
 extension MachOInspectorViewController: UITableViewDelegate {
     func tableView(
-        _ tableView: UITableView,
+        _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let item = dataSource.itemIdentifier(for: indexPath),
               case let .fact(_, value) = rows[item] else { return nil }
@@ -254,7 +278,7 @@ extension MachOInspectorViewController: UITableViewDelegate {
             UIMenu(children: [
                 UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
                     UIPasteboard.general.string = value
-                }
+                },
             ])
         }
     }

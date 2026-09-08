@@ -24,25 +24,25 @@ indirect enum PropertyListValue {
 
     var supportsEditing: Bool {
         switch self {
-        case let .dictionary(pairs): return pairs.allSatisfy { $0.value.supportsEditing }
-        case let .array(items): return items.allSatisfy(\.supportsEditing)
-        case .readOnly: return false
-        default: return true
+        case let .dictionary(pairs): pairs.allSatisfy(\.value.supportsEditing)
+        case let .array(items): items.allSatisfy(\.supportsEditing)
+        case .readOnly: false
+        default: true
         }
     }
 
     var isContainer: Bool {
         switch self {
-        case .dictionary, .array: return true
-        default: return false
+        case .dictionary, .array: true
+        default: false
         }
     }
 
     var childCount: Int {
         switch self {
-        case let .dictionary(pairs): return pairs.count
-        case let .array(items): return items.count
-        default: return 0
+        case let .dictionary(pairs): pairs.count
+        case let .array(items): items.count
+        default: 0
         }
     }
 
@@ -50,37 +50,37 @@ indirect enum PropertyListValue {
     var summary: String {
         switch self {
         case let .dictionary(pairs):
-            return String(format: String(localized: "%lld items"), Int64(pairs.count))
+            String(format: String(localized: "%lld items"), Int64(pairs.count))
         case let .array(items):
-            return String(format: String(localized: "%lld items"), Int64(items.count))
+            String(format: String(localized: "%lld items"), Int64(items.count))
         case let .string(text):
-            return text
+            text
         case let .integer(number):
-            return String(number)
+            String(number)
         case let .real(number):
-            return String(number)
+            String(number)
         case let .boolean(flag):
-            return flag ? "true" : "false"
+            flag ? "true" : "false"
         case let .date(date):
-            return ISO8601DateFormatter().string(from: date)
+            ISO8601DateFormatter().string(from: date)
         case let .data(bytes):
-            return ByteCountFormatter.string(fromByteCount: Int64(bytes.count), countStyle: .binary)
+            ByteCountFormatter.string(fromByteCount: Int64(bytes.count), countStyle: .binary)
         case let .readOnly(summary):
-            return summary
+            summary
         }
     }
 
     var typeName: String {
         switch self {
-        case .dictionary: return String(localized: "Dictionary")
-        case .array: return String(localized: "Array")
-        case .string: return String(localized: "String")
-        case .integer: return String(localized: "Number")
-        case .real: return String(localized: "Number")
-        case .boolean: return String(localized: "Boolean")
-        case .date: return String(localized: "Date")
-        case .data: return String(localized: "Data")
-        case .readOnly: return String(localized: "Read-Only Value")
+        case .dictionary: String(localized: "Dictionary")
+        case .array: String(localized: "Array")
+        case .string: String(localized: "String")
+        case .integer: String(localized: "Number")
+        case .real: String(localized: "Number")
+        case .boolean: String(localized: "Boolean")
+        case .date: String(localized: "Date")
+        case .data: String(localized: "Data")
+        case .readOnly: String(localized: "Read-Only Value")
         }
     }
 
@@ -89,8 +89,8 @@ indirect enum PropertyListValue {
     /// way.
     var editableText: String? {
         switch self {
-        case .string, .integer, .real: return summary
-        default: return nil
+        case .string, .integer, .real: summary
+        default: nil
         }
     }
 }
@@ -143,11 +143,12 @@ extension PropertyListValue {
     private static func readOnlySummary(_ object: Any) -> String {
         guard let data = try? PropertyListSerialization
             .data(fromPropertyList: ["value": object], format: .xml, options: 0),
-              let xml = String(data: data, encoding: .utf8),
-              let key = xml.range(of: "<key>CF$UID</key>"),
-              let start = xml.range(of: "<integer>", range: key.upperBound ..< xml.endIndex),
-              let end = xml.range(of: "</integer>", range: start.upperBound ..< xml.endIndex),
-              let number = UInt64(xml[start.upperBound ..< end.lowerBound]) else {
+            let xml = String(data: data, encoding: .utf8),
+            let key = xml.range(of: "<key>CF$UID</key>"),
+            let start = xml.range(of: "<integer>", range: key.upperBound ..< xml.endIndex),
+            let end = xml.range(of: "</integer>", range: start.upperBound ..< xml.endIndex),
+            let number = UInt64(xml[start.upperBound ..< end.lowerBound])
+        else {
             return String(localized: "Unsupported Value")
         }
         return "UID \(number)"
@@ -158,7 +159,9 @@ extension PropertyListValue {
             switch self {
             case let .dictionary(pairs):
                 var result: [String: Any] = [:]
-                for pair in pairs { result[pair.key] = try pair.value.foundationObject }
+                for pair in pairs {
+                    result[pair.key] = try pair.value.foundationObject
+                }
                 return result
             case let .array(items):
                 return try items.map { try $0.foundationObject }
@@ -176,11 +179,11 @@ extension PropertyListValue {
     subscript(step: PropertyListStep) -> PropertyListValue? {
         switch (self, step) {
         case let (.dictionary(pairs), .key(name)):
-            return pairs.first { $0.key == name }?.value
+            pairs.first { $0.key == name }?.value
         case let (.array(items), .index(index)):
-            return items.indices.contains(index) ? items[index] : nil
+            items.indices.contains(index) ? items[index] : nil
         default:
-            return nil
+            nil
         }
     }
 

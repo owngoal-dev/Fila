@@ -74,7 +74,9 @@ final class AppListViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -148,12 +150,12 @@ final class AppListViewController: UIViewController {
         loadTask = Task { [weak self] in
             let apps = await InstalledAppCatalog.load(session: session)
             guard let self, !Task.isCancelled else { return }
-            let wasLoaded = !self.isLoading
+            let wasLoaded = !isLoading
             self.apps = apps
-            self.isLoading = false
-            self.apply(animatingDifferences: wasLoaded)
-            self.collectionView.refreshControl?.endRefreshing()
-            self.loadTask = nil
+            isLoading = false
+            apply(animatingDifferences: wasLoaded)
+            collectionView.refreshControl?.endRefreshing()
+            loadTask = nil
         }
     }
 
@@ -195,7 +197,9 @@ final class AppListViewController: UIViewController {
 
     private var status: StatusView.Content? {
         guard visible.isEmpty else { return nil }
-        if isLoading { return .loading(String(localized: "Loading Installed Apps…")) }
+        if isLoading {
+            return .loading(String(localized: "Loading Installed Apps…"))
+        }
         guard apps.isEmpty else {
             return .message(
                 symbol: "magnifyingglass",
@@ -234,15 +238,15 @@ extension AppListViewController: UISearchResultsUpdating {
 
 extension AppListViewController: UICollectionViewDelegate {
     func collectionView(
-        _ collectionView: UICollectionView,
+        _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let app = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             let locations = app.locations.map { location in
                 UIAction(title: location.title, image: UIImage(systemName: location.symbol)) { [weak self] _ in
-                    guard let self, let navigation = self.navigationController,
+                    guard let self, let navigation = navigationController,
                           navigation.topViewController === self else { return }
                     // Detail first, unanimated, so Back from the browser lands
                     // where a tap would have: detail, then this list.

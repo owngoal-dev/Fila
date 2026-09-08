@@ -32,7 +32,9 @@ final class KeyValueListViewController: UITableViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,16 +85,16 @@ final class KeyValueListViewController: UITableViewController {
     }
 
     override func tableView(
-        _ tableView: UITableView,
+        _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let entry = source.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
             UIMenu(children: [
                 UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
                     UIPasteboard.general.string = entry.value
-                }
+                },
             ])
         }
     }

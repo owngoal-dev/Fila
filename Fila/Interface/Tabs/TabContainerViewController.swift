@@ -69,9 +69,11 @@ final class TabContainerViewController: UIViewController {
         didMove(toParent: host)
     }
 
-    // Hidden tabs remain children, but only the visible child gets appearance
-    // callbacks. Its navigation stack and first responder state stay separate.
-    override var shouldAutomaticallyForwardAppearanceMethods: Bool { false }
+    /// Hidden tabs remain children, but only the visible child gets appearance
+    /// callbacks. Its navigation stack and first responder state stay separate.
+    override var shouldAutomaticallyForwardAppearanceMethods: Bool {
+        false
+    }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -81,7 +83,9 @@ final class TabContainerViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if appearance == .appearing { displayed?.endAppearanceTransition() }
+        if appearance == .appearing {
+            displayed?.endAppearanceTransition()
+        }
         appearance = .visible
         refreshSidebarButton()
     }
@@ -94,7 +98,9 @@ final class TabContainerViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        if appearance == .disappearing { displayed?.endAppearanceTransition() }
+        if appearance == .disappearing {
+            displayed?.endAppearanceTransition()
+        }
         appearance = .hidden
     }
 
@@ -112,8 +118,8 @@ final class TabContainerViewController: UIViewController {
                 connectionTask = Task { [weak self] in
                     await FileSession.shared.ready()
                     guard !Task.isCancelled, let self else { return }
-                    self.connectionTask = nil
-                    self.showCurrentTab()
+                    connectionTask = nil
+                    showCurrentTab()
                 }
             }
             return
@@ -136,7 +142,9 @@ final class TabContainerViewController: UIViewController {
             closed.willMove(toParent: nil)
             closed.viewIfLoaded?.removeFromSuperview()
             closed.removeFromParent()
-            if installedTabID == id { installedTabID = nil }
+            if installedTabID == id {
+                installedTabID = nil
+            }
         }
     }
 
@@ -149,11 +157,11 @@ final class TabContainerViewController: UIViewController {
             self?.shell?.selectTab(id)
         }, { [weak self, weak navigation, weak source] in
             guard let self, let navigation, let source,
-                  self.tabs[id]?.navigation === navigation,
+                  tabs[id]?.navigation === navigation,
                   navigation.topViewController === source else { return }
             // If a prompt displayed the editor, return to a settled overview
             // before removing it. Clean tabs never leave the existing overview.
-            self.showTabSwitcher()
+            showTabSwitcher()
             confirmed()
         })
     }
@@ -192,14 +200,18 @@ final class TabContainerViewController: UIViewController {
     /// One creation boundary, also usable by the Debug identity check without
     /// opening files. Existing tabs never invoke the factory again.
     private func showTab(_ id: UUID, makeNavigation: () -> UINavigationController) {
-        if installedTabID != id { capturePreview() }
+        if installedTabID != id {
+            capturePreview()
+        }
         if tabs[id] == nil {
             let navigation = makeNavigation()
             navigation.delegate = self
             tabs[id] = Content(navigation: navigation)
         }
         installedTabID = id
-        if let navigation { display(navigation) }
+        if let navigation {
+            display(navigation)
+        }
     }
 
     /// A confirmed location jump intentionally replaces this tab's history:
@@ -220,7 +232,9 @@ final class TabContainerViewController: UIViewController {
         let browsers = navigation.viewControllers.compactMap { $0 as? BrowserViewController }
         guard !browsers.isEmpty else { return }
         var offsets: [String: Double] = [:]
-        for browser in browsers { offsets[browser.directory] = browser.scrollOffset }
+        for browser in browsers {
+            offsets[browser.directory] = browser.scrollOffset
+        }
         let top = browsers.last
         let selection = (top?.isViewLoaded ?? false) ? top?.selectedPaths().first : nil
         BrowserTabStore.shared.record(
@@ -232,7 +246,9 @@ final class TabContainerViewController: UIViewController {
 
     /// `deferring` keeps one tab out of the grid until `revealDeferredTab()`.
     func showTabSwitcher(deferring: UUID? = nil) {
-        if overview(in: displayed) != nil { return }
+        if overview(in: displayed) != nil {
+            return
+        }
         captureCurrentTab()
         capturePreview()
         let overview = UINavigationController(
@@ -245,7 +261,9 @@ final class TabContainerViewController: UIViewController {
     }
 
     /// Whether the overview is what is on screen right now.
-    var isShowingOverview: Bool { overview(in: displayed) != nil }
+    var isShowingOverview: Bool {
+        overview(in: displayed) != nil
+    }
 
     func revealDeferredTab() {
         overview(in: displayed)?.revealDeferred()
@@ -275,7 +293,9 @@ final class TabContainerViewController: UIViewController {
             context.cgContext.translateBy(x: -bounds.minX, y: -bounds.minY)
             drewContent = surface.drawHierarchy(in: surface.bounds, afterScreenUpdates: false)
         }
-        if drewContent { tabs[id]?.preview = image }
+        if drewContent {
+            tabs[id]?.preview = image
+        }
     }
 
     private func display(_ next: UIViewController) {
@@ -286,7 +306,9 @@ final class TabContainerViewController: UIViewController {
         previous?.viewIfLoaded?.endEditing(true)
         let animate = prepareTransition(from: previous, to: next)
         let added = next.parent == nil
-        if added { addChild(next) }
+        if added {
+            addChild(next)
+        }
         // A child can be installed during the parent's first layout, between
         // will/didAppear. Finish the old child's transition before replacing it
         // and let didAppear complete the new child's matching begin.
@@ -294,7 +316,9 @@ final class TabContainerViewController: UIViewController {
         let visible = appearing || appearance == .visible
         if appearing || appearance == .disappearing {
             previous?.endAppearanceTransition()
-            if appearance == .disappearing { appearance = .hidden }
+            if appearance == .disappearing {
+                appearance = .hidden
+            }
         }
         if visible {
             previous?.beginAppearanceTransition(false, animated: false)
@@ -307,10 +331,14 @@ final class TabContainerViewController: UIViewController {
         }
         displayed = next
         refreshSidebarButton()
-        if added { next.didMove(toParent: self) }
+        if added {
+            next.didMove(toParent: self)
+        }
         if visible {
             previous?.endAppearanceTransition()
-            if !appearing { next.endAppearanceTransition() }
+            if !appearing {
+                next.endAppearanceTransition()
+            }
         }
         // An overview is disposable; inactive tab navigation stays parented so
         // disappearing does not mean the terminal or editor was closed.
@@ -341,7 +369,9 @@ final class TabContainerViewController: UIViewController {
         guard (opening == nil) != (closing == nil), settled, appearance == .visible,
               let id = installedTabID, let outgoing = previous?.viewIfLoaded, outgoing.window != nil,
               let snapshot = outgoing.snapshotView(afterScreenUpdates: false) else { return nil }
-        if UIAccessibility.isReduceMotionEnabled { return { self.crossfade(snapshot) } }
+        if UIAccessibility.isReduceMotionEnabled {
+            return { self.crossfade(snapshot) }
+        }
         if let closing {
             // The grid is measured as it was drawn: a card scrolled into view
             // now would be missing from the snapshot, so it crossfades instead.

@@ -24,15 +24,15 @@ final class PropertiesViewController: UIViewController {
 
         var title: String? {
             switch self {
-            case .item: return nil
-            case .size: return String(localized: "Size")
-            case .dates: return String(localized: "Dates")
-            case .permissions: return String(localized: "Permissions")
-            case .flags: return String(localized: "Flags")
-            case .link: return String(localized: "Link")
-            case .extendedAttributes: return String(localized: "Extended Attributes")
-            case .identity: return String(localized: "Identity")
-            case .advanced: return nil
+            case .item: nil
+            case .size: String(localized: "Size")
+            case .dates: String(localized: "Dates")
+            case .permissions: String(localized: "Permissions")
+            case .flags: String(localized: "Flags")
+            case .link: String(localized: "Link")
+            case .extendedAttributes: String(localized: "Extended Attributes")
+            case .identity: String(localized: "Identity")
+            case .advanced: nil
             }
         }
     }
@@ -85,11 +85,15 @@ final class PropertiesViewController: UIViewController {
         self.showsAdvanced = showsAdvanced
         super.init(nibName: nil, bundle: nil)
         title = showsAdvanced ? String(localized: "Advanced Information") : String(localized: "Properties")
-        if !showsAdvanced { installActionsMenu() }
+        if !showsAdvanced {
+            installActionsMenu()
+        }
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -105,7 +109,9 @@ final class PropertiesViewController: UIViewController {
         installModalDoneButton()
 
         rebuild()
-        if !showsAdvanced { loadPreview() }
+        if !showsAdvanced {
+            loadPreview()
+        }
     }
 
     deinit { previewTask?.cancel() }
@@ -143,21 +149,25 @@ final class PropertiesViewController: UIViewController {
                 let apps = await InstalledAppCatalog.load(session: .shared)
                 if let identifier = AppFolderDisplay.presentation(for: path, apps: apps)?.applicationIdentifier {
                     image = await AppFolderDisplay.icon(for: identifier)
-                } else { image = nil }
-            } else { image = nil }
-            guard !Task.isCancelled, let self, self.details.path == path, let image else { return }
-            self.previewImage = image
-            self.previewMaximumSide = node.kind == .regular ? 512 : 192
+                } else {
+                    image = nil
+                }
+            } else {
+                image = nil
+            }
+            guard !Task.isCancelled, let self, details.path == path, let image else { return }
+            previewImage = image
+            previewMaximumSide = node.kind == .regular ? 512 : 192
             // The summary identity is stable; refresh only its visible cell.
             for case let cell as PropertiesPreviewCell in self.table.visibleCells {
                 cell.show(
                     image: image,
                     title: URL(fileURLWithPath: path).lastPathComponent,
                     kind: Self.name(of: node.kind),
-                    maximumSide: self.previewMaximumSide
+                    maximumSide: previewMaximumSide
                 )
             }
-            self.table.performBatchUpdates(nil)
+            table.performBatchUpdates(nil)
         }
     }
 
@@ -273,7 +283,9 @@ final class PropertiesViewController: UIViewController {
                 (.permissions, permissionRows()),
                 (.dates, dateRows()),
             ]
-            if details.node.link != nil { summary.append((.link, linkRows())) }
+            if details.node.link != nil {
+                summary.append((.link, linkRows()))
+            }
             summary.append((.advanced, [.disclosure(
                 label: String(localized: "Advanced Information"),
                 value: String(localized: "Flags, extended attributes and identity"),
@@ -378,9 +390,15 @@ final class PropertiesViewController: UIViewController {
         // The system flags are set by the kernel and by the installer, and
         // clearing one is a decision with no undo. Shown, never toggled here.
         var system: [String] = []
-        if flags & UInt32(SF_IMMUTABLE) != 0 { system.append("schg") }
-        if flags & UInt32(SF_APPEND) != 0 { system.append("sappnd") }
-        if flags & UInt32(SF_ARCHIVED) != 0 { system.append("arch") }
+        if flags & UInt32(SF_IMMUTABLE) != 0 {
+            system.append("schg")
+        }
+        if flags & UInt32(SF_APPEND) != 0 {
+            system.append("sappnd")
+        }
+        if flags & UInt32(SF_ARCHIVED) != 0 {
+            system.append("arch")
+        }
         if !system.isEmpty {
             rows.append(.fact(
                 label: String(localized: "System Flags"),
@@ -446,7 +464,9 @@ final class PropertiesViewController: UIViewController {
 
     private func apply(_ change: AttributeChange) {
         var change = change
-        if details.node.kind == .directory { change.isRecursive = applyRecursively }
+        if details.node.kind == .directory {
+            change.isRecursive = applyRecursively
+        }
         let path = details.path
         let link = link
         let didChange = didChange
@@ -613,9 +633,15 @@ final class PropertiesViewController: UIViewController {
         }
         // setuid, setgid and sticky replace the x they ride on, the way `ls`
         // shows them — they are invisible otherwise and they change everything.
-        if mode & mode_t(S_ISUID) != 0 { result = replace(result, at: 2, with: mode & 0o100 != 0 ? "s" : "S") }
-        if mode & mode_t(S_ISGID) != 0 { result = replace(result, at: 5, with: mode & 0o010 != 0 ? "s" : "S") }
-        if mode & mode_t(S_ISVTX) != 0 { result = replace(result, at: 8, with: mode & 0o001 != 0 ? "t" : "T") }
+        if mode & mode_t(S_ISUID) != 0 {
+            result = replace(result, at: 2, with: mode & 0o100 != 0 ? "s" : "S")
+        }
+        if mode & mode_t(S_ISGID) != 0 {
+            result = replace(result, at: 5, with: mode & 0o010 != 0 ? "s" : "S")
+        }
+        if mode & mode_t(S_ISVTX) != 0 {
+            result = replace(result, at: 8, with: mode & 0o001 != 0 ? "t" : "T")
+        }
         return result
     }
 
@@ -640,14 +666,14 @@ final class PropertiesViewController: UIViewController {
     /// same enum and must not spell it differently.
     static func name(of kind: FileKind) -> String {
         switch kind {
-        case .regular: return String(localized: "File")
-        case .directory: return String(localized: "Folder")
-        case .symbolicLink: return String(localized: "Symbolic Link")
-        case .fifo: return String(localized: "Named Pipe")
-        case .socket: return String(localized: "Socket")
-        case .blockDevice: return String(localized: "Block Device")
-        case .characterDevice: return String(localized: "Character Device")
-        case .unknown: return String(localized: "Unknown")
+        case .regular: String(localized: "File")
+        case .directory: String(localized: "Folder")
+        case .symbolicLink: String(localized: "Symbolic Link")
+        case .fifo: String(localized: "Named Pipe")
+        case .socket: String(localized: "Socket")
+        case .blockDevice: String(localized: "Block Device")
+        case .characterDevice: String(localized: "Character Device")
+        case .unknown: String(localized: "Unknown")
         }
     }
 }
@@ -656,13 +682,15 @@ extension PropertiesViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard let row = dataSource.itemIdentifier(for: indexPath)?.row else { return }
-        if case let .disclosure(_, _, action) = row { open(action) }
+        if case let .disclosure(_, _, action) = row {
+            open(action)
+        }
     }
 
     func tableView(
-        _ tableView: UITableView,
+        _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let row = dataSource.itemIdentifier(for: indexPath)?.row else { return nil }
         let value: String
@@ -675,7 +703,7 @@ extension PropertiesViewController: UITableViewDelegate {
             UIMenu(children: [
                 UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
                     UIPasteboard.general.string = value
-                }
+                },
             ])
         }
     }

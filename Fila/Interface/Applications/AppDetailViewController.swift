@@ -38,7 +38,9 @@ final class AppDetailViewController: UITableViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,9 +57,13 @@ final class AppDetailViewController: UITableViewController {
         }
     }
 
-    private var icon: UIImage? { AppFolderDisplay.cachedIcon(for: app.bundleIdentifier) ?? UIImage(systemName: "app") }
+    private var icon: UIImage? {
+        AppFolderDisplay.cachedIcon(for: app.bundleIdentifier) ?? UIImage(systemName: "app")
+    }
 
-    override func numberOfSections(in _: UITableView) -> Int { 2 + app.locations.count }
+    override func numberOfSections(in _: UITableView) -> Int {
+        2 + app.locations.count
+    }
 
     override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section) {

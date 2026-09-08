@@ -10,12 +10,12 @@ import Foundation
 enum FailureText {
     static func title(for failure: FilaFailure) -> String {
         switch failure.code {
-        case .protectedPath: return String(localized: "Protected Item")
-        case .notPermitted: return String(localized: "Not Permitted")
-        case .notFound: return String(localized: "Not Found")
-        case .wrongPassword: return String(localized: "Wrong Password")
-        case .invalidRequest: return String(localized: "Unable to Complete Request")
-        default: return String(localized: "Operation Failed")
+        case .protectedPath: String(localized: "Protected Item")
+        case .notPermitted: String(localized: "Not Permitted")
+        case .notFound: String(localized: "Not Found")
+        case .wrongPassword: String(localized: "Wrong Password")
+        case .invalidRequest: String(localized: "Unable to Complete Request")
+        default: String(localized: "Operation Failed")
         }
     }
 
@@ -38,8 +38,12 @@ enum FailureText {
         default:
             break
         }
-        if let reason = failure.systemErrorDescription { parts.append(reason) }
-        if parts.isEmpty { parts.append(title(for: failure)) }
+        if let reason = failure.systemErrorDescription {
+            parts.append(reason)
+        }
+        if parts.isEmpty {
+            parts.append(title(for: failure))
+        }
         return parts.joined(separator: " · ")
     }
 }

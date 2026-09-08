@@ -10,7 +10,9 @@ enum FilaMenu {
     /// Keep the same action titles and selection state on older systems.
     static func selection(title: String, actions: [UIAction]) -> UIMenu {
         var options: UIMenu.Options = [.displayInline, .singleSelection]
-        if #available(iOS 17.0, *) { options.insert(.displayAsPalette) }
+        if #available(iOS 17.0, *) {
+            options.insert(.displayAsPalette)
+        }
         return UIMenu(title: title, options: options, children: actions)
     }
 }

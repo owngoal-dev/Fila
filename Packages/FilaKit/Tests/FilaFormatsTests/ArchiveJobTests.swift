@@ -1,9 +1,8 @@
-import Foundation
-import Testing
-
 import FilaFileOps
 @testable import FilaFormats
 import FilaProtocol
+import Foundation
+import Testing
 
 /// The job as the helper and the in-process backend run it: real files, real
 /// descriptors, the same `FileOperations` the daemon uses.
@@ -25,7 +24,7 @@ struct ArchiveJobTests {
             try withDescriptor(writing: archive) { descriptor in
                 let writer = try ArchiveWriter(descriptor: descriptor, format: .tar)
                 try writer.addData("selected.txt", Data("selected".utf8))
-                for index in 1...ArchiveReader.maximumEntryCount {
+                for index in 1 ... ArchiveReader.maximumEntryCount {
                     try writer.addData("other-\(index)", Data())
                 }
                 try writer.finish()
@@ -178,7 +177,9 @@ struct ArchiveJobTests {
             let job = ArchiveJob(request: JobRequest(kind: .compress, sources: [tree.path], destination: archive.path, archive: ArchiveOptions()), operations: operations)
             var cancelledOnce = false
             let outcome = job.run { _ in
-                if !cancelledOnce { cancelledOnce = true; job.cancel() }
+                if !cancelledOnce {
+                    cancelledOnce = true; job.cancel()
+                }
             }
             #expect(outcome.code == .cancelled)
             let left = try FileManager.default.contentsOfDirectory(atPath: scratch.path).filter { $0 != "tree" }

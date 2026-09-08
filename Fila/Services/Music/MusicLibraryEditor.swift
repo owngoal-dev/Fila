@@ -13,7 +13,9 @@ actor MusicLibraryEditor {
         case genre = "Genre", composer = "Composer", year = "Year"
         case trackNumber = "TrackNumber", discNumber = "DiscNumber", comment = "Comment"
 
-        var isNumber: Bool { self == .year || self == .trackNumber || self == .discNumber }
+        var isNumber: Bool {
+            self == .year || self == .trackNumber || self == .discNumber
+        }
     }
 
     struct Details: Sendable {
@@ -45,16 +47,15 @@ actor MusicLibraryEditor {
         let replacement: Any
         let expected: String
         if field.isNumber {
-            guard let number = Int(value), (0...9999).contains(number) else {
+            guard let number = Int(value), (0 ... 9999).contains(number) else {
                 throw error(String(localized: "Enter a whole number from 0 to 9999."))
             }
             replacement = NSNumber(value: number)
             expected = String(number)
         } else {
-            guard !value.utf8.contains(0), value.utf8.count <= 16_384 else {
+            guard !value.utf8.contains(0), value.utf8.count <= 16384 else {
                 throw error(String(localized:
-                    "This value is too long or includes a character that cannot be saved. Change it and try again."
-                ))
+                    "This value is too long or includes a character that cannot be saved. Change it and try again."))
             }
             replacement = value
             expected = value
@@ -62,7 +63,9 @@ actor MusicLibraryEditor {
         let before = try details(id: id)
         guard before.editableFields.contains(field) else { throw unavailable() }
         guard before.values[field] == original else { throw changed() }
-        if expected == original { return before }
+        if expected == original {
+            return before
+        }
 
         try backupLibrary()
         // The native bridge rereads before writing and catches Objective-C
@@ -70,7 +73,9 @@ actor MusicLibraryEditor {
         do {
             try nativeLibrary().setValue(replacement, forField: field.rawValue, trackID: id, expected: original)
         } catch let failure as NSError {
-            if failure.domain == "MusicLibrary", failure.code == 2 { throw changed() }
+            if failure.domain == "MusicLibrary", failure.code == 2 {
+                throw changed()
+            }
             throw error(String(localized: "The music library could not save this change. A backup is in Music Backups in Fila’s Documents folder."))
         }
         let saved = try details(id: id)
@@ -81,12 +86,13 @@ actor MusicLibraryEditor {
     }
 
     func authorize() async throws {
-        let status: MPMediaLibraryAuthorizationStatus
-        if MPMediaLibrary.authorizationStatus() == .notDetermined {
-            status = await withCheckedContinuation { continuation in
+        let status: MPMediaLibraryAuthorizationStatus = if MPMediaLibrary.authorizationStatus() == .notDetermined {
+            await withCheckedContinuation { continuation in
                 MPMediaLibrary.requestAuthorization { continuation.resume(returning: $0) }
             }
-        } else { status = MPMediaLibrary.authorizationStatus() }
+        } else {
+            MPMediaLibrary.authorizationStatus()
+        }
         guard status == .authorized else {
             throw error(String(
                 localized: "Fila does not have access to Music. Allow access in Settings, then try again."

@@ -1,8 +1,7 @@
 import Darwin
+@testable import FilaTerminal
 import Foundation
 import Testing
-
-@testable import FilaTerminal
 
 @Suite("Terminal temporary configurations")
 struct TerminalTemporaryFilesTests {
@@ -25,7 +24,7 @@ struct TerminalTemporaryFilesTests {
         }
         // A later pass models exit and the next launch after another config
         // was created. Cleanup has no once-only state that can miss that file.
-        for _ in 0..<2 {
+        for _ in 0 ..< 2 {
             let config = directory.appendingPathComponent(configName())
             try "font-size = 10".write(to: config, atomically: true, encoding: .utf8)
             try TerminalTemporaryFiles.cleanup(in: directory)
@@ -69,7 +68,9 @@ struct TerminalTemporaryFilesTests {
         #expect(try String(contentsOf: config, encoding: .utf8) == "keep")
     }
 
-    private func configName() -> String { "ghostty-config-\(UUID().uuidString).conf" }
+    private func configName() -> String {
+        "ghostty-config-\(UUID().uuidString).conf"
+    }
 
     private func makeFixture() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("fila-terminal-test-\(UUID().uuidString)")

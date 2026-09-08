@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 @Suite("Paged directory listing")
 struct DirectoryListingTests {
@@ -12,7 +11,9 @@ struct DirectoryListingTests {
     @Test("Every entry arrives exactly once across pages")
     func pagesCoverTheDirectory() throws {
         let expected = Set((0 ..< 25).map { "entry-\($0)" })
-        for name in expected { scratch.file(name) }
+        for name in expected {
+            scratch.file(name)
+        }
 
         let registry = ListingRegistry()
         var seen: [String] = []
@@ -60,7 +61,9 @@ struct DirectoryListingTests {
 
     @Test("The handle stays open between pages and closes at the end")
     func cursorLifetime() throws {
-        for index in 0 ..< 5 { scratch.file("f\(index)") }
+        for index in 0 ..< 5 {
+            scratch.file("f\(index)")
+        }
         let registry = ListingRegistry()
 
         let first = try registry.page(directory: scratch.root, cursor: 0, limit: 2)
@@ -78,7 +81,9 @@ struct DirectoryListingTests {
     func capsOpenListings() throws {
         for index in 0 ... FilaProtocol.concurrentListingsPerPeer {
             scratch.directory("d\(index)")
-            for entry in 0 ..< 4 { scratch.file("d\(index)/e\(entry)") }
+            for entry in 0 ..< 4 {
+                scratch.file("d\(index)/e\(entry)")
+            }
         }
         let registry = ListingRegistry()
         for index in 0 ... FilaProtocol.concurrentListingsPerPeer {

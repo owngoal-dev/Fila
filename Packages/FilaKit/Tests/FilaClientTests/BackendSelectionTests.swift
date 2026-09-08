@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaClient
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 /// The rule that decides whether the app runs as root or as itself.
 ///

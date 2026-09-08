@@ -18,7 +18,9 @@ final class AttributeValueViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,7 +45,7 @@ final class AttributeValueViewController: UIViewController {
         // Capped: an xattr can be a resource fork, and a resource fork can be
         // megabytes. The full bytes are a file's worth of content and belong in
         // the hex viewer, not in a `String`.
-        while offset < min(data.count, 64 * 1_024) {
+        while offset < min(data.count, 64 * 1024) {
             let slice = data[data.startIndex + offset ..< data.startIndex + min(offset + 16, data.count)]
             let hex = slice.map { String(format: "%02x", $0) }.joined(separator: " ")
                 .padding(toLength: 47, withPad: " ", startingAt: 0)
@@ -51,7 +53,9 @@ final class AttributeValueViewController: UIViewController {
             lines.append(String(format: "%08x  %@ |%@|", offset, hex, ascii))
             offset += 16
         }
-        if data.count > 64 * 1_024 { lines.append("…") }
+        if data.count > 64 * 1024 {
+            lines.append("…")
+        }
         return lines.joined(separator: "\n")
     }
 }

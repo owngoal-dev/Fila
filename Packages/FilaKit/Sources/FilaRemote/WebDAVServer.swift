@@ -126,7 +126,9 @@ public final class WebDAVServer: @unchecked Sendable {
 
     deinit {
         listenerChannel?.close(promise: nil)
-        for channel in connections.values { channel.close(promise: nil) }
+        for channel in connections.values {
+            channel.close(promise: nil)
+        }
     }
 
     // MARK: - Lifecycle
@@ -144,7 +146,9 @@ public final class WebDAVServer: @unchecked Sendable {
     }
 
     public var isRunning: Bool {
-        if case .running = status { return true }
+        if case .running = status {
+            return true
+        }
         return false
     }
 
@@ -193,14 +197,14 @@ public final class WebDAVServer: @unchecked Sendable {
         NIOTSListenerBootstrap(group: Self.eventLoops)
             .serverChannelInitializer { [weak self] channel in
                 guard let self else { return channel.eventLoop.makeFailedFuture(HTTPFailure.closed) }
-                self.lock.lock()
+                lock.lock()
                 defer { self.lock.unlock() }
-                guard self.generation == run, self.listener != nil else {
+                guard generation == run, self.listener != nil else {
                     return channel.eventLoop.makeFailedFuture(HTTPFailure.closed)
                 }
                 // NIO owns the listener before binding completes. Keep its channel
                 // now so stop() can also close a listener that is still starting.
-                self.listenerChannel = channel
+                listenerChannel = channel
                 return channel.eventLoop.makeSucceededVoidFuture()
             }
             .childChannelOption(NIOTSChannelOptions.maximumReceiveLength, value: HTTPConnection.chunkByteCount)
@@ -217,30 +221,34 @@ public final class WebDAVServer: @unchecked Sendable {
             .withNWListener(listener)
             .whenComplete { [weak self] result in
                 guard let self else {
-                    if case let .success(channel) = result { channel.close(promise: nil) }
+                    if case let .success(channel) = result {
+                        channel.close(promise: nil)
+                    }
                     return
                 }
-                self.lock.lock()
-                guard self.generation == run, self.listener != nil else {
-                    self.lock.unlock()
-                    if case let .success(channel) = result { channel.close(promise: nil) }
+                lock.lock()
+                guard generation == run, self.listener != nil else {
+                    lock.unlock()
+                    if case let .success(channel) = result {
+                        channel.close(promise: nil)
+                    }
                     return
                 }
                 switch result {
                 case let .success(channel):
-                    self.listenerChannel = channel
-                    self.storedStatus = .running(port: listener.port?.rawValue ?? configuration.port)
-                    self.lock.unlock()
+                    listenerChannel = channel
+                    storedStatus = .running(port: listener.port?.rawValue ?? configuration.port)
+                    lock.unlock()
                     channel.closeFuture.whenComplete { [weak self] _ in self?.listenerClosed(run: run) }
-                    self.note("Sharing started on port \(listener.port?.rawValue ?? configuration.port).")
+                    note("Sharing started on port \(listener.port?.rawValue ?? configuration.port).")
                 case let .failure(error):
                     self.listener = nil
-                    self.listenerChannel = nil
-                    self.storedStatus = .failed(error.localizedDescription)
-                    self.lock.unlock()
-                    self.note("Sharing stopped unexpectedly. Start sharing again.")
+                    listenerChannel = nil
+                    storedStatus = .failed(error.localizedDescription)
+                    lock.unlock()
+                    note("Sharing stopped unexpectedly. Start sharing again.")
                 }
-                self.changed()
+                changed()
             }
     }
 
@@ -249,15 +257,19 @@ public final class WebDAVServer: @unchecked Sendable {
         generation = UUID()
         let channel = listenerChannel
         let open = Array(connections.values)
-        self.listener = nil
+        listener = nil
         listenerChannel = nil
         connections.removeAll()
         let wasRunning = storedStatus != .stopped
         storedStatus = .stopped
         lock.unlock()
         channel?.close(promise: nil)
-        for connection in open { connection.close(promise: nil) }
-        if wasRunning { note("Sharing stopped.") }
+        for connection in open {
+            connection.close(promise: nil)
+        }
+        if wasRunning {
+            note("Sharing stopped.")
+        }
         changed()
     }
 
@@ -271,7 +283,9 @@ public final class WebDAVServer: @unchecked Sendable {
         connections.removeAll()
         storedStatus = .failed("Sharing stopped unexpectedly. Start sharing again.")
         lock.unlock()
-        for channel in open { channel.close(promise: nil) }
+        for channel in open {
+            channel.close(promise: nil)
+        }
         changed()
     }
 
@@ -287,7 +301,9 @@ public final class WebDAVServer: @unchecked Sendable {
     private func accept(_ channel: Channel, run: UUID, configuration: Configuration, nonces: DigestNonces) throws {
         lock.lock()
         let accepted = generation == run && listener != nil && connections.count < Self.connectionLimit
-        if accepted { connections[ObjectIdentifier(channel)] = channel }
+        if accepted {
+            connections[ObjectIdentifier(channel)] = channel
+        }
         lock.unlock()
         guard accepted else { throw HTTPFailure.closed }
         channel.closeFuture.whenComplete { [weak self] _ in self?.forget(channel) }
@@ -311,7 +327,7 @@ public final class WebDAVServer: @unchecked Sendable {
             service: service, configuration: configuration, nonces: nonces,
             log: { [weak self] line in self?.note("\(peer) \(line)") }
         )
-        let ioTimeout = self.ioTimeout
+        let ioTimeout = ioTimeout
         Task {
             try? await conversation.executeThenClose { inbound, _ in
                 await handler.serve(HTTPConnection(inbound: inbound, channel: channel, ioTimeout: ioTimeout))
@@ -339,7 +355,9 @@ public final class WebDAVServer: @unchecked Sendable {
     func note(_ text: String) {
         lock.lock()
         storedLog.append(LogEntry(date: Date(), text: text))
-        if storedLog.count > Self.logLimit { storedLog.removeFirst(storedLog.count - Self.logLimit) }
+        if storedLog.count > Self.logLimit {
+            storedLog.removeFirst(storedLog.count - Self.logLimit)
+        }
         lock.unlock()
         changed()
     }
@@ -347,5 +365,4 @@ public final class WebDAVServer: @unchecked Sendable {
     private func changed() {
         onChange?()
     }
-
 }

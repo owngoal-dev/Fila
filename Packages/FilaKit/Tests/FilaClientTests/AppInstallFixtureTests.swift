@@ -1,11 +1,10 @@
 import Darwin
+@testable import FilaClient
 import FilaFileOps
 import FilaFormats
 import FilaProtocol
 import Foundation
 import Testing
-
-@testable import FilaClient
 
 @Suite("App installation fixture")
 struct AppInstallFixtureTests {
@@ -88,13 +87,17 @@ struct AppInstallFixtureTests {
         let bundle = scratch.directory("Fila.app")
         let destination = scratch.directory("Fixture.app")
         let count = FilaProtocol.directoryPageEntryCount + 1
-        for index in 0 ..< count { scratch.file("Fila.app/resource-\(index)") }
+        for index in 0 ..< count {
+            scratch.file("Fila.app/resource-\(index)")
+        }
         let request = try await AppInstallFixture.copyRequest(
             from: URL(fileURLWithPath: bundle), to: URL(fileURLWithPath: destination), link: link()
         )
         #expect(request.sources.count == count)
         let outcome = FileJob(request: request, operations: FileOperations(bootstrapRoot: "")).run(report: { _ in })
         try #require(outcome.code == .success)
-        for index in 0 ..< count { #expect(exists(destination + "/resource-\(index)")) }
+        for index in 0 ..< count {
+            #expect(exists(destination + "/resource-\(index)"))
+        }
     }
 }

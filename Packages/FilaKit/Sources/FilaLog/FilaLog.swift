@@ -2,7 +2,7 @@ import Darwin
 import Foundation
 
 #if canImport(os)
-import os
+    import os
 #endif
 
 /// What a log line is allowed to say, and what it may never say.
@@ -68,8 +68,8 @@ public enum FilaLog {
 
         public var name: String {
             switch self {
-            case .app: return "Fila"
-            case .daemon: return "filad"
+            case .app: "Fila"
+            case .daemon: "filad"
             }
         }
     }
@@ -85,15 +85,17 @@ public enum FilaLog {
         /// A syscall that failed, with its `errno`.
         case error = 3
 
-        public static func < (a: Level, b: Level) -> Bool { a.rawValue < b.rawValue }
+        public static func < (a: Level, b: Level) -> Bool {
+            a.rawValue < b.rawValue
+        }
 
         /// Four characters, so the exported text lines up in a column.
         public var tag: String {
             switch self {
-            case .verbose: return "VERB"
-            case .info: return "INFO"
-            case .warning: return "WARN"
-            case .error: return "FAIL"
+            case .verbose: "VERB"
+            case .info: "INFO"
+            case .warning: "WARN"
+            case .error: "FAIL"
             }
         }
     }
@@ -121,11 +123,11 @@ public enum FilaLog {
 
     /// Bytes the daemon's ring costs. See `FilaLogRing` for why this is the
     /// number that matters.
-    public static let daemonCapacityBytes = 128 * 1_024
+    public static let daemonCapacityBytes = 128 * 1024
 
     /// The app has no jetsam cap worth worrying about and a longer history is
     /// worth more there, since it is the side the user is looking at.
-    public static let appCapacityBytes = 512 * 1_024
+    public static let appCapacityBytes = 512 * 1024
 
     private static let state = State()
 
@@ -155,12 +157,25 @@ public enum FilaLog {
         level >= state.minimumLevel
     }
 
-    public static func verbose(_ message: @autoclosure () -> String) { write(.verbose, message) }
-    public static func info(_ message: @autoclosure () -> String) { write(.info, message) }
-    public static func warning(_ message: @autoclosure () -> String) { write(.warning, message) }
-    public static func error(_ message: @autoclosure () -> String) { write(.error, message) }
+    public static func verbose(_ message: @autoclosure () -> String) {
+        write(.verbose, message)
+    }
 
-    public static func log(_ level: Level, _ message: @autoclosure () -> String) { write(level, message) }
+    public static func info(_ message: @autoclosure () -> String) {
+        write(.info, message)
+    }
+
+    public static func warning(_ message: @autoclosure () -> String) {
+        write(.warning, message)
+    }
+
+    public static func error(_ message: @autoclosure () -> String) {
+        write(.error, message)
+    }
+
+    public static func log(_ level: Level, _ message: @autoclosure () -> String) {
+        write(level, message)
+    }
 
     /// Every record in the ring newer than `sequence`, oldest first, and how
     /// many have been evicted since this process started. A viewer that sees
@@ -186,10 +201,10 @@ public enum FilaLog {
         private var level = Level.info
 
         #if canImport(os)
-        /// One logger per process, its category naming the side. Replaced by
-        /// `start`; until then a line still reaches `log stream`, under the
-        /// default category rather than under none.
-        private var logger = Logger(subsystem: "wiki.qaq.fila", category: "app")
+            /// One logger per process, its category naming the side. Replaced by
+            /// `start`; until then a line still reaches `log stream`, under the
+            /// default category rather than under none.
+            private var logger = Logger(subsystem: "wiki.qaq.fila", category: "app")
         #endif
 
         var minimumLevel: Level {
@@ -205,7 +220,7 @@ public enum FilaLog {
                 ring = FilaLogRing(capacityBytes: capacityBytes)
             }
             #if canImport(os)
-            logger = Logger(subsystem: "wiki.qaq.fila", category: source == .daemon ? "daemon" : "app")
+                logger = Logger(subsystem: "wiki.qaq.fila", category: source == .daemon ? "daemon" : "app")
             #endif
         }
 
@@ -215,15 +230,15 @@ public enum FilaLog {
             let message = FilaLog.redacting(rawMessage)
             lock.lock()
             #if canImport(os)
-            let logger = logger
+                let logger = logger
             #endif
             ring.append(level: level, source: source, message: message)
             lock.unlock()
 
             #if canImport(os)
-            // `.public` on purpose, and only ever safe because of the privacy
-            // rule at the top of this file: nothing here carries content.
-            logger.log(level: level.osLogType, "\(message, privacy: .public)")
+                // `.public` on purpose, and only ever safe because of the privacy
+                // rule at the top of this file: nothing here carries content.
+                logger.log(level: level.osLogType, "\(message, privacy: .public)")
             #endif
         }
 
@@ -242,16 +257,16 @@ public enum FilaLog {
 }
 
 #if canImport(os)
-private extension FilaLog.Level {
-    var osLogType: OSLogType {
-        switch self {
-        case .verbose: return .debug
-        case .info: return .info
-        case .warning: return .default
-        case .error: return .error
+    private extension FilaLog.Level {
+        var osLogType: OSLogType {
+            switch self {
+            case .verbose: .debug
+            case .info: .info
+            case .warning: .default
+            case .error: .error
+            }
         }
     }
-}
 #endif
 
 /// A fixed-size byte ring of log records. **This allocation is the whole of
@@ -283,7 +298,7 @@ public struct FilaLogRing {
     /// A message longer than this is cut. It bounds a frame, which is what
     /// makes the ceiling a ceiling — and it bounds a privacy mistake to one
     /// line rather than one file.
-    public static let maximumMessageByteCount = 1_024
+    public static let maximumMessageByteCount = 1024
 
     static let headerByteCount = 4 + 8 + 8 + 1 + 1
 
@@ -306,7 +321,9 @@ public struct FilaLogRing {
 
     /// Bytes of the allocation currently holding records. Never above
     /// `capacityBytes` — that is the invariant the jetsam cap rests on.
-    public var usedBytes: Int { used }
+    public var usedBytes: Int {
+        used
+    }
 
     public mutating func append(level: FilaLog.Level, source: FilaLog.Source, message: String) {
         // Cut on a byte boundary rather than a Character one: the tail of a
@@ -321,7 +338,9 @@ public struct FilaLogRing {
         // always terminates with room — the `used > 0` is belt and braces
         // against a future capacity that stops honouring that.
         let frameSize = Self.headerByteCount + payload.count
-        while used > 0, used + frameSize > capacityBytes { evictOldest() }
+        while used > 0, used + frameSize > capacityBytes {
+            evictOldest()
+        }
         guard used + frameSize <= capacityBytes else { return }
 
         sequence &+= 1
@@ -330,7 +349,9 @@ public struct FilaLogRing {
         write(uint64: FilaLogRing.now().bitPattern)
         write(byte: level.rawValue)
         write(byte: source.rawValue)
-        for byte in payload { write(byte: byte) }
+        for byte in payload {
+            write(byte: byte)
+        }
     }
 
     /// Every record newer than `sequence`, oldest first.
@@ -342,7 +363,9 @@ public struct FilaLogRing {
             let recordSequence = uint64(at: offset + 4)
             if recordSequence > sequence {
                 var bytes = [UInt8](repeating: 0, count: length)
-                for index in 0 ..< length { bytes[index] = byte(at: offset + Self.headerByteCount + index) }
+                for index in 0 ..< length {
+                    bytes[index] = byte(at: offset + Self.headerByteCount + index)
+                }
                 records.append(FilaLog.Record(
                     sequence: recordSequence,
                     time: Double(bitPattern: uint64(at: offset + 12)),
@@ -382,13 +405,17 @@ public struct FilaLogRing {
 
     private func uint32(at offset: Int) -> UInt32 {
         var value: UInt32 = 0
-        for index in 0 ..< 4 { value |= UInt32(byte(at: offset + index)) << (8 * index) }
+        for index in 0 ..< 4 {
+            value |= UInt32(byte(at: offset + index)) << (8 * index)
+        }
         return value
     }
 
     private func uint64(at offset: Int) -> UInt64 {
         var value: UInt64 = 0
-        for index in 0 ..< 8 { value |= UInt64(byte(at: offset + index)) << (8 * index) }
+        for index in 0 ..< 8 {
+            value |= UInt64(byte(at: offset + index)) << (8 * index)
+        }
         return value
     }
 
@@ -398,11 +425,15 @@ public struct FilaLogRing {
     }
 
     private mutating func write(uint32 value: UInt32) {
-        for index in 0 ..< 4 { write(byte: UInt8(truncatingIfNeeded: value >> (8 * index))) }
+        for index in 0 ..< 4 {
+            write(byte: UInt8(truncatingIfNeeded: value >> (8 * index)))
+        }
     }
 
     private mutating func write(uint64 value: UInt64) {
-        for index in 0 ..< 8 { write(byte: UInt8(truncatingIfNeeded: value >> (8 * index))) }
+        for index in 0 ..< 8 {
+            write(byte: UInt8(truncatingIfNeeded: value >> (8 * index)))
+        }
     }
 
     /// `gettimeofday`, not `Date()`: this runs inside a process that is trying

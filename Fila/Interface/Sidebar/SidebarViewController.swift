@@ -58,6 +58,7 @@ final class SidebarViewController: UIViewController {
         item.accessibilityLabel = String(localized: "Settings")
         return item
     }()
+
     private lazy var doneItem: UIBarButtonItem = {
         let item = UIBarButtonItem(image: UIImage(systemName: "checkmark"), primaryAction: UIAction { [weak self] _ in
             self?.dismiss(animated: true)
@@ -65,6 +66,7 @@ final class SidebarViewController: UIViewController {
         item.accessibilityLabel = String(localized: "Close")
         return item
     }()
+
     private lazy var tasksItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "tray.and.arrow.down.fill"),
@@ -82,7 +84,9 @@ final class SidebarViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     func setColumnToggle(_ item: UIBarButtonItem?, animated: Bool = false) {
         guard columnToggle !== item else { return }
@@ -94,9 +98,11 @@ final class SidebarViewController: UIViewController {
         let running = session.operations.operations.filter(\.isRunning).count
         tasksItem.accessibilityValue = running > 0 ? String(localized: "\(running) in progress") : nil
         let settings = settingsShown ? settingsItem : nil
-        if navigationItem.leftBarButtonItem !== settings { navigationItem.leftBarButtonItem = settings }
+        if navigationItem.leftBarButtonItem !== settings {
+            navigationItem.leftBarButtonItem = settings
+        }
         let dismissItem = presentingViewController != nil ? doneItem : nil
-        let items = [columnToggle ?? dismissItem, running > 0 ? tasksItem : nil].compactMap { $0 }
+        let items = [columnToggle ?? dismissItem, running > 0 ? tasksItem : nil].compactMap(\.self)
         if (navigationItem.rightBarButtonItems ?? []) != items {
             navigationItem.setRightBarButtonItems(items, animated: animated)
         }
@@ -117,7 +123,7 @@ final class SidebarViewController: UIViewController {
         installModalDoneButton()
 
         let layout = UICollectionViewCompositionalLayout { [weak self] section, environment in
-            guard let self, let sections = self.dataSource?.snapshot().sectionIdentifiers,
+            guard let self, let sections = dataSource?.snapshot().sectionIdentifiers,
                   sections.indices.contains(section) else { return nil }
             let identifier = sections[section]
             let configuration = UICollectionLayoutListConfiguration(
@@ -129,7 +135,9 @@ final class SidebarViewController: UIViewController {
                 }
             }
             let layout = NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
-            if section == 0 { layout.contentInsets.top = 0 }
+            if section == 0 {
+                layout.contentInsets.top = 0
+            }
             return layout
         }
         collectionView = UICollectionView(
@@ -206,7 +214,7 @@ final class SidebarViewController: UIViewController {
                 let mounts = try await session.perform(retryOnDisconnect: true) { try await $0.mountPoints() }
                 guard let self, !Task.isCancelled else { return }
                 self.mounts = mounts
-                self.rebuild()
+                rebuild()
             } catch {
                 // The shortcut section can be retried by reopening Places;
                 // an older daemon may not have the mount-table request yet.
@@ -225,13 +233,13 @@ final class SidebarViewController: UIViewController {
             }
             guard let self, !Task.isCancelled else { return }
             let hasItems = page?.entries.isEmpty == false
-            guard hasItems != self.trashHasItems else { return }
-            self.trashHasItems = hasItems
-            for item in self.dataSource.snapshot().itemIdentifiers {
+            guard hasItems != trashHasItems else { return }
+            trashHasItems = hasItems
+            for item in dataSource.snapshot().itemIdentifiers {
                 guard case let .place(place) = item, FileActions.isTrash(place.path),
-                      let index = self.dataSource.indexPath(for: item),
-                      let cell = self.collectionView.cellForItem(at: index) as? IconRowCell else { continue }
-                self.configure(cell, for: item)
+                      let index = dataSource.indexPath(for: item),
+                      let cell = collectionView.cellForItem(at: index) as? IconRowCell else { continue }
+                configure(cell, for: item)
             }
         }
     }
@@ -303,15 +311,21 @@ final class SidebarViewController: UIViewController {
             image = UIImage(named: "FileIcons/music")?.withRenderingMode(.alwaysOriginal)
         }
         cell.configure(name: name, detail: detail, image: image, nameColor: color, tintColor: .tintColor)
-        if case .favorite = item { cell.showFavoriteBadge() }
+        if case .favorite = item {
+            cell.showFavoriteBadge()
+        }
     }
 
     // MARK: - Snapshot
 
     private var presets: [Item] {
         var items = SidebarLocation.jumpList(backend: session.hello?.backend).map { ($0.position, Item.place($0)) }
-        if SystemCapabilities.showsApplications { items.append((.applications, .apps)) }
-        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") { items.append((.music, .music)) }
+        if SystemCapabilities.showsApplications {
+            items.append((.applications, .apps))
+        }
+        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") {
+            items.append((.music, .music))
+        }
         let available = Dictionary(uniqueKeysWithValues: items)
         let preferences = AppPreferences.shared
         return preferences.presetOrder.filter { preferences.isPresetEnabled($0) }.compactMap { available[$0] }
@@ -368,7 +382,9 @@ final class SidebarViewController: UIViewController {
                 let header = Item.header(section)
                 outline.append([header])
                 outline.append(items, to: header)
-                if !collapsed.contains(section) { outline.expand([header]) }
+                if !collapsed.contains(section) {
+                    outline.expand([header])
+                }
             } else {
                 outline.append(items)
             }
@@ -431,8 +447,8 @@ final class SidebarViewController: UIViewController {
         let paths = dataSource.snapshot().itemIdentifiers.compactMap { item -> String? in
             switch item {
             case let .recent(path), let .favorite(path):
-                return recentItems[path] == nil ? path : nil
-            default: return nil
+                recentItems[path] == nil ? path : nil
+            default: nil
             }
         }
         guard !paths.isEmpty else { return }
@@ -453,7 +469,8 @@ final class SidebarViewController: UIViewController {
                 if let identifier = presentation?.applicationIdentifier {
                     image = await AppFolderDisplay.icon(for: identifier)
                 } else if node.kind == .regular, FilePresentation.format(of: node) == .image,
-                   let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session) {
+                          let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session)
+                {
                     image = thumbnail
                 }
                 guard let self, !Task.isCancelled else { return }
@@ -475,8 +492,8 @@ final class SidebarViewController: UIViewController {
         openTask = Task { [weak self, session] in
             do {
                 let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
-                guard let self, !Task.isCancelled, self.viewIfLoaded?.window != nil,
-                      self.navigationController?.topViewController === self, let shell = self.shell else { return }
+                guard let self, !Task.isCancelled, viewIfLoaded?.window != nil,
+                      navigationController?.topViewController === self, let shell else { return }
                 if details.node.isNavigable {
                     shell.open(path)
                 } else {

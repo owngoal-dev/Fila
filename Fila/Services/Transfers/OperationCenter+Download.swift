@@ -72,7 +72,9 @@ extension OperationCenter {
         let suffix = (name as NSString).pathExtension
         for attempt in 1 ... 64 {
             var candidate = attempt == 1 ? stem : "\(stem) \(attempt)"
-            if !suffix.isEmpty { candidate += "." + suffix }
+            if !suffix.isEmpty {
+                candidate += "." + suffix
+            }
             do {
                 let target = (directory as NSString).appendingPathComponent(candidate)
                 try await FileSession.shared.perform {

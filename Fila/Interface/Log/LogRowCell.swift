@@ -12,12 +12,14 @@ final class LogRowCell: UICollectionViewCell {
         $0.numberOfLines = messageLineCount
         $0.adjustsFontForContentSizeCategory = true
     }
+
     private let metaLabel = UILabel().then {
         $0.font = FilaUI.Font.monospacedFootnote
         $0.adjustsFontForContentSizeCategory = true
         $0.textColor = .secondaryLabel
         $0.numberOfLines = 0
     }
+
     private let separator = UIView().then {
         $0.backgroundColor = .separator
         $0.isUserInteractionEnabled = false
@@ -47,7 +49,9 @@ final class LogRowCell: UICollectionViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     static func height() -> CGFloat {
         (FilaUI.Font.monospacedBody.lineHeight + FilaUI.Font.monospacedFootnote.lineHeight
@@ -59,7 +63,9 @@ final class LogRowCell: UICollectionViewCell {
         let color = Self.color(for: record.level)
         messageLabel.textColor = color
         var metadata = [LogViewController.timeText(record.time), record.source.name]
-        if record.level != .info { metadata.append(record.level.tag) }
+        if record.level != .info {
+            metadata.append(record.level.tag)
+        }
         metaLabel.text = metadata.joined(separator: " · ")
         metaLabel.textColor = record.level >= .warning ? color.withAlphaComponent(0.8) : .tertiaryLabel
         var background = UIBackgroundConfiguration.listPlainCell()
@@ -70,10 +76,10 @@ final class LogRowCell: UICollectionViewCell {
 
     private static func color(for level: FilaLog.Level) -> UIColor {
         switch level {
-        case .verbose: return .secondaryLabel
-        case .info: return .label
-        case .warning: return .systemOrange
-        case .error: return .systemRed
+        case .verbose: .secondaryLabel
+        case .info: .label
+        case .warning: .systemOrange
+        case .error: .systemRed
         }
     }
 }

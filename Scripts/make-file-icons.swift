@@ -95,11 +95,10 @@ func render(_ image: NSImage, points: CGFloat, scale: Int) -> Data? {
 
 let requestedIcons = Set(CommandLine.arguments.dropFirst())
 for (name, source) in icons where requestedIcons.isEmpty || requestedIcons.contains(name) {
-    let image: NSImage?
-    switch source {
-    case let .bundled(file): image = NSImage(contentsOfFile: coreTypes + file + ".icns")
-    case let .composed(identifier): image = UTType(identifier).map(NSWorkspace.shared.icon(for:))
-    case let .imported(file): image = NSImage(contentsOf: repository.appendingPathComponent("Scripts/Artwork/\(file)"))
+    let image: NSImage? = switch source {
+    case let .bundled(file): NSImage(contentsOfFile: coreTypes + file + ".icns")
+    case let .composed(identifier): UTType(identifier).map(NSWorkspace.shared.icon(for:))
+    case let .imported(file): NSImage(contentsOf: repository.appendingPathComponent("Scripts/Artwork/\(file)"))
     }
     guard let image else {
         FileHandle.standardError.write(Data("no artwork for \(name)\n".utf8))

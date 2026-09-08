@@ -41,8 +41,12 @@ enum TextSyntax {
 
     static func language(for path: String, text: String) -> TreeSitterLanguage? {
         let name = (path as NSString).lastPathComponent
-        if let language = byExtension((name as NSString).pathExtension.lowercased()) { return language }
-        if let language = byInterpreter(of: text) { return language }
+        if let language = byExtension((name as NSString).pathExtension.lowercased()) {
+            return language
+        }
+        if let language = byInterpreter(of: text) {
+            return language
+        }
         return byName(name, at: path)
     }
 
@@ -55,43 +59,43 @@ enum TextSyntax {
     /// plain-text one we would have had anyway.
     private static func byExtension(_ ext: String) -> TreeSitterLanguage? {
         switch ext {
-        case "c", "h", "m": return .c
-        case "cpp", "cc", "cxx", "hpp", "hh", "hxx", "mm": return .cpp
-        case "cs": return .cSharp
-        case "swift": return .swift
-        case "py", "pyw": return .python
-        case "rb", "gemspec", "podspec": return .ruby
-        case "pl", "pm", "t": return .perl
-        case "lua": return .lua
-        case "sh", "bash", "zsh", "zshrc", "zshenv", "zprofile", "bashrc", "bash_profile", "profile": return .bash
-        case "json": return .json
-        case "json5": return .json5
-        case "yml", "yaml": return .yaml
-        case "toml": return .toml
-        case "md", "markdown": return .markdown
-        case "html", "htm", "xhtml": return .html
-        case "xml", "plist", "entitlements", "mobileconfig", "svg", "storyboard", "xib": return .html
-        case "css": return .css
-        case "scss", "sass": return .scss
-        case "js", "mjs", "cjs": return .javaScript
-        case "jsx": return .jsx
-        case "ts", "mts", "cts": return .typeScript
-        case "tsx": return .tsx
-        case "go": return .go
-        case "rs": return .rust
-        case "java": return .java
-        case "sql": return .sql
-        case "php": return .php
-        case "tex", "sty", "cls": return .latex
-        case "ex", "exs": return .elixir
-        case "elm": return .elm
-        case "hs": return .haskell
-        case "jl": return .julia
-        case "ml", "mli": return .ocaml
-        case "r": return .r
-        case "svelte": return .svelte
-        case "astro": return .astro
-        default: return nil
+        case "c", "h", "m": .c
+        case "cpp", "cc", "cxx", "hpp", "hh", "hxx", "mm": .cpp
+        case "cs": .cSharp
+        case "swift": .swift
+        case "py", "pyw": .python
+        case "rb", "gemspec", "podspec": .ruby
+        case "pl", "pm", "t": .perl
+        case "lua": .lua
+        case "sh", "bash", "zsh", "zshrc", "zshenv", "zprofile", "bashrc", "bash_profile", "profile": .bash
+        case "json": .json
+        case "json5": .json5
+        case "yml", "yaml": .yaml
+        case "toml": .toml
+        case "md", "markdown": .markdown
+        case "html", "htm", "xhtml": .html
+        case "xml", "caml", "plist", "entitlements", "mobileconfig", "svg", "storyboard", "xib": .html
+        case "css": .css
+        case "scss", "sass": .scss
+        case "js", "mjs", "cjs": .javaScript
+        case "jsx": .jsx
+        case "ts", "mts", "cts": .typeScript
+        case "tsx": .tsx
+        case "go": .go
+        case "rs": .rust
+        case "java": .java
+        case "sql": .sql
+        case "php": .php
+        case "tex", "sty", "cls": .latex
+        case "ex", "exs": .elixir
+        case "elm": .elm
+        case "hs": .haskell
+        case "jl": .julia
+        case "ml", "mli": .ocaml
+        case "r": .r
+        case "svelte": .svelte
+        case "astro": .astro
+        default: nil
         }
     }
 
@@ -114,7 +118,9 @@ enum TextSyntax {
         guard !words.isEmpty else { return nil }
         if (words[0] as NSString).lastPathComponent == "env" {
             words.removeFirst()
-            while let word = words.first, word.hasPrefix("-") || word.contains("=") { words.removeFirst() }
+            while let word = words.first, word.hasPrefix("-") || word.contains("=") {
+                words.removeFirst()
+            }
             guard !words.isEmpty else { return nil }
         }
         switch (words[0] as NSString).lastPathComponent.lowercased() {
@@ -181,23 +187,75 @@ final class ScaledEditorTheme: EditorTheme {
         lineNumberFont = .monospacedSystemFont(ofSize: pointSize, weight: .regular)
     }
 
-    var backgroundColor: UIColor { base.backgroundColor }
-    var userInterfaceStyle: UIUserInterfaceStyle { base.userInterfaceStyle }
-    var textColor: UIColor { base.textColor }
-    var gutterBackgroundColor: UIColor { base.gutterBackgroundColor }
-    var gutterHairlineColor: UIColor { base.gutterHairlineColor }
-    var gutterHairlineWidth: CGFloat { base.gutterHairlineWidth }
-    var lineNumberColor: UIColor { base.lineNumberColor }
-    var selectedLineBackgroundColor: UIColor { base.selectedLineBackgroundColor }
-    var selectedLinesLineNumberColor: UIColor { base.selectedLinesLineNumberColor }
-    var selectedLinesGutterBackgroundColor: UIColor { base.selectedLinesGutterBackgroundColor }
-    var invisibleCharactersColor: UIColor { base.invisibleCharactersColor }
-    var pageGuideHairlineColor: UIColor { base.pageGuideHairlineColor }
-    var pageGuideHairlineWidth: CGFloat { base.pageGuideHairlineWidth }
-    var pageGuideBackgroundColor: UIColor { base.pageGuideBackgroundColor }
-    var markedTextBackgroundColor: UIColor { base.markedTextBackgroundColor }
-    var markedTextBackgroundCornerRadius: CGFloat { base.markedTextBackgroundCornerRadius }
+    var backgroundColor: UIColor {
+        base.backgroundColor
+    }
 
-    func textColor(for highlightName: String) -> UIColor? { base.textColor(for: highlightName) }
-    func fontTraits(for highlightName: String) -> FontTraits { base.fontTraits(for: highlightName) }
+    var userInterfaceStyle: UIUserInterfaceStyle {
+        base.userInterfaceStyle
+    }
+
+    var textColor: UIColor {
+        base.textColor
+    }
+
+    var gutterBackgroundColor: UIColor {
+        base.gutterBackgroundColor
+    }
+
+    var gutterHairlineColor: UIColor {
+        base.gutterHairlineColor
+    }
+
+    var gutterHairlineWidth: CGFloat {
+        base.gutterHairlineWidth
+    }
+
+    var lineNumberColor: UIColor {
+        base.lineNumberColor
+    }
+
+    var selectedLineBackgroundColor: UIColor {
+        base.selectedLineBackgroundColor
+    }
+
+    var selectedLinesLineNumberColor: UIColor {
+        base.selectedLinesLineNumberColor
+    }
+
+    var selectedLinesGutterBackgroundColor: UIColor {
+        base.selectedLinesGutterBackgroundColor
+    }
+
+    var invisibleCharactersColor: UIColor {
+        base.invisibleCharactersColor
+    }
+
+    var pageGuideHairlineColor: UIColor {
+        base.pageGuideHairlineColor
+    }
+
+    var pageGuideHairlineWidth: CGFloat {
+        base.pageGuideHairlineWidth
+    }
+
+    var pageGuideBackgroundColor: UIColor {
+        base.pageGuideBackgroundColor
+    }
+
+    var markedTextBackgroundColor: UIColor {
+        base.markedTextBackgroundColor
+    }
+
+    var markedTextBackgroundCornerRadius: CGFloat {
+        base.markedTextBackgroundCornerRadius
+    }
+
+    func textColor(for highlightName: String) -> UIColor? {
+        base.textColor(for: highlightName)
+    }
+
+    func fontTraits(for highlightName: String) -> FontTraits {
+        base.fontTraits(for: highlightName)
+    }
 }

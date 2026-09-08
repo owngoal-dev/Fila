@@ -39,7 +39,9 @@ struct BrowserTab: Codable {
     var selection: String?
 
     /// The directory on screen.
-    var path: String { stack.last ?? "/" }
+    var path: String {
+        stack.last ?? "/"
+    }
 
     /// What the switcher calls this tab.
     var title: String {
@@ -144,7 +146,9 @@ final class BrowserTabStore {
         tabs.first { $0.id == currentID } ?? tabs[0]
     }
 
-    var isFull: Bool { tabs.count >= Self.limit }
+    var isFull: Bool {
+        tabs.count >= Self.limit
+    }
 
     // MARK: - Writing
 
@@ -189,10 +193,14 @@ final class BrowserTabStore {
     func close(_ id: UUID) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         tabs.remove(at: index)
-        if tabs.isEmpty { tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)] }
+        if tabs.isEmpty {
+            tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
+        }
         // Closing the tab you are on lands on the one that took its place, or
         // on the new last one — the same thing every tabbed app does.
-        if currentID == id { currentID = tabs[min(index, tabs.count - 1)].id }
+        if currentID == id {
+            currentID = tabs[min(index, tabs.count - 1)].id
+        }
         save()
     }
 
@@ -251,7 +259,8 @@ final class BrowserTabStore {
 
     private static func load(from defaults: UserDefaults) -> [BrowserTab] {
         if let data = defaults.data(forKey: tabsKey),
-           let decoded = try? JSONDecoder().decode([BrowserTab].self, from: data) {
+           let decoded = try? JSONDecoder().decode([BrowserTab].self, from: data)
+        {
             return decoded.filter { !$0.stack.isEmpty }
         }
         return (defaults.stringArray(forKey: legacyKey) ?? []).map { BrowserTab(path: $0) }
@@ -264,6 +273,8 @@ final class BrowserTabStore {
         defaults.set(try? JSONEncoder().encode(tabs), forKey: Self.tabsKey)
         defaults.set(currentID.uuidString, forKey: Self.currentKey)
         defaults.removeObject(forKey: Self.legacyKey)
-        if notify { NotificationCenter.default.post(name: .filaTabsChanged, object: nil) }
+        if notify {
+            NotificationCenter.default.post(name: .filaTabsChanged, object: nil)
+        }
     }
 }

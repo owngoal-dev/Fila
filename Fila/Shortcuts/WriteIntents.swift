@@ -2,43 +2,43 @@ import AppIntents
 import FilaProtocol
 import Foundation
 
-/// The Shortcuts actions that change the filesystem.
-///
-/// # Why these exist here and not as `fila://` verbs
-///
-/// The URL scheme is read-only and always will be: any web page can open one,
-/// with no caller identity behind it, and this app drives a root daemon. A
-/// shortcut is a different thing — the user installed it deliberately and it
-/// runs with their knowledge — so a write is defensible here in a way it never
-/// is there.
-///
-/// "Deliberately" is doing real work in that sentence, though: shortcuts are
-/// shared and imported, and someone running an imported one has read a
-/// description, not a path. So everything below that can destroy something
-/// stops and asks first, and the prompt names the path **as the daemon
-/// resolved it** — `/var/mobile/x` confirmed as `/private/var/mobile/x` — so
-/// that a shortcut cannot spell one place, show another, and act on a third.
-///
-/// # What is deliberately absent
-///
-/// **No permission, owner or flag change.** `setAttributes` is the one daemon
-/// operation that does not consult `FilaGuard`, by design — a chmod does not
-/// destroy a node, and editing what is inside `/System` is the point of the
-/// app. That is a defensible rule for a person tapping a row in the properties
-/// screen and an indefensible one for an imported automation: `chmod 000
-/// /usr/lib/dyld` would be a single unguarded root syscall behind a tap, and
-/// `chown` on a launch daemon plist is a persistence primitive. If it is ever
-/// wanted here it needs the guard to grow an opinion about attribute changes
-/// first, and that is a change to `filad`, not to this file.
-///
-/// **No symlink or hard link.** Same reason from the other end: a link is a
-/// redirect, and a redirect planted somewhere privileged outlives the shortcut
-/// that made it.
-///
-/// **No guard override.** `JobRequest.overrideGuard` exists for a person who
-/// has read a dialog explaining what they are about to lose. It is not a
-/// parameter, it is not a setting an intent reads, and every request built in
-/// this file leaves it false.
+// The Shortcuts actions that change the filesystem.
+//
+// # Why these exist here and not as `fila://` verbs
+//
+// The URL scheme is read-only and always will be: any web page can open one,
+// with no caller identity behind it, and this app drives a root daemon. A
+// shortcut is a different thing — the user installed it deliberately and it
+// runs with their knowledge — so a write is defensible here in a way it never
+// is there.
+//
+// "Deliberately" is doing real work in that sentence, though: shortcuts are
+// shared and imported, and someone running an imported one has read a
+// description, not a path. So everything below that can destroy something
+// stops and asks first, and the prompt names the path **as the daemon
+// resolved it** — `/var/mobile/x` confirmed as `/private/var/mobile/x` — so
+// that a shortcut cannot spell one place, show another, and act on a third.
+//
+// # What is deliberately absent
+//
+// **No permission, owner or flag change.** `setAttributes` is the one daemon
+// operation that does not consult `FilaGuard`, by design — a chmod does not
+// destroy a node, and editing what is inside `/System` is the point of the
+// app. That is a defensible rule for a person tapping a row in the properties
+// screen and an indefensible one for an imported automation: `chmod 000
+// /usr/lib/dyld` would be a single unguarded root syscall behind a tap, and
+// `chown` on a launch daemon plist is a persistence primitive. If it is ever
+// wanted here it needs the guard to grow an opinion about attribute changes
+// first, and that is a change to `filad`, not to this file.
+//
+// **No symlink or hard link.** Same reason from the other end: a link is a
+// redirect, and a redirect planted somewhere privileged outlives the shortcut
+// that made it.
+//
+// **No guard override.** `JobRequest.overrideGuard` exists for a person who
+// has read a dialog explaining what they are about to lose. It is not a
+// parameter, it is not a setting an intent reads, and every request built in
+// this file leaves it false.
 
 // MARK: - Asking first
 
@@ -83,11 +83,11 @@ struct CreateFolderIntent: AppIntent {
     /// dismiss the prompts that matter.
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<FileEntity> {
-        let parent = try IntentSupport.path(self.parent)
+        let parent = try IntentSupport.path(parent)
         let path = try IntentSupport.child(of: parent, named: name)
         try await IntentSupport.daemon { try await $0.create(.directory, at: path) }
         IntentSupport.announceChange(in: [parent])
-        return .result(value: FileEntity(try await IntentSupport.details(of: path)))
+        return try await .result(value: FileEntity(IntentSupport.details(of: path)))
     }
 }
 
@@ -126,9 +126,9 @@ struct CopyItemIntent: AppIntent {
             JobRequest(kind: .copy, sources: [source], destination: destination),
             kind: .copy,
             subtitle: OperationCenter.describe([source], destination: destination),
-            announcing: [try IntentSupport.path(self.destination)]
+            announcing: [IntentSupport.path(self.destination)]
         )
-        return .result(value: FileEntity(try await IntentSupport.details(of: landing)))
+        return try await .result(value: FileEntity(IntentSupport.details(of: landing)))
     }
 }
 
@@ -162,11 +162,11 @@ struct MoveItemIntent: AppIntent {
             kind: .move,
             subtitle: OperationCenter.describe([source], destination: destination),
             announcing: [
-                try IntentSupport.path(self.destination),
-                (try IntentSupport.path(path) as NSString).deletingLastPathComponent,
+                IntentSupport.path(self.destination),
+                (IntentSupport.path(path) as NSString).deletingLastPathComponent,
             ]
         )
-        return .result(value: FileEntity(try await IntentSupport.details(of: landing)))
+        return try await .result(value: FileEntity(IntentSupport.details(of: landing)))
     }
 }
 
@@ -240,7 +240,7 @@ struct WriteTextFileIntent: AppIntent {
     /// about to do, against the resolved path.
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<FileEntity> {
-        let path = try IntentSupport.path(self.path)
+        let path = try IntentSupport.path(path)
         // `try?` would be wrong here, and wrong in the one way this whole file
         // exists to prevent: it turns "could not find out" into "not there", so
         // a request that failed with `ECONNRESET` or `ELOOP` would be confirmed
@@ -268,6 +268,6 @@ struct WriteTextFileIntent: AppIntent {
             throw IntentFailure.refused(failure)
         }
         IntentSupport.announceChange(in: [(path as NSString).deletingLastPathComponent])
-        return .result(value: FileEntity(try await IntentSupport.details(of: path)))
+        return try await .result(value: FileEntity(IntentSupport.details(of: path)))
     }
 }

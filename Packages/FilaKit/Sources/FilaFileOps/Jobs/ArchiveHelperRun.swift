@@ -89,8 +89,12 @@ enum ArchiveHelperRun {
         var status: Int32 = 0
         while waitpid(pid, &status, 0) < 0, Darwin.errno == EINTR {}
 
-        if let completion { return completion }
-        if job.isCancelled { return FilaFailure(code: .cancelled) }
+        if let completion {
+            return completion
+        }
+        if job.isCancelled {
+            return FilaFailure(code: .cancelled)
+        }
         // Killed by jetsam, or a crash: the helper never got to say.
         note("fila-archive exited with status \(status) before reporting an outcome")
         return FilaFailure(code: .operationFailed, systemError: EIO, path: helper)
@@ -102,7 +106,13 @@ enum ArchiveHelperRun {
             var sent = 0
             while sent < raw.count {
                 let put = write(descriptor, base.advanced(by: sent), raw.count - sent)
-                if put < 0 { if Darwin.errno == EINTR { continue } else { return } }
+                if put < 0 {
+                    if Darwin.errno == EINTR {
+                        continue
+                    } else {
+                        return
+                    }
+                }
                 sent += put
             }
         }
@@ -113,14 +123,24 @@ enum ArchiveHelperRun {
         var buffer = [UInt8](repeating: 0, count: 64 * 1024)
         while true {
             let got = read(descriptor, &buffer, buffer.count)
-            if got < 0 { if Darwin.errno == EINTR { continue } else { break } }
-            if got == 0 { break }
+            if got < 0 {
+                if Darwin.errno == EINTR {
+                    continue
+                } else {
+                    break
+                }
+            }
+            if got == 0 {
+                break
+            }
             pending.append(buffer, count: got)
             while let newline = pending.firstIndex(of: UInt8(ascii: "\n")) {
                 each(pending[pending.startIndex ..< newline])
                 pending.removeSubrange(pending.startIndex ... newline)
             }
         }
-        if !pending.isEmpty { each(pending) }
+        if !pending.isEmpty {
+            each(pending)
+        }
     }
 }

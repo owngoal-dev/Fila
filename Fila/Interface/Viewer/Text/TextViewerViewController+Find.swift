@@ -31,11 +31,14 @@ extension TextViewerViewController {
             )
             guard match.location != NSNotFound, match.length > 0 else { break }
             count += 1
-            if first == nil { first = match }
+            if first == nil {
+                first = match
+            }
             last = match
             if forwards
-                ? target == nil && match.location >= NSMaxRange(selection)
-                : NSMaxRange(match) <= selection.location {
+                ? target == nil, match.location >= NSMaxRange(selection)
+                : NSMaxRange(match) <= selection.location
+            {
                 target = match
                 current = count
             }

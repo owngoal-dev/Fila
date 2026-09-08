@@ -17,11 +17,11 @@ public struct AudioMetadata {
     public var discCount: Int?
 
     public static func load(from asset: AVAsset) async -> AudioMetadata {
-        var items = Array(((try? await asset.load(.commonMetadata)) ?? []).prefix(256))
-        for format in ((try? await asset.load(.availableMetadataFormats)) ?? []).prefix(8) {
+        var items = await Array(((try? asset.load(.commonMetadata)) ?? []).prefix(256))
+        for format in await ((try? asset.load(.availableMetadataFormats)) ?? []).prefix(8) {
             guard items.count < 256 else { break }
             guard !Task.isCancelled else { return AudioMetadata() }
-            items += ((try? await asset.loadMetadata(for: format)) ?? []).prefix(256 - items.count)
+            await items += ((try? asset.loadMetadata(for: format)) ?? []).prefix(256 - items.count)
         }
         return await decode(items)
     }
@@ -32,9 +32,11 @@ public struct AudioMetadata {
             guard !Task.isCancelled else { break }
             guard let identifier = item.identifier else { continue }
             if [.commonIdentifierArtwork, .iTunesMetadataCoverArt, .id3MetadataAttachedPicture,
-                .quickTimeMetadataArtwork].contains(identifier) {
+                .quickTimeMetadataArtwork].contains(identifier)
+            {
                 if result.artwork == nil, let data = try? await item.load(.dataValue),
-                   !data.isEmpty, data.count <= 16 * 1_024 * 1_024 {
+                   !data.isEmpty, data.count <= 16 * 1024 * 1024
+                {
                     result.artwork = data
                 }
                 continue
@@ -47,11 +49,19 @@ public struct AudioMetadata {
                     pair = numberPair(text: text)
                 }
                 if identifier == .iTunesMetadataTrackNumber {
-                    if result.trackNumber == nil { result.trackNumber = pair.number }
-                    if result.trackCount == nil { result.trackCount = pair.count }
+                    if result.trackNumber == nil {
+                        result.trackNumber = pair.number
+                    }
+                    if result.trackCount == nil {
+                        result.trackCount = pair.count
+                    }
                 } else {
-                    if result.discNumber == nil { result.discNumber = pair.number }
-                    if result.discCount == nil { result.discCount = pair.count }
+                    if result.discNumber == nil {
+                        result.discNumber = pair.number
+                    }
+                    if result.discCount == nil {
+                        result.discCount = pair.count
+                    }
                 }
                 continue
             }
@@ -66,29 +76,49 @@ public struct AudioMetadata {
             default: continue
             }
             guard let raw = try? await item.load(.stringValue) else { continue }
-            let text = String(raw.trimmingCharacters(in: .whitespacesAndNewlines).prefix(8_192))
+            let text = String(raw.trimmingCharacters(in: .whitespacesAndNewlines).prefix(8192))
             guard !text.isEmpty else { continue }
             switch identifier {
             case .commonIdentifierTitle, .iTunesMetadataSongName, .id3MetadataTitleDescription, .quickTimeMetadataTitle:
-                if result.title == nil { result.title = text }
+                if result.title == nil {
+                    result.title = text
+                }
             case .commonIdentifierArtist, .iTunesMetadataArtist, .id3MetadataLeadPerformer, .quickTimeMetadataArtist:
-                if result.artist == nil { result.artist = text }
+                if result.artist == nil {
+                    result.artist = text
+                }
             case .commonIdentifierAlbumName, .iTunesMetadataAlbum, .id3MetadataAlbumTitle, .quickTimeMetadataAlbum:
-                if result.album == nil { result.album = text }
+                if result.album == nil {
+                    result.album = text
+                }
             case .iTunesMetadataAlbumArtist, .id3MetadataBand:
-                if result.albumArtist == nil { result.albumArtist = text }
+                if result.albumArtist == nil {
+                    result.albumArtist = text
+                }
             case .iTunesMetadataComposer, .id3MetadataComposer, .quickTimeMetadataComposer, .quickTimeUserDataComposer:
-                if result.composer == nil { result.composer = text }
+                if result.composer == nil {
+                    result.composer = text
+                }
             case .iTunesMetadataUserGenre, .id3MetadataContentType, .quickTimeMetadataGenre, .quickTimeUserDataGenre:
-                if result.genre == nil { result.genre = text }
+                if result.genre == nil {
+                    result.genre = text
+                }
             case .id3MetadataTrackNumber:
                 let pair = numberPair(text: text)
-                if result.trackNumber == nil { result.trackNumber = pair.number }
-                if result.trackCount == nil { result.trackCount = pair.count }
+                if result.trackNumber == nil {
+                    result.trackNumber = pair.number
+                }
+                if result.trackCount == nil {
+                    result.trackCount = pair.count
+                }
             case .id3MetadataPartOfASet:
                 let pair = numberPair(text: text)
-                if result.discNumber == nil { result.discNumber = pair.number }
-                if result.discCount == nil { result.discCount = pair.count }
+                if result.discNumber == nil {
+                    result.discNumber = pair.number
+                }
+                if result.discCount == nil {
+                    result.discCount = pair.count
+                }
             default:
                 break
             }

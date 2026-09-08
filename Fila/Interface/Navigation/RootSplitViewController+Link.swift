@@ -17,8 +17,12 @@ extension RootSplitViewController {
         // into this app's Inbox for *Copy to Fila*. One panel for the whole
         // batch, and never through `FilaLink` — see `importFiles`.
         let files = contexts.map(\.url).filter(\.isFileURL)
-        if !files.isEmpty { importFiles(files) }
-        for context in contexts where !context.url.isFileURL { follow(context.url) }
+        if !files.isEmpty {
+            importFiles(files)
+        }
+        for context in contexts where !context.url.isFileURL {
+            follow(context.url)
+        }
     }
 
     func follow(_ url: URL) {

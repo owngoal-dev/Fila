@@ -173,7 +173,7 @@ extension FileActions {
                 userInfo: [
                     NSLocalizedDescriptionKey: String(
                         localized: "The installer is still working. Check Applications before trying again."
-                    )
+                    ),
                 ]
             ))
         case let .failed(domain, code, message):

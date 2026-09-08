@@ -36,7 +36,9 @@ struct BootstrapLayout {
     /// A layout stated outright. On a device every kind is derived from the
     /// daemon's own install root; the harness cannot make a `/var/jb` exist on
     /// the Mac, and the rootless remap is the whole of what needs testing.
-    init(kind: Kind) { self.kind = kind }
+    init(kind: Kind) {
+        self.kind = kind
+    }
 
     init(installRoot: String) {
         var isBootstrap: Bool {
@@ -90,7 +92,9 @@ struct BootstrapLayout {
     /// outside that root are reached through its system-filesystem bridge.
     func programPath(_ path: String) -> String {
         guard case let .roothide(root) = kind else { return path }
-        if path.hasPrefix(root + "/") { return String(path.dropFirst(root.count)) }
+        if path.hasPrefix(root + "/") {
+            return String(path.dropFirst(root.count))
+        }
         return systemPath(path)
     }
 

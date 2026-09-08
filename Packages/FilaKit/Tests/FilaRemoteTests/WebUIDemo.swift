@@ -1,7 +1,6 @@
+@testable import FilaRemote
 import Foundation
 import Testing
-
-@testable import FilaRemote
 
 /// Not a test. `FILA_WEB_DEMO=1 swift test --filter WebUIDemo` serves a
 /// scratch directory over the real server, with the frontend read live from
@@ -36,6 +35,6 @@ struct WebUIDemo {
 
         """)
         fflush(stdout)
-        try await Task.sleep(nanoseconds: 3_600 * 1_000_000_000)
+        try await Task.sleep(nanoseconds: 3600 * 1_000_000_000)
     }
 }

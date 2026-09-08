@@ -1,10 +1,9 @@
 import CRemoveFile
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaClient
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 /// The in-process backend, driven through `DaemonLink` exactly as the app
 /// drives it.
@@ -25,7 +24,7 @@ struct LocalFileServiceTests {
     /// wait for — the misses only have to be counted.
     private func link() async throws -> DaemonLink {
         let link = DaemonLink(daemonIsInstalled: false)
-        while (try? await link.hello()) == nil {}
+        while await (try? link.hello()) == nil {}
         return link
     }
 
@@ -122,7 +121,9 @@ final class LocalScratch {
 
     deinit { removefile(root, nil, removefile_flags_t(REMOVEFILE_RECURSIVE)) }
 
-    func path(_ relative: String) -> String { root + "/" + relative }
+    func path(_ relative: String) -> String {
+        root + "/" + relative
+    }
 
     @discardableResult
     func directory(_ relative: String) -> String {
@@ -136,7 +137,7 @@ final class LocalScratch {
 
     @discardableResult
     func file(_ relative: String, contents: String = "fila") -> String {
-        let path = self.path(relative)
+        let path = path(relative)
         let descriptor = open(path, O_CREAT | O_TRUNC | O_WRONLY, 0o644)
         precondition(descriptor >= 0, "open \(path)")
         contents.withCString { _ = write(descriptor, $0, strlen($0)) }

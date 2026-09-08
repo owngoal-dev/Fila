@@ -28,11 +28,15 @@ final class FileFlagsEditorViewController: UITableViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { Self.flags.count }
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        Self.flags.count
+    }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         let flag = Self.flags[indexPath.row]
         var content = UIListContentConfiguration.cell()

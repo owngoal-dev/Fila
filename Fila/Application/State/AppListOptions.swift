@@ -5,8 +5,8 @@ enum AppSort: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .name: return String(localized: "Name")
-        case .identifier: return String(localized: "Bundle Identifier")
+        case .name: String(localized: "Name")
+        case .identifier: String(localized: "Bundle Identifier")
         }
     }
 }
@@ -18,21 +18,23 @@ enum AppScope: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .all: return String(localized: "All Apps")
-        case .user: return String(localized: "User Apps")
-        case .system: return String(localized: "System Apps")
+        case .all: String(localized: "All Apps")
+        case .user: String(localized: "User Apps")
+        case .system: String(localized: "System Apps")
         }
     }
 
     func includes(_ app: InstalledApp) -> Bool {
         switch self {
-        case .all: return true
-        case .user: return app.isUserApp
-        case .system: return !app.isUserApp
+        case .all: true
+        case .user: app.isUserApp
+        case .system: !app.isUserApp
         }
     }
 }
 
 extension InstalledApp {
-    var isUserApp: Bool { bundlePath.contains("/Bundle/Application/") }
+    var isUserApp: Bool {
+        bundlePath.contains("/Bundle/Application/")
+    }
 }

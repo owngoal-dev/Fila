@@ -56,7 +56,7 @@ extension FilaLink {
 
     /// `PATH_MAX`. A longer string cannot name a file, so it is not a path — it
     /// is somebody finding out how much the parser will swallow.
-    static let pathByteLimit = 1_024
+    static let pathByteLimit = 1024
     /// A search needle is typed by a person; anything longer is not one.
     static let queryByteLimit = 256
     /// Longer than any reverse-DNS identifier the system will install.
@@ -76,7 +76,9 @@ extension FilaLink {
         for item in components.queryItems ?? [] {
             guard let value = item.value else { continue }
             let name = item.name.lowercased()
-            if values[name] == nil { values[name] = value }
+            if values[name] == nil {
+                values[name] = value
+            }
         }
         let wantsNewTab = values["tab"]?.lowercased() == "new"
 

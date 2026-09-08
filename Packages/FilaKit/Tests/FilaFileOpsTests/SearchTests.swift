@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 // A whole-device search against a real tree on a real filesystem. Every
 // property under test here — `d_type` instead of `stat`, not following a link,
@@ -23,7 +22,9 @@ struct SearchTests {
         var limits: SearchLimits
         var outcome: FilaFailure
 
-        var names: [String] { matches.map(\.node.name).sorted() }
+        var names: [String] {
+            matches.map(\.node.name).sorted()
+        }
     }
 
     private func search(_ query: SearchQuery, in roots: [String]? = nil) -> Found {
@@ -175,7 +176,9 @@ struct SearchTests {
     func theDepthLimitIsReported() {
         scratch.file("shallow-needle.txt")
         var relative = "deep"
-        for _ in 0 ..< FilaProtocol.searchDepthLimit { relative += "/deep" }
+        for _ in 0 ..< FilaProtocol.searchDepthLimit {
+            relative += "/deep"
+        }
         scratch.directory(relative)
         scratch.file(relative + "/deep-needle.txt")
 
@@ -192,7 +195,9 @@ struct SearchTests {
     @Test("The result cap is reported, not applied in silence")
     func theResultCapIsReported() {
         scratch.directory("full")
-        for index in 0 ..< FilaProtocol.searchResultLimit + 10 { scratch.file("full/hit-\(index)") }
+        for index in 0 ..< FilaProtocol.searchResultLimit + 10 {
+            scratch.file("full/hit-\(index)")
+        }
 
         // A second root that is not there. Once the cap is reached the walk
         // must not open it: a full list has to arrive as a full list, not as
@@ -208,7 +213,9 @@ struct SearchTests {
         // One wide directory and nothing else: a walk that only looked at
         // cancellation on its way into a directory would have to read all
         // 2,000 entries before it noticed.
-        for index in 0 ..< 2_000 { scratch.file("entry-\(index).txt") }
+        for index in 0 ..< 2000 {
+            scratch.file("entry-\(index).txt")
+        }
 
         let job = FileJob(
             request: JobRequest(kind: .search, sources: [scratch.root], query: SearchQuery(text: "entry-")),
@@ -217,20 +224,24 @@ struct SearchTests {
         var matches: [SearchMatch] = []
         let outcome = job.run(report: { _ in }) { batch in
             matches.append(contentsOf: batch.matches)
-            if !matches.isEmpty { job.cancel() }
+            if !matches.isEmpty {
+                job.cancel()
+            }
         }
 
         #expect(outcome.code == .cancelled)
         // The matches found before the stop are still delivered — a cancelled
         // search shows what it had, it does not throw it away.
         #expect(!matches.isEmpty)
-        #expect(matches.count < 2_000)
+        #expect(matches.count < 2000)
     }
 
     @Test("Progress counts the entries looked at and names the directory")
     func progressCountsEntries() {
         scratch.directory("folder")
-        for index in 0 ..< 200 { scratch.file("folder/entry-\(index).txt") }
+        for index in 0 ..< 200 {
+            scratch.file("folder/entry-\(index).txt")
+        }
 
         var last = JobProgress(bytesDone: 0, bytesTotal: 0, itemsDone: 0, itemsTotal: 0, currentPath: "")
         _ = FileJob(

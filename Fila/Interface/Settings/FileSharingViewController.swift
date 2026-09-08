@@ -65,7 +65,9 @@ final class FileSharingViewController: UIViewController {
         )
     }
 
-    @objc private func serverChanged() { apply() }
+    @objc private func serverChanged() {
+        apply()
+    }
 
     private func buildDataSource() {
         let cell = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
@@ -110,7 +112,9 @@ final class FileSharingViewController: UIViewController {
             addresses.isEmpty ? [.server, .credentials, .background, .connections] : Section.allCases
         )
         var server: [Row] = [.status]
-        if let failure = center.startFailure { server.append(.failure(failure)) }
+        if let failure = center.startFailure {
+            server.append(.failure(failure))
+        }
         snapshot.appendItems(server, toSection: .server)
         snapshot.appendItems([.userName, .password, .port, .sharedFolder], toSection: .credentials)
         snapshot.appendItems([.keepsRunning], toSection: .background)
@@ -133,7 +137,9 @@ final class FileSharingViewController: UIViewController {
 
     /// The listener read its credentials and port when it started; while it
     /// is up the rows show a lock rather than pretending an edit would apply.
-    private var credentialsLocked: Bool { center.isRunning || center.isStarting }
+    private var credentialsLocked: Bool {
+        center.isRunning || center.isStarting
+    }
 
     private var credentialAccessory: UICellAccessory {
         guard credentialsLocked else { return .disclosureIndicator() }
@@ -175,7 +181,11 @@ final class FileSharingViewController: UIViewController {
             toggle.accessibilityLabel = String(localized: "File Sharing")
             toggle.addAction(UIAction { [weak self, weak toggle] _ in
                 guard let self, let toggle else { return }
-                if toggle.isOn { self.center.start() } else { self.center.stop() }
+                if toggle.isOn {
+                    center.start()
+                } else {
+                    center.stop()
+                }
             }, for: .valueChanged)
             cell.accessories = [.customView(configuration: .init(customView: toggle, placement: .trailing()))]
         case let .failure(text):
@@ -255,7 +265,7 @@ final class FileSharingViewController: UIViewController {
             case .userName: AppPreferences.shared.serverUsername = text
             case .password: AppPreferences.shared.serverPassword = text
             case .port:
-                guard let port = UInt16(text), port >= 1_024 else { return }
+                guard let port = UInt16(text), port >= 1024 else { return }
                 AppPreferences.shared.serverPort = port
             default: return
             }
@@ -280,35 +290,35 @@ final class FileSharingViewController: UIViewController {
 
     private static func header(for section: Section) -> String? {
         switch section {
-        case .server: return nil
-        case .credentials: return String(localized: "Connection Settings")
-        case .background: return String(localized: "Background Sharing")
-        case .connections: return String(localized: "Connections")
-        case .qrCode: return String(localized: "Scan to Connect")
+        case .server: nil
+        case .credentials: String(localized: "Connection Settings")
+        case .background: String(localized: "Background Sharing")
+        case .connections: String(localized: "Connections")
+        case .qrCode: String(localized: "Scan to Connect")
         }
     }
 
     private static func footer(for section: Section) -> String? {
         switch section {
         case .server:
-            return String(localized: "Open an address in a web browser on the same network. Anyone with the password can reach everything inside the shared folder. The connection is not encrypted, so use it only on a network you trust.")
+            String(localized: "Open an address in a web browser on the same network. Anyone with the password can reach everything inside the shared folder. The connection is not encrypted, so use it only on a network you trust.")
         case .credentials:
-            return String(localized: "Changes take effect the next time you start sharing.")
+            String(localized: "Changes take effect the next time you start sharing.")
         case .background:
-            return String(localized: "iOS allows only a short time to finish transfers after you leave Fila. Sharing then stops and connected devices disconnect.")
-        case .connections: return nil
+            String(localized: "iOS allows only a short time to finish transfers after you leave Fila. Sharing then stops and connected devices disconnect.")
+        case .connections: nil
         case .qrCode:
-            return String(localized: "Point another device's camera at the code to open Fila in its browser.")
+            String(localized: "Point another device's camera at the code to open Fila in its browser.")
         }
     }
 }
 
 extension FileSharingViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+    func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         switch dataSource.itemIdentifier(for: indexPath) {
-        case .userName, .password, .port, .sharedFolder: return !credentialsLocked
-        case .clearConnections: return true
-        default: return false
+        case .userName, .password, .port, .sharedFolder: !credentialsLocked
+        case .clearConnections: true
+        default: false
         }
     }
 
@@ -362,7 +372,9 @@ private final class QRCodeCell: UICollectionViewListCell {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError() }
+    required init?(coder _: NSCoder) {
+        fatalError()
+    }
 
     func show(_ address: String) {
         label.text = address

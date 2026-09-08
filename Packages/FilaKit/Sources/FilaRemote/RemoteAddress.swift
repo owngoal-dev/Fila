@@ -35,7 +35,9 @@ public enum RemoteAddress {
                 nil, 0, NI_NUMERICHOST
             ) == 0 else { continue }
             let value = String(cString: text)
-            if !value.isEmpty, !found.contains(value) { found.append(value) }
+            if !value.isEmpty, !found.contains(value) {
+                found.append(value)
+            }
         }
         return found
     }

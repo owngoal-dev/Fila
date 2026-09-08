@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 @Suite("errno to reply code")
 struct PosixFailureTests {

@@ -1,6 +1,6 @@
 import Darwin
-import Foundation
 import FilaProtocol
+import Foundation
 
 /// Turning a failed syscall into the one error type that crosses the wire.
 ///

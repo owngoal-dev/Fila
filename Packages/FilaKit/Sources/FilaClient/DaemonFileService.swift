@@ -73,7 +73,8 @@ final class DaemonFileService: FileService, @unchecked Sendable {
             xpc_dictionary_set_string(request, FilaWireKey.path, path)
         }
         guard let value = xpc_dictionary_get_value(reply, FilaWireKey.details),
-              let details = FileDetails(decoding: value) else {
+              let details = FileDetails(decoding: value)
+        else {
             throw FilaFailure(code: .operationFailed, path: path)
         }
         return details
@@ -94,7 +95,9 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         _ = try await send(.createNode) { request in
             xpc_dictionary_set_string(request, FilaWireKey.path, path)
             template.encode(into: request)
-            if let mode { xpc_dictionary_set_uint64(request, FilaWireKey.mode, UInt64(mode)) }
+            if let mode {
+                xpc_dictionary_set_uint64(request, FilaWireKey.mode, UInt64(mode))
+            }
         }
     }
 
@@ -138,7 +141,8 @@ final class DaemonFileService: FileService, @unchecked Sendable {
             xpc_dictionary_set_string(request, FilaWireKey.path, path)
         }
         guard let value = xpc_dictionary_get_value(reply, FilaWireKey.volume),
-              let info = VolumeInfo(decoding: value) else {
+              let info = VolumeInfo(decoding: value)
+        else {
             throw FilaFailure(code: .operationFailed, path: path)
         }
         return info
@@ -221,7 +225,9 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         // log screen polls once a second and a log of its own polling is a log
         // of nothing else.
         let logging = operation != .fetchLog
-        if logging { FilaLog.verbose("→ \(operation.name) \(FilaLog.requestPath(request))") }
+        if logging {
+            FilaLog.verbose("→ \(operation.name) \(FilaLog.requestPath(request))")
+        }
 
         let connection = try activeConnection()
         let reply: xpc_object_t = try await withCheckedThrowingContinuation { continuation in
@@ -246,17 +252,23 @@ final class DaemonFileService: FileService, @unchecked Sendable {
             // The daemon logged this one with its `errno`; this is the app's
             // own entry on the same timeline, so a verbose trace does not stop
             // dead at the request.
-            if logging { FilaLog.verbose("✗ \(operation.name) \(failure.code.name)") }
+            if logging {
+                FilaLog.verbose("✗ \(operation.name) \(failure.code.name)")
+            }
             throw failure
         }
-        if logging { FilaLog.verbose("← \(operation.name) ok") }
+        if logging {
+            FilaLog.verbose("← \(operation.name) ok")
+        }
         return reply
     }
 
     private func activeConnection() throws -> xpc_connection_t {
         stateLock.lock()
         defer { stateLock.unlock() }
-        if let connection { return connection }
+        if let connection {
+            return connection
+        }
         guard let created = FilaProtocol.serviceName.withCString({
             filaCreateMachServiceConnection($0, queue, FilaXPCFlag.client)
         }) else {
@@ -265,18 +277,19 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         xpc_connection_set_event_handler(created) { [weak self] message in
             guard let self else { return }
             if let update = JobEvent.decode(message) {
-                self.events.yield(DaemonLink.JobUpdate(identifier: update.jobIdentifier, event: update.event))
+                events.yield(DaemonLink.JobUpdate(identifier: update.jobIdentifier, event: update.event))
             } else if let result = SearchBatch.decode(message) {
-                self.matches.yield(DaemonLink.SearchUpdate(identifier: result.jobIdentifier, batch: result.batch))
+                matches.yield(DaemonLink.SearchUpdate(identifier: result.jobIdentifier, batch: result.batch))
             } else if message === FilaXPC.errorConnectionInterrupted
-                || message === FilaXPC.errorConnectionInvalid {
+                || message === FilaXPC.errorConnectionInvalid
+            {
                 // Not a delivery problem to retry. The daemon cancels every job
                 // a peer started when that peer disconnects, so by the time
                 // this fires those jobs are already over and nothing will ever
                 // arrive on `events` to say so. Without telling somebody, a
                 // copy that died with the connection sits on screen at 40%
                 // forever and anything awaiting it waits forever with it.
-                self.onLinkLost?()
+                onLinkLost?()
             }
         }
         xpc_connection_activate(created)
@@ -285,6 +298,8 @@ final class DaemonFileService: FileService, @unchecked Sendable {
     }
 
     deinit {
-        if let connection { xpc_connection_cancel(connection) }
+        if let connection {
+            xpc_connection_cancel(connection)
+        }
     }
 }

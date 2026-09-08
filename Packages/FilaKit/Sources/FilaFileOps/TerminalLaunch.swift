@@ -1,5 +1,5 @@
-import Darwin
 import CTerminalSession
+import Darwin
 import Dispatch
 import FilaProtocol
 import Foundation

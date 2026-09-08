@@ -52,7 +52,9 @@ public final class FileJob: @unchecked Sendable {
         let stop = cancelled
         cancellation.unlock()
         // Cancelled between the spawn and this call: nobody else will say so.
-        if stop { cancel() }
+        if stop {
+            cancel()
+        }
     }
 
     func detachHelper() {
@@ -65,7 +67,9 @@ public final class FileJob: @unchecked Sendable {
         cancellation.lock()
         let live = helper == pid
         cancellation.unlock()
-        if live { kill(pid, SIGKILL) }
+        if live {
+            kill(pid, SIGKILL)
+        }
     }
 
     public var isCancelled: Bool {
@@ -91,7 +95,9 @@ public final class FileJob: @unchecked Sendable {
     ) -> FilaFailure {
         let tally = JobTally(job: self, report: report)
         do {
-            if request.kind.isArchive { return try archive(report: report, note: note) }
+            if request.kind.isArchive {
+                return try archive(report: report, note: note)
+            }
             try perform(tally: tally, matches: matches)
             tally.flush()
             return FilaFailure(code: .success)
@@ -121,7 +127,9 @@ public final class FileJob: @unchecked Sendable {
         }
         // Settled here as well as in the helper, so a request that names
         // nothing fails with the errno rather than with a helper exit.
-        for source in request.sources { _ = try FilaPath.canonical(source) }
+        for source in request.sources {
+            _ = try FilaPath.canonical(source)
+        }
         return try ArchiveHelperRun.run(
             helper: helper,
             task: ArchiveHelperTask(request: request, bootstrapRoot: operations.bootstrapRoot),
@@ -140,14 +148,14 @@ public final class FileJob: @unchecked Sendable {
             switch request.kind {
             case .move, .delete, .restore:
                 // Moving, deleting and restoring all remove the source name.
-                return try operations.resolveForDestruction(source, overrideGuard: request.overrideGuard)
+                try operations.resolveForDestruction(source, overrideGuard: request.overrideGuard)
             case .copy, .search:
                 // A copy destroys nothing at the source and a search touches
                 // nothing at all. Refusing to copy `/usr` somewhere, or to
                 // search it, would make the app useless for the thing it is
                 // for — so the guard applies to what an operation would
                 // *replace* and never to what it reads.
-                return try FilaPath.canonical(source)
+                try FilaPath.canonical(source)
             case .compress, .extract:
                 preconditionFailure("archive jobs run in the helper — see run(report:matches:note:)")
             }
@@ -155,7 +163,9 @@ public final class FileJob: @unchecked Sendable {
 
         // Nothing below applies to a search: it has no destination to settle
         // and nothing at either end to overwrite.
-        if request.kind == .search { return try search(sources, tally: tally, deliver: matches) }
+        if request.kind == .search {
+            return try search(sources, tally: tally, deliver: matches)
+        }
 
         // One selected tree must not consume another selected source. Reject
         // duplicates and overlapping roots before any item can be changed.
@@ -174,7 +184,9 @@ public final class FileJob: @unchecked Sendable {
                         reason: .overlappingSources
                     )
                 }
-                if parent == "/" { break }
+                if parent == "/" {
+                    break
+                }
                 parent = FilaPath.directory(of: parent)
             }
         }
@@ -199,9 +211,13 @@ public final class FileJob: @unchecked Sendable {
         }
 
         for (index, source) in sources.enumerated() {
-            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: source)
+            }
             tally.beginItem(source)
-            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: source)
+            }
             switch request.kind {
             case .copy: try copy(source, to: targets[index], overwrite: request.overwrite, tally: tally)
             case .move: try move(source, to: targets[index], overwrite: request.overwrite, tally: tally)
@@ -227,7 +243,9 @@ public final class FileJob: @unchecked Sendable {
         let search = TreeSearch(query: query, job: self, tally: tally, deliver: deliver)
         defer { search.flush() }
         for root in roots {
-            if isCancelled { throw FilaFailure(code: .cancelled, path: root) }
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: root)
+            }
             try search.run(root: root)
         }
     }
@@ -317,8 +335,12 @@ public final class FileJob: @unchecked Sendable {
             // A clone is instant on APFS; copyfile handles other filesystems
             // and trees while keeping metadata and memory use bounded.
             let cloned = clonefile(source, temporary, UInt32(CLONE_NOFOLLOW)) == 0
-            if !cloned { try copyTree(source, to: temporary, tally: tally) }
-            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            if !cloned {
+                try copyTree(source, to: temporary, tally: tally)
+            }
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: source)
+            }
             // Like AtomicReplace, defer flags that would prohibit the publication
             // rename until the new item has reached its final name.
             var metadata = stat()
@@ -329,12 +351,16 @@ public final class FileJob: @unchecked Sendable {
                 try filaCheck(temporary) { lchflags(temporary, metadata.st_flags & ~immovable) }
             }
             try prepare(temporary)
-            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: source)
+            }
             try filaCheck(target) { renamex_np(temporary, target, overwrite ? 0 : UInt32(RENAME_EXCL)) }
             if metadata.st_flags & immovable != 0 {
                 try filaCheck(target) { lchflags(target, metadata.st_flags) }
             }
-            if cloned { tally.finishedItem() }
+            if cloned {
+                tally.finishedItem()
+            }
         } catch {
             try discardTemporary(temporary)
             throw error
@@ -365,13 +391,15 @@ public final class FileJob: @unchecked Sendable {
         guard Darwin.errno == EXDEV else { throw FilaFailure(errno: Darwin.errno, path: target) }
         // Across volumes publish the complete copy before removing the source.
         try copy(source, to: target, overwrite: overwrite, tally: tally)
-        if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+        if isCancelled {
+            throw FilaFailure(code: .cancelled, path: source)
+        }
         try removeTree(source, tally: tally)
     }
 
     private func delete(_ source: String, tally: JobTally) throws {
         guard request.useTrash else { return try removeTree(source, tally: tally) }
-        try moveIntoTrash(source, at: try trashDirectory(for: source), tally: tally)
+        try moveIntoTrash(source, at: trashDirectory(for: source), tally: tally)
     }
 
     // MARK: - libSystem
@@ -396,7 +424,9 @@ public final class FileJob: @unchecked Sendable {
         let result = copyfile(source, target, state, copyfile_flags_t(flags))
         // What the callback saw comes first: it stopped the walk deliberately,
         // so the errno left behind is ECANCELED and says nothing useful.
-        if let failure = tally.failure { throw failure }
+        if let failure = tally.failure {
+            throw failure
+        }
         guard result == 0 else { throw FilaFailure(errno: Darwin.errno, path: source) }
     }
 
@@ -416,7 +446,9 @@ public final class FileJob: @unchecked Sendable {
         // REMOVEFILE_RECURSIVE alone: removefile never follows a symlink, so a
         // link is unlinked and whatever it pointed at is left alone.
         try filaCheck(source) { removefile(source, state, removefile_flags_t(REMOVEFILE_RECURSIVE)) }
-        if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+        if isCancelled {
+            throw FilaFailure(code: .cancelled, path: source)
+        }
     }
 
     // MARK: - Trash
@@ -453,8 +485,10 @@ public final class FileJob: @unchecked Sendable {
             throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: source)
         }
         let name = FilaPath.name(of: source)
-        for suffix in 0 ..< 1_000 {
-            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+        for suffix in 0 ..< 1000 {
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: source)
+            }
             let candidate = try operations.resolveForWrite(
                 FilaPath.join(directory, suffix == 0 ? name : "\(name)-\(suffix)")
             )
@@ -466,12 +500,16 @@ public final class FileJob: @unchecked Sendable {
                 return
             }
             let failure = Darwin.errno
-            if failure == EEXIST { continue }
+            if failure == EEXIST {
+                continue
+            }
             guard failure == EXDEV else { throw FilaFailure(errno: failure, path: candidate) }
             // EXDEV may precede the kernel's collision check. Avoid recopying
             // a large tree for every occupied suffix; publication still uses EXCL.
             var existing = stat()
-            if lstat(candidate, &existing) == 0 { continue }
+            if lstat(candidate, &existing) == 0 {
+                continue
+            }
             guard Darwin.errno == ENOENT else { throw FilaFailure(errno: Darwin.errno, path: candidate) }
             do {
                 try copy(source, to: candidate, overwrite: false, tally: tally) { temporary in
@@ -482,7 +520,9 @@ public final class FileJob: @unchecked Sendable {
             }
             // If cancellation or removal fails, retain the complete, recorded
             // trash copy. Never roll it back after source removal has begun.
-            if isCancelled { throw FilaFailure(code: .cancelled, path: source) }
+            if isCancelled {
+                throw FilaFailure(code: .cancelled, path: source)
+            }
             try removeTree(source, tally: tally)
             return
         }
@@ -495,7 +535,9 @@ public final class FileJob: @unchecked Sendable {
         guard metadata.st_mode & S_IFMT == S_IFDIR || metadata.st_nlink == 1 else {
             throw FilaFailure(errno: EMLINK, path: trashed)
         }
-        if keepingExisting { return }
+        if keepingExisting {
+            return
+        }
         try operations.setAttributes(
             AttributeChange(extendedAttribute: (FilaTrash.originAttribute, Data(source.utf8))),
             at: trashed
@@ -532,11 +574,14 @@ public final class FileJob: @unchecked Sendable {
         }
         let target = try operations.resolveForWrite(origin)
         guard target != directory, !FilaGuard.isAncestor(directory, of: target),
-              !FilaGuard.isAncestor(source, of: target) else {
+              !FilaGuard.isAncestor(source, of: target)
+        else {
             throw FilaFailure(code: .invalidRequest, systemError: EINVAL, path: target)
         }
         var metadata = stat()
-        if lstat(target, &metadata) == 0 { throw FilaFailure(errno: EEXIST, path: target) }
+        if lstat(target, &metadata) == 0 {
+            throw FilaFailure(errno: EEXIST, path: target)
+        }
         guard Darwin.errno == ENOENT else { throw FilaFailure(errno: Darwin.errno, path: target) }
         return target
     }
@@ -556,8 +601,12 @@ private let filaDiscardCopy: removefile_callback_t = { _, path, _ in
         if metadata.st_mode & S_IFMT != S_IFDIR, metadata.st_nlink > 1 {
             return Int32(REMOVEFILE_PROCEED)
         }
-        if metadata.st_flags != 0 { _ = lchflags(path, 0) }
-        if metadata.st_mode & S_IFMT == S_IFDIR { _ = lchmod(path, metadata.st_mode | S_IRWXU) }
+        if metadata.st_flags != 0 {
+            _ = lchflags(path, 0)
+        }
+        if metadata.st_mode & S_IFMT == S_IFDIR {
+            _ = lchmod(path, metadata.st_mode | S_IRWXU)
+        }
     }
     return Int32(REMOVEFILE_PROCEED)
 }

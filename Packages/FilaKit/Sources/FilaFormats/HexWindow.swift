@@ -24,7 +24,9 @@ public struct HexWindow: Sendable {
 
     private let reader: DescriptorReader
 
-    public var byteCount: Int64 { reader.byteCount }
+    public var byteCount: Int64 {
+        reader.byteCount
+    }
 
     public init(descriptor: Int32) throws {
         reader = try DescriptorReader(descriptor: descriptor)

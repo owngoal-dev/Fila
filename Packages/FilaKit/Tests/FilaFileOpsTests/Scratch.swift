@@ -1,8 +1,7 @@
 import CRemoveFile
 import Darwin
-import Foundation
-
 @testable import FilaFileOps
+import Foundation
 
 /// A real directory on a real filesystem, gone when the test is.
 ///
@@ -27,7 +26,9 @@ final class Scratch {
         removefile(root, nil, removefile_flags_t(REMOVEFILE_RECURSIVE))
     }
 
-    func path(_ relative: String) -> String { root + "/" + relative }
+    func path(_ relative: String) -> String {
+        root + "/" + relative
+    }
 
     /// Creates every directory on the way, like `mkdir -p`.
     @discardableResult
@@ -42,7 +43,7 @@ final class Scratch {
 
     @discardableResult
     func file(_ relative: String, contents: String = "fila", mode: mode_t = 0o644) -> String {
-        let path = self.path(relative)
+        let path = path(relative)
         let descriptor = open(path, O_CREAT | O_TRUNC | O_WRONLY, mode)
         precondition(descriptor >= 0, "open \(path): \(String(cString: strerror(errno)))")
         contents.withCString { _ = write(descriptor, $0, strlen($0)) }
@@ -52,7 +53,7 @@ final class Scratch {
 
     @discardableResult
     func link(_ relative: String, to target: String) -> String {
-        let path = self.path(relative)
+        let path = path(relative)
         precondition(symlink(target, path) == 0, "symlink \(path)")
         return path
     }
@@ -64,9 +65,13 @@ func metadata(of path: String) -> stat? {
     return found
 }
 
-func exists(_ path: String) -> Bool { metadata(of: path) != nil }
+func exists(_ path: String) -> Bool {
+    metadata(of: path) != nil
+}
 
-func permissions(of path: String) -> mode_t? { metadata(of: path).map { $0.st_mode & 0o7777 } }
+func permissions(of path: String) -> mode_t? {
+    metadata(of: path).map { $0.st_mode & 0o7777 }
+}
 
 func hasFlag(_ flag: Int32, at path: String) -> Bool {
     (metadata(of: path)?.st_flags ?? 0) & UInt32(flag) != 0

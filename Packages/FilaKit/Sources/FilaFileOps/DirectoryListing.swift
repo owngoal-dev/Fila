@@ -97,7 +97,9 @@ public final class ListingRegistry {
 
     public init() {}
 
-    public var count: Int { listings.count }
+    public var count: Int {
+        listings.count
+    }
 
     /// A page of `directory`, and the cursor for the next one — zero when the
     /// directory is finished and the handle is already closed.
@@ -141,7 +143,9 @@ public final class ListingRegistry {
     }
 
     public func closeAll() {
-        for listing in listings.values { listing.close() }
+        for listing in listings.values {
+            listing.close()
+        }
         listings.removeAll()
     }
 
@@ -156,7 +160,8 @@ public final class ListingRegistry {
     private func closeIdleListings() {
         let now = Date()
         for (identifier, listing) in listings
-            where now.timeIntervalSince(listing.lastUsed) > FilaProtocol.listingIdleTimeoutSeconds {
+            where now.timeIntervalSince(listing.lastUsed) > FilaProtocol.listingIdleTimeoutSeconds
+        {
             listing.close()
             listings[identifier] = nil
         }

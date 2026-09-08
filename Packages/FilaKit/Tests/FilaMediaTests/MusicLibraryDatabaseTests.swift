@@ -1,7 +1,7 @@
+@testable import FilaMedia
 import Foundation
 import SQLite3
 import Testing
-@testable import FilaMedia
 
 @Suite("Music library snapshots")
 struct MusicLibraryDatabaseTests {
@@ -18,7 +18,7 @@ struct MusicLibraryDatabaseTests {
             try execute("UPDATE item_extra SET title = 'Changed'", on: connection)
             #expect(try library.tracks().first?.title == "Changed")
             #expect(try MusicLibraryDatabase(path: destination.path).tracks().first?.title == "原来的歌曲")
-            #expect((try FileManager.default.attributesOfItem(atPath: destination.path)[.posixPermissions] as? Int) == 0o600)
+            #expect(try (FileManager.default.attributesOfItem(atPath: destination.path)[.posixPermissions] as? Int) == 0o600)
         }
     }
 
@@ -50,20 +50,20 @@ struct MusicLibraryDatabaseTests {
         let connection = try #require(handle)
         defer { sqlite3_close(connection) }
         try execute("""
-            PRAGMA journal_mode=WAL;
-            CREATE TABLE item (item_pid INTEGER PRIMARY KEY, item_artist_pid INTEGER, album_pid INTEGER, media_type INTEGER, in_my_library INTEGER);
-            CREATE TABLE item_extra (item_pid INTEGER PRIMARY KEY, title TEXT);
-            CREATE TABLE item_artist (item_artist_pid INTEGER PRIMARY KEY, item_artist TEXT);
-            CREATE TABLE album (album_pid INTEGER PRIMARY KEY, album TEXT);
-            INSERT INTO item VALUES (9007199254740993, 1, 2, 1, 1);
-            INSERT INTO item VALUES (2, 1, 2, 1, 0);
-            INSERT INTO item VALUES (3, 1, 2, 2, 1);
-            INSERT INTO item_extra VALUES (9007199254740993, '原来的歌曲');
-            INSERT INTO item_extra VALUES (2, 'Cached song outside the library');
-            INSERT INTO item_extra VALUES (3, 'Movie');
-            INSERT INTO item_artist VALUES (1, 'Artist');
-            INSERT INTO album VALUES (2, 'Album');
-            """, on: connection)
+        PRAGMA journal_mode=WAL;
+        CREATE TABLE item (item_pid INTEGER PRIMARY KEY, item_artist_pid INTEGER, album_pid INTEGER, media_type INTEGER, in_my_library INTEGER);
+        CREATE TABLE item_extra (item_pid INTEGER PRIMARY KEY, title TEXT);
+        CREATE TABLE item_artist (item_artist_pid INTEGER PRIMARY KEY, item_artist TEXT);
+        CREATE TABLE album (album_pid INTEGER PRIMARY KEY, album TEXT);
+        INSERT INTO item VALUES (9007199254740993, 1, 2, 1, 1);
+        INSERT INTO item VALUES (2, 1, 2, 1, 0);
+        INSERT INTO item VALUES (3, 1, 2, 2, 1);
+        INSERT INTO item_extra VALUES (9007199254740993, '原来的歌曲');
+        INSERT INTO item_extra VALUES (2, 'Cached song outside the library');
+        INSERT INTO item_extra VALUES (3, 'Movie');
+        INSERT INTO item_artist VALUES (1, 'Artist');
+        INSERT INTO album VALUES (2, 'Album');
+        """, on: connection)
         try body(directory, connection, MusicLibraryDatabase(path: path))
     }
 

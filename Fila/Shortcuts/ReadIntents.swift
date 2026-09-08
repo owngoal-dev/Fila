@@ -2,19 +2,19 @@ import AppIntents
 import FilaProtocol
 import Foundation
 
-/// The Shortcuts actions that read and navigate.
-///
-/// These have exactly the safety profile of the `fila://` scheme — they look at
-/// the filesystem and they move the app around in it — and the three that
-/// navigate *are* the scheme: they hand a `fila://` URL back to the app rather
-/// than reaching into the view hierarchy, so a link and a shortcut cannot drift
-/// apart about what "reveal" means. Everything that changes the filesystem is
-/// in `WriteIntents.swift`, behind a confirmation, and is deliberately not
-/// spellable as a URL.
-///
-/// Every one of them reaches the filesystem through `filad`. There is no
-/// `FileManager` in this file and there must not be: the app runs as `mobile`
-/// and would answer questions about a filesystem the user is not looking at.
+// The Shortcuts actions that read and navigate.
+//
+// These have exactly the safety profile of the `fila://` scheme — they look at
+// the filesystem and they move the app around in it — and the three that
+// navigate *are* the scheme: they hand a `fila://` URL back to the app rather
+// than reaching into the view hierarchy, so a link and a shortcut cannot drift
+// apart about what "reveal" means. Everything that changes the filesystem is
+// in `WriteIntents.swift`, behind a confirmation, and is deliberately not
+// spellable as a URL.
+//
+// Every one of them reaches the filesystem through `filad`. There is no
+// `FileManager` in this file and there must not be: the app runs as `mobile`
+// and would answer questions about a filesystem the user is not looking at.
 
 // MARK: - Navigate
 
@@ -31,7 +31,9 @@ import Foundation
 struct OpenPathIntent: AppIntent {
     static var title: LocalizedStringResource = "Open in Fila"
     static var description = IntentDescription("Opens a folder — or the folder holding a file — in Fila.")
-    static var openAppWhenRun: Bool { true }
+    static var openAppWhenRun: Bool {
+        true
+    }
 
     @Parameter(title: "Path", default: "/")
     var path: String
@@ -51,7 +53,9 @@ struct OpenPathIntent: AppIntent {
 struct RevealItemIntent: AppIntent {
     static var title: LocalizedStringResource = "Reveal in Fila"
     static var description = IntentDescription("Opens the folder that contains this item and selects it.")
-    static var openAppWhenRun: Bool { true }
+    static var openAppWhenRun: Bool {
+        true
+    }
 
     @Parameter(title: "Path")
     var path: String
@@ -92,7 +96,9 @@ struct OpenAppContainerIntent: AppIntent {
     static var description = IntentDescription(
         "Opens an installed app's bundle or data container in Fila, by bundle identifier."
     )
-    static var openAppWhenRun: Bool { true }
+    static var openAppWhenRun: Bool {
+        true
+    }
 
     @Parameter(title: "Bundle Identifier")
     var bundleIdentifier: String
@@ -117,10 +123,9 @@ struct OpenAppContainerIntent: AppIntent {
         // parser would not fail — `AppContainer(rawValue:)` falls back to
         // `.bundle`, so the shortcut would quietly open the wrong directory.
         // An exhaustive switch cannot drift in silence.
-        let target: FilaLink.AppContainer
-        switch container {
-        case .bundle: target = .bundle
-        case .data: target = .data
+        let target: FilaLink.AppContainer = switch container {
+        case .bundle: .bundle
+        case .data: .data
         }
         try await IntentSupport.navigate("app", ["bundle": identifier, "container": target.rawValue])
         return .result()
@@ -145,7 +150,7 @@ struct GetItemPropertiesIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<FileEntity> {
-        .result(value: FileEntity(try await IntentSupport.details(of: IntentSupport.path(path))))
+        try await .result(value: FileEntity(IntentSupport.details(of: IntentSupport.path(path))))
     }
 }
 
@@ -256,7 +261,7 @@ struct ReadTextFileIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
-        let path = try IntentSupport.path(self.path)
+        let path = try IntentSupport.path(path)
         let details = try await IntentSupport.details(of: path)
         // A directory read as text is not an empty string, and a device node
         // read as text can block forever. Only a regular file — or a link that

@@ -1,11 +1,11 @@
-import FilaProtocol
 import FilaFileOps
+import FilaProtocol
 import Foundation
 
 /// Blocking descriptor reads, kept out of the actor that owns the link so a
 /// gigabyte file cannot stall the main thread.
 enum DescriptorIO {
-    static let chunkByteCount = 256 * 1_024
+    static let chunkByteCount = 256 * 1024
 
     /// Reads up to `limit` bytes and **closes** the descriptor. Every descriptor
     /// the daemon passes back is a real one in this process; leaking them is how
@@ -23,10 +23,14 @@ enum DescriptorIO {
             let want = min(buffer.count, limit - data.count)
             let got = buffer.withUnsafeMutableBytes { read(descriptor, $0.baseAddress, want) }
             if got < 0 {
-                if errno == EINTR { continue }
+                if errno == EINTR {
+                    continue
+                }
                 throw FilaFailure(errno: errno)
             }
-            if got == 0 { break }
+            if got == 0 {
+                break
+            }
             data.append(contentsOf: buffer[0 ..< got])
         }
         return data
@@ -51,7 +55,9 @@ enum DescriptorIO {
             let count = Int(min(remaining, off_t(buffer.count)))
             let got = buffer.withUnsafeMutableBytes { read(descriptor, $0.baseAddress, count) }
             if got < 0 {
-                if errno == EINTR { continue }
+                if errno == EINTR {
+                    continue
+                }
                 throw FilaFailure(code: .operationFailed, systemError: errno, path: url.path)
             }
             guard got != 0 else { throw FilaFailure(errno: EIO, path: url.path) }
@@ -65,7 +71,8 @@ enum DescriptorIO {
               current.st_mtimespec.tv_sec == original.st_mtimespec.tv_sec,
               current.st_mtimespec.tv_nsec == original.st_mtimespec.tv_nsec,
               current.st_ctimespec.tv_sec == original.st_ctimespec.tv_sec,
-              current.st_ctimespec.tv_nsec == original.st_ctimespec.tv_nsec else {
+              current.st_ctimespec.tv_nsec == original.st_ctimespec.tv_nsec
+        else {
             throw FilaFailure(errno: EBUSY, path: url.path)
         }
         try handle.synchronize()
@@ -84,21 +91,27 @@ extension DescriptorIO {
             let chunk = try handle.read(upToCount: chunkByteCount) ?? Data()
             if chunk.isEmpty {
                 while fsync(descriptor) != 0 {
-                    if errno != EINTR { throw FilaFailure(errno: errno, path: url.path) }
+                    if errno != EINTR {
+                        throw FilaFailure(errno: errno, path: url.path)
+                    }
                 }
                 return
             }
             try StorageSpace.requireAvailable(Int64(chunk.count), descriptor: descriptor)
-            try chunk.withUnsafeBytes { raw -> Void in
+            try chunk.withUnsafeBytes { raw in
                 guard let base = raw.baseAddress else { return }
                 var written = 0
                 while written < raw.count {
                     let put = write(descriptor, base + written, raw.count - written)
                     if put < 0 {
-                        if errno == EINTR { continue }
+                        if errno == EINTR {
+                            continue
+                        }
                         throw FilaFailure(code: .operationFailed, systemError: errno, path: url.path)
                     }
-                    if put == 0 { throw FilaFailure(code: .operationFailed, systemError: ENOSPC, path: url.path) }
+                    if put == 0 {
+                        throw FilaFailure(code: .operationFailed, systemError: ENOSPC, path: url.path)
+                    }
                     written += put
                 }
             }

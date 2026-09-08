@@ -9,7 +9,9 @@ struct HTTPRequest {
     /// disagree about the casing of `Depth`, `Destination` and `Overwrite`.
     var headers: [String: String]
 
-    func header(_ name: String) -> String? { headers[name.lowercased()] }
+    func header(_ name: String) -> String? {
+        headers[name.lowercased()]
+    }
 
     /// Nil for an absent, unparseable *or negative* length. A negative one
     /// reads as zero everywhere downstream, so a `PUT` carrying it would put an
@@ -19,22 +21,32 @@ struct HTTPRequest {
         return value
     }
 
-    var isChunked: Bool { header("transfer-encoding")?.lowercased().contains("chunked") == true }
+    var isChunked: Bool {
+        header("transfer-encoding")?.lowercased().contains("chunked") == true
+    }
 
-    var expectsContinue: Bool { header("expect")?.lowercased().contains("100-continue") == true }
+    var expectsContinue: Bool {
+        header("expect")?.lowercased().contains("100-continue") == true
+    }
 
     /// `Depth: 0`, `1` or `infinity`. Absent means infinity by the
     /// specification, which for `PROPFIND` is a whole-filesystem walk — so an
     /// absent header is read as infinity and refused, exactly like a stated one.
-    var depth: String { header("depth")?.trimmed.lowercased() ?? "infinity" }
+    var depth: String {
+        header("depth")?.trimmed.lowercased() ?? "infinity"
+    }
 
     /// `Overwrite: F` is the only value that means anything; everything else,
     /// including the header being absent, means T.
-    var allowsOverwrite: Bool { header("overwrite")?.trimmed.uppercased() != "F" }
+    var allowsOverwrite: Bool {
+        header("overwrite")?.trimmed.uppercased() != "F"
+    }
 
     /// Keep-alive is the default in HTTP/1.1 and Finder relies on it: a mount
     /// that opened a connection per request would spend its life in handshakes.
-    var wantsKeepAlive: Bool { header("connection")?.lowercased().contains("close") != true }
+    var wantsKeepAlive: Bool {
+        header("connection")?.lowercased().contains("close") != true
+    }
 
     init(method: String, target: String, headers: [String: String]) {
         self.method = method
@@ -48,12 +60,16 @@ struct HTTPRequest {
         headers = [:]
         for (name, value) in head.headers {
             let name = name.lowercased()
-            if let previous = headers[name] { headers[name] = previous + ", " + value }
-            else { headers[name] = value }
+            if let previous = headers[name] {
+                headers[name] = previous + ", " + value
+            } else {
+                headers[name] = value
+            }
         }
-        if !head.isKeepAlive { headers["connection"] = "close" }
+        if !head.isKeepAlive {
+            headers["connection"] = "close"
+        }
     }
-
 }
 
 /// One byte range from a `Range:` header, already clamped to the file.
@@ -131,5 +147,7 @@ enum HTTPDate {
 }
 
 extension StringProtocol {
-    var trimmed: String { trimmingCharacters(in: .whitespaces) }
+    var trimmed: String {
+        trimmingCharacters(in: .whitespaces)
+    }
 }

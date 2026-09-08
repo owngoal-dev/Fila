@@ -67,17 +67,19 @@ public final class ArchiveJob: @unchecked Sendable {
 
     private static func outcome(for failure: FormatFailure, path: String) -> FilaFailure {
         switch failure {
-        case .cancelled: return FilaFailure(code: .cancelled, path: path)
-        case .wrongPassword: return FilaFailure(code: .wrongPassword, path: path)
-        case let .system(code): return FilaFailure(errno: code, path: path)
-        case .tooLarge: return FilaFailure(code: .operationFailed, systemError: EFBIG, path: path)
+        case .cancelled: FilaFailure(code: .cancelled, path: path)
+        case .wrongPassword: FilaFailure(code: .wrongPassword, path: path)
+        case let .system(code): FilaFailure(errno: code, path: path)
+        case .tooLarge: FilaFailure(code: .operationFailed, systemError: EFBIG, path: path)
         case .damaged, .unsupported, .notRecognised:
-            return FilaFailure(code: .operationFailed, systemError: EFTYPE, path: path)
+            FilaFailure(code: .operationFailed, systemError: EFTYPE, path: path)
         }
     }
 
     private func checkCancelled(_ path: String) throws {
-        if isCancelled { throw FilaFailure(code: .cancelled, path: path) }
+        if isCancelled {
+            throw FilaFailure(code: .cancelled, path: path)
+        }
     }
 
     // MARK: - Compress
@@ -160,7 +162,9 @@ public final class ArchiveJob: @unchecked Sendable {
         Darwin.errno = 0
         while let entry = readdir(handle) {
             let child = filaText(entry.pointee.d_name)
-            if child != ".", child != ".." { names.append(child) }
+            if child != ".", child != ".." {
+                names.append(child)
+            }
         }
         let failed = Darwin.errno
         closedir(handle)
@@ -231,9 +235,9 @@ public final class ArchiveJob: @unchecked Sendable {
             name: FilaPath.name(of: archive),
             password: options.password
         )
-        let placement = Placement(
+        let placement = try Placement(
             operations: operations,
-            destination: try FilaPath.canonical(destination),
+            destination: FilaPath.canonical(destination),
             overwrite: request.overwrite
         )
         try placement.prepare()
@@ -350,7 +354,9 @@ public final class ArchiveJob: @unchecked Sendable {
 
         private func emit(throttled: Bool) {
             let now = DispatchTime.now()
-            if throttled, now.uptimeNanoseconds &- lastReport.uptimeNanoseconds < 100_000_000 { return }
+            if throttled, now.uptimeNanoseconds &- lastReport.uptimeNanoseconds < 100_000_000 {
+                return
+            }
             lastReport = now
             report(JobProgress(
                 bytesDone: min(bytesTotal > 0 ? bytesTotal : .max, completedBytes + currentFileBytes),
@@ -404,7 +410,9 @@ private final class Placement {
     /// The destination itself, once and not per entry: a missing parent above
     /// it is one honest failure rather than one per member.
     func prepare() throws {
-        if try makeDirectory(destination) { created.insert(destination) }
+        if try makeDirectory(destination) {
+            created.insert(destination)
+        }
         verified.insert(destination)
     }
 
@@ -538,6 +546,8 @@ private final class Placement {
 /// must leave the existing destination intact and remove only the temporary.
 private func synchronize(_ descriptor: Int32, path: String) throws {
     while fsync(descriptor) != 0 {
-        if errno != EINTR { throw FilaFailure(errno: errno, path: path) }
+        if errno != EINTR {
+            throw FilaFailure(errno: errno, path: path)
+        }
     }
 }

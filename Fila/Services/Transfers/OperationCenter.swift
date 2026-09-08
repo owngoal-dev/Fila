@@ -42,8 +42,8 @@ final class OperationCenter: ObservableObject {
         /// toast and a transfers entry.
         var isInstant: Bool {
             switch self {
-            case .rename, .create, .attributes: return true
-            default: return false
+            case .rename, .create, .attributes: true
+            default: false
             }
         }
     }
@@ -106,17 +106,23 @@ final class OperationCenter: ObservableObject {
         var whenFinished: ((FilaFailure) -> Void)?
 
         var isRunning: Bool {
-            if case .running = state { return true }
+            if case .running = state {
+                return true
+            }
             return false
         }
 
         var progress: JobProgress? {
-            if case let .running(progress) = state { return progress }
+            if case let .running(progress) = state {
+                return progress
+            }
             return nil
         }
 
         var succeeded: Bool {
-            if case let .finished(failure) = state { return failure.code == .success }
+            if case let .finished(failure) = state {
+                return failure.code == .success
+            }
             return false
         }
 
@@ -128,7 +134,9 @@ final class OperationCenter: ObservableObject {
             return failure
         }
 
-        var isCancellable: Bool { isRunning && control != nil && !kind.isInstant }
+        var isCancellable: Bool {
+            isRunning && control != nil && !kind.isInstant
+        }
     }
 
     /// Running first, then what recently finished, newest first.
@@ -148,7 +156,9 @@ final class OperationCenter: ObservableObject {
         self.session = session
         seedInterrupted()
         Task { [weak self] in
-            for await update in session.link.jobEvents { self?.apply(update) }
+            for await update in session.link.jobEvents {
+                self?.apply(update)
+            }
         }
         session.link.onLinkLost = { [weak self] in
             Task { @MainActor in self?.abandonDaemonJobs() }
@@ -240,7 +250,9 @@ final class OperationCenter: ObservableObject {
         whenFinished: ((FilaFailure) -> Void)? = nil
     ) async throws -> UInt64 {
         var directories = request.sources.map { ($0 as NSString).deletingLastPathComponent }
-        if let destination = request.destination { directories.append(destination) }
+        if let destination = request.destination {
+            directories.append(destination)
+        }
         let identifier = try await session.perform { try await $0.startJob(request) }
         // `filad` counts job identifiers from the start of each run, so one can
         // come back while a row that never heard `.completed` — the daemon was
@@ -325,11 +337,11 @@ final class OperationCenter: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await self.startJob(request, kind: kind, title: kind.runningTitle, subtitle: subtitle, undo: undo)
+                try await startJob(request, kind: kind, title: kind.runningTitle, subtitle: subtitle, undo: undo)
             } catch let failure as FilaFailure {
                 self.record(kind: kind, subtitle: subtitle, failure: failure)
             } catch {
-                self.record(kind: kind, subtitle: subtitle, failure: FilaFailure(code: .operationFailed))
+                record(kind: kind, subtitle: subtitle, failure: FilaFailure(code: .operationFailed))
             }
         }
     }
@@ -471,7 +483,9 @@ final class OperationCenter: ObservableObject {
         guard let index = index(ofJob: update.identifier) else {
             // The row is not here yet — see `startJob`. Progress lost in that
             // gap costs nothing; a completion costs the row running forever.
-            if case let .completed(failure) = update.event { holdEarly(update.identifier, failure) }
+            if case let .completed(failure) = update.event {
+                holdEarly(update.identifier, failure)
+            }
             return
         }
         let identity = operations[index].id
@@ -491,7 +505,9 @@ final class OperationCenter: ObservableObject {
 
     private func index(ofJob identifier: UInt64) -> Int? {
         operations.firstIndex {
-            if case let .job(existing)? = $0.control { return existing == identifier }
+            if case let .job(existing)? = $0.control {
+                return existing == identifier
+            }
             return false
         }
     }
@@ -500,7 +516,9 @@ final class OperationCenter: ObservableObject {
         // Bounded: every identifier here came from a `startJob` about to claim
         // it. The one that never does is a reply lost to a dropped connection,
         // and dropping the oldest is the whole recovery it needs.
-        if earlyCompletions.count >= 16 { earlyCompletions.removeAll() }
+        if earlyCompletions.count >= 16 {
+            earlyCompletions.removeAll()
+        }
         earlyCompletions[identifier] = failure
     }
 
@@ -516,7 +534,9 @@ final class OperationCenter: ObservableObject {
               operations[index].isRunning else { return }
         operations[index].state = .finished(failure)
         operations[index].control = nil
-        if failure.code != .success { operations[index].undo = nil }
+        if failure.code != .success {
+            operations[index].undo = nil
+        }
         var finished = operations[index]
         // Taken off the row that goes back in the list: it fires exactly once,
         // and a spent continuation has no business sitting in the receipts.
@@ -605,7 +625,8 @@ final class OperationCenter: ObservableObject {
         } else if operation.feedback == .successOnly
             || operation.kind.isInstant
             || operation.kind == .compress
-            || operation.kind == .extract {
+            || operation.kind == .extract
+        {
             Toast.show(operation.kind.completionTitle)
         }
     }
@@ -646,7 +667,7 @@ final class OperationCenter: ObservableObject {
                 subtitle: row[2],
                 state: .interrupted,
                 affected: [],
-                    control: nil,
+                control: nil,
                 undo: nil
             )
         }

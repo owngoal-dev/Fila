@@ -35,10 +35,14 @@ public struct DescriptorReader: Sendable {
                 pread(descriptor, raw.baseAddress!.advanced(by: filled), count - filled, off_t(offset) + off_t(filled))
             }
             if got < 0 {
-                if errno == EINTR { continue }
+                if errno == EINTR {
+                    continue
+                }
                 throw FormatFailure.system(errno: errno)
             }
-            if got == 0 { break }
+            if got == 0 {
+                break
+            }
             filled += got
         }
         buffer.removeSubrange(filled...)
@@ -71,10 +75,14 @@ func writeFully(_ bytes: UnsafeRawBufferPointer, to descriptor: Int32, at offset
     while written < bytes.count {
         let put = pwrite(descriptor, base.advanced(by: written), bytes.count - written, off_t(offset) + off_t(written))
         if put < 0 {
-            if errno == EINTR { continue }
+            if errno == EINTR {
+                continue
+            }
             throw FormatFailure.system(errno: errno)
         }
-        if put == 0 { throw FormatFailure.system(errno: ENOSPC) }
+        if put == 0 {
+            throw FormatFailure.system(errno: ENOSPC)
+        }
         written += put
     }
 }
@@ -98,7 +106,9 @@ extension Data {
     /// Mach-O parser needs: the header says which order the rest of the file is
     /// in, so it cannot be a choice between two call sites.
     func integer<T: FixedWidthInteger>(at offset: Int, bigEndian isBigEndian: Bool) throws -> T {
-        if isBigEndian { return try bigEndian(at: offset) }
+        if isBigEndian {
+            return try bigEndian(at: offset)
+        }
         return try littleEndian(at: offset)
     }
 

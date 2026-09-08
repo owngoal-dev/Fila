@@ -21,7 +21,9 @@ final class PDFViewerViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,7 +67,7 @@ final class PDFViewerViewController: UIViewController {
                     String(localized: "Unable to open this PDF. Open it as Hex to see its contents.")
                 )
             }
-            guard document.pageCount <= 10_000 else {
+            guard document.pageCount <= 10000 else {
                 throw ViewerFailure.unsupportedContent(String(localized: "This PDF has too many pages to preview."))
             }
             pdfView.document = document

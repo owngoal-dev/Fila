@@ -18,9 +18,9 @@ enum FailureMessage {
     /// different things depending on which way the bytes were going.
     static func text(for error: Error, whileWriting: Bool = false) -> String {
         switch error {
-        case let failure as FilaFailure: return message(for: failure, whileWriting: whileWriting)
-        case let failure as FormatFailure: return message(for: failure)
-        default: return error.localizedDescription
+        case let failure as FilaFailure: message(for: failure, whileWriting: whileWriting)
+        case let failure as FormatFailure: message(for: failure)
+        default: error.localizedDescription
         }
     }
 
@@ -71,31 +71,35 @@ enum FailureMessage {
         // The number is the useful half on a jailbroken filesystem: “Operation
         // not permitted” as root almost always means an immutable flag, and
         // that is only guessable from the errno.
-        if let reason = failure.systemErrorDescription { lines.append(reason) }
-        if lines.isEmpty { lines.append(String(localized: "The operation failed. Try again.")) }
+        if let reason = failure.systemErrorDescription {
+            lines.append(reason)
+        }
+        if lines.isEmpty {
+            lines.append(String(localized: "The operation failed. Try again."))
+        }
         return lines.joined(separator: "\n")
     }
 
     private static func message(for failure: FormatFailure) -> String {
         switch failure {
         case .notRecognised:
-            return String(localized: "This file could not be opened. Open it as hex to see its contents.")
+            String(localized: "This file could not be opened. Open it as hex to see its contents.")
         case let .damaged(detail):
-            return String(format: String(localized: "This file is damaged: %@."), detail)
+            String(format: String(localized: "This file is damaged: %@."), detail)
         case let .unsupported(detail):
-            return String(format: String(localized: "Fila does not support this: %@."), detail)
+            String(format: String(localized: "Fila does not support this: %@."), detail)
         case let .tooLarge(byteCount, limit):
-            return String(
+            String(
                 format: String(localized: "This file is too large (%@). The viewer supports files up to %@."),
                 FilePresentation.byteLabel(byteCount),
                 FilePresentation.byteLabel(limit)
             )
         case .cancelled:
-            return String(localized: "Cancelled.")
+            String(localized: "Cancelled.")
         case .wrongPassword:
-            return String(localized: "The archive password is missing or incorrect. Enter the password and try again.")
+            String(localized: "The archive password is missing or incorrect. Enter the password and try again.")
         case let .system(code):
-            return String(
+            String(
                 format: String(localized: "The operation failed: %@."),
                 String(cString: strerror(code))
             )

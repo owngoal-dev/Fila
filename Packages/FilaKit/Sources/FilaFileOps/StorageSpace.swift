@@ -5,7 +5,7 @@ import Foundation
 /// Keep a reserve on the volume receiving a write. This is a live check, not
 /// a reservation: concurrent writers can still consume space after statfs.
 public enum StorageSpace {
-    public static let reserveByteCount: Int64 = 256 * 1_024 * 1_024
+    public static let reserveByteCount: Int64 = 256 * 1024 * 1024
 
     public static func requireAvailable(_ byteCount: Int64 = 0, descriptor: Int32) throws {
         var status = statfs()

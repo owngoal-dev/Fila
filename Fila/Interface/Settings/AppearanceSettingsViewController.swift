@@ -8,10 +8,14 @@ final class AppearanceSettingsViewController: UITableViewController {
     private let preferences = AppPreferences.shared
     private var presets = AppPreferences.shared.presetOrder
 
-    init() { super.init(style: .insetGrouped) }
+    init() {
+        super.init(style: .insetGrouped)
+    }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,13 +30,15 @@ final class AppearanceSettingsViewController: UITableViewController {
         setEditing(true, animated: false)
     }
 
-    override func numberOfSections(in tableView: UITableView) -> Int { Section.allCases.count }
+    override func numberOfSections(in _: UITableView) -> Int {
+        Section.allCases.count
+    }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         section == Section.presets.rawValue ? presets.count : 1
     }
 
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch Section(rawValue: section) {
         case .browsing: String(localized: "Browsing")
         case .systemFeatures: String(localized: "System Features")
@@ -41,7 +47,7 @@ final class AppearanceSettingsViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         switch Section(rawValue: section) {
         case .systemFeatures:
             String(localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working.")
@@ -50,7 +56,7 @@ final class AppearanceSettingsViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         let title: String
         let enabled: Bool
@@ -95,21 +101,25 @@ final class AppearanceSettingsViewController: UITableViewController {
     }
 
     override func tableView(
-        _ tableView: UITableView,
-        editingStyleForRowAt indexPath: IndexPath
-    ) -> UITableViewCell.EditingStyle { .none }
+        _: UITableView,
+        editingStyleForRowAt _: IndexPath
+    ) -> UITableViewCell.EditingStyle {
+        .none
+    }
 
     override func tableView(
-        _ tableView: UITableView,
-        shouldIndentWhileEditingRowAt indexPath: IndexPath
-    ) -> Bool { false }
+        _: UITableView,
+        shouldIndentWhileEditingRowAt _: IndexPath
+    ) -> Bool {
+        false
+    }
 
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+    override func tableView(_: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         indexPath.section == Section.presets.rawValue
     }
 
     override func tableView(
-        _ tableView: UITableView,
+        _: UITableView,
         targetIndexPathForMoveFromRowAt source: IndexPath,
         toProposedIndexPath proposed: IndexPath
     ) -> IndexPath {
@@ -119,7 +129,7 @@ final class AppearanceSettingsViewController: UITableViewController {
         return proposed
     }
 
-    override func tableView(_ tableView: UITableView, moveRowAt source: IndexPath, to destination: IndexPath) {
+    override func tableView(_: UITableView, moveRowAt source: IndexPath, to destination: IndexPath) {
         let preset = presets.remove(at: source.row)
         presets.insert(preset, at: destination.row)
         preferences.presetOrder = presets
@@ -128,7 +138,9 @@ final class AppearanceSettingsViewController: UITableViewController {
     private func name(of preset: SidebarLocation.Position) -> String {
         switch preset {
         case .root:
-            if case .local(.container) = FileSession.shared.hello?.backend { return String(localized: "Home") }
+            if case .local(.container) = FileSession.shared.hello?.backend {
+                return String(localized: "Home")
+            }
             return String(localized: "Root")
         case .bootstrap: return String(localized: "Bootstrap")
         case .applications: return String(localized: "Applications")

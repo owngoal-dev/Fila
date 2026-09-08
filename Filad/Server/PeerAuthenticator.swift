@@ -37,7 +37,7 @@ final class PeerAuthenticator {
         // at that path must be one no less privileged process could have
         // swapped out from under us.
         guard pid > 1,
-              (token.val.1 == 0 || token.val.1 == 501),
+              token.val.1 == 0 || token.val.1 == 501,
               hasRequiredEntitlements(token: &token),
               let clientPath = filaProcessPath(pid: pid),
               clientPaths.contains(clientPath),
@@ -46,7 +46,7 @@ final class PeerAuthenticator {
     }
 
     private func hasRequiredEntitlements(token: inout audit_token_t) -> Bool {
-        return Self.requiredEntitlements.allSatisfy { entitlement in
+        Self.requiredEntitlements.allSatisfy { entitlement in
             let value = entitlement.withCString { filaXPCCopyEntitlement($0, &token) }
             return value.map { xpc_get_type($0) == FilaXPC.typeBool && xpc_bool_get_value($0) } ?? false
         }

@@ -249,7 +249,8 @@ struct TerminalPlan {
             return Self.isExecutableFile(resolved)
         }
         if let named = user?.shell, named.hasPrefix("/"), !named.utf8.contains(0),
-           let shell = [named, layout.bootstrapPath(named)].first(where: usable) {
+           let shell = [named, layout.bootstrapPath(named)].first(where: usable)
+        {
             return shell
         }
         return bootstrapShells.map(layout.bootstrapPath).first(where: usable)
@@ -285,12 +286,16 @@ struct TerminalPlan {
             if let acl = acl_get_file(component, ACL_TYPE_EXTENDED) {
                 defer { acl_free(UnsafeMutableRawPointer(acl)) }
                 var entry: acl_entry_t?
-                if acl_get_entry(acl, Int32(ACL_FIRST_ENTRY.rawValue), &entry) == 0 { return false }
+                if acl_get_entry(acl, Int32(ACL_FIRST_ENTRY.rawValue), &entry) == 0 {
+                    return false
+                }
                 guard errno == EINVAL else { return false }
-            } else if errno != ENOTSUP && errno != ENOENT {
+            } else if errno != ENOTSUP, errno != ENOENT {
                 return false
             }
-            if component == "/" { return true }
+            if component == "/" {
+                return true
+            }
             component = (component as NSString).deletingLastPathComponent
         }
     }
@@ -342,8 +347,12 @@ struct TerminalPlan {
             let got = buffer.withUnsafeMutableBytes {
                 read(descriptor, $0.baseAddress?.advanced(by: filled), wanted - filled)
             }
-            if got > 0 { filled += got; continue }
-            if got < 0, Darwin.errno == EINTR { continue }
+            if got > 0 {
+                filled += got; continue
+            }
+            if got < 0, Darwin.errno == EINTR {
+                continue
+            }
             break
         }
         guard filled > 2, buffer[0] == UInt8(ascii: "#"), buffer[1] == UInt8(ascii: "!") else { return nil }
@@ -379,7 +388,9 @@ struct TerminalPlan {
         if name.hasPrefix("/") {
             for candidate in [name, layout.bootstrapPath(name), layout.systemPath(name)] {
                 let real = layout.resolve(candidate)
-                if isExecutableFile(real) { return real }
+                if isExecutableFile(real) {
+                    return real
+                }
             }
             return nil
         }
@@ -388,7 +399,9 @@ struct TerminalPlan {
             + systemBinaryDirectories.map(layout.systemPath)
         for directory in directories {
             let real = layout.resolve(directory + "/" + name)
-            if isExecutableFile(real) { return real }
+            if isExecutableFile(real) {
+                return real
+            }
         }
         return nil
     }
@@ -411,7 +424,9 @@ struct TerminalPlan {
     private static func firstDirectory(_ candidates: [String?]) -> String? {
         for case let path? in candidates {
             var info = stat()
-            if stat(path, &info) == 0, info.st_mode & S_IFMT == S_IFDIR { return path }
+            if stat(path, &info) == 0, info.st_mode & S_IFMT == S_IFDIR {
+                return path
+            }
         }
         return nil
     }

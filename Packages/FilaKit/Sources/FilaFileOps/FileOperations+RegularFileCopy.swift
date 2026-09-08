@@ -45,7 +45,9 @@ public extension FileOperations {
                 }
             }
             while fsync(output) != 0 {
-                if errno != EINTR { throw FilaFailure(errno: errno, path: destination) }
+                if errno != EINTR {
+                    throw FilaFailure(errno: errno, path: destination)
+                }
             }
             guard renamex_np(temporary, destination, UInt32(RENAME_EXCL)) == 0 else {
                 throw FilaFailure(errno: errno, path: destination)

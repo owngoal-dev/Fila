@@ -71,8 +71,8 @@ final class TextViewerViewController: UIViewController {
         return item
     }()
 
-    // Edit and Save are bar buttons, not menu rows: the mode a page is in
-    // has to be visible without opening anything, and leaving it is one tap.
+    /// Edit and Save are bar buttons, not menu rows: the mode a page is in
+    /// has to be visible without opening anything, and leaving it is one tap.
     private lazy var editItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "pencil"),
@@ -99,7 +99,9 @@ final class TextViewerViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -223,10 +225,14 @@ final class TextViewerViewController: UIViewController {
     /// failure there retreats up to three bytes before giving up — otherwise a
     /// perfectly good file reads as Latin-1 because of where the cut landed.
     private static func decode(_ data: Data, allowingTruncation: Bool) -> (String, String.Encoding) {
-        if let text = String(data: data, encoding: .utf8) { return (text, .utf8) }
+        if let text = String(data: data, encoding: .utf8) {
+            return (text, .utf8)
+        }
         if allowingTruncation {
             for trim in 1 ... 3 where data.count > trim {
-                if let text = String(data: data.dropLast(trim), encoding: .utf8) { return (text, .utf8) }
+                if let text = String(data: data.dropLast(trim), encoding: .utf8) {
+                    return (text, .utf8)
+                }
             }
         }
         // Latin-1 maps every one of the 256 byte values to a character and back
@@ -255,7 +261,9 @@ final class TextViewerViewController: UIViewController {
     /// no grammar — chosen by hand or not.
     private func language(for text: String) -> TreeSitterLanguage? {
         guard AppPreferences.shared.highlightsSyntax, canHighlight(text) else { return nil }
-        if let chosenLanguage { return TextSyntax.language(named: chosenLanguage) }
+        if let chosenLanguage {
+            return TextSyntax.language(named: chosenLanguage)
+        }
         return TextSyntax.language(for: details.path, text: text)
     }
 
@@ -289,7 +297,9 @@ final class TextViewerViewController: UIViewController {
 
     // MARK: - The bar, and the two modes
 
-    private var container: ViewerContainerViewController? { parent as? ViewerContainerViewController }
+    private var container: ViewerContainerViewController? {
+        parent as? ViewerContainerViewController
+    }
 
     /// This screen's half of the navigation bar. The container copies it onto
     /// the item the bar actually reads, so every change ends with a nudge.
@@ -306,13 +316,13 @@ final class TextViewerViewController: UIViewController {
         container?.childMenuElements = menuElements()
         container?.confirmReplacement = { [weak self] prepareToPresent, replace in
             guard let self, !self.isSaving else { return }
-            guard self.hasUnsavedChanges else {
-                self.leaveEditing()
+            guard hasUnsavedChanges else {
+                leaveEditing()
                 replace()
                 return
             }
             prepareToPresent()
-            self.confirmDiscarding {
+            confirmDiscarding {
                 self.apply(text: self.savedText)
                 self.hasUnsavedChanges = false
                 self.leaveEditing()
@@ -398,9 +408,9 @@ final class TextViewerViewController: UIViewController {
         guard hasUnsavedChanges else { return leaveEditing() }
         confirmDiscarding { [weak self] in
             guard let self else { return }
-            self.apply(text: self.savedText)
-            self.hasUnsavedChanges = false
-            self.leaveEditing()
+            apply(text: savedText)
+            hasUnsavedChanges = false
+            leaveEditing()
         }
     }
 
@@ -494,17 +504,17 @@ final class TextViewerViewController: UIViewController {
 }
 
 extension TextViewerViewController: UIAdaptivePresentationControllerDelegate {
-    func presentationControllerDidAttemptToDismiss(_ controller: UIPresentationController) {
+    func presentationControllerDidAttemptToDismiss(_: UIPresentationController) {
         confirmDiscarding { [weak self] in
             guard let self else { return }
-            self.hasUnsavedChanges = false
-            self.dismiss(animated: true)
+            hasUnsavedChanges = false
+            dismiss(animated: true)
         }
     }
 }
 
 extension TextViewerViewController: TextViewDelegate {
-    func textViewDidChange(_ textView: TextView) {
+    func textViewDidChange(_: TextView) {
         hasUnsavedChanges = true
     }
 }

@@ -118,13 +118,17 @@ final class ArchiveBrowserViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     deinit {
         // libarchive's read loop is synchronous between blocks, so cancelling is
         // a flag the pump checks — see the progress handler in `extract`.
         work?.cancel()
-        if let staged { try? FileManager.default.removeItem(at: staged.deletingLastPathComponent()) }
+        if let staged {
+            try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
+        }
     }
 
     override func viewDidLoad() {
@@ -161,7 +165,7 @@ final class ArchiveBrowserViewController: UIViewController {
             case let .member(row):
                 content.text = row.entry.relativePath == nil ? row.entry.declaredPath : row.entry.name
                 content.secondaryText = row.entry.byteCount.map(FilePresentation.byteLabel) ?? "—"
-                content.image = FilePresentation.image(kind: row.entry.kind, name: row.entry.name, mode: row.entry.mode)
+                content.image = FilePresentation.image(kind: row.entry.kind, name: row.entry.name)
                 canOpen = Self.isNested(row.entry)
             }
             content.secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
@@ -194,7 +198,9 @@ final class ArchiveBrowserViewController: UIViewController {
         }
 
         refreshActions()
-        if members != nil { rebuild() } else {
+        if members != nil {
+            rebuild()
+        } else {
             collectionView.showStatus(.loading(String(localized: "Opening…")))
             load()
         }
@@ -221,7 +227,7 @@ final class ArchiveBrowserViewController: UIViewController {
             attributes: canSelect ? [] : .disabled
         ) { [weak self] _ in
             guard let self else { return }
-            self.setEditing(!self.isEditing, animated: true)
+            setEditing(!isEditing, animated: true)
         }
         let extractTitle = isEditing
             ? String(localized: "Extract Selection")
@@ -263,7 +269,9 @@ final class ArchiveBrowserViewController: UIViewController {
         for row in members ?? [] {
             guard !row.entry.isRootDirectory else { continue }
             guard let relative = row.entry.relativePath else {
-                if directory.isEmpty { items.append(.member(row)) }
+                if directory.isEmpty {
+                    items.append(.member(row))
+                }
                 continue
             }
             guard relative.hasPrefix(prefix), relative != directory else { continue }
@@ -297,12 +305,16 @@ final class ArchiveBrowserViewController: UIViewController {
             }
         }
         return (members ?? []).filter { row in
-            if indices.contains(row.index) { return true }
+            if indices.contains(row.index) {
+                return true
+            }
             guard !directories.isEmpty, let relative = row.entry.relativePath else { return false }
             var path = ""
             for component in relative.split(separator: "/") {
                 path = path.isEmpty ? String(component) : path + "/" + component
-                if directories.contains(path) { return true }
+                if directories.contains(path) {
+                    return true
+                }
             }
             return false
         }
@@ -397,7 +409,7 @@ final class ArchiveBrowserViewController: UIViewController {
         password: String? = nil,
         spaceConfirmed: Bool = false
     ) {
-        if password == nil, selection.contains(where: { $0.entry.isEncrypted }) {
+        if password == nil, selection.contains(where: \.entry.isEncrypted) {
             return promptPassword { [weak self] password in
                 self?.extract(selection, to: destination, password: password)
             }
@@ -422,8 +434,9 @@ final class ArchiveBrowserViewController: UIViewController {
                     let estimate = ArchiveSpaceEstimate(entries: selection.map(\.entry))
                     // Advisory only. The extraction checks real writes even if
                     // the volume cannot provide an estimate here.
-                    if let available = try? await self.availableSpace(at: destination),
-                       estimate.needsWarning(availableByteCount: available) {
+                    if let available = try? await availableSpace(at: destination),
+                       estimate.needsWarning(availableByteCount: available)
+                    {
                         let message = estimate.hasUnknownSize
                             ? String(localized: "The archive does not report all extracted file sizes. There may not be enough space to finish extracting.")
                             : String(
@@ -443,7 +456,7 @@ final class ArchiveBrowserViewController: UIViewController {
                                 }
                             }
                         }
-                        self.present(alert, animated: true)
+                        present(alert, animated: true)
                         return
                     }
                 }
@@ -520,19 +533,22 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                 animated: true
             )
         case let .member(row):
-            if Self.isNested(row.entry) { descend(into: row) }
-            else { chooseDestination(for: [row]) }
+            if Self.isNested(row.entry) {
+                descend(into: row)
+            } else {
+                chooseDestination(for: [row])
+            }
         }
     }
 
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+    func collectionView(_: UICollectionView, didDeselectItemAt _: IndexPath) {
         refreshActions()
     }
 
     func collectionView(
-        _ collectionView: UICollectionView,
+        _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -585,7 +601,11 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                 let staging = try await FileSession.shared.makeTemporaryDirectory()
                 let staged = staging.appendingPathComponent("archive")
                 var handedOff = false
-                defer { if !handedOff { try? FileManager.default.removeItem(at: staging) } }
+                defer {
+                    if !handedOff {
+                        try? FileManager.default.removeItem(at: staging)
+                    }
+                }
                 try Task.checkCancellation()
                 let descriptor = try await openArchive()
                 defer { close(descriptor) }
@@ -628,9 +648,9 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     self?.progress.isHidden = true
                     self?.collectionView.isHidden = false
                     self?.refreshActions()
-                    guard let self, let navigation = self.navigationController,
+                    guard let self, let navigation = navigationController,
                           navigation.topViewController === self
-                              || navigation.topViewController === self.parent else { return false }
+                          || navigation.topViewController === self.parent else { return false }
                     navigation.pushViewController(
                         ArchiveBrowserViewController(
                             title: entry.name,

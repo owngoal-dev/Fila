@@ -24,7 +24,9 @@ extension BrowserViewController: UICollectionViewDelegate {
     }
 
     func collectionView(_: UICollectionView, didDeselectItemAt _: IndexPath) {
-        if isEditing { updateChrome() }
+        if isEditing {
+            updateChrome()
+        }
     }
 
     func collectionView(
@@ -57,9 +59,9 @@ extension BrowserViewController: UICollectionViewDelegate {
     ) {
         guard let preview = animator.previewViewController as? AppFolderPreviewViewController else { return }
         animator.addCompletion { [weak self] in
-            guard let self, self.viewIfLoaded?.window != nil,
-                  self.navigationController?.topViewController === self else { return }
-            self.open(directory: preview.path)
+            guard let self, viewIfLoaded?.window != nil,
+                  navigationController?.topViewController === self else { return }
+            open(directory: preview.path)
         }
     }
 }

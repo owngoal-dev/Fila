@@ -60,7 +60,9 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
                         let outcome = try await performTransfer(
                             JobRequest(kind: .copy, sources: [file.path], destination: directory)
                         )
-                        if outcome.code != .success { throw outcome }
+                        if outcome.code != .success {
+                            throw outcome
+                        }
                     } catch {
                         try FileManager.default.removeItem(at: staging)
                         throw error
@@ -68,7 +70,9 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
                     try FileManager.default.removeItem(at: staging)
                 }
             } catch {
-                if (error as? FilaFailure)?.code == .cancelled || error is CancellationError { return }
+                if (error as? FilaFailure)?.code == .cancelled || error is CancellationError {
+                    return
+                }
                 let message = FailureMessage.text(for: error)
                 guard viewIfLoaded?.window != nil, presentedViewController == nil else {
                     FeedbackAlert.show(String(localized: "Import Failed"), message: message)
@@ -100,7 +104,7 @@ extension BrowserViewController: UIDocumentPickerDelegate, PHPickerViewControlle
             }
         }
         let result: Result<URL, Error>
-        do { result = .success(try await body()) }
+        do { result = try await .success(body()) }
         catch { result = .failure(error) }
         reveal.cancel()
         await reveal.value

@@ -1,5 +1,5 @@
-import FileProvider
 import FilaProvider
+import FileProvider
 import Foundation
 import ImageIO
 import OSLog
@@ -48,26 +48,30 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         // one nesting, and the outer block does hold the extension alive until
         // the source is installed.
         queue.async { [self] in
-            guard self.watchers[container] == nil else { return }
+            guard watchers[container] == nil else { return }
             let descriptor = open(path, O_EVTONLY | O_DIRECTORY)
             guard descriptor >= 0 else { return }
-            let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete, .attrib], queue: self.queue)
+            let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete, .attrib], queue: queue)
             source.setEventHandler { [weak self] in
                 guard let self else { return }
-                NSFileProviderManager(for: self.domain)?.signalEnumerator(for: container) { [weak self] error in
-                    if let error { self?.logger.error("Signal for \(container.rawValue, privacy: .public) failed: \(error)") }
+                NSFileProviderManager(for: domain)?.signalEnumerator(for: container) { [weak self] error in
+                    if let error {
+                        self?.logger.error("Signal for \(container.rawValue, privacy: .public) failed: \(error)")
+                    }
                 }
             }
             source.setCancelHandler { close(descriptor) }
             source.resume()
-            self.watchers[container] = source
+            watchers[container] = source
         }
     }
 
     // MARK: - The folder
 
     private func openTree() throws -> ProviderTree {
-        if let tree { return tree }
+        if let tree {
+            return tree
+        }
         guard let group = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
               let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group),
               let location = try ProviderLocation.load(in: container)
@@ -76,7 +80,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             .appendingPathComponent(".fila-provider", isDirectory: true)
             .appendingPathComponent(location.generation.uuidString, isDirectory: true)
             .appendingPathComponent("index.json")
-        let tree = try ProviderTree(root: try location.resolve(in: container), index: index)
+        let tree = try ProviderTree(root: location.resolve(in: container), index: index)
         self.tree = tree
         return tree
     }
@@ -86,7 +90,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
     @discardableResult
     fileprivate func run<T>(_ body: @escaping (ProviderTree) throws -> T, label: String = #function, then completion: @escaping (Result<T, Error>) -> Void) -> Progress {
         queue.async {
-            let result = Result { try body(try self.openTree()) }.mapError(Self.mapped)
+            let result = Result { try body(self.openTree()) }.mapError(Self.mapped)
             if case let .failure(error) = result {
                 self.logger.error("\(label, privacy: .public) failed: \(error)")
             }
@@ -107,13 +111,14 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
 
     // MARK: - Items
 
-    func item(for identifier: NSFileProviderItemIdentifier, request: NSFileProviderRequest,
-              completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
+    func item(for identifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest,
+              completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress
+    {
         run({ tree -> NSFileProviderItem in
             switch identifier {
             case .rootContainer: return ProviderItem.root
             case .trashContainer: throw NSFileProviderError(.noSuchItem)
-            default: return ProviderItem(try tree.entry(identifier.rawValue))
+            default: return try ProviderItem(tree.entry(identifier.rawValue))
             }
         }) { result in
             switch result {
@@ -123,8 +128,9 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version requestedVersion: NSFileProviderItemVersion?,
-                       request: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
+    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version _: NSFileProviderItemVersion?,
+                       request _: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress
+    {
         let domain = domain
         return run({ tree -> (URL, ProviderItem) in
             let entry = try tree.entry(itemIdentifier.rawValue)
@@ -143,8 +149,9 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
     }
 
     func createItem(basedOn itemTemplate: NSFileProviderItem, fields: NSFileProviderItemFields, contents url: URL?,
-                    options: NSFileProviderCreateItemOptions, request: NSFileProviderRequest,
-                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
+                    options: NSFileProviderCreateItemOptions, request _: NSFileProviderRequest,
+                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
+    {
         run({ tree -> ProviderItem in
             let parent = try Self.parent(itemTemplate.parentItemIdentifier)
             let type = itemTemplate.contentType as UTType?
@@ -175,9 +182,10 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func modifyItem(_ item: NSFileProviderItem, baseVersion version: NSFileProviderItemVersion, changedFields: NSFileProviderItemFields,
-                    contents newContents: URL?, options: NSFileProviderModifyItemOptions, request: NSFileProviderRequest,
-                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
+    func modifyItem(_ item: NSFileProviderItem, baseVersion _: NSFileProviderItemVersion, changedFields: NSFileProviderItemFields,
+                    contents newContents: URL?, options _: NSFileProviderModifyItemOptions, request _: NSFileProviderRequest,
+                    completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress
+    {
         run({ tree -> (ProviderItem, NSFileProviderItemFields) in
             var entry = try tree.entry(item.itemIdentifier.rawValue)
             // Whatever is not applied here stays pending; the system stops
@@ -207,10 +215,11 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion version: NSFileProviderItemVersion,
-                    options: NSFileProviderDeleteItemOptions, request: NSFileProviderRequest,
-                    completionHandler: @escaping (Error?) -> Void) -> Progress {
-        run({ tree -> Void in
+    func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion _: NSFileProviderItemVersion,
+                    options: NSFileProviderDeleteItemOptions, request _: NSFileProviderRequest,
+                    completionHandler: @escaping (Error?) -> Void) -> Progress
+    {
+        run({ tree in
             do { try tree.delete(identifier.rawValue, recursive: options.contains(.recursive)) }
             // Already gone is the outcome the caller asked for.
             catch let failure as ProviderTree.Failure where failure == .missing {}
@@ -222,7 +231,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         }
     }
 
-    func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier, request: NSFileProviderRequest) throws -> NSFileProviderEnumerator {
+    func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest) throws -> NSFileProviderEnumerator {
         ProviderEnumerator(container: containerItemIdentifier, provider: self)
     }
 
@@ -232,7 +241,8 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
     /// the system's icon for its type.
     func fetchThumbnails(for itemIdentifiers: [NSFileProviderItemIdentifier], requestedSize size: CGSize,
                          perThumbnailCompletionHandler: @escaping (NSFileProviderItemIdentifier, Data?, Error?) -> Void,
-                         completionHandler: @escaping (Error?) -> Void) -> Progress {
+                         completionHandler: @escaping (Error?) -> Void) -> Progress
+    {
         queue.async {
             let tree = try? self.openTree()
             for identifier in itemIdentifiers {
@@ -244,7 +254,7 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
         return Progress()
     }
 
-    private static let thumbnailSourceCeiling: Int64 = 32 * 1_024 * 1_024
+    private static let thumbnailSourceCeiling: Int64 = 32 * 1024 * 1024
 
     private static func thumbnail(of id: String, in tree: ProviderTree, maxPixelSize: Int) -> Data? {
         guard let entry = try? tree.entry(id), !entry.isDirectory, entry.size <= thumbnailSourceCeiling,
@@ -285,7 +295,9 @@ final class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, 
             return error
         default:
             let nsError = error as NSError
-            if nsError.domain == NSCocoaErrorDomain || nsError.domain == NSFileProviderErrorDomain { return error }
+            if nsError.domain == NSCocoaErrorDomain || nsError.domain == NSFileProviderErrorDomain {
+                return error
+            }
             return NSError(domain: NSCocoaErrorDomain, code: NSXPCConnectionReplyInvalid, userInfo: [NSUnderlyingErrorKey: nsError])
         }
     }
@@ -307,7 +319,7 @@ private final class ProviderItem: NSObject, NSFileProviderItem {
 
     static let root = ProviderItem()
 
-    private override init() {
+    override private init() {
         itemIdentifier = .rootContainer
         parentItemIdentifier = .rootContainer
         filename = "Fila"
@@ -353,13 +365,11 @@ private final class ProviderEnumerator: NSObject, NSFileProviderEnumerator {
         self.container = container
         self.provider = provider
         super.init()
-        let watched: String?? = {
-            switch container {
-            case .workingSet, .rootContainer: return .some(nil)
-            case .trashContainer: return nil
-            default: return .some(container.rawValue)
-            }
-        }()
+        let watched: String?? = switch container {
+        case .workingSet, .rootContainer: .some(nil)
+        case .trashContainer: nil
+        default: .some(container.rawValue)
+        }
         guard let watched else { return }
         provider.run({ tree -> String in
             let entry = try watched.map { try tree.entry($0) }
@@ -376,14 +386,14 @@ private final class ProviderEnumerator: NSObject, NSFileProviderEnumerator {
     /// Whether a change to `entry` belongs in this enumeration.
     private func includes(_ entry: ProviderTree.Entry) -> Bool {
         switch container {
-        case .workingSet: return true
-        case .trashContainer: return false
-        case .rootContainer: return entry.parent == nil
-        default: return entry.parent == container.rawValue || entry.id == container.rawValue
+        case .workingSet: true
+        case .trashContainer: false
+        case .rootContainer: entry.parent == nil
+        default: entry.parent == container.rawValue || entry.id == container.rawValue
         }
     }
 
-    func enumerateItems(for observer: NSFileProviderEnumerationObserver, startingAt page: NSFileProviderPage) {
+    func enumerateItems(for observer: NSFileProviderEnumerationObserver, startingAt _: NSFileProviderPage) {
         let container = container
         // ponytail: one page. Files pages for the scroll position, and a
         // Documents folder fits in one answer; page when a folder does not.
@@ -421,9 +431,13 @@ private final class ProviderEnumerator: NSObject, NSFileProviderEnumerator {
             switch result {
             case let .success(changes):
                 let deleted = changes.deleted.filter(self.includes).map { NSFileProviderItemIdentifier($0.id) }
-                if !deleted.isEmpty { observer.didDeleteItems(withIdentifiers: deleted) }
+                if !deleted.isEmpty {
+                    observer.didDeleteItems(withIdentifiers: deleted)
+                }
                 let updated = changes.updated.filter(self.includes).map(ProviderItem.init)
-                if !updated.isEmpty { observer.didUpdate(updated) }
+                if !updated.isEmpty {
+                    observer.didUpdate(updated)
+                }
                 observer.finishEnumeratingChanges(upTo: NSFileProviderSyncAnchor(changes.anchor), moreComing: false)
             case let .failure(error):
                 observer.finishEnumeratingWithError(error)

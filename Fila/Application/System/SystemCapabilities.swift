@@ -22,7 +22,9 @@ enum SystemCapabilities {
     static var showsApplications: Bool {
         guard AppPreferences.shared.showsApplications,
               let backend = FileSession.shared.hello?.backend else { return false }
-        if case .local(.container) = backend { return false }
+        if case .local(.container) = backend {
+            return false
+        }
         return true
     }
 

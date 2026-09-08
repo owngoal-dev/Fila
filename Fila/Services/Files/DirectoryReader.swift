@@ -4,7 +4,7 @@ import Foundation
 /// Pull-based pages: the next backend request starts only when the consumer
 /// asks for it. A slow UI never accumulates an unbounded queue of pages.
 enum DirectoryReader {
-    static let maximumEntryCount = 50_000
+    static let maximumEntryCount = 50000
 
     @MainActor
     static func pages(in path: String, session: FileSession) -> Pages {
@@ -16,7 +16,9 @@ enum DirectoryReader {
         let path: String
         let session: FileSession
 
-        func makeAsyncIterator() -> AsyncIterator { AsyncIterator(path: path, session: session) }
+        func makeAsyncIterator() -> AsyncIterator {
+            AsyncIterator(path: path, session: session)
+        }
 
         struct AsyncIterator: AsyncIteratorProtocol {
             let path: String

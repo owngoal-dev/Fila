@@ -29,7 +29,7 @@ enum DebianPackage {
                 guard entry.declaredPath.hasPrefix("control.tar") else { continue }
                 let out = open(spill, O_WRONLY | O_CREAT | O_EXCL, 0o600)
                 guard out >= 0 else { throw FilaFailure(code: .operationFailed, systemError: errno, path: spill) }
-                do { _ = try outer.read(into: out, maximumByteCount: 16 * 1_024 * 1_024) }
+                do { _ = try outer.read(into: out, maximumByteCount: 16 * 1024 * 1024) }
                 catch { close(out); throw error }
                 close(out)
                 let inner = open(spill, O_RDONLY)
@@ -38,7 +38,7 @@ enum DebianPackage {
                 let control = try ArchiveReader(descriptor: inner)
                 while let member = try control.next() {
                     guard member.name == "control", !member.isDirectory else { continue }
-                    let text = String(decoding: try control.data(maximumByteCount: 1 << 20), as: UTF8.self)
+                    let text = try String(decoding: control.data(maximumByteCount: 1 << 20), as: UTF8.self)
                     var fields: [String: String] = [:]
                     for line in text.split(separator: "\n") where !line.hasPrefix(" ") {
                         guard let colon = line.firstIndex(of: ":") else { continue }

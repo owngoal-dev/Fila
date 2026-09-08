@@ -175,7 +175,7 @@ func filaHasAccessControlList(at path: String) -> Bool {
 }
 
 /// A NUL-terminated C string held in a fixed-size struct field.
-public func filaText<Field>(_ field: Field) -> String {
+public func filaText(_ field: some Any) -> String {
     withUnsafeBytes(of: field) { raw in
         guard let base = raw.baseAddress else { return "" }
         return String(cString: base.assumingMemoryBound(to: CChar.self))

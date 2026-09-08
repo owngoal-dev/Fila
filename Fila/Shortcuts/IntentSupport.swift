@@ -37,7 +37,7 @@ enum IntentSupport {
     /// a megabyte is already past what anyone reads. Bigger is not truncated,
     /// it is refused — half a config file that looks like the whole one is
     /// worse than an error.
-    static let textByteLimit = 1_024 * 1_024
+    static let textByteLimit = 1024 * 1024
 
     /// The most entries `ListDirectoryIntent` will hand back.
     ///
@@ -45,7 +45,7 @@ enum IntentSupport {
     /// so. A shortcut cannot tell a capped list from a complete one, and a
     /// script that thinks it has seen every file in a folder is a script that
     /// will act on that belief.
-    static let listEntryLimit = 10_000
+    static let listEntryLimit = 10000
 
     // MARK: - Paths
 
@@ -72,7 +72,8 @@ enum IntentSupport {
     static func child(of directory: String, named name: String) throws -> String {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, name != ".", name != "..",
-              !name.contains("/"), !name.contains("\0") else {
+              !name.contains("/"), !name.contains("\0")
+        else {
             throw IntentFailure.invalidName(name)
         }
         return try path(directory == "/" ? "/" + name : directory + "/" + name)
@@ -178,9 +179,10 @@ enum IntentSupport {
     /// about a real move and a prompt about one that cannot happen.
     @MainActor
     static func transfer(_ source: String, into destination: String)
-        async throws -> (source: String, destination: String, landing: String) {
-        let source = try await details(of: try path(source)).path
-        let folder = try await details(of: try path(destination))
+        async throws -> (source: String, destination: String, landing: String)
+    {
+        let source = try await details(of: path(source)).path
+        let folder = try await details(of: path(destination))
         guard folder.node.isNavigable else { throw IntentFailure.notADirectory(folder.path) }
         let name = (source as NSString).lastPathComponent
         let landing = folder.path == "/" ? "/" + name : folder.path + "/" + name

@@ -76,7 +76,8 @@ enum DAVXML {
             case "\t", "\n", "\r": out.append(character)
             default:
                 if let scalar = character.unicodeScalars.first,
-                   character.unicodeScalars.count == 1, scalar.value < 0x20 {
+                   character.unicodeScalars.count == 1, scalar.value < 0x20
+                {
                     // No numeric reference either: XML 1.0 cannot represent
                     // these even escaped, so the only honest answer is to drop
                     // them from the name the client is shown.

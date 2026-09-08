@@ -16,7 +16,10 @@ final class MusicTrackViewController: UITableViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
+
     deinit { load?.cancel() }
 
     override func viewDidLoad() {
@@ -41,11 +44,11 @@ final class MusicTrackViewController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         details == nil ? 0 : MusicLibraryEditor.Field.allCases.count
     }
 
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    override func tableView(_: UITableView, titleForFooterInSection _: Int) -> String? {
         guard details != nil else { return nil }
         return isSaving ? String(localized: "Saving…")
             : String(localized: "Fields with an arrow can be edited. Before each change, Fila saves a backup in Music Backups in Fila’s Documents folder.")
@@ -112,8 +115,11 @@ final class MusicTrackViewController: UITableViewController {
                     context.allowSimpleDispose()
                     context.addAction(title: String.LocalizationValue("OK")) { context.dispose() }
                 }
-                if viewIfLoaded?.window != nil { present(alert, animated: true) }
-                else { FeedbackAlert.show(String(localized: "Unable to Save"), message: error.localizedDescription) }
+                if viewIfLoaded?.window != nil {
+                    present(alert, animated: true)
+                } else {
+                    FeedbackAlert.show(String(localized: "Unable to Save"), message: error.localizedDescription)
+                }
             }
         }
     }

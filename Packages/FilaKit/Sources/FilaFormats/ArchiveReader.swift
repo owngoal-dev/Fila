@@ -1,6 +1,6 @@
-import Foundation
 import FilaFileOps
 import FilaProtocol
+import Foundation
 import LibArchive
 
 /// One member of an archive, as libarchive's header for it reports.
@@ -48,13 +48,19 @@ public struct ArchiveEntry: Sendable, Hashable {
     /// starts an extraction rather than after one fails.
     public var isEncrypted = false
 
-    public var isDirectory: Bool { kind == .directory }
+    public var isDirectory: Bool {
+        kind == .directory
+    }
+
     /// A tar's explicit `.` entry describes the extraction root, not a child.
     public var isRootDirectory: Bool {
         isDirectory && !declaredPath.isEmpty && !declaredPath.hasPrefix("/")
             && declaredPath.split(separator: "/").allSatisfy { $0 == "." }
     }
-    public var isSymbolicLink: Bool { kind == .symbolicLink }
+
+    public var isSymbolicLink: Bool {
+        kind == .symbolicLink
+    }
 
     /// The permission bits an extractor may apply — the low nine, and no more.
     ///
@@ -64,11 +70,15 @@ public struct ArchiveEntry: Sendable, Hashable {
     /// archive that can plant a setuid-root binary merely by being extracted is
     /// a root shell for whoever built it. A user who genuinely wants those bits
     /// can set them afterwards, deliberately, on one file.
-    public var permissions: mode_t { mode & 0o777 }
+    public var permissions: mode_t {
+        mode & 0o777
+    }
 
     /// The last path component, for a listing that shows a name rather than a
     /// path.
-    public var name: String { (declaredPath as NSString).lastPathComponent }
+    public var name: String {
+        (declaredPath as NSString).lastPathComponent
+    }
 
     /// `declaredPath` as a relative path that cannot climb out of a destination
     /// directory, or nil when it is not one.
@@ -78,7 +88,9 @@ public struct ArchiveEntry: Sendable, Hashable {
     /// *refusal*, not a repair: an entry called `../../etc/passwd` extracted as
     /// `etc/passwd` is a file the user never asked for, quietly, and on a device
     /// where the destination may be anywhere the difference matters.
-    public var relativePath: String? { ArchivePath.validated(declaredPath) }
+    public var relativePath: String? {
+        ArchivePath.validated(declaredPath)
+    }
 }
 
 public enum ArchivePath {
@@ -86,7 +98,7 @@ public enum ArchivePath {
     public static func extractionFolderName(for name: String) -> String {
         let file = (name as NSString).lastPathComponent
         let suffixes = [
-            ".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.zstd", ".tar.lzma", ".tar.lz4", ".tar.lz", ".tar.Z"
+            ".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.zstd", ".tar.lzma", ".tar.lz4", ".tar.lz", ".tar.Z",
         ]
         if let suffix = suffixes.first(where: { file.lowercased().hasSuffix($0.lowercased()) }) {
             return String(file.dropLast(suffix.count))
@@ -143,8 +155,8 @@ public final class ArchiveReader: @unchecked Sendable {
     /// Public because `list` stopping here is not something to hide: a caller
     /// that gets exactly this many entries back has a listing that may be
     /// incomplete, and the user is entitled to be told.
-    public static let maximumEntryCount = 50_000
-    public static let maximumListingByteCount = 16 * 1_024 * 1_024
+    public static let maximumEntryCount = 50000
+    public static let maximumListingByteCount = 16 * 1024 * 1024
 
     private let handle: OpaquePointer
     private let source: ArchiveSource
@@ -165,7 +177,9 @@ public final class ArchiveReader: @unchecked Sendable {
     public convenience init(descriptor: Int32, name: String? = nil, password: String? = nil) throws {
         let source = try ArchiveSource(descriptor: descriptor)
         guard let handle = archive_read_new() else { throw FormatFailure.system(errno: ENOMEM) }
-        if let password, !password.isEmpty { archive_read_add_passphrase(handle, password) }
+        if let password, !password.isEmpty {
+            archive_read_add_passphrase(handle, password)
+        }
 
         archive_read_support_filter_all(handle)
         archive_read_support_format_all(handle)
@@ -268,7 +282,9 @@ public final class ArchiveReader: @unchecked Sendable {
             var count = 0
             var offset: Int64 = 0
             let status = archive_read_data_block(handle, &buffer, &count, &offset)
-            if status == ARCHIVE_EOF { break }
+            if status == ARCHIVE_EOF {
+                break
+            }
             // Strict here, unlike the header walk, which tolerates a warning.
             // A warning on the *data* path means libarchive handed over bytes it
             // is not happy with, and silently extracting corruption is worse
@@ -334,14 +350,18 @@ public final class ArchiveReader: @unchecked Sendable {
             throw FormatFailure.tooLarge(byteCount: size, limit: maximumByteCount)
         }
         var data = Data()
-        if let size = currentByteCount { data.reserveCapacity(Int(size)) }
+        if let size = currentByteCount {
+            data.reserveCapacity(Int(size))
+        }
         try read { offset, bytes in
             guard offset >= 0, offset <= maximumByteCount, Int64(bytes.count) <= maximumByteCount - offset else {
                 throw FormatFailure.tooLarge(byteCount: .max, limit: maximumByteCount)
             }
             let end = Int(offset) + bytes.count
-            if end > data.count { data.append(Data(count: end - data.count)) }
-            data.replaceSubrange(Int(offset)..<end, with: bytes)
+            if end > data.count {
+                data.append(Data(count: end - data.count))
+            }
+            data.replaceSubrange(Int(offset) ..< end, with: bytes)
         }
         return data
     }
@@ -402,14 +422,18 @@ public final class ArchiveReader: @unchecked Sendable {
         var kind = isRaw ? .regular : FileKind(modeBits: mode_t(archive_entry_filetype(entry)))
         // A format that records no type at all leaves one signal: zip marks a
         // directory by the trailing slash and nothing else.
-        if kind == .unknown { kind = declared.hasSuffix("/") ? .directory : .regular }
+        if kind == .unknown {
+            kind = declared.hasSuffix("/") ? .directory : .regular
+        }
 
         // A zip written on Windows carries no Unix permissions. Extracting its
         // members as mode 0 makes files nobody can open, so a plausible default
         // stands in — at the cost of not reproducing a deliberate `chmod 000`,
         // which is the rarer of the two by a wide margin.
         var permissions = mode_t(archive_entry_perm(entry)) & 0o7777
-        if permissions == 0 { permissions = kind == .directory ? 0o755 : 0o644 }
+        if permissions == 0 {
+            permissions = kind == .directory ? 0o755 : 0o644
+        }
 
         return ArchiveEntry(
             declaredPath: declared,
@@ -447,7 +471,9 @@ public final class ArchiveReader: @unchecked Sendable {
     /// 0x7F, so it cannot manufacture a `/` or a `..`, and refusing a whole
     /// archive because one member was named in Shift-JIS helps nobody.
     private static func pathname(_ entry: OpaquePointer) -> String? {
-        if let utf8 = string(archive_entry_pathname_utf8(entry)) { return utf8 }
+        if let utf8 = string(archive_entry_pathname_utf8(entry)) {
+            return utf8
+        }
         guard let raw = archive_entry_pathname(entry) else { return nil }
         return String(decoding: Data(bytes: raw, count: strlen(raw)), as: UTF8.self)
     }
@@ -460,7 +486,8 @@ public final class ArchiveReader: @unchecked Sendable {
     private static func strippingCompressionSuffix(_ name: String) -> String {
         let lowered = name.lowercased()
         for suffix in [".gz", ".bz2", ".xz", ".lzma", ".zst", ".lz4", ".Z"]
-            where lowered.hasSuffix(suffix.lowercased()) {
+            where lowered.hasSuffix(suffix.lowercased())
+        {
             return String(name.dropLast(suffix.count))
         }
         return name
@@ -488,7 +515,9 @@ public final class ArchiveReader: @unchecked Sendable {
 /// archive" has exactly one owner, `refuseABareRawMember`, and it is not this.
 func archiveFailure(_ handle: OpaquePointer) -> FormatFailure {
     let code = archive_errno(handle)
-    if code == ENOSPC { return .system(errno: code) }
+    if code == ENOSPC {
+        return .system(errno: code)
+    }
     guard let raw = archive_error_string(handle), let message = String(validatingUTF8: raw) else {
         return .system(errno: code == 0 ? EIO : code)
     }
@@ -496,10 +525,14 @@ func archiveFailure(_ handle: OpaquePointer) -> FormatFailure {
     // this one" is that those messages start *Unsupported* or *Unrecognized*. If
     // the wording ever changes the user gets the damaged sentence with the true
     // reason still attached, which is a soft landing.
-    if message.hasPrefix("Unsupported") || message.hasPrefix("Unrecogni") { return .unsupported(message) }
+    if message.hasPrefix("Unsupported") || message.hasPrefix("Unrecogni") {
+        return .unsupported(message)
+    }
     // "Passphrase required for this entry" and "Incorrect passphrase" are the
     // two ways the zip reader says it, and both have the same way out.
-    if message.localizedCaseInsensitiveContains("passphrase") { return .wrongPassword }
+    if message.localizedCaseInsensitiveContains("passphrase") {
+        return .wrongPassword
+    }
     return .damaged(message)
 }
 
@@ -534,7 +567,9 @@ private final class ArchiveSource {
         while true {
             let got = pread(descriptor, buffer, chunkByteCount, off_t(offset))
             if got < 0 {
-                if errno == EINTR { continue }
+                if errno == EINTR {
+                    continue
+                }
                 return -1
             }
             destination.pointee = UnsafeRawPointer(buffer)

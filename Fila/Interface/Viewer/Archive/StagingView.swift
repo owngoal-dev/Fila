@@ -34,7 +34,9 @@ final class StagingView: UIView {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     func begin(message: String, total: Int64) {
         self.total = total

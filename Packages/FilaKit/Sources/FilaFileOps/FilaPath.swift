@@ -30,7 +30,9 @@ public enum FilaPath {
         }
 
         var trimmed = path
-        while trimmed.count > 1, trimmed.hasSuffix("/") { trimmed.removeLast() }
+        while trimmed.count > 1, trimmed.hasSuffix("/") {
+            trimmed.removeLast()
+        }
         guard trimmed != "/" else { return "/" }
 
         let separator = trimmed.lastIndex(of: "/")!
@@ -40,7 +42,7 @@ public enum FilaPath {
         guard leaf != ".", leaf != ".." else { return try resolve(trimmed) }
 
         let parent = separator == trimmed.startIndex ? "/" : String(trimmed[..<separator])
-        return join(try resolve(parent), leaf)
+        return try join(resolve(parent), leaf)
     }
 
     /// `realpath(3)`. Everything it is given must exist.

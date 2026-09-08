@@ -43,7 +43,9 @@ final class OperationCoverViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -130,9 +132,9 @@ final class OperationCoverViewController: UIViewController {
         backgroundButton.addAction(UIAction { [weak self] _ in self?.close() }, for: .touchUpInside)
         configure(cancelButton, title: String(localized: "Cancel"), accented: false)
         cancelButton.addAction(UIAction { [weak self] _ in
-            guard let self, let operation = self.center.operations.first(where: { $0.id == self.operationID }),
+            guard let self, let operation = center.operations.first(where: { $0.id == self.operationID }),
                   operation.isCancellable else { return }
-            self.close { self.center.cancel(operation) }
+            close { self.center.cancel(operation) }
         }, for: .touchUpInside)
 
         actionStack.do {
@@ -143,7 +145,7 @@ final class OperationCoverViewController: UIViewController {
             $0.addArrangedSubview(backgroundButton)
         }
         let stack = UIStackView(arrangedSubviews: [
-            artwork, titleLabel, subtitleLabel, separator, gauge, currentLabel, countLabel, actionStack
+            artwork, titleLabel, subtitleLabel, separator, gauge, currentLabel, countLabel, actionStack,
         ]).then {
             $0.axis = .vertical
             $0.alignment = .center
@@ -202,7 +204,7 @@ final class OperationCoverViewController: UIViewController {
         let textWidth = (view.bounds.width - 32 - 8) / 2 - 16
         guard textWidth > 0 else { return }
         let needsWrapping = [
-            (cancelButton, UIFont.Weight.regular), (backgroundButton, .semibold)
+            (cancelButton, UIFont.Weight.regular), (backgroundButton, .semibold),
         ].contains { button, weight in
             let font = UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17, weight: weight))
             let height = (button.configuration?.title ?? "").boundingRect(
@@ -221,7 +223,9 @@ final class OperationCoverViewController: UIViewController {
         guard !isClosing else { return }
         guard let operation = center.operations.first(where: { $0.id == operationID }), operation.isRunning else {
             // The first observation can arrive while the card is presenting.
-            if parent?.presentingViewController != nil, parent?.isBeingPresented == false { close() }
+            if parent?.presentingViewController != nil, parent?.isBeingPresented == false {
+                close()
+            }
             return
         }
         titleLabel.text = operation.title
@@ -255,7 +259,8 @@ final class OperationCoverViewController: UIViewController {
     private func updateProgress(_ target: Float) {
         let previousTarget = progressAnimation?.to ?? bar.progress
         guard target > 0, target >= previousTarget, !bar.isHidden,
-              view.window != nil, !UIAccessibility.isReduceMotionEnabled else {
+              view.window != nil, !UIAccessibility.isReduceMotionEnabled
+        else {
             stopProgressAnimation()
             bar.setProgress(target, animated: false)
             return
@@ -298,7 +303,9 @@ final class OperationCoverViewController: UIViewController {
     private final class ProgressTick: NSObject {
         private weak var owner: OperationCoverViewController?
 
-        init(owner: OperationCoverViewController) { self.owner = owner }
+        init(owner: OperationCoverViewController) {
+            self.owner = owner
+        }
 
         @objc func advance(_ link: CADisplayLink) {
             guard let owner else { link.invalidate(); return }

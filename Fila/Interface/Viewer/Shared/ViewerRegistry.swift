@@ -36,26 +36,26 @@ enum ViewerRegistry {
     ) -> UIViewController {
         switch format {
         case .propertyList:
-            return PropertyListEditorViewController(details: details, file: file, link: link)
+            PropertyListEditorViewController(details: details, file: file, link: link)
         case .machO:
-            return MachOInspectorViewController(details: details, file: file, link: link)
+            MachOInspectorViewController(details: details, file: file, link: link)
         case .archive:
-            return ArchiveBrowserViewController(details: details, file: file, link: link)
+            ArchiveBrowserViewController(details: details, file: file, link: link)
         case .image:
-            return ImageViewerViewController(details: details, file: file)
+            ImageViewerViewController(details: details, file: file)
         case .audio:
-            return MediaPlayerViewController(details: details, file: file, isAudio: true)
+            MediaPlayerViewController(details: details, file: file, isAudio: true)
         case .video:
-            return MediaPlayerViewController(details: details, file: file, isAudio: false)
+            MediaPlayerViewController(details: details, file: file, isAudio: false)
         case .pdf:
-            return PDFViewerViewController(details: details, file: file)
+            PDFViewerViewController(details: details, file: file)
         case .text:
-            return TextViewerViewController(details: details, file: file, link: link)
+            TextViewerViewController(details: details, file: file, link: link)
         // A SQLite browser is a viewer several times the size of the others and
         // is deliberately deferred; until it exists the file is bytes, and bytes
         // have a viewer.
         case .sqlite, .binary:
-            return HexViewerViewController(details: details, file: file)
+            HexViewerViewController(details: details, file: file)
         }
     }
 }
@@ -91,7 +91,10 @@ final class ViewerContainerViewController: UIViewController {
         item.accessibilityLabel = String(localized: "More")
         return item
     }()
-    private var fileName: String { (details.path as NSString).lastPathComponent }
+
+    private var fileName: String {
+        (details.path as NSString).lastPathComponent
+    }
 
     init(details: FileDetails, link: DaemonLink) {
         self.details = details
@@ -105,7 +108,9 @@ final class ViewerContainerViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -234,20 +239,23 @@ final class ViewerContainerViewController: UIViewController {
     func fileMenuElements(presenting presenter: UIViewController, additional: [UIMenuElement] = []) -> [UIMenuElement] {
         let directory = URL(fileURLWithPath: details.path).deletingLastPathComponent().path
         let actions = FileActions(presenter: presenter, directory: directory) { [weak self, weak presenter] in
-            guard let self, let presenter, let navigation = self.navigationController,
+            guard let self, let presenter, let navigation = navigationController,
                   navigation.topViewController === presenter,
                   let index = navigation.viewControllers.firstIndex(where: { $0 === self }), index > 0 else { return }
             navigation.popToViewController(navigation.viewControllers[index - 1], animated: true)
         }
         let confirmBlock: (@escaping () -> Void) -> Void = { [weak self, weak presenter] action in
-            guard let self, self.menuItem.isEnabled else { return }
+            guard let self, menuItem.isEnabled else { return }
             let perform = { [weak self, weak presenter] in
-                guard let self, let presenter, let navigation = self.navigationController,
+                guard let self, let presenter, let navigation = navigationController,
                       navigation.topViewController === presenter else { return }
                 action()
             }
-            if let confirm = self.confirmReplacement { confirm({}, perform) }
-            else { perform() }
+            if let confirm = confirmReplacement {
+                confirm({}, perform)
+            } else {
+                perform()
+            }
         }
         return actions.menuElements(
             for: details.path,
@@ -261,8 +269,11 @@ final class ViewerContainerViewController: UIViewController {
     private func reopen(as format: FileFormat) {
         guard format != detectedFormat, menuItem.isEnabled else { return }
         let replace: () -> Void = { [weak self] in self?.open(as: format) }
-        if let confirmReplacement { confirmReplacement({}, replace) }
-        else { replace() }
+        if let confirmReplacement {
+            confirmReplacement({}, replace)
+        } else {
+            replace()
+        }
     }
 
     private func open(as format: FileFormat) {
@@ -272,14 +283,18 @@ final class ViewerContainerViewController: UIViewController {
         view.endEditing(true)
         view.isUserInteractionEnabled = false
         let buttons = (navigationItem.rightBarButtonItems ?? []).map { ($0, $0.isEnabled) }
-        for (button, _) in buttons { button.isEnabled = false }
+        for (button, _) in buttons {
+            button.isEnabled = false
+        }
         menuItem.isEnabled = false
         let details = details
         let link = link
         Task { [weak self] in
             defer {
                 self?.view.isUserInteractionEnabled = true
-                for (button, wasEnabled) in buttons { button.isEnabled = wasEnabled }
+                for (button, wasEnabled) in buttons {
+                    button.isEnabled = wasEnabled
+                }
             }
             do {
                 let file = try await DescriptorFile.open(details.path, link: link)
@@ -301,16 +316,16 @@ final class ViewerContainerViewController: UIViewController {
 
     private static func name(of format: FileFormat) -> String {
         switch format {
-        case .propertyList: return String(localized: "Property List")
-        case .machO: return String(localized: "Mach-O")
-        case .archive: return String(localized: "Archive")
-        case .image: return String(localized: "Image")
-        case .audio: return String(localized: "Audio")
-        case .video: return String(localized: "Video")
-        case .pdf: return String(localized: "PDF")
-        case .sqlite: return String(localized: "Database")
-        case .text: return String(localized: "Text")
-        case .binary: return String(localized: "Hex")
+        case .propertyList: String(localized: "Property List")
+        case .machO: String(localized: "Mach-O")
+        case .archive: String(localized: "Archive")
+        case .image: String(localized: "Image")
+        case .audio: String(localized: "Audio")
+        case .video: String(localized: "Video")
+        case .pdf: String(localized: "PDF")
+        case .sqlite: String(localized: "Database")
+        case .text: String(localized: "Text")
+        case .binary: String(localized: "Hex")
         }
     }
 }
@@ -327,7 +342,9 @@ final class ViewerFailureViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

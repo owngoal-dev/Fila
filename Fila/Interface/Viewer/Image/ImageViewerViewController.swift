@@ -1,5 +1,5 @@
-import FilaProtocol
 import FilaMedia
+import FilaProtocol
 import ImageIO
 import SnapKit
 import Then
@@ -26,7 +26,9 @@ final class ImageViewerViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -137,7 +139,8 @@ final class ImageViewerViewController: UIViewController {
         let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] ?? [:]
 
         if let width = properties[kCGImagePropertyPixelWidth] as? Int,
-           let height = properties[kCGImagePropertyPixelHeight] as? Int {
+           let height = properties[kCGImagePropertyPixelHeight] as? Int
+        {
             rows.append((String(localized: "Dimensions"), "\(width) × \(height)"))
         }
 
@@ -170,14 +173,18 @@ final class ImageViewerViewController: UIViewController {
                 (kCGImagePropertyExifFocalLength, String(localized: "Focal Length")),
             ]
             for (key, label) in interesting {
-                if let value = exif[key] { rows.append((label, "\(value)")) }
+                if let value = exif[key] {
+                    rows.append((label, "\(value)"))
+                }
             }
             if let iso = (exif[kCGImagePropertyExifISOSpeedRatings] as? [Any])?.first {
                 rows.append((String(localized: "ISO"), "\(iso)"))
             }
         }
         if let tiff = properties[kCGImagePropertyTIFFDictionary] as? [CFString: Any] {
-            if let make = tiff[kCGImagePropertyTIFFMake] { rows.append((String(localized: "Camera Make"), "\(make)")) }
+            if let make = tiff[kCGImagePropertyTIFFMake] {
+                rows.append((String(localized: "Camera Make"), "\(make)"))
+            }
             if let model = tiff[kCGImagePropertyTIFFModel] {
                 rows.append((String(localized: "Camera Model"), "\(model)"))
             }
@@ -193,5 +200,7 @@ final class ImageViewerViewController: UIViewController {
 }
 
 extension ImageViewerViewController: UIScrollViewDelegate {
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? { imageView }
+    func viewForZooming(in _: UIScrollView) -> UIView? {
+        imageView
+    }
 }

@@ -1,7 +1,7 @@
 import Darwin
+import FilaFileOps
 import FilaProtocol
 import Foundation
-import FilaFileOps
 import UniformTypeIdentifiers
 
 /// The verbs.
@@ -73,7 +73,7 @@ extension WebDAVHandler {
                     node: entry,
                     isCollection: entry.isNavigable
                 )
-                if batch.utf8.count >= 64 * 1_024 {
+                if batch.utf8.count >= 64 * 1024 {
                     try await http.writeChunk(Data(batch.utf8))
                     batch = ""
                 }
@@ -168,7 +168,7 @@ extension WebDAVHandler {
     /// the URL — and it may load script and style only from `/_fila/`, its
     /// own origin: nothing inline, so a shared file's content can never become
     /// part of the page.
-    private func index(_ path: String, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
+    private func index(_: String, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
         guard let webRoot = configuration.webRoot else {
             try await respond(http, 404)
             return 404
@@ -192,7 +192,7 @@ extension WebDAVHandler {
             "js": "text/javascript; charset=utf-8",
             "css": "text/css; charset=utf-8",
             "map": "application/json",
-            "png": "image/png"
+            "png": "image/png",
         ]
         guard let webRoot = configuration.webRoot,
               let contentType = types[(name as NSString).pathExtension.lowercased()]
@@ -261,7 +261,9 @@ extension WebDAVHandler {
                 return 412
             }
             exclusive = true
-        } else { exclusive = false }
+        } else {
+            exclusive = false
+        }
         let existing = try? await service.details(of: path)
         if exclusive && existing != nil {
             try await respond(http, 412, close: true)
@@ -306,7 +308,9 @@ extension WebDAVHandler {
                 try await http.drainBody(count: request.contentLength ?? 0, into: sink)
             }
             while fsync(descriptor) != 0 {
-                if errno != EINTR { throw FilaFailure(code: .operationFailed, systemError: errno, path: path) }
+                if errno != EINTR {
+                    throw FilaFailure(code: .operationFailed, systemError: errno, path: path)
+                }
             }
         } catch {
             close(descriptor)
@@ -345,7 +349,7 @@ extension WebDAVHandler {
 
     // MARK: - DELETE
 
-    func delete(_ request: HTTPRequest, path: String, on http: HTTPConnection) async throws -> Int {
+    func delete(_: HTTPRequest, path: String, on http: HTTPConnection) async throws -> Int {
         // The daemon refuses the volume root anyway; this is here so a
         // restricted root — the harness's scratch directory — is refused too.
         guard path != configuration.root else {
@@ -366,7 +370,7 @@ extension WebDAVHandler {
 
     // MARK: - MKCOL
 
-    func mkcol(_ request: HTTPRequest, path: String, on http: HTTPConnection) async throws -> Int {
+    func mkcol(_: HTTPRequest, path: String, on http: HTTPConnection) async throws -> Int {
         guard let holder = try? await service.details(of: RemotePath.parent(of: path)), holder.node.isNavigable else {
             try await respond(http, 409)
             return 409
@@ -443,7 +447,7 @@ extension WebDAVHandler {
     /// destination — the exclusive rename inside the operation is, because this
     /// answer is stale the moment it arrives.
     private func exists(_ path: String) async -> Bool {
-        (try? await service.details(of: path)) != nil
+        await (try? service.details(of: path)) != nil
     }
 
     /// Copy or move one node to an exact path.
@@ -516,7 +520,9 @@ extension WebDAVHandler {
                   let targetHost = target.host, let localHost = local.host,
                   targetHost.lowercased() == localHost.lowercased(),
                   (target.port ?? 80) == (local.port ?? 80) else { return nil }
-        } else if header.hasPrefix("//") { return nil }
+        } else if header.hasPrefix("//") {
+            return nil
+        }
         return RemotePath.filesystemPath(for: header, root: configuration.root)
     }
 
@@ -548,12 +554,16 @@ extension WebDAVHandler {
                 pread(descriptor, raw.baseAddress, want, off_t(offset + sent))
             }
             if got < 0 {
-                if errno == EINTR { continue }
+                if errno == EINTR {
+                    continue
+                }
                 throw FilaFailure(code: .operationFailed, systemError: errno)
             }
             // Short of what the header promised. The file was truncated under
             // us; the connection has to die, because the client is counting.
-            if got == 0 { throw HTTPFailure.closed }
+            if got == 0 {
+                throw HTTPFailure.closed
+            }
             try await http.write(Data(buffer[0 ..< got]))
             sent += Int64(got)
         }
@@ -567,10 +577,14 @@ extension WebDAVHandler {
             while written < raw.count {
                 let put = Darwin.write(descriptor, base + written, raw.count - written)
                 if put < 0 {
-                    if errno == EINTR { continue }
+                    if errno == EINTR {
+                        continue
+                    }
                     throw FilaFailure(code: .operationFailed, systemError: errno)
                 }
-                if put == 0 { throw FilaFailure(code: .operationFailed, systemError: ENOSPC) }
+                if put == 0 {
+                    throw FilaFailure(code: .operationFailed, systemError: ENOSPC)
+                }
                 written += put
             }
         }

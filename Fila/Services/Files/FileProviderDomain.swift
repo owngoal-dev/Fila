@@ -1,5 +1,5 @@
-import FileProvider
 import FilaLog
+import FileProvider
 import UIKit
 
 /// The Files app location, "Fila". One replicated domain for the process,
@@ -25,7 +25,9 @@ enum FileProviderDomain {
     static func register() {
         guard #available(iOS 16.0, *) else { return }
         NSFileProviderManager.add(domain) { error in
-            if let error { FilaLog.error("Files domain registration failed: \(error)") }
+            if let error {
+                FilaLog.error("Files domain registration failed: \(error)")
+            }
             signalChanges()
         }
         guard observers.isEmpty else { return }
@@ -40,7 +42,9 @@ enum FileProviderDomain {
     static func signalChanges() {
         guard #available(iOS 16.0, *), let manager = NSFileProviderManager(for: domain) else { return }
         manager.signalEnumerator(for: .workingSet) { error in
-            if let error { FilaLog.error("Files working set signal failed: \(error)") }
+            if let error {
+                FilaLog.error("Files working set signal failed: \(error)")
+            }
         }
     }
 
@@ -50,7 +54,9 @@ enum FileProviderDomain {
     static func reset() {
         guard #available(iOS 16.0, *) else { return }
         NSFileProviderManager.remove(domain, mode: .removeAll) { _, error in
-            if let error { FilaLog.error("Files domain removal failed: \(error)") }
+            if let error {
+                FilaLog.error("Files domain removal failed: \(error)")
+            }
             register()
         }
     }

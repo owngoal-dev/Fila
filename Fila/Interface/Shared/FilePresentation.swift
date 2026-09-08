@@ -40,7 +40,7 @@ enum FilePresentation {
     /// this answers "which picture", the cell answers "with what on top of it".
     static func icon(for node: FileNode) -> Icon {
         guard node.kind != .symbolicLink else { return linkIcon(node) }
-        return icon(kind: node.kind, name: node.name, mode: node.mode)
+        return icon(kind: node.kind, name: node.name)
     }
 
     /// What a link points at, drawn as that.
@@ -50,11 +50,6 @@ enum FilePresentation {
     /// and the following `fstatat` while it is building the node — so this is
     /// the same string lookup every other row does, run against the target
     /// instead of the link. No syscall, and no byte of any file is read.
-    ///
-    /// The target's `st_mode` is *not* in the listing, so the one thing a link
-    /// cannot inherit is the executable bit: a link to a shell script draws as
-    /// text rather than as an executable. Sending the mode across as well would
-    /// widen the wire for a distinction the badge already covers.
     private static func linkIcon(_ node: FileNode) -> Icon {
         // A dangling link is the one case where the target's icon would be a
         // lie, and a jailbroken filesystem is full of them, so it keeps a
@@ -65,10 +60,10 @@ enum FilePresentation {
         // The *target's* name: `latest -> release-3.2.png` is an image row.
         // `fstatat` follows the whole chain, so `kind` is never itself a link —
         // a loop comes back as ELOOP, which is the broken case above.
-        return icon(kind: kind, name: (link.target as NSString).lastPathComponent, mode: 0)
+        return icon(kind: kind, name: (link.target as NSString).lastPathComponent)
     }
 
-    private static func icon(kind: FileKind, name: String, mode: mode_t) -> Icon {
+    private static func icon(kind: FileKind, name: String) -> Icon {
         let ext = (name as NSString).pathExtension.lowercased()
         switch kind {
         case .directory:
@@ -98,7 +93,7 @@ enum FilePresentation {
         default: break
         }
         let format = FileFormat.detect(head: Data(), name: name)
-        if mode & S_IXUSR != 0, format == .text { return .artwork("executable") }
+        // Permissions do not identify content: new user files default to 0777.
         switch format {
         case .propertyList: return .artwork("plist")
         case .machO: return .artwork("executable")
@@ -128,22 +123,25 @@ enum FilePresentation {
     }
 
     @MainActor
-    static func image(kind: FileKind, name: String, mode: mode_t = 0) -> UIImage? {
-        image(for: icon(kind: kind, name: name, mode: mode))
+    static func image(kind: FileKind, name: String) -> UIImage? {
+        image(for: icon(kind: kind, name: name))
     }
 
     @MainActor
     private static func image(for icon: Icon) -> UIImage? {
-        if let hit = iconCache[icon] { return hit }
-        let image: UIImage?
-        switch icon {
+        if let hit = iconCache[icon] {
+            return hit
+        }
+        let image: UIImage? = switch icon {
         case let .artwork(name):
-            image = UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
+            UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
         case let .symbol(name):
-            image = UIImage(systemName: name, withConfiguration: symbolConfiguration)?
+            UIImage(systemName: name, withConfiguration: symbolConfiguration)?
                 .withRenderingMode(.alwaysTemplate)
         }
-        if let image { iconCache[icon] = image }
+        if let image {
+            iconCache[icon] = image
+        }
         return image
     }
 
@@ -154,9 +152,9 @@ enum FilePresentation {
     static func largeImage(for node: FileNode) -> UIImage? {
         switch icon(for: node) {
         case let .artwork(name):
-            return UIImage(named: "FileIcons/\(name)-large")?.withRenderingMode(.alwaysOriginal)
+            UIImage(named: "FileIcons/\(name)-large")?.withRenderingMode(.alwaysOriginal)
         case let .symbol(name):
-            return UIImage(
+            UIImage(
                 systemName: name,
                 withConfiguration: UIImage.SymbolConfiguration(pointSize: largeSide / 2, weight: .regular)
             )?.withRenderingMode(.alwaysTemplate)
@@ -192,8 +190,8 @@ enum FilePresentation {
     /// that is true, useless, and looks like the size of what it points at.
     static func sizeLabel(for node: FileNode) -> String {
         switch node.kind {
-        case .directory, .symbolicLink: return ""
-        default: return byteLabel(node.size)
+        case .directory, .symbolicLink: ""
+        default: byteLabel(node.size)
         }
     }
 
@@ -230,5 +228,4 @@ enum FilePresentation {
         formatter.timeStyle = .short
         return formatter
     }()
-
 }

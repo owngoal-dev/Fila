@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 @Suite("Attributes")
 struct AttributeWriterTests {
@@ -178,4 +177,3 @@ struct FileInspectorTests {
         #expect(failure?.code == .invalidRequest)
     }
 }
-

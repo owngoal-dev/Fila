@@ -10,9 +10,9 @@ import UIKit
 /// document's controls. Ownership follows playback, not view appearance.
 @MainActor
 final class AudioNowPlayingSession {
-    private static weak var owner: AudioNowPlayingSession?
+    private weak static var owner: AudioNowPlayingSession?
     private static var ownerID: UUID?
-    private static weak var videoController: AVPlayerViewController?
+    private weak static var videoController: AVPlayerViewController?
     private static var commands: [(MPRemoteCommand, Any, Bool)] = []
     private static var skipIntervals: ([NSNumber], [NSNumber])?
 
@@ -44,7 +44,8 @@ final class AudioNowPlayingSession {
                 Task { @MainActor [weak self] in self?.publish() }
             })
             for name in [AVPlayerItem.timeJumpedNotification, AVPlayerItem.didPlayToEndTimeNotification,
-                         AVPlayerItem.failedToPlayToEndTimeNotification] {
+                         AVPlayerItem.failedToPlayToEndTimeNotification]
+            {
                 notifications.append(NotificationCenter.default.addObserver(
                     forName: name,
                     object: item,
@@ -66,8 +67,8 @@ final class AudioNowPlayingSession {
         metadataTask = Task { [weak self] in
             let metadata = await AudioMetadata.load(from: asset)
             guard !Task.isCancelled, let self else { return }
-            self.apply(metadata)
-            self.publish()
+            apply(metadata)
+            publish()
         }
     }
 
@@ -89,7 +90,9 @@ final class AudioNowPlayingSession {
     /// before it starts so a late music metadata load cannot overwrite it.
     static func videoBeganPlayback(_ controller: AVPlayerViewController) {
         owner?.player.pause()
-        if let ownerID { release(ownerID) }
+        if let ownerID {
+            release(ownerID)
+        }
         if videoController !== controller {
             videoController?.updatesNowPlayingInfoCenter = false
             videoController?.player?.pause()
@@ -99,7 +102,9 @@ final class AudioNowPlayingSession {
     }
 
     private func playbackChanged() {
-        if player.rate > 0 { claim() }
+        if player.rate > 0 {
+            claim()
+        }
         publish()
     }
 
@@ -109,7 +114,9 @@ final class AudioNowPlayingSession {
         Self.videoController?.updatesNowPlayingInfoCenter = false
         Self.videoController?.player?.pause()
         Self.videoController = nil
-        if let previous = Self.ownerID { Self.release(previous) }
+        if let previous = Self.ownerID {
+            Self.release(previous)
+        }
         Self.owner = self
         Self.ownerID = id
         try? AVAudioSession.sharedInstance().setCategory(.playback)
@@ -142,13 +149,15 @@ final class AudioNowPlayingSession {
         guard Self.ownerID == id else { return }
         if notification.name == AVAudioSession.interruptionNotification,
            let raw = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-           AVAudioSession.InterruptionType(rawValue: raw) == .began {
+           AVAudioSession.InterruptionType(rawValue: raw) == .began
+        {
             // Resume stays an explicit user action: a delayed interruption-end
             // callback must not restart a document the user paused meanwhile.
             player.pause()
         } else if notification.name == AVAudioSession.routeChangeNotification,
                   let raw = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-                  AVAudioSession.RouteChangeReason(rawValue: raw) == .oldDeviceUnavailable {
+                  AVAudioSession.RouteChangeReason(rawValue: raw) == .oldDeviceUnavailable
+        {
             player.pause()
         }
         publish()
@@ -160,20 +169,29 @@ final class AudioNowPlayingSession {
             (MPMediaItemPropertyAlbumTitle, metadata.album), (MPMediaItemPropertyAlbumArtist, metadata.albumArtist),
             (MPMediaItemPropertyComposer, metadata.composer), (MPMediaItemPropertyGenre, metadata.genre),
         ]
-        for (key, value) in strings { if let value { info[key] = value } }
+        for (key, value) in strings {
+            if let value {
+                info[key] = value
+            }
+        }
         let numbers: [(String, Int?)] = [
             (MPMediaItemPropertyAlbumTrackNumber, metadata.trackNumber),
             (MPMediaItemPropertyAlbumTrackCount, metadata.trackCount),
             (MPMediaItemPropertyDiscNumber, metadata.discNumber), (MPMediaItemPropertyDiscCount, metadata.discCount),
         ]
-        for (key, value) in numbers { if let value { info[key] = value } }
+        for (key, value) in numbers {
+            if let value {
+                info[key] = value
+            }
+        }
         if let data = metadata.artwork,
            let source = CGImageSourceCreateWithData(data as CFData, nil),
            let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
                kCGImageSourceCreateThumbnailFromImageAlways: true,
-               kCGImageSourceThumbnailMaxPixelSize: 1_024,
+               kCGImageSourceThumbnailMaxPixelSize: 1024,
                kCGImageSourceCreateThumbnailWithTransform: true,
-           ] as CFDictionary) {
+           ] as CFDictionary)
+        {
             let artwork = UIImage(cgImage: image)
             info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: artwork.size) { _ in artwork }
         }
@@ -235,7 +253,7 @@ final class AudioNowPlayingSession {
             guard let action = action(event) else { return .commandFailed }
             Task { @MainActor [weak self] in
                 guard let self, Self.ownerID == self.id else { return }
-                self.perform(action)
+                perform(action)
             }
             return .success
         }
@@ -248,7 +266,11 @@ final class AudioNowPlayingSession {
         case .play: resume()
         case .pause: player.pause()
         case .toggle:
-            if player.rate == 0 { resume() } else { player.pause() }
+            if player.rate == 0 {
+                resume()
+            } else {
+                player.pause()
+            }
         case .stop: stop()
         case let .seek(seconds): seek(to: seconds)
         case let .skip(seconds): seek(to: player.currentTime().seconds + seconds)
@@ -258,7 +280,9 @@ final class AudioNowPlayingSession {
 
     private func resume() {
         try? AVAudioSession.sharedInstance().setActive(true)
-        if let duration, player.currentTime().seconds >= duration { seek(to: 0) }
+        if let duration, player.currentTime().seconds >= duration {
+            seek(to: 0)
+        }
         player.play()
     }
 

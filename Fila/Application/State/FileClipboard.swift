@@ -45,9 +45,14 @@ final class FileClipboard {
     private var revision = UUID()
     private var pasteState: PasteState = .idle
 
-    var isEmpty: Bool { paths.isEmpty }
+    var isEmpty: Bool {
+        paths.isEmpty
+    }
+
     var isPasting: Bool {
-        if case .running = pasteState { return true }
+        if case .running = pasteState {
+            return true
+        }
         return false
     }
 

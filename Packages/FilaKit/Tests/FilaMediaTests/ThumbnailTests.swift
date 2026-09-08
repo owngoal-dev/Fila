@@ -1,11 +1,10 @@
 import CoreGraphics
+@testable import FilaMedia
 import Foundation
 import ImageIO
 import PDFKit
 import Testing
 import UniformTypeIdentifiers
-
-@testable import FilaMedia
 
 /// Real files and real descriptors, like every other suite here — the point of
 /// these generators is that they read through a descriptor, and a fake in front
@@ -33,9 +32,9 @@ struct ThumbnailTests {
     func previewPixelLimit() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("wide-preview.png")
-            try writePNG(width: 8_192, height: 64, to: url)
+            try writePNG(width: 8192, height: 64, to: url)
             let image = try #require(ImagePreview.make(data: Data(contentsOf: url)))
-            #expect(image.width == 4_096)
+            #expect(image.width == 4096)
             #expect(image.height == 32)
         }
     }
@@ -86,7 +85,7 @@ struct ThumbnailTests {
     }
 
     @Test("Something that is not a picture fails to nil rather than to an error")
-    func unsupportedIsSilent() async throws {
+    func unsupportedIsSilent() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("notes.txt")
             try Data("just words".utf8).write(to: url)
@@ -135,9 +134,9 @@ struct ThumbnailTests {
 
             func render(_ url: URL) throws -> (width: Int, height: Int) {
                 try withDescriptor(reading: url) { descriptor in
-                    let image = try #require(DescriptorImage.firstPage(
+                    let image = try #require(try DescriptorImage.firstPage(
                         descriptor: descriptor,
-                        byteCount: try byteCount(of: url),
+                        byteCount: byteCount(of: url),
                         maxPixelSize: 64
                     ))
                     return (image.width, image.height)
@@ -248,7 +247,7 @@ struct ThumbnailTests {
                             byteCount: size,
                             maxPixelSize: 64,
                             open: {
-                                await peak.observe(await service.activeCount)
+                                await peak.observe(service.activeCount)
                                 return try openForReading(url)
                             }
                         )
@@ -264,13 +263,17 @@ struct ThumbnailTests {
 private actor Counter {
     private(set) var value = 0
 
-    func bump() { value += 1 }
+    func bump() {
+        value += 1
+    }
 }
 
 private actor Peak {
     private(set) var highest = 0
 
-    func observe(_ count: Int) { highest = max(highest, count) }
+    func observe(_ count: Int) {
+        highest = max(highest, count)
+    }
 }
 
 // MARK: - Fixtures

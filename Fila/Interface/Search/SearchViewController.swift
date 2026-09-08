@@ -56,7 +56,9 @@ final class SearchViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     deinit { walk?.cancel() }
 
@@ -114,7 +116,7 @@ final class SearchViewController: UIViewController {
             content.text = self?.footerText
             cell.contentConfiguration = content
         }
-        dataSource.supplementaryViewProvider = { collection, kind, indexPath in
+        dataSource.supplementaryViewProvider = { collection, _, indexPath in
             collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
         }
         search.searchBar.text = initialQuery
@@ -129,7 +131,9 @@ final class SearchViewController: UIViewController {
         super.viewDidAppear(animated)
         guard !hasOfferedKeyboard else { return }
         hasOfferedKeyboard = true
-        if (initialQuery ?? "").isEmpty { navigationItem.searchController?.searchBar.becomeFirstResponder() }
+        if (initialQuery ?? "").isEmpty {
+            navigationItem.searchController?.searchBar.becomeFirstResponder()
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -148,13 +152,15 @@ final class SearchViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        if navigationController?.viewControllers.contains(where: { $0 === self }) != true { stopSearch() }
+        if navigationController?.viewControllers.contains(where: { $0 === self }) != true {
+            stopSearch()
+        }
     }
 
     private func updateScopeMenu() {
         let options: [(Scope, String)] = [
             (.folder, String(localized: "This Folder")),
-            (.subfolders, String(localized: "Subfolders"))
+            (.subfolders, String(localized: "Subfolders")),
         ]
         let actions = options.map { option, title in
             UIAction(
@@ -166,7 +172,7 @@ final class SearchViewController: UIViewController {
             }
         }
         navigationItem.rightBarButtonItem?.menu = UIMenu(children: [
-            FilaMenu.selection(title: String(localized: "Search In"), actions: actions)
+            FilaMenu.selection(title: String(localized: "Search In"), actions: actions),
         ])
     }
 
@@ -200,26 +206,26 @@ final class SearchViewController: UIViewController {
             guard let self, !Task.isCancelled, self.searchID == searchID else { return }
             if scope == .folder {
                 do {
-                    for try await page in DirectoryReader.pages(in: self.root, session: self.session) {
+                    for try await page in DirectoryReader.pages(in: root, session: session) {
                         guard !Task.isCancelled, self.searchID == searchID else { return }
-                        guard page.count <= DirectoryReader.maximumEntryCount - self.loadingFolderEntries.count else {
-                            throw FilaFailure(errno: E2BIG, path: self.root)
+                        guard page.count <= DirectoryReader.maximumEntryCount - loadingFolderEntries.count else {
+                            throw FilaFailure(errno: E2BIG, path: root)
                         }
-                        self.loadingFolderEntries.append(contentsOf: page)
-                        self.filterFolder(self.loadingFolderEntries)
+                        loadingFolderEntries.append(contentsOf: page)
+                        filterFolder(loadingFolderEntries)
                     }
                     guard !Task.isCancelled, self.searchID == searchID else { return }
-                    self.folderEntries = self.loadingFolderEntries
-                    self.loadingFolderEntries = []
+                    folderEntries = loadingFolderEntries
+                    loadingFolderEntries = []
                 } catch let failure as FilaFailure {
                     guard !Task.isCancelled, self.searchID == searchID else { return }
                     self.failure = FailureText.summary(for: failure)
                 } catch {}
             } else {
                 let skipped = await FileSearch.run(
-                    root: self.root,
+                    root: root,
                     needle: needle,
-                    session: self.session
+                    session: session
                 ) { directory in
                     guard !Task.isCancelled, self.searchID == searchID else { return }
                     self.currentDirectory = directory
@@ -229,15 +235,17 @@ final class SearchViewController: UIViewController {
                 } onHit: { hit in
                     guard !Task.isCancelled, self.searchID == searchID else { return }
                     self.hits.append(hit)
-                    if self.hits.count % 20 == 0 { self.apply() }
+                    if self.hits.count % 20 == 0 {
+                        self.apply()
+                    }
                 }
                 guard !Task.isCancelled, self.searchID == searchID else { return }
-                self.skippedLinks = skipped
+                skippedLinks = skipped
             }
             guard !Task.isCancelled, self.searchID == searchID else { return }
-            self.walk = nil
-            self.isSearching = false
-            self.apply()
+            walk = nil
+            isSearching = false
+            apply()
         }
     }
 
@@ -304,7 +312,9 @@ final class SearchViewController: UIViewController {
         let footer = hasFooterLayout
         return UICollectionViewCompositionalLayout { _, environment in
             let section = NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
-            if footer { section.boundarySupplementaryItems = [BrowserViewController.footerItem()] }
+            if footer {
+                section.boundarySupplementaryItems = [BrowserViewController.footerItem()]
+            }
             return section
         }
     }
@@ -316,7 +326,7 @@ final class SearchViewController: UIViewController {
         // the search field's magnifier is the one slot that can say so
         // without adding a row.
         let field = navigationItem.searchController?.searchBar.searchTextField
-        if isSearching && !hits.isEmpty {
+        if isSearching, !hits.isEmpty {
             spinner.startAnimating()
             field?.leftView = spinner
         } else {
@@ -365,7 +375,7 @@ final class SearchViewController: UIViewController {
 }
 
 extension SearchViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+    func searchBar(_: UISearchBar, textDidChange searchText: String) {
         guard scope == .folder else {
             start("")
             return
@@ -434,9 +444,9 @@ extension SearchViewController: UICollectionViewDelegate {
             }
             let actions = FileActions(presenter: self, directory: hit.directory) { [weak self] in
                 guard let self else { return }
-                self.hits.removeAll { $0 == hit }
-                self.folderEntries?.removeAll { $0 == hit.node }
-                self.apply()
+                hits.removeAll { $0 == hit }
+                folderEntries?.removeAll { $0 == hit.node }
+                apply()
             }
             return UIMenu(
                 title: hit.node.name,

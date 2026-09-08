@@ -54,7 +54,9 @@ public struct SearchMatch: Sendable, Hashable {
         self.node = node
     }
 
-    public var path: String { directory == "/" ? "/" + node.name : directory + "/" + node.name }
+    public var path: String {
+        directory == "/" ? "/" + node.name : directory + "/" + node.name
+    }
 }
 
 /// The ways a search can stop short of walking everything it was given.
@@ -66,7 +68,9 @@ public struct SearchMatch: Sendable, Hashable {
 public struct SearchLimits: OptionSet, Sendable, Hashable {
     public let rawValue: UInt64
 
-    public init(rawValue: UInt64) { self.rawValue = rawValue }
+    public init(rawValue: UInt64) {
+        self.rawValue = rawValue
+    }
 
     /// `FilaProtocol.searchResultLimit` matches were reported and the walk
     /// stopped there. There are more.

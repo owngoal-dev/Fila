@@ -1,11 +1,10 @@
 import Darwin
 import Dispatch
 import FilaFileOps
+@testable import FilaTerminal
+import FilaTestSupport
 import Foundation
 import Testing
-import FilaTestSupport
-
-@testable import FilaTerminal
 
 /// The pump, against a real pseudo-terminal with a real program on it.
 ///
@@ -61,8 +60,10 @@ struct TerminalPTYTests {
         private func waitUntil(seconds: Double, _ condition: () -> Bool) -> Bool {
             let deadline = Date().addingTimeInterval(seconds)
             while Date() < deadline {
-                if condition() { return true }
-                usleep(10_000)
+                if condition() {
+                    return true
+                }
+                usleep(10000)
             }
             return condition()
         }

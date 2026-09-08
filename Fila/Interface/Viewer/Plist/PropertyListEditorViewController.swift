@@ -23,11 +23,18 @@ final class PropertyListEditorViewController: UIViewController {
         var isSaving = false
         weak var rootController: PropertyListEditorViewController?
 
-        init(source: Source) { self.source = source }
+        init(source: Source) {
+            self.source = source
+        }
 
-        var isEditing: Bool { saved != nil }
+        var isEditing: Bool {
+            saved != nil
+        }
+
         var canEdit: Bool {
-            if case .file = source { return root?.supportsEditing == true }
+            if case .file = source {
+                return root?.supportsEditing == true
+            }
             return false
         }
     }
@@ -47,6 +54,7 @@ final class PropertyListEditorViewController: UIViewController {
         item.accessibilityLabel = String(localized: "More")
         return item
     }()
+
     private lazy var cancelItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
@@ -57,6 +65,7 @@ final class PropertyListEditorViewController: UIViewController {
         item.accessibilityLabel = String(localized: "Cancel")
         return item
     }()
+
     private lazy var backItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "chevron.backward"),
@@ -95,7 +104,9 @@ final class PropertyListEditorViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -109,7 +120,9 @@ final class PropertyListEditorViewController: UIViewController {
         table.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
-        if document.root == nil { load() }
+        if document.root == nil {
+            load()
+        }
         refresh()
     }
 
@@ -142,7 +155,9 @@ final class PropertyListEditorViewController: UIViewController {
 
     private func refresh() {
         rebuild()
-        if document.rootController !== self { document.rootController?.refreshBarItems() }
+        if document.rootController !== self {
+            document.rootController?.refreshBarItems()
+        }
         refreshBarItems()
     }
 
@@ -208,17 +223,17 @@ final class PropertyListEditorViewController: UIViewController {
         ) { [weak self] _ in self?.save() }
         let actions = [
             (String(localized: "Save as Binary"), PropertyListSerialization.PropertyListFormat.binary),
-            (String(localized: "Save as XML"), PropertyListSerialization.PropertyListFormat.xml)
+            (String(localized: "Save as XML"), PropertyListSerialization.PropertyListFormat.xml),
         ].map { title, format in
             UIAction(
                 title: title,
                 attributes: document.isSaving ? .disabled : [],
                 state: document.format == format ? .on : .off
             ) { [weak self] _ in
-                guard let self, !self.document.isSaving, self.document.format != format else { return }
-                self.document.format = format
-                self.document.hasUnsavedChanges = true
-                self.refresh()
+                guard let self, !self.document.isSaving, document.format != format else { return }
+                document.format = format
+                document.hasUnsavedChanges = true
+                refresh()
             }
         }
         let format = UIMenu(
@@ -262,7 +277,7 @@ final class PropertyListEditorViewController: UIViewController {
     @objc private func cancelEditing() {
         confirmLeaving { [weak self] in
             guard let self else { return }
-            self.refresh()
+            refresh()
         }
     }
 
@@ -275,7 +290,8 @@ final class PropertyListEditorViewController: UIViewController {
     /// so dismissing this prompt never writes the document.
     private func confirmLeaving(_ leave: @escaping () -> Void, prepareToPresent: () -> Void = {}) {
         if let visible = navigationController?.topViewController as? PropertyListEditorViewController,
-           visible !== self, visible.document === document {
+           visible !== self, visible.document === document
+        {
             visible.confirmLeaving(leave, prepareToPresent: prepareToPresent)
             return
         }
@@ -342,21 +358,21 @@ final class PropertyListEditorViewController: UIViewController {
         ) { [weak self] text in
             guard let self else { return }
             guard let value = Self.reinterpret(text, like: row.value) else {
-                self.showError(String(localized: "Enter a valid number for this value."))
+                showError(String(localized: "Enter a valid number for this value."))
                 return
             }
             guard text != row.value.editableText else { return }
-            self.apply { $0.replacing(row.path, with: value) }
+            apply { $0.replacing(row.path, with: value) }
         }
         present(alert, animated: true)
     }
 
     private static func reinterpret(_ text: String, like original: PropertyListValue) -> PropertyListValue? {
         switch original {
-        case .string: return .string(text)
-        case .integer: return Int64(text).map(PropertyListValue.integer)
-        case .real: return Double(text).flatMap { $0.isFinite ? .real($0) : nil }
-        default: return nil
+        case .string: .string(text)
+        case .integer: Int64(text).map(PropertyListValue.integer)
+        case .real: Double(text).flatMap { $0.isFinite ? .real($0) : nil }
+        default: nil
         }
     }
 
@@ -371,11 +387,11 @@ final class PropertyListEditorViewController: UIViewController {
         ) { [weak self] name in
             guard let self, !name.isEmpty, name != row.label else { return }
             let sibling = Array(row.path.dropLast()) + [.key(name)]
-            guard self.document.root?.value(at: sibling) == nil else {
-                self.showError(String(localized: "A key with this name already exists. Choose a different name."))
+            guard document.root?.value(at: sibling) == nil else {
+                showError(String(localized: "A key with this name already exists. Choose a different name."))
                 return
             }
-            self.apply { $0.renaming(row.path, to: name) }
+            apply { $0.renaming(row.path, to: name) }
         }
         present(alert, animated: true)
     }
@@ -416,11 +432,11 @@ final class PropertyListEditorViewController: UIViewController {
             text: ""
         ) { [weak self] key in
             guard let self, !key.isEmpty else { return }
-            guard self.document.root?.value(at: row.path + [.key(key)]) == nil else {
-                self.showError(String(localized: "A key with this name already exists. Choose a different name."))
+            guard document.root?.value(at: row.path + [.key(key)]) == nil else {
+                showError(String(localized: "A key with this name already exists. Choose a different name."))
                 return
             }
-            self.apply { $0.inserting(value, key: key, into: row.path) }
+            apply { $0.inserting(value, key: key, into: row.path) }
         }
         present(alert, animated: true)
     }
@@ -449,21 +465,23 @@ final class PropertyListEditorViewController: UIViewController {
             do {
                 let data = try PropertyListBudget.serialize(root.foundationObject, format: format)
                 try await AtomicSave.write(data, to: details.path, link: link)
-                self.document.saved = nil
-                self.document.hasUnsavedChanges = false
-                self.document.isSaving = false
-                self.refresh()
+                document.saved = nil
+                document.hasUnsavedChanges = false
+                document.isSaving = false
+                refresh()
             } catch {
-                self.document.isSaving = false
-                self.refresh()
-                self.showError(FailureMessage.text(for: error, whileWriting: true))
+                document.isSaving = false
+                refresh()
+                showError(FailureMessage.text(for: error, whileWriting: true))
             }
         }
     }
 }
 
 extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        rows.count
+    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let row = rows[indexPath.row]
@@ -495,16 +513,16 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         return cell
     }
 
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_: UITableView, titleForHeaderInSection _: Int) -> String? {
         document.root?.value(at: path)?.typeName
     }
 
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    func tableView(_: UITableView, titleForFooterInSection _: Int) -> String? {
         guard document.root?.supportsEditing == false else { return nil }
         return String(localized: "This property list contains values that can be viewed but not edited.")
     }
 
-    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    func tableView(_: UITableView, viewForFooterInSection _: Int) -> UIView? {
         guard document.isEditing, let value = document.root?.value(at: path), value.isContainer else { return nil }
         let button = UIButton(type: .system)
         button.setTitle(String(localized: "Add Entry"), for: .normal)
@@ -514,7 +532,7 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         return button
     }
 
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         document.isEditing && document.root?.value(at: path)?.isContainer == true ? 52 : UITableView.automaticDimension
     }
 
@@ -537,9 +555,9 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
     }
 
     func tableView(
-        _ tableView: UITableView,
+        _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         let row = rows[indexPath.row]
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -547,11 +565,11 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
             var actions: [UIMenuElement] = [
                 UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { _ in
                     UIPasteboard.general.string = row.value.summary
-                }
+                },
             ]
-            if self.document.isEditing, !self.document.isSaving {
+            if document.isEditing, !document.isSaving {
                 if row.value.isContainer {
-                    actions.append(self.addEntryMenu(for: row))
+                    actions.append(addEntryMenu(for: row))
                 }
                 if case .key = row.path.last {
                     actions.append(
@@ -578,7 +596,7 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
 }
 
 extension PropertyListEditorViewController: UIAdaptivePresentationControllerDelegate {
-    func presentationControllerDidAttemptToDismiss(_ presentationController: UIPresentationController) {
+    func presentationControllerDidAttemptToDismiss(_: UIPresentationController) {
         confirmLeaving { [weak self] in self?.dismiss(animated: true) }
     }
 }

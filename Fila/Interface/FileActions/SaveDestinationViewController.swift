@@ -47,6 +47,7 @@ final class SaveDestinationViewController: UIViewController {
     private let rowCell = UICollectionView.CellRegistration<IconRowCell, FileNode> { cell, _, node in
         cell.configure(node)
     }
+
     private let nameField = UITextField()
     private var folders: [FileNode] = []
     private var work: Task<Void, Never>?
@@ -62,6 +63,7 @@ final class SaveDestinationViewController: UIViewController {
         item.accessibilityLabel = String(localized: "Cancel")
         return item
     }()
+
     private lazy var confirmItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
@@ -74,6 +76,7 @@ final class SaveDestinationViewController: UIViewController {
             : String(localized: "Save Here")
         return item
     }()
+
     private lazy var menuItem: UIBarButtonItem = {
         let item = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu())
         item.accessibilityLabel = String(localized: "More")
@@ -117,7 +120,9 @@ final class SaveDestinationViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     deinit { work?.cancel() }
 
@@ -255,47 +260,50 @@ final class SaveDestinationViewController: UIViewController {
                 repeat {
                     let page = try await link.list(directory: path, cursor: cursor)
                     guard !Task.isCancelled, let self else { return }
-                    let picksFiles = self.selection.picksFiles
-                    self.folders.append(contentsOf: page.entries.filter { node in
-                        if node.isNavigable { return true }
+                    let picksFiles = selection.picksFiles
+                    folders.append(contentsOf: page.entries.filter { node in
+                        if node.isNavigable {
+                            return true
+                        }
                         if let types = self.selection.fileTypes {
                             return node.kind == .regular
                                 && types.contains((node.name as NSString).pathExtension.lowercased())
                         }
                         return picksFiles
                     })
-                    self.folders.sort {
+                    folders.sort {
                         $0.isNavigable != $1.isNavigable
                             ? $0.isNavigable
                             : $0.name.localizedStandardCompare($1.name) == .orderedAscending
                     }
-                    self.list.reloadData()
-                    self.availability = .ready
-                    if !self.folders.isEmpty { self.list.backgroundView = nil }
-                    else if page.cursor == 0 {
-                        let title: String
-                        if self.selection.fileTypes != nil { title = String(localized: "No Audio Files") }
-                        else {
-                            title = picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
+                    list.reloadData()
+                    availability = .ready
+                    if !folders.isEmpty {
+                        list.backgroundView = nil
+                    } else if page.cursor == 0 {
+                        let title: String = if selection.fileTypes != nil {
+                            String(localized: "No Audio Files")
+                        } else {
+                            picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
                         }
-                        self.list.backgroundView = StatusView(content: .message(
+                        list.backgroundView = StatusView(content: .message(
                             symbol: "folder", title: title
                         ))
                     }
-                    self.refreshActions()
+                    refreshActions()
                     cursor = page.cursor
                 } while cursor != 0
             } catch {
                 guard !Task.isCancelled, let self else { return }
-                self.availability = .unavailable
-                self.folders = []
-                self.list.reloadData()
-                self.list.backgroundView = StatusView(content: .message(
+                availability = .unavailable
+                folders = []
+                list.reloadData()
+                list.backgroundView = StatusView(content: .message(
                     symbol: "exclamationmark.triangle",
                     title: String(localized: "Unable to Read Folder"),
                     detail: FailureMessage.text(for: error)
                 ))
-                self.refreshActions()
+                refreshActions()
             }
         }
     }
@@ -342,10 +350,10 @@ final class SaveDestinationViewController: UIViewController {
         ) { [weak self] name in
             guard let self else { return }
             guard Self.isValidName(name) else {
-                self.showError(String(localized: "Enter a folder name without slashes. “.” and “..” cannot be used."))
+                showError(String(localized: "Enter a folder name without slashes. “.” and “..” cannot be used."))
                 return
             }
-            self.createFolder(named: name)
+            createFolder(named: name)
         }
         present(alert, animated: true)
     }
@@ -360,15 +368,15 @@ final class SaveDestinationViewController: UIViewController {
             do {
                 try await link.create(.directory, at: url.path)
                 guard let self else { return }
-                self.load()
-                if self.viewIfLoaded?.window != nil, self.navigationController?.topViewController === self {
-                    self.open(url)
+                load()
+                if viewIfLoaded?.window != nil, navigationController?.topViewController === self {
+                    open(url)
                 }
             } catch {
                 guard let self else { return }
-                self.availability = .ready
-                self.refreshActions()
-                self.showError(FailureMessage.text(for: error, whileWriting: true))
+                availability = .ready
+                refreshActions()
+                showError(FailureMessage.text(for: error, whileWriting: true))
             }
         }
     }
@@ -386,7 +394,9 @@ final class SaveDestinationViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    @objc private func cancel() { dismiss(animated: true) }
+    @objc private func cancel() {
+        dismiss(animated: true)
+    }
 
     @objc private func commit() {
         guard selection.fileTypes == nil, confirmItem.isEnabled else { return }
@@ -399,7 +409,9 @@ final class SaveDestinationViewController: UIViewController {
 }
 
 extension SaveDestinationViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int { folders.count }
+    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
+        folders.count
+    }
 
     func collectionView(
         _ collectionView: UICollectionView,

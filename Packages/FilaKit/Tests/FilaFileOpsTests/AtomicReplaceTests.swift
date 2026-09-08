@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 @Suite("Atomic replace")
 struct AtomicReplaceTests {
@@ -61,11 +60,15 @@ struct AtomicReplaceTests {
     func preservesACL() throws {
         let target = scratch.file("restricted.txt", contents: "old")
         var acl = acl_init(1)
-        defer { if let acl { acl_free(UnsafeMutableRawPointer(acl)) } }
+        defer {
+            if let acl {
+                acl_free(UnsafeMutableRawPointer(acl))
+            }
+        }
         var entry: acl_entry_t?
         try #require(acl_create_entry(&acl, &entry) == 0)
         let access = try #require(entry)
-        var identity = UUID(uuidString: "FFFFEEEE-DDDD-CCCC-BBBB-AAAA00000000")!.uuid
+        var identity = try #require(UUID(uuidString: "FFFFEEEE-DDDD-CCCC-BBBB-AAAA00000000")?.uuid)
         try #require(acl_set_tag_type(access, ACL_EXTENDED_ALLOW) == 0)
         try #require(acl_set_qualifier(access, &identity) == 0)
         try #require(acl_set_permset_mask_np(access, UInt64(ACL_READ_DATA.rawValue)) == 0)

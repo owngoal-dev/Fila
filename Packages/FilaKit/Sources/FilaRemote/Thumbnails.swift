@@ -2,8 +2,8 @@ import FilaProtocol
 import Foundation
 import UniformTypeIdentifiers
 #if canImport(QuickLookThumbnailing)
-import ImageIO
-import QuickLookThumbnailing
+    import ImageIO
+    import QuickLookThumbnailing
 #endif
 
 /// `GET <file>?thumbnail=<px>` — a small PNG of the file for the browser page's
@@ -43,7 +43,9 @@ extension WebDAVHandler {
             ("Cache-Control", "private, max-age=3600"),
             ("ETag", "\"t\(node.inode)-\(side)-\(Int64(node.modified))\""),
         ], contentLength: png.count))
-        if includeBody { try await http.write(png) }
+        if includeBody {
+            try await http.write(png)
+        }
         return 200
     }
 }
@@ -54,26 +56,26 @@ enum Thumbnailer {
     /// the page draws its own.
     static func png(for path: String, side: Int) async -> Data? {
         #if canImport(QuickLookThumbnailing)
-        let request = QLThumbnailGenerator.Request(
-            fileAt: URL(fileURLWithPath: path),
-            size: CGSize(width: side, height: side),
-            scale: 1,
-            representationTypes: .thumbnail
-        )
-        guard
-            let representation = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
-        else {
-            return nil
-        }
-        let data = NSMutableData()
-        guard let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
-            return nil
-        }
-        CGImageDestinationAddImage(destination, representation.cgImage, nil)
-        guard CGImageDestinationFinalize(destination) else { return nil }
-        return data as Data
+            let request = QLThumbnailGenerator.Request(
+                fileAt: URL(fileURLWithPath: path),
+                size: CGSize(width: side, height: side),
+                scale: 1,
+                representationTypes: .thumbnail
+            )
+            guard
+                let representation = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
+            else {
+                return nil
+            }
+            let data = NSMutableData()
+            guard let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
+                return nil
+            }
+            CGImageDestinationAddImage(destination, representation.cgImage, nil)
+            guard CGImageDestinationFinalize(destination) else { return nil }
+            return data as Data
         #else
-        return nil
+            return nil
         #endif
     }
 }

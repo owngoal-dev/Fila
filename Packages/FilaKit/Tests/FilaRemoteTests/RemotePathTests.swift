@@ -1,10 +1,9 @@
-import Foundation
-import Testing
-import NIOCore
-import NIOHTTP1
-import NIOEmbedded
-
 @testable import FilaRemote
+import Foundation
+import NIOCore
+import NIOEmbedded
+import NIOHTTP1
+import Testing
 
 // The request target is written by whoever reached the port. Everything here is
 // about what happens to it before it becomes a path.
@@ -101,15 +100,21 @@ struct HTTPMessageTests {
             Issue.record("bytes=-10 should parse")
         }
         // Past the end is a 416, not a whole file.
-        if case .unsatisfiable = range("bytes=200-") {} else { Issue.record("bytes=200- is unsatisfiable") }
+        if case .unsatisfiable = range("bytes=200-") {} else {
+            Issue.record("bytes=200- is unsatisfiable")
+        }
         // Clamped rather than refused: asking for more than there is is legal.
         if case let .range(value) = range("bytes=95-200") {
             #expect(value.offset == 95 && value.count == 5)
         } else {
             Issue.record("bytes=95-200 should clamp")
         }
-        if case .absent = range(nil) {} else { Issue.record("no header means no range") }
-        if case .absent = range("bytes=0-9,20-29") {} else { Issue.record("multiple ranges fall back") }
+        if case .absent = range(nil) {} else {
+            Issue.record("no header means no range")
+        }
+        if case .absent = range("bytes=0-9,20-29") {} else {
+            Issue.record("multiple ranges fall back")
+        }
     }
 }
 
@@ -137,7 +142,9 @@ struct AuthenticationTests {
 
     private func request(_ authorization: String?, method: String = "GET", target: String = "/") -> HTTPRequest {
         var text = "\(method) \(target) HTTP/1.1\r\nHost: x\r\n"
-        if let authorization { text += "Authorization: \(authorization)\r\n" }
+        if let authorization {
+            text += "Authorization: \(authorization)\r\n"
+        }
         return HTTPRequest.parse(Data(text.utf8))!
     }
 
@@ -260,7 +267,7 @@ struct DAVXMLTests {
     }
 }
 
-// Exercise the production NIO parser synchronously on its creating thread.
+/// Exercise the production NIO parser synchronously on its creating thread.
 private extension HTTPRequest {
     static func parse(_ block: Data) -> HTTPRequest? {
         let channel = EmbeddedChannel(handler: ByteToMessageHandler(HTTPRequestDecoder()))
@@ -268,7 +275,9 @@ private extension HTTPRequest {
         do {
             _ = try channel.writeInbound(ByteBuffer(bytes: block + Data("\r\n".utf8)))
             while let part = try channel.readInbound(as: HTTPServerRequestPart.self) {
-                if case let .head(head) = part { return HTTPRequest(head) }
+                if case let .head(head) = part {
+                    return HTTPRequest(head)
+                }
             }
         } catch { return nil }
         return nil

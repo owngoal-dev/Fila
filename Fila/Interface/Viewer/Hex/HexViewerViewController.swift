@@ -1,6 +1,6 @@
 import AlertController
-import FilaProtocol
 import FilaFormats
+import FilaProtocol
 import SnapKit
 import Then
 import UIKit
@@ -19,7 +19,7 @@ import UIKit
 /// building before someone asks for it.
 final class HexViewerViewController: UIViewController {
     private var bytesPerRow = 8
-    private static let pageByteCount = 64 * 1_024
+    private static let pageByteCount = 64 * 1024
     private static let cachedPageCount = 32
 
     private let file: DescriptorFile
@@ -34,7 +34,9 @@ final class HexViewerViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -110,14 +112,16 @@ final class HexViewerViewController: UIViewController {
     private func bytes(forRow row: Int) -> Data {
         let offset = Int64(row) * Int64(bytesPerRow)
         let pageIndex = offset / Int64(Self.pageByteCount)
-        let page = self.page(pageIndex)
+        let page = page(pageIndex)
         let start = Int(offset - pageIndex * Int64(Self.pageByteCount))
         guard start < page.count else { return Data() }
         return page.subdata(in: start ..< min(start + bytesPerRow, page.count))
     }
 
     private func page(_ index: Int64) -> Data {
-        if let cached = pages[index] { return cached }
+        if let cached = pages[index] {
+            return cached
+        }
         let data = (try? file.read(
             at: index * Int64(Self.pageByteCount),
             count: Self.pageByteCount
@@ -142,18 +146,18 @@ final class HexViewerViewController: UIViewController {
             // Silently doing nothing is how this read as broken: a typo and a
             // number past the end of the file both looked like a dead button.
             guard let offset = HexWindow.parseOffset(text) else {
-                self.explain(String(localized: "That is not a valid offset. Enter a decimal offset, or a hexadecimal offset with a 0x prefix."))
+                explain(String(localized: "That is not a valid offset. Enter a decimal offset, or a hexadecimal offset with a 0x prefix."))
                 return
             }
-            guard offset < self.file.byteCount else {
-                self.explain(String(
+            guard offset < file.byteCount else {
+                explain(String(
                     format: String(localized: "This offset is past the end of the file. Enter 0x%llx or less."),
-                    max(0, self.file.byteCount - 1)
+                    max(0, file.byteCount - 1)
                 ))
                 return
             }
-            let row = Int(offset / Int64(self.bytesPerRow))
-            self.table.scrollToRow(at: IndexPath(row: row, section: 0), at: .top, animated: false)
+            let row = Int(offset / Int64(bytesPerRow))
+            table.scrollToRow(at: IndexPath(row: row, section: 0), at: .top, animated: false)
         }
         present(alert, animated: true)
     }
@@ -171,7 +175,6 @@ final class HexViewerViewController: UIViewController {
         }
         present(alert, animated: true)
     }
-
 }
 
 /// **Deliberately not diffable, and this is the one screen in the app that is
@@ -193,7 +196,7 @@ final class HexViewerViewController: UIViewController {
 /// would not be in the snapshot yet. Losing large-file support to gain a
 /// uniform data source is a bad trade, so it was not made.
 extension HexViewerViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         Int(file.byteCount / Int64(bytesPerRow) + (file.byteCount % Int64(bytesPerRow) == 0 ? 0 : 1))
     }
 
@@ -235,7 +238,9 @@ final class HexRowCell: UITableViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     func show(offset: Int64, bytes: Data, width: Int) {
         var hex = ""
@@ -249,7 +254,9 @@ final class HexRowCell: UITableViewCell {
                 hex += "   "
                 ascii.append(" ")
             }
-            if index == width / 2 - 1 { hex += " " }
+            if index == width / 2 - 1 {
+                hex += " "
+            }
         }
         line.font = Self.font
         let text = NSMutableAttributedString(

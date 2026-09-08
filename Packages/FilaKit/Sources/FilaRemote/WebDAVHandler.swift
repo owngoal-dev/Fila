@@ -17,7 +17,7 @@ struct WebDAVHandler {
     /// owner — is read and dropped so the next request starts where it should.
     /// Anything larger than this is not one of those, and the connection ends
     /// rather than the app reading it.
-    static let discardableBodyByteCount = 1 * 1_024 * 1_024
+    static let discardableBodyByteCount = 1 * 1024 * 1024
 
     static let allowedMethods = "OPTIONS, GET, HEAD, PUT, DELETE, MKCOL, COPY, MOVE, PROPFIND"
 
@@ -124,7 +124,7 @@ struct WebDAVHandler {
             || request.header("if-match") != nil
             || request.header("if-unmodified-since") != nil
             || (request.method != "PUT" && request.header("if-none-match") != nil)
-        if mutates && unsupportedCondition {
+        if mutates, unsupportedCondition {
             // Checking metadata here and mutating through a later backend call
             // would not make a conditional write atomic. Refuse the unsupported
             // condition rather than silently perform an unconditional mutation.
@@ -221,7 +221,8 @@ struct WebDAVHandler {
         var subject = path
         if let details = try? await service.details(of: path),
            details.node.kind == .symbolicLink,
-           let target = details.node.link?.target {
+           let target = details.node.link?.target
+        {
             subject = target.hasPrefix("/")
                 ? target
                 : RemotePath.join(RemotePath.parent(of: details.path), target)
@@ -231,7 +232,9 @@ struct WebDAVHandler {
         // is judged by the directory it would be created in. A parent that does
         // not exist either is left to fail as the 404 or 409 it is.
         var resolved = await canonical(subject)
-        if resolved == nil { resolved = await canonical(RemotePath.parent(of: subject)) }
+        if resolved == nil {
+            resolved = await canonical(RemotePath.parent(of: subject))
+        }
         guard let resolved else { return true }
         return resolved == configuration.root || resolved.hasPrefix(configuration.root + "/")
     }
@@ -296,11 +299,16 @@ struct WebDAVHandler {
         fields.add(name: "X-Content-Type-Options", value: "nosniff")
         fields.add(name: "X-Frame-Options", value: "DENY")
         fields.add(name: "Cache-Control", value: "no-store")
-        if status >= 200 && status != 204 && status != 304 {
-            if let contentLength { fields.add(name: "Content-Length", value: String(contentLength)) }
-            else { fields.add(name: "Transfer-Encoding", value: "chunked") }
+        if status >= 200, status != 204, status != 304 {
+            if let contentLength {
+                fields.add(name: "Content-Length", value: String(contentLength))
+            } else {
+                fields.add(name: "Transfer-Encoding", value: "chunked")
+            }
         }
-        if close { fields.add(name: "Connection", value: "close") }
+        if close {
+            fields.add(name: "Connection", value: "close")
+        }
         return HTTPResponseHead(version: .http1_1, status: HTTPResponseStatus(statusCode: status), headers: fields)
     }
 

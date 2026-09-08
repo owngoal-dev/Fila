@@ -63,7 +63,9 @@ public extension FilaLog {
             defer { index += 1 }
             let token = tokens[index]
             // A run of spaces is not the value the flag was pointing at.
-            if token.isEmpty { continue }
+            if token.isEmpty {
+                continue
+            }
 
             if redactNextToken {
                 redactNextToken = false

@@ -26,7 +26,9 @@ final class FileSession {
 
     /// The prefix the daemon resolved for itself. Derived, so it cannot say
     /// "connected" while `hello` says otherwise.
-    var installRoot: String? { hello?.installRoot }
+    var installRoot: String? {
+        hello?.installRoot
+    }
 
     private var handshake: Task<DaemonLink.Hello, Never>?
     private let temporaryIdentifier = UUID().uuidString
@@ -45,10 +47,14 @@ final class FileSession {
     /// daemon is installed to wait for. See the rule written out there.
     @discardableResult
     func ready() async -> DaemonLink.Hello {
-        if let handshake { return await handshake.value }
+        if let handshake {
+            return await handshake.value
+        }
         let task = Task { () -> DaemonLink.Hello in
             while true {
-                if let hello = await self.shakeHands() { return hello }
+                if let hello = await self.shakeHands() {
+                    return hello
+                }
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
         }
@@ -71,10 +77,14 @@ final class FileSession {
         // Already answered: no round trip, and above all no `await` on the
         // handshake task, which may be the forever wait still going round —
         // awaiting that is exactly the wait this exists to avoid.
-        if let hello { return hello }
+        if let hello {
+            return hello
+        }
         let deadline = Date().addingTimeInterval(seconds)
         repeat {
-            if let hello = await shakeHands() { return hello }
+            if let hello = await shakeHands() {
+                return hello
+            }
             try? await Task.sleep(nanoseconds: 250_000_000)
         } while Date() < deadline
         return nil
@@ -105,7 +115,9 @@ final class FileSession {
         hello = answer
         // A bounded wait that got there first spares the forever wait a second
         // round trip — and answers `ready()` immediately for everything after.
-        if handshake == nil { handshake = Task { answer } }
+        if handshake == nil {
+            handshake = Task { answer }
+        }
         return answer
     }
 
@@ -131,7 +143,9 @@ final class FileSession {
                 return try await body(link)
             } catch let failure as FilaFailure where attempts > 0 && failure.systemError == ECONNRESET {
                 attempts -= 1
-                if attempts < 2 { try await Task.sleep(nanoseconds: 400_000_000) }
+                if attempts < 2 {
+                    try await Task.sleep(nanoseconds: 400_000_000)
+                }
             }
         }
     }
@@ -189,7 +203,8 @@ final class FileSession {
         let details = try await link.details(of: parent.path)
         // Never adopt an unknown directory or follow a replacement symlink.
         guard details.node.kind == .directory, details.node.ownerID == getuid(), details.node.mode & 0o777 == 0o700,
-              URL(fileURLWithPath: details.path).standardizedFileURL.path == parent.standardizedFileURL.path else {
+              URL(fileURLWithPath: details.path).standardizedFileURL.path == parent.standardizedFileURL.path
+        else {
             throw FilaFailure(code: .notPermitted, systemError: EPERM, path: parent.path)
         }
         // Complete the listing before deleting. Only UUID process workspaces
@@ -223,7 +238,9 @@ final class FileSession {
                 subtitle: path,
                 feedback: .silent
             )
-            if outcome.code != .success && outcome.code != .notFound { throw outcome }
+            if outcome.code != .success, outcome.code != .notFound {
+                throw outcome
+            }
         } catch { FilaLog.error("Temporary file cleanup failed at \(path): \(error)") }
     }
 

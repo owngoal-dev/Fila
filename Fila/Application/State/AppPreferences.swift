@@ -136,7 +136,9 @@ final class AppPreferences {
         // evicting least-recently-used, which would need a second structure to
         // hold the order. The cost of being wrong is that some folders forget
         // their view; make it an LRU the day anyone notices.
-        if map.count >= Self.folderLayoutLimit { map = [:] }
+        if map.count >= Self.folderLayoutLimit {
+            map = [:]
+        }
         map[path] = value.rawValue
         defaults.set(map, forKey: "folderLayouts")
     }
@@ -166,7 +168,11 @@ final class AppPreferences {
 
     func setPreset(_ preset: SidebarLocation.Position, enabled: Bool) {
         var hidden = Set(defaults.array(forKey: "hiddenPresets") as? [Int] ?? [])
-        if enabled { hidden.remove(preset.rawValue) } else { hidden.insert(preset.rawValue) }
+        if enabled {
+            hidden.remove(preset.rawValue)
+        } else {
+            hidden.insert(preset.rawValue)
+        }
         defaults.set(hidden.sorted(), forKey: "hiddenPresets")
         NotificationCenter.default.post(name: .filaPreferencesChanged, object: nil)
     }
@@ -237,7 +243,7 @@ final class AppPreferences {
     var serverPort: UInt16 {
         get {
             let stored = defaults.integer(forKey: "serverPort")
-            return (1_024 ... 65_535).contains(stored) ? UInt16(stored) : 8_080
+            return (1024 ... 65535).contains(stored) ? UInt16(stored) : 8080
         }
         set { defaults.set(Int(newValue), forKey: "serverPort") }
     }
@@ -262,7 +268,9 @@ final class AppPreferences {
     /// already rooted.
     var serverPassword: String {
         get {
-            if let stored = defaults.string(forKey: "serverPassword"), !stored.isEmpty { return stored }
+            if let stored = defaults.string(forKey: "serverPassword"), !stored.isEmpty {
+                return stored
+            }
             // No 0/O/1/l/I: it is read off one screen and typed into another.
             let alphabet = Array("abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789")
             let generated = String((0 ..< 10).map { _ in alphabet.randomElement()! })
@@ -332,11 +340,17 @@ final class AppPreferences {
 
     func toggleFavorite(_ path: String) {
         var list = favorites
-        if let index = list.firstIndex(of: path) { list.remove(at: index) } else { list.append(path) }
+        if let index = list.firstIndex(of: path) {
+            list.remove(at: index)
+        } else {
+            list.append(path)
+        }
         favorites = list
     }
 
-    func isFavorite(_ path: String) -> Bool { favorites.contains(path) }
+    func isFavorite(_ path: String) -> Bool {
+        favorites.contains(path)
+    }
 
     /// Whether visits are recorded at all. On by default — the list is the
     /// point of having one — but this is a root file manager, so the trail it
@@ -350,7 +364,9 @@ final class AppPreferences {
             // Turning it off clears what is already there. A switch that stops
             // adding but leaves the history behind has not done what its label
             // says, and here the history is the thing being objected to.
-            if !newValue { recents = [] }
+            if !newValue {
+                recents = []
+            }
         }
     }
 
@@ -363,7 +379,9 @@ final class AppPreferences {
         guard recordsRecents else { return }
         var files = recentFiles
         files.removeAll { $0 == path }
-        if !isDirectory { files.append(path) }
+        if !isDirectory {
+            files.append(path)
+        }
         recentFiles = files
         var list = recents
         list.removeAll { $0 == path }

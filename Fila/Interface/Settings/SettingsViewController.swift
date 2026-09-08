@@ -9,7 +9,9 @@ final class SettingsViewController: UIViewController {
     private enum Page { case main, behavior, protection, about }
     private let page: Page
 
-    convenience init() { self.init(page: .main) }
+    convenience init() {
+        self.init(page: .main)
+    }
 
     private init(page: Page) {
         self.page = page
@@ -18,7 +20,9 @@ final class SettingsViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     private enum Section: Hashable {
         case groups
@@ -135,9 +139,9 @@ final class SettingsViewController: UIViewController {
         dataSource.supplementaryViewProvider = { collection, kind, indexPath in
             switch kind {
             case UICollectionView.elementKindSectionHeader:
-                return collection.dequeueConfiguredReusableSupplementary(using: header, for: indexPath)
+                collection.dequeueConfiguredReusableSupplementary(using: header, for: indexPath)
             default:
-                return collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
+                collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
             }
         }
     }
@@ -328,32 +332,32 @@ final class SettingsViewController: UIViewController {
 
     private static func header(for section: Section) -> String? {
         switch section {
-        case .groups: return String(localized: "General")
-        case .browsing: return String(localized: "Browsing")
-        case .fileOperations: return String(localized: "File Operations")
-        case .systemFeatures: return String(localized: "System Features")
-        case .scripts: return String(localized: "Scripts")
-        case .guardOverride: return nil
-        case .branding: return nil
-        case .diagnostics: return String(localized: "Advanced")
-        case .about: return String(localized: "About")
+        case .groups: String(localized: "General")
+        case .browsing: String(localized: "Browsing")
+        case .fileOperations: String(localized: "File Operations")
+        case .systemFeatures: String(localized: "System Features")
+        case .scripts: String(localized: "Scripts")
+        case .guardOverride: nil
+        case .branding: nil
+        case .diagnostics: String(localized: "Advanced")
+        case .about: String(localized: "About")
         }
     }
 
     private func footer(for section: Section) -> String? {
         switch section {
         case .fileOperations:
-            return String(localized: "Move deleted items to the trash so they can be put back.")
+            String(localized: "Move deleted items to the trash so they can be put back.")
         case .systemFeatures:
-            return String(
+            String(
                 localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working."
             )
         case .scripts:
-            return String(localized: "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
+            String(localized: "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
         case .guardOverride:
-            return String(localized: "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore.")
+            String(localized: "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore.")
         case .diagnostics:
-            return nil
+            nil
         case .about:
             // The only place a user is ever told they are running the
             // unprivileged build, so it says what is true and what to do about
@@ -364,22 +368,22 @@ final class SettingsViewController: UIViewController {
             // being broken.
             switch hello?.backend {
             case .none, .daemon:
-                return nil
+                nil
             case .local(.user):
-                return String(localized: "Fila is running without root access. It can read most of the device, but it can only change files that belong to it. Install the Fila .deb on a supported device for full access.")
+                String(localized: "Fila is running without root access. It can read most of the device, but it can only change files that belong to it. Install the Fila .deb on a supported device for full access.")
             case .local(.container):
-                return String(localized: "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access.")
+                String(localized: "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access.")
             }
         case .groups, .browsing, .branding:
-            return nil
+            nil
         }
     }
 
     private static func name(of location: LaunchLocation) -> String {
         switch location {
-        case .root: return String(localized: "Root")
-        case .home: return String(localized: "Home")
-        case .lastVisited: return String(localized: "Last Visited")
+        case .root: String(localized: "Root")
+        case .home: String(localized: "Home")
+        case .lastVisited: String(localized: "Last Visited")
         }
     }
 
@@ -395,7 +399,9 @@ extension SettingsViewController: UICollectionViewDelegate {
     /// Only disclosure rows navigate.
     func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         let row = dataSource.itemIdentifier(for: indexPath)
-        if row == .tasks { return true }
+        if row == .tasks {
+            return true
+        }
         return [.appearance, .behavior, .sharing, .protection, .about, .license, .log, .fileProvider].contains(row)
     }
 

@@ -94,11 +94,14 @@ for (appearance, dark) in [("light", false), ("dark", true)] {
         guard let data = render(side: 64 * scale, dark: dark) else { fail("render failed") }
         try data.write(to: output.appendingPathComponent(file))
         var entry: [String: Any] = ["idiom": "universal", "scale": "\(scale)x", "filename": file]
-        if dark { entry["appearances"] = [["appearance": "luminosity", "value": "dark"]] }
+        if dark {
+            entry["appearances"] = [["appearance": "luminosity", "value": "dark"]]
+        }
         manifest.append(entry)
         print(file)
     }
 }
+
 let contents: [String: Any] = ["images": manifest, "info": ["author": "xcode", "version": 1]]
 try JSONSerialization.data(withJSONObject: contents, options: [.prettyPrinted, .sortedKeys])
     .write(to: output.appendingPathComponent("Contents.json"))

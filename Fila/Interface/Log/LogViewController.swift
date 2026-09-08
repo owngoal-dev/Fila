@@ -42,7 +42,7 @@ final class LogViewController: UIViewController {
     /// `FilaLog`'s ring; this bounds what accumulates from the daemon over a
     /// long session, so leaving the screen open during a big verbose copy
     /// cannot grow without limit.
-    private static let maximumRowCount = 20_000
+    private static let maximumRowCount = 20000
 
     private static let pollInterval: TimeInterval = 1
 
@@ -85,7 +85,9 @@ final class LogViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -125,9 +127,9 @@ final class LogViewController: UIViewController {
             do { try await Task.sleep(nanoseconds: 500_000_000) }
             catch { return }
             guard let self else { return }
-            await self.refresh(animated: true)
+            await refresh(animated: true)
             guard !Task.isCancelled else { return }
-            self.timer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+            timer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
                 Task { await self?.refresh() }
             }
         }
@@ -187,9 +189,13 @@ final class LogViewController: UIViewController {
         guard !Task.isCancelled, viewIfLoaded?.window != nil,
               navigationController?.topViewController === self else { return }
         let (appRecords, _) = FilaLog.snapshot(since: appCursor)
-        if let last = appRecords.last { appCursor = last.sequence }
+        if let last = appRecords.last {
+            appCursor = last.sequence
+        }
         if let answer {
-            if let last = answer.records.last { daemonCursor = last.sequence }
+            if let last = answer.records.last {
+                daemonCursor = last.sequence
+            }
             daemonDropped = answer.dropped
             updateDroppedNotice()
         }
@@ -239,8 +245,8 @@ final class LogViewController: UIViewController {
         snapshot.appendItems(visible)
         // Animate the initial reveal after the navigation transition; live polls stay steady.
         dataSource.apply(snapshot, animatingDifferences: animated) { [weak self] in
-            guard let self, self.isFollowing else { return }
-            self.scrollToNewest(animated: false)
+            guard let self, isFollowing else { return }
+            scrollToNewest(animated: false)
         }
     }
 
@@ -360,18 +366,22 @@ final class LogViewController: UIViewController {
             do {
                 let directory = try await FileSession.shared.makeTemporaryDirectory()
                 var handedOff = false
-                defer { if !handedOff { try? FileManager.default.removeItem(at: directory) } }
-                guard let self, self.viewIfLoaded?.window != nil,
-                      self.navigationController?.topViewController === self,
-                      self.presentedViewController == nil else { return }
+                defer {
+                    if !handedOff {
+                        try? FileManager.default.removeItem(at: directory)
+                    }
+                }
+                guard let self, viewIfLoaded?.window != nil,
+                      navigationController?.topViewController === self,
+                      presentedViewController == nil else { return }
                 let url = directory.appendingPathComponent("fila.log")
                 try text.write(to: url, atomically: false, encoding: .utf8)
                 let controller = UIActivityViewController(activityItems: [url], applicationActivities: nil)
                 controller.completionWithItemsHandler = { _, _, _, _ in
                     try? FileManager.default.removeItem(at: directory)
                 }
-                self.anchor(controller, to: self.collectionView)
-                self.present(controller, animated: true)
+                anchor(controller, to: collectionView)
+                present(controller, animated: true)
                 handedOff = true
             } catch { FilaLog.error("Log export failed: \(error)") }
         }
@@ -396,10 +406,10 @@ final class LogViewController: UIViewController {
 
     private static func title(for level: FilaLog.Level) -> String {
         switch level {
-        case .verbose: return String(localized: "Verbose")
-        case .info: return String(localized: "Info")
-        case .warning: return String(localized: "Warning")
-        case .error: return String(localized: "Error")
+        case .verbose: String(localized: "Verbose")
+        case .info: String(localized: "Info")
+        case .warning: String(localized: "Warning")
+        case .error: String(localized: "Error")
         }
     }
 
@@ -414,7 +424,7 @@ final class LogViewController: UIViewController {
         var seconds = time_t(time)
         var parts = tm()
         localtime_r(&seconds, &parts)
-        let milliseconds = Int((time - time.rounded(.down)) * 1_000)
+        let milliseconds = Int((time - time.rounded(.down)) * 1000)
         return "\(pad(Int(parts.tm_hour), 2)):\(pad(Int(parts.tm_min), 2)):\(pad(Int(parts.tm_sec), 2))"
             + ".\(pad(milliseconds, 3))"
     }
@@ -442,9 +452,9 @@ extension LogViewController: UICollectionViewDelegate {
     }
 
     func collectionView(
-        _ collectionView: UICollectionView,
+        _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point: CGPoint
+        point _: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let record = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in

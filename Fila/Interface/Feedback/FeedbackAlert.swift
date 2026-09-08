@@ -14,13 +14,17 @@ enum FeedbackAlert {
         guard var presenter = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState == .foregroundActive })?
-            .windows.first(where: \.isKeyWindow)?.rootViewController else {
+            .windows.first(where: \.isKeyWindow)?.rootViewController
+        else {
             FilaLog.error("\(title): \(message)")
             return
         }
-        while let presented = presenter.presentedViewController { presenter = presented }
+        while let presented = presenter.presentedViewController {
+            presenter = presented
+        }
         if let transition = presenter.transitionCoordinator,
-           transition.animate(alongsideTransition: nil, completion: { _ in show(title, message: message) }) {
+           transition.animate(alongsideTransition: nil, completion: { _ in show(title, message: message) })
+        {
             return
         }
         let alert = AlertViewController(title: title, message: message) { context in

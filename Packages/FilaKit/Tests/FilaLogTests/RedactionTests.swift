@@ -1,7 +1,6 @@
+@testable import FilaLog
 import Foundation
 import Testing
-
-@testable import FilaLog
 
 // The buffer is shareable in one tap. These are the shapes a credential
 // actually arrives in — a WebDAV `Authorization` header, a URL with userinfo,

@@ -84,7 +84,10 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
+
     deinit { load?.cancel() }
 
     override func viewDidLoad() {
@@ -140,12 +143,15 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         }
     }
 
-    func updateSearchResults(for searchController: UISearchController) { filter() }
+    func updateSearchResults(for _: UISearchController) {
+        filter()
+    }
 
     private func filter() {
         let query = navigationItem.searchController?.searchBar.text ?? ""
         rows = tracks.filter { query.isEmpty || $0.title.localizedStandardContains(query)
-            || $0.artist.localizedStandardContains(query) || $0.album.localizedStandardContains(query) }
+            || $0.artist.localizedStandardContains(query) || $0.album.localizedStandardContains(query)
+        }
         tableView.reloadData()
         tableView.backgroundView = rows.isEmpty ? StatusView(content: .message(
             symbol: "music.note",
@@ -156,7 +162,9 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         )) : nil
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { rows.count }
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        rows.count
+    }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let track = rows[indexPath.row]

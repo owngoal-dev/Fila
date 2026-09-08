@@ -54,7 +54,9 @@ public enum PropertyListBudget {
                         String(localized: "a property list with this many values or nesting levels", bundle: .module)
                     )
                 }
-                for child in values { try visit(child, depth: depth + 1) }
+                for child in values {
+                    try visit(child, depth: depth + 1)
+                }
             case let values as [String: Any]:
                 guard values.count <= remainingNodes else {
                     throw FormatFailure.unsupported(

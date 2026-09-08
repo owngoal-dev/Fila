@@ -1,15 +1,19 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 @Suite("Relocated daemon write boundary")
 struct WritableRootTests {
     let scratch = Scratch()
-    var root: String { scratch.path("bootstrap") }
-    var operations: FileOperations { FileOperations(bootstrapRoot: root, writableRoot: root) }
+    var root: String {
+        scratch.path("bootstrap")
+    }
+
+    var operations: FileOperations {
+        FileOperations(bootstrapRoot: root, writableRoot: root)
+    }
 
     init() {
         scratch.directory("bootstrap")
@@ -189,7 +193,7 @@ struct WritableRootTests {
     }
 
     @Test("Trash stays within the writable root, notes the origin, and rejects an outside directory link")
-    func trashBoundary() throws {
+    func trashBoundary() {
         let source = scratch.file("bootstrap/first")
         #expect(run(JobRequest(kind: .delete, sources: [source], useTrash: true)).code == .success)
         #expect(!exists(source))

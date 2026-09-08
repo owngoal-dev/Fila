@@ -1,7 +1,7 @@
 import Darwin
+@testable import FilaProvider
 import Foundation
 import Testing
-@testable import FilaProvider
 
 /// A root with a file, a folder, a nested file, a symlink and a hard link.
 private func treeFixture(_ body: (ProviderTree, URL, URL) throws -> Void) throws {
@@ -15,7 +15,7 @@ private func treeFixture(_ body: (ProviderTree, URL, URL) throws -> Void) throws
     try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("link"), withDestinationURL: base)
     try Data("shared".utf8).write(to: root.appendingPathComponent("shared.txt"))
     try FileManager.default.linkItem(at: root.appendingPathComponent("shared.txt"), to: root.appendingPathComponent("shared-2.txt"))
-    try body(try ProviderTree(root: root, index: index), root, index)
+    try body(ProviderTree(root: root, index: index), root, index)
 }
 
 @Test func treeListsRegularFilesAndFoldersOnly() throws {

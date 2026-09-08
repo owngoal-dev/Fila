@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 /// The guard is enforced in the daemon and nowhere else, so this is where it is
 /// tested: against real files, through the operations that would destroy them.
@@ -14,7 +13,9 @@ import Testing
 @Suite("The guard, enforced")
 struct GuardEnforcementTests {
     let scratch = Scratch()
-    var operations: FileOperations { FileOperations(bootstrapRoot: scratch.root) }
+    var operations: FileOperations {
+        FileOperations(bootstrapRoot: scratch.root)
+    }
 
     private func run(_ request: JobRequest) -> FilaFailure {
         FileJob(request: request, operations: operations).run { _ in }
@@ -64,7 +65,7 @@ struct GuardEnforcementTests {
     }
 
     @Test("The override releases a protected node")
-    func overrideWorks() throws {
+    func overrideWorks() {
         scratch.directory("usr/lib")
         let outcome = run(JobRequest(kind: .delete, sources: [scratch.path("usr")], overrideGuard: true))
         #expect(outcome.code == .success)

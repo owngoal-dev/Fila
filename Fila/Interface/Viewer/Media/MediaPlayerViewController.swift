@@ -26,8 +26,13 @@ final class MediaPlayerViewController: UIViewController {
     private var media: DescriptorAsset?
     private var player: AVPlayerViewController?
 
-    private var container: ViewerContainerViewController? { parent as? ViewerContainerViewController }
-    private var fileName: String { URL(fileURLWithPath: details.path).lastPathComponent }
+    private var container: ViewerContainerViewController? {
+        parent as? ViewerContainerViewController
+    }
+
+    private var fileName: String {
+        URL(fileURLWithPath: details.path).lastPathComponent
+    }
 
     init(details: FileDetails, file: DescriptorFile, isAudio: Bool) {
         self.isAudio = isAudio
@@ -38,7 +43,9 @@ final class MediaPlayerViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,7 +54,7 @@ final class MediaPlayerViewController: UIViewController {
         do {
             // The asset outlives this call and closes what it is given, so it
             // gets its own descriptor rather than the one the container owns.
-            let asset = DescriptorAsset(descriptor: try file.duplicate(), name: fileName)
+            let asset = try DescriptorAsset(descriptor: file.duplicate(), name: fileName)
             media = asset
             play(asset)
         } catch {
@@ -80,7 +87,9 @@ final class MediaPlayerViewController: UIViewController {
     }
 
     private func play(_ media: DescriptorAsset) {
-        if !isAudio { prepareAudioSession() }
+        if !isAudio {
+            prepareAudioSession()
+        }
         let controller = AVPlayerViewController()
         let playback = AVPlayer(playerItem: AVPlayerItem(asset: media.asset))
         controller.player = playback
@@ -104,7 +113,9 @@ final class MediaPlayerViewController: UIViewController {
         }
         controller.didMove(toParent: self)
         player = controller
-        if !isAudio { playback.play() }
+        if !isAudio {
+            playback.play()
+        }
     }
 
     private func showFailure(_ error: Error) {
@@ -118,5 +129,4 @@ final class MediaPlayerViewController: UIViewController {
             make.edges.equalToSuperview()
         }
     }
-
 }

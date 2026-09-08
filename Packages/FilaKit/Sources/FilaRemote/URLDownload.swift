@@ -1,6 +1,6 @@
+import FilaFileOps
 import FilaProtocol
 import Foundation
-import FilaFileOps
 
 /// Pulling a URL down to a path, the app's half.
 ///
@@ -115,7 +115,7 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
     /// on. Unthrottled, a fast connection would spend more time updating a
     /// progress bar than downloading. A quarter of a megabyte is a few bars a
     /// second on a slow link, and the last one is always sent whatever it is.
-    private static let reportInterval: Int64 = 256 * 1_024
+    private static let reportInterval: Int64 = 256 * 1024
 
     private let directory: URL
     private let fallbackName: String
@@ -162,7 +162,9 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
         isSettled = true
         let waiting = continuation
         continuation = nil
-        if waiting == nil { outcome = result }
+        if waiting == nil {
+            outcome = result
+        }
         lock.unlock()
         waiting?.resume(with: result)
     }
@@ -202,7 +204,8 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
         didFinishDownloadingTo location: URL
     ) {
         if let response = downloadTask.response as? HTTPURLResponse,
-           !(200 ... 299).contains(response.statusCode) {
+           !(200 ... 299).contains(response.statusCode)
+        {
             // A 404 page landed at the destination as if it were the file is
             // the single worst thing this feature could do.
             settle(.failure(URLDownload.Failure.httpStatus(response.statusCode)))

@@ -1,7 +1,7 @@
+@testable import FilaFormats
+import FilaProtocol
 import Foundation
 import Testing
-import FilaProtocol
-@testable import FilaFormats
 
 struct PreviewLimitsTests {
     @Test("Memory-backed previews accept the byte ceiling and reject one byte over", arguments: [FileFormat.sqlite, .image, .pdf])
@@ -16,7 +16,7 @@ struct PreviewLimitsTests {
     func streamingLimit() throws {
         try PreviewLimits.validate(byteCount: PreviewLimits.streamingFileByteCount, format: .archive)
         #expect(throws: FormatFailure.self) { try PreviewLimits.validate(byteCount: .max, format: .archive) }
-        try PreviewLimits.validate(byteCount: 4 * 1_024 * 1_024 * 1_024, format: .video)
+        try PreviewLimits.validate(byteCount: 4 * 1024 * 1024 * 1024, format: .video)
     }
 
     @Test("Windowed readers and bounded text previews accept large files", arguments: [FileFormat.binary, .machO, .text, .audio, .video])
@@ -30,13 +30,15 @@ struct PreviewLimitsTests {
         let text = Data(String(repeating: "a\r\n", count: 100_000).utf8)
         #expect(PreviewLimits.textPrefixByteCount(text) == 299_998)
         #expect(PreviewLimits.textPrefixByteCount(Data("ordinary\ntext".utf8)) == 13)
-        #expect(PreviewLimits.textByteCount == 32 * 1_024 * 1_024)
+        #expect(PreviewLimits.textByteCount == 32 * 1024 * 1024)
     }
 
     @Test("Property-list depth and node budgets reject excessive editor trees")
     func propertyListTree() throws {
         var tree: Any = "leaf"
-        for _ in 0..<64 { tree = [tree] }
+        for _ in 0 ..< 64 {
+            tree = [tree]
+        }
         try PropertyListBudget.validate(tree)
         #expect(throws: FormatFailure.self) { try PropertyListBudget.validate([tree]) }
         #expect(throws: FormatFailure.self) { try PropertyListBudget.validate(Array(repeating: 0, count: 100_000)) }

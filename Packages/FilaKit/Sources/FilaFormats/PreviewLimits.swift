@@ -3,10 +3,10 @@ import Foundation
 /// App preview budgets, checked before constructing a renderer or reading its payload.
 /// Streaming playback and archive browsing have a separate file-size ceiling.
 public enum PreviewLimits {
-    public static let fileByteCount: Int64 = 128 * 1_024 * 1_024
-    public static let textByteCount: Int64 = 32 * 1_024 * 1_024
-    public static let streamingFileByteCount: Int64 = 2 * 1_024 * 1_024 * 1_024
-    public static let imagePixelSize = 4_096
+    public static let fileByteCount: Int64 = 128 * 1024 * 1024
+    public static let textByteCount: Int64 = 32 * 1024 * 1024
+    public static let streamingFileByteCount: Int64 = 2 * 1024 * 1024 * 1024
+    public static let imagePixelSize = 4096
 
     /// Line objects also consume memory: many tiny lines can outweigh their bytes.
     public static func textPrefixByteCount(_ data: Data) -> Int {
@@ -14,7 +14,9 @@ public enum PreviewLimits {
         var previous: UInt8 = 0
         for (offset, byte) in data.prefix(Int(textByteCount)).enumerated() {
             if byte == 13 || (byte == 10 && previous != 13) {
-                if lines == 100_000 { return offset }
+                if lines == 100_000 {
+                    return offset
+                }
                 lines += 1
             }
             previous = byte

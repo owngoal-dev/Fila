@@ -62,12 +62,14 @@ enum AppFolderDisplay {
     /// identifier for a shared one. Read through the daemon — the file is
     /// root-owned — and small: a few hundred bytes.
     private static func containerIdentifier(at path: String, session: FileSession) async -> String? {
-        if let cached = containerIdentifiers[path] { return cached }
+        if let cached = containerIdentifiers[path] {
+            return cached
+        }
         let metadata = path + "/.com.apple.mobile_container_manager.metadata.plist"
         let identifier: String? = await {
             guard let data = try? await session.read(metadata, limit: 64 * 1024),
                   let plist = try? PropertyListSerialization
-                      .propertyList(from: data, options: [], format: nil) as? [String: Any],
+                  .propertyList(from: data, options: [], format: nil) as? [String: Any],
                   let identifier = plist["MCMMetadataIdentifier"] as? String, !identifier.isEmpty else { return nil }
             return identifier
         }()
@@ -94,16 +96,18 @@ enum AppFolderDisplay {
             if bundleContainer.deletingLastPathComponent().path == bundleRoot {
                 containers.append((bundleContainer.path, nil))
             }
-            if let dataPath = app.dataPath { containers.append((dataPath, nil)) }
+            if let dataPath = app.dataPath {
+                containers.append((dataPath, nil))
+            }
             containers += app.groupPaths.map { ($0.value, $0.key) }
             for container in containers {
                 matches[displayPath(container.path), default: []].append((app, container.group))
             }
         }
         return matches.mapValues { owners in
-            let names = Set(owners.map { $0.app.name }).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            let names = Set(owners.map(\.app.name)).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
             let groups = Set(owners.compactMap(\.group)).sorted()
-            let identifiers = Set(owners.map { $0.app.bundleIdentifier })
+            let identifiers = Set(owners.map(\.app.bundleIdentifier))
             return AppFolderPresentation(
                 name: (groups.isEmpty ? names : groups).joined(separator: ", "),
                 detail: groups.isEmpty ? nil : names.joined(separator: ", "),
@@ -138,15 +142,18 @@ enum AppFolderDisplay {
     /// cache lookup and rendering do not stall scrolling.
     static func icon(for identifier: String?) async -> UIImage? {
         guard let identifier else { return placeholderIcon }
-        if let image = icons.object(forKey: identifier as NSString) { return image }
+        if let image = icons.object(forKey: identifier as NSString) {
+            return image
+        }
         let scale = UIScreen.main.scale
         let image = await Task.detached(priority: .userInitiated) {
             ApplicationIconRenderer.image(for: identifier, scale: scale)
         }.value
-        if let image { icons.setObject(image, forKey: identifier as NSString) }
+        if let image {
+            icons.setObject(image, forKey: identifier as NSString)
+        }
         return image ?? placeholderIcon
     }
-
 }
 
 /// A hook's peek is its application artwork and real location, never a file
@@ -162,7 +169,9 @@ final class AppFolderPreviewViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

@@ -1,6 +1,6 @@
+@testable import FilaFormats
 import Foundation
 import Testing
-@testable import FilaFormats
 
 @Suite("Mach-O inspection")
 struct MachOInspectionTests {
@@ -29,7 +29,7 @@ struct MachOInspectionTests {
                 try FileManager.default.removeItem(at: url)
                 let image = try MachOImage(descriptor: descriptor)
                 let slice = try #require(image.slices.first)
-                #expect(!(try image.inspect(slice)).segments.isEmpty)
+                #expect(try !(image.inspect(slice)).segments.isEmpty)
             }
         }
     }
@@ -40,16 +40,20 @@ struct MachOInspectionTests {
             let url = scratch.appendingPathComponent("sparse-image")
             // A valid empty 64-bit object header; the remainder has no commands
             // or signature and is deliberately a sparse four-gigabyte extent.
-            let header = words([0xFEEDFACF, 0x0100000C, 0, 1, 0, 0, 0, 0])
+            let header = words([0xFEED_FACF, 0x0100_000C, 0, 1, 0, 0, 0, 0])
             try header.write(to: url)
             let descriptor = open(url.path, O_RDWR)
-            defer { if descriptor >= 0 { close(descriptor) } }
+            defer {
+                if descriptor >= 0 {
+                    close(descriptor)
+                }
+            }
             #expect(descriptor >= 0)
-            try #require(ftruncate(descriptor, 4 * 1_024 * 1_024 * 1_024) == 0)
+            try #require(ftruncate(descriptor, 4 * 1024 * 1024 * 1024) == 0)
             let image = try MachOImage(descriptor: descriptor)
             let slice = try #require(image.slices.first)
             let details = try image.inspect(slice)
-            #expect(slice.byteCount == 4 * 1_024 * 1_024 * 1_024)
+            #expect(slice.byteCount == 4 * 1024 * 1024 * 1024)
             #expect(details.loadCommands.isEmpty && details.segments.isEmpty)
         }
     }
@@ -58,8 +62,9 @@ struct MachOInspectionTests {
     func rejectsTruncation() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("truncated")
-            for bytes in [words([0xFEEDFACF, 0x0100000C, 0, 1, 1, 24, 0, 0]),
-                          words([0xFEEDFACF, 0x0100000C, 0, 1, 0, 0, 0])] {
+            for bytes in [words([0xFEED_FACF, 0x0100_000C, 0, 1, 1, 24, 0, 0]),
+                          words([0xFEED_FACF, 0x0100_000C, 0, 1, 0, 0, 0])]
+            {
                 try bytes.write(to: url)
                 try withDescriptor(reading: url) { descriptor in
                     #expect(throws: FormatFailure.self) { try MachOImage(descriptor: descriptor) }
@@ -72,8 +77,8 @@ struct MachOInspectionTests {
     func bigEndianVersions() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("big-endian-object")
-            let values: [UInt32] = [0xFEEDFACE, 18, 0, 1, 1, 16, 0,
-                                    0x24, 16, 0x000A0900, 0x000A0A00]
+            let values: [UInt32] = [0xFEED_FACE, 18, 0, 1, 1, 16, 0,
+                                    0x24, 16, 0x000A_0900, 0x000A_0A00]
             let data = values.reduce(into: Data()) { data, value in
                 var big = value.bigEndian
                 withUnsafeBytes(of: &big) { data.append(contentsOf: $0) }

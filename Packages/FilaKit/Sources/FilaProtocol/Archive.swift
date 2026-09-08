@@ -8,15 +8,15 @@ public enum ArchiveFormat: String, Codable, Sendable, Hashable, CaseIterable {
 
     public var filenameExtension: String {
         switch self {
-        case .zip: return "zip"
-        case .tarZstd: return "tar.zst"
-        case .tar: return "tar"
-        case .tarGzip: return "tar.gz"
-        case .tarBzip2: return "tar.bz2"
-        case .tarXz: return "tar.xz"
-        case .tarLzma: return "tar.lzma"
-        case .tarLzip: return "tar.lz"
-        case .tarLz4: return "tar.lz4"
+        case .zip: "zip"
+        case .tarZstd: "tar.zst"
+        case .tar: "tar"
+        case .tarGzip: "tar.gz"
+        case .tarBzip2: "tar.bz2"
+        case .tarXz: "tar.xz"
+        case .tarLzma: "tar.lzma"
+        case .tarLzip: "tar.lz"
+        case .tarLz4: "tar.lz4"
         }
     }
 }

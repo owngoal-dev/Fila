@@ -57,7 +57,9 @@ extension FileActions {
             let result: Result<FilaFailure, Error>
             do {
                 let outcome = try await withSourceLocked {
-                    if useTrash { return try await session.operations.trash(paths, feedback: .successOnly) }
+                    if useTrash {
+                        return try await session.operations.trash(paths, feedback: .successOnly)
+                    }
                     return try await session.operations.awaitJob(
                         JobRequest(kind: .delete, sources: paths, useTrash: useTrash, overrideGuard: overrideGuard),
                         kind: kind,
@@ -73,8 +75,9 @@ extension FileActions {
             let complete = {
                 switch result {
                 case let .success(outcome):
-                    if outcome.code == .success { self.didRemove() }
-                    else if outcome.code != .cancelled {
+                    if outcome.code == .success {
+                        self.didRemove()
+                    } else if outcome.code != .cancelled {
                         self.reportDeleteFailure(outcome, paths: paths, useTrash: useTrash)
                     }
                 case let .failure(failure as FilaFailure):
@@ -85,7 +88,8 @@ extension FileActions {
             // Background work may outlive this screen or a newer sheet. Only
             // close the alert this operation presented, then report its result.
             if progress.presentingViewController?.presentedViewController === progress,
-               progress.presentedViewController == nil, !progress.isBeingDismissed {
+               progress.presentedViewController == nil, !progress.isBeingDismissed
+            {
                 progress.dismiss(animated: true, completion: complete)
             } else {
                 // A toast can present Transfers above this alert. Keep that
@@ -132,7 +136,8 @@ extension FileActions {
                         _ = try await session.perform { try await $0.details(of: path) }
                         remaining.append(path)
                     } catch let failure as FilaFailure
-                        where failure.code == .notFound || failure.systemError == ENOENT {
+                        where failure.code == .notFound || failure.systemError == ENOENT
+                    {
                         continue
                     }
                 }

@@ -25,18 +25,20 @@ extension UIViewController {
 
     private static func failureTitle(for failure: FilaFailure) -> String {
         switch failure.code {
-        case .protectedPath: return String(localized: "Protected Item")
-        case .notPermitted: return String(localized: "Not Permitted")
-        case .notFound: return String(localized: "Not Found")
-        case .wrongPassword: return String(localized: "Wrong Password")
-        case .invalidRequest: return String(localized: "Unable to Complete Request")
-        default: return String(localized: "Operation Failed")
+        case .protectedPath: String(localized: "Protected Item")
+        case .notPermitted: String(localized: "Not Permitted")
+        case .notFound: String(localized: "Not Found")
+        case .wrongPassword: String(localized: "Wrong Password")
+        case .invalidRequest: String(localized: "Unable to Complete Request")
+        default: String(localized: "Operation Failed")
         }
     }
 
     private static func failureMessage(for failure: FilaFailure) -> String {
         var lines = [FailureMessage.text(for: failure)]
-        if let path = failure.path { lines.append(path) }
+        if let path = failure.path {
+            lines.append(path)
+        }
         return lines.joined(separator: "\n\n")
     }
 }

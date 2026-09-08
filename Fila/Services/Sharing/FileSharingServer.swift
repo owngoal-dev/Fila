@@ -33,7 +33,9 @@ final class FileSharingServer {
     private var background: UIBackgroundTaskIdentifier = .invalid
 
     var isRunning: Bool {
-        if case .running = status { return true }
+        if case .running = status {
+            return true
+        }
         return false
     }
 
@@ -68,7 +70,10 @@ final class FileSharingServer {
 
     /// True from the tap until the listener is up, including the round trip
     /// that canonicalises the shared folder; the switch stays on across it.
-    var isStarting: Bool { resolvingRoot || status == .starting }
+    var isStarting: Bool {
+        resolvingRoot || status == .starting
+    }
+
     private var resolvingRoot = false
 
     func start() {

@@ -75,7 +75,9 @@ final class JobTally {
     }
 
     func recordFailure(_ failure: FilaFailure) {
-        if self.failure == nil { self.failure = failure }
+        if self.failure == nil {
+            self.failure = failure
+        }
     }
 
     /// Copying a large file fires the callback thousands of times a second and
@@ -84,7 +86,9 @@ final class JobTally {
     /// second, so every caller here is throttled and only `flush` is not.
     private func emit(throttled: Bool) {
         let now = DispatchTime.now()
-        if throttled, now.uptimeNanoseconds &- lastReport.uptimeNanoseconds < 100_000_000 { return }
+        if throttled, now.uptimeNanoseconds &- lastReport.uptimeNanoseconds < 100_000_000 {
+            return
+        }
         lastReport = now
         report(JobProgress(
             bytesDone: completedBytes + currentFileBytes,
@@ -103,7 +107,9 @@ let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, destin
     let tally = Unmanaged<JobTally>.fromOpaque(context).takeUnretainedValue()
     // COPYFILE_QUIT makes copyfile return -1 with ECANCELED, which is exactly
     // how a job that was asked to stop reports itself.
-    if tally.job.isCancelled { return COPYFILE_QUIT }
+    if tally.job.isCancelled {
+        return COPYFILE_QUIT
+    }
 
     // An error stage stops the walk. Answering CONTINUE here is what turns a
     // partial copy into a reported success — see `JobTally.failure`.
@@ -116,7 +122,8 @@ let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, destin
         do {
             var descriptor: Int32 = -1
             if what == COPYFILE_COPY_DATA,
-               copyfile_state_get(state, UInt32(COPYFILE_STATE_DST_FD), &descriptor) == 0, descriptor >= 0 {
+               copyfile_state_get(state, UInt32(COPYFILE_STATE_DST_FD), &descriptor) == 0, descriptor >= 0
+            {
                 try StorageSpace.requireAvailable(descriptor: descriptor)
             } else if let destination {
                 try StorageSpace.requireAvailable(at: FilaPath.directory(of: String(cString: destination)))
@@ -153,7 +160,9 @@ let filaCopyProgress: copyfile_callback_t = { what, stage, state, source, destin
 let filaRemoveProgress: removefile_callback_t = { _, path, context in
     guard let context else { return Int32(REMOVEFILE_PROCEED) }
     let tally = Unmanaged<JobTally>.fromOpaque(context).takeUnretainedValue()
-    if tally.job.isCancelled { return Int32(REMOVEFILE_STOP) }
+    if tally.job.isCancelled {
+        return Int32(REMOVEFILE_STOP)
+    }
     tally.beginItem(path.map { String(cString: $0) } ?? "")
     tally.finishedItem()
     return Int32(REMOVEFILE_PROCEED)

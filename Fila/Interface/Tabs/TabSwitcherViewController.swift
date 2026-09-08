@@ -24,7 +24,9 @@ final class TabSwitcherViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -80,7 +82,7 @@ final class TabSwitcherViewController: UIViewController {
     private func buildDataSource() {
         let card = UICollectionView.CellRegistration<TabCardCell, UUID> { [weak self] cell, _, id in
             guard let self, let tab = BrowserTabStore.shared.tabs.first(where: { $0.id == id }) else { return }
-            let preview = self.content?.preview(for: tab)
+            let preview = content?.preview(for: tab)
             cell.configure(
                 title: preview?.title ?? tab.title,
                 path: tab.path,
@@ -151,13 +153,14 @@ final class TabSwitcherViewController: UIViewController {
                 self?.shell?.openInNewTab(path)
             }
         }
-        func name(of path: String) -> String { path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent }
+        func name(of path: String) -> String {
+            path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
+        }
         let preferences = AppPreferences.shared
         let places = SidebarLocation.jumpList(backend: FileSession.shared.hello?.backend).map { place in
-            let image: UIImage?
-            switch place.icon {
-            case let .artwork(name): image = UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-            case let .symbol(name): image = UIImage(systemName: name)
+            let image: UIImage? = switch place.icon {
+            case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
+            case let .symbol(name): UIImage(systemName: name)
             }
             return open(place.path, title: place.title, image: image)
         }
@@ -167,12 +170,11 @@ final class TabSwitcherViewController: UIViewController {
         let recents = preferences.recents.prefix(8).map {
             open($0, title: name(of: $0), image: UIImage(systemName: "clock"), subtitle: $0)
         }
-        let locations = [
+        return [
             UIMenu(title: String(localized: "Places"), options: .displayInline, children: places),
             UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
             UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
         ].filter { !$0.children.isEmpty }
-        return locations
     }
 
     static let cardCornerRadius = FilaUI.Spacing.large
@@ -198,7 +200,9 @@ final class TabSwitcherViewController: UIViewController {
         return cell.convert(cell.previewFrame, to: target)
     }
 
-    @objc private func tabsChanged() { apply(animated: true) }
+    @objc private func tabsChanged() {
+        apply(animated: true)
+    }
 
     /// Lets the deferred tab into the grid, arriving like any other new card.
     func revealDeferred() {
@@ -288,7 +292,9 @@ private final class TabGridLayout: UICollectionViewCompositionalLayout {
         at itemIndexPath: IndexPath
     ) -> UICollectionViewLayoutAttributes? {
         let attributes = super.initialLayoutAttributesForAppearingItem(at: itemIndexPath)
-        if inserted.contains(itemIndexPath) { Self.recede(attributes) }
+        if inserted.contains(itemIndexPath) {
+            Self.recede(attributes)
+        }
         return attributes
     }
 
@@ -296,7 +302,9 @@ private final class TabGridLayout: UICollectionViewCompositionalLayout {
         at itemIndexPath: IndexPath
     ) -> UICollectionViewLayoutAttributes? {
         let attributes = super.finalLayoutAttributesForDisappearingItem(at: itemIndexPath)
-        if deleted.contains(itemIndexPath) { Self.recede(attributes) }
+        if deleted.contains(itemIndexPath) {
+            Self.recede(attributes)
+        }
         return attributes
     }
 
@@ -314,7 +322,9 @@ private final class TabCardCell: UICollectionViewCell {
     private var onClose: (() -> Void)?
 
     /// Where the page thumbnail sits, in the cell's coordinates.
-    var previewFrame: CGRect { imageView.convert(imageView.bounds, to: self) }
+    var previewFrame: CGRect {
+        imageView.convert(imageView.bounds, to: self)
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -376,7 +386,9 @@ private final class TabCardCell: UICollectionViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     func configure(title: String, path: String, image: UIImage?, current: Bool, onClose: @escaping () -> Void) {
         titleLabel.text = title
@@ -405,7 +417,9 @@ private final class TabCardCell: UICollectionViewCell {
             .resolvedColor(with: traitCollection).cgColor
     }
 
-    @objc private func close() { onClose?() }
+    @objc private func close() {
+        onClose?()
+    }
 
     // MARK: - Arrival and departure
 
@@ -429,7 +443,9 @@ private final class TabCardCell: UICollectionViewCell {
         UIView.animate(withDuration: 0.35, delay: 0, options: [.curveEaseInOut, .beginFromCurrentState]) {
             self.veilView.effect = leaving ? blur : nil
         } completion: { _ in
-            if !leaving { self.veilView.isHidden = true }
+            if !leaving {
+                self.veilView.isHidden = true
+            }
         }
     }
 

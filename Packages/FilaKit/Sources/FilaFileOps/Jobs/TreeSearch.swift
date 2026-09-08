@@ -81,7 +81,9 @@ final class TreeSearch {
         let start = try FilaPath.canonical(root)
 
         var stack: [(handle: UnsafeMutablePointer<DIR>, path: String)] = []
-        defer { for level in stack { closedir(level.handle) } }
+        defer { for level in stack {
+            closedir(level.handle)
+        } }
 
         /// Opens a child directory, or declines to and says why. Never throws:
         /// one branch of the device must not fail a search of the rest of it.
@@ -105,7 +107,9 @@ final class TreeSearch {
         tally.beginItem(start)
 
         while let level = stack.last {
-            if job.isCancelled { throw FilaFailure(code: .cancelled, path: level.path) }
+            if job.isCancelled {
+                throw FilaFailure(code: .cancelled, path: level.path)
+            }
             guard remaining > 0 else {
                 limits.insert(.resultCount)
                 return
@@ -118,7 +122,9 @@ final class TreeSearch {
             // reported rather than hidden.
             Darwin.errno = 0
             guard let record = readdir(level.handle) else {
-                if Darwin.errno != 0 { limits.insert(.unreadable) }
+                if Darwin.errno != 0 {
+                    limits.insert(.unreadable)
+                }
                 closedir(level.handle)
                 stack.removeLast()
                 continue
@@ -130,8 +136,12 @@ final class TreeSearch {
                 // skipping `..` is what would let the walk climb back out of
                 // the tree it was given.
                 let second = name.advanced(by: 1).pointee
-                if second == 0 || (second == filaDot && name.advanced(by: 2).pointee == 0) { continue }
-                if !query.includesHidden { continue }
+                if second == 0 || (second == filaDot && name.advanced(by: 2).pointee == 0) {
+                    continue
+                }
+                if !query.includesHidden {
+                    continue
+                }
             }
             tally.finishedItem()
 
@@ -163,7 +173,9 @@ final class TreeSearch {
 
             // Real directories only. `DT_LNK` is left alone even when it points
             // at one, which is what stops `/var` being searched twice.
-            if isDirectory { descend(into: FilaPath.join(level.path, String(cString: name))) }
+            if isDirectory {
+                descend(into: FilaPath.join(level.path, String(cString: name)))
+            }
         }
     }
 

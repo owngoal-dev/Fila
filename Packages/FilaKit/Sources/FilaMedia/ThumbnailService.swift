@@ -54,7 +54,7 @@ public actor ThumbnailService {
         // A 160-point thumbnail is about 100 KB, so a full cache is a few tens
         // of megabytes — and `NSCache` gives it all back under pressure.
         images.countLimit = 256
-        images.totalCostLimit = 32 * 1_024 * 1_024
+        images.totalCostLimit = 32 * 1024 * 1024
         failures.countLimit = 256
     }
 
@@ -79,8 +79,12 @@ public actor ThumbnailService {
     ) async -> CGImage? {
         guard byteCount > 0, maxPixelSize > 0, maxPixelSize <= 512 else { return nil }
         let key = "\(path)@\(modified.bitPattern)@\(byteCount)@\(maxPixelSize)" as NSString
-        if let hit = images.object(forKey: key) { return hit }
-        if failures.object(forKey: key) != nil { return nil }
+        if let hit = images.object(forKey: key) {
+            return hit
+        }
+        if failures.object(forKey: key) != nil {
+            return nil
+        }
         guard !Task.isCancelled else { return nil }
 
         await acquire()
@@ -179,5 +183,7 @@ public actor ThumbnailService {
     }
 
     /// In-flight generations, for the test that proves the bound holds.
-    var activeCount: Int { active }
+    var activeCount: Int {
+        active
+    }
 }

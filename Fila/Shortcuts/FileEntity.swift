@@ -21,7 +21,9 @@ struct FileEntity: AppEntity {
     /// The absolute path. Also the identifier: two files with the same path are
     /// the same file, and nothing else about a file is stable enough to say
     /// that about — an inode is reused, a name repeats in every directory.
-    var id: String { path }
+    var id: String {
+        path
+    }
 
     @Property(title: "Path")
     var path: String

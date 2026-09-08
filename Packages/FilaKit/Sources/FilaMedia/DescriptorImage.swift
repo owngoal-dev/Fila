@@ -84,7 +84,9 @@ enum DescriptorImage {
     private static func provider(descriptor: Int32, byteCount: Int64, reads: ReadLog) -> CGDataProvider? {
         let copy = dup(descriptor)
         guard copy >= 0, byteCount > 0 else {
-            if copy >= 0 { close(copy) }
+            if copy >= 0 {
+                close(copy)
+            }
             return nil
         }
         var callbacks = CGDataProviderDirectCallbacks(
@@ -97,7 +99,9 @@ enum DescriptorImage {
                 while true {
                     let got = pread(file.descriptor, buffer, count, off_t(position))
                     if got < 0 {
-                        if errno == EINTR { continue }
+                        if errno == EINTR {
+                            continue
+                        }
                         // A direct provider has no way to say "error" — zero
                         // reads to Core Graphics as end of data, and the caller
                         // gets a silently truncated picture. So the failure is

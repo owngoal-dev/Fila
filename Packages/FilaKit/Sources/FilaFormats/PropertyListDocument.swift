@@ -125,8 +125,11 @@ public extension PropertyListValue {
             var elements = elements
             if rest.isEmpty {
                 if let replacement {
-                    if elements.indices.contains(position) { elements[position] = replacement }
-                    else if position == elements.count { elements.append(replacement) }
+                    if elements.indices.contains(position) {
+                        elements[position] = replacement
+                    } else if position == elements.count {
+                        elements.append(replacement)
+                    }
                 } else if elements.indices.contains(position) {
                     elements.remove(at: position)
                 }

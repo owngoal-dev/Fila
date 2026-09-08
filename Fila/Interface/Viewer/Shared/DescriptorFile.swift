@@ -1,6 +1,6 @@
 import FilaClient
-import FilaFormats
 import FilaFileOps
+import FilaFormats
 import FilaProtocol
 import Foundation
 
@@ -44,7 +44,7 @@ final class DescriptorFile {
         mode: mode_t = 0o644,
         link: DaemonLink
     ) async throws -> DescriptorFile {
-        try DescriptorFile(descriptor: await link.open(path, flags: flags, mode: mode))
+        try await DescriptorFile(descriptor: link.open(path, flags: flags, mode: mode))
     }
 
     func close() {
@@ -65,15 +65,19 @@ final class DescriptorFile {
         let count = min(count, Int(byteCount - offset))
         var buffer = Data(count: count)
         var filled = 0
-        try buffer.withUnsafeMutableBytes { raw -> Void in
+        try buffer.withUnsafeMutableBytes { raw in
             guard let base = raw.baseAddress else { return }
             while filled < count {
                 let got = pread(descriptor, base + filled, count - filled, off_t(offset) + off_t(filled))
                 if got < 0 {
-                    if errno == EINTR { continue }
+                    if errno == EINTR {
+                        continue
+                    }
                     throw ViewerFailure.readFailed(errno)
                 }
-                if got == 0 { break }
+                if got == 0 {
+                    break
+                }
                 filled += got
             }
         }
@@ -102,21 +106,27 @@ final class DescriptorFile {
         guard !isClosed else { throw ViewerFailure.writeFailed(EBADF) }
         try StorageSpace.requireAvailable(Int64(data.count), descriptor: descriptor)
         var written = 0
-        try data.withUnsafeBytes { raw -> Void in
+        try data.withUnsafeBytes { raw in
             guard let base = raw.baseAddress else { return }
             while written < data.count {
                 let put = pwrite(descriptor, base + written, data.count - written, off_t(written))
                 if put < 0 {
-                    if errno == EINTR { continue }
+                    if errno == EINTR {
+                        continue
+                    }
                     throw ViewerFailure.writeFailed(errno)
                 }
-                if put == 0 { throw ViewerFailure.writeFailed(ENOSPC) }
+                if put == 0 {
+                    throw ViewerFailure.writeFailed(ENOSPC)
+                }
                 written += put
             }
         }
         // Surface delayed write failures before the temporary is published.
         while fsync(descriptor) != 0 {
-            if errno != EINTR { throw ViewerFailure.writeFailed(errno) }
+            if errno != EINTR {
+                throw ViewerFailure.writeFailed(errno)
+            }
         }
     }
 
@@ -151,7 +161,9 @@ extension DescriptorFile: ByteSource {}
 struct DataByteSource: ByteSource {
     let data: Data
 
-    var byteCount: Int64 { Int64(data.count) }
+    var byteCount: Int64 {
+        Int64(data.count)
+    }
 
     func read(at offset: Int64, count: Int) throws -> Data {
         guard offset >= 0, offset < Int64(data.count), count > 0 else { return Data() }
@@ -176,7 +188,7 @@ enum ViewerLimits {
     /// whole string before the first line is drawn, and on the oldest hardware
     /// this app supports that stall is all the grammar contributes to a file
     /// nobody opened for its syntax.
-    static let highlightedTextByteCount = 512 * 1_024
+    static let highlightedTextByteCount = 512 * 1024
 
     /// A property list is parsed whole by `PropertyListSerialization`; there is
     /// no streaming plist parser and writing one is not worth it.
@@ -191,7 +203,6 @@ enum ViewerLimits {
     /// longer counts against it — a player reads its file through the descriptor
     /// and copies nothing — so this is the archive reader's ceiling alone.
     static let containerCopyByteCount = PreviewLimits.streamingFileByteCount
-
 }
 
 enum ViewerFailure: LocalizedError {
@@ -203,17 +214,17 @@ enum ViewerFailure: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .readFailed:
-            return String(localized: "Unable to read this file. Try opening it again.")
+            String(localized: "Unable to read this file. Try opening it again.")
         case .writeFailed:
-            return String(localized: "Unable to save this file. Try again.")
+            String(localized: "Unable to save this file. Try again.")
         case let .tooLarge(byteCount, limit):
-            return String(
+            String(
                 format: String(localized: "This file is too large (%@). The viewer supports files up to %@."),
                 FilePresentation.byteLabel(byteCount),
                 FilePresentation.byteLabel(limit)
             )
         case let .unsupportedContent(reason):
-            return reason
+            reason
         }
     }
 }

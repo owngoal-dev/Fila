@@ -35,7 +35,9 @@ public struct FileOperations: Sendable {
     /// roothide hides the jailbreak's files there — or at the volume's own
     /// root otherwise. The bootstrap and source can be on different volumes.
     func trashBase(volumeMountPoint: String) throws -> String {
-        if let writableRoot { return try FilaPath.resolve(writableRoot) }
+        if let writableRoot {
+            return try FilaPath.resolve(writableRoot)
+        }
         return bootstrapRoot.isEmpty ? volumeMountPoint : try FilaPath.resolve(bootstrapRoot)
     }
 
@@ -79,7 +81,7 @@ public struct FileOperations: Sendable {
         if let writableRoot {
             // Everything inside the relocated bootstrap is editable. The
             // bootstrap node itself must survive, including with an override.
-            guard resolved != (try FilaPath.resolve(writableRoot)) else {
+            guard try resolved != (FilaPath.resolve(writableRoot)) else {
                 throw FilaFailure(code: .protectedPath, path: resolved)
             }
             return resolved
@@ -133,7 +135,9 @@ public struct FileOperations: Sendable {
     /// close.
     private func isIrrecoverable(_ canonicalPath: String) -> Bool {
         let target = FilaGuard.normalize(canonicalPath)
-        if target == "/" { return true }
+        if target == "/" {
+            return true
+        }
         let bootstrap = FilaGuard.normalize(bootstrapRoot)
         guard bootstrap != "/" else { return false }
         return target == bootstrap || FilaGuard.isAncestor(target, of: bootstrap)

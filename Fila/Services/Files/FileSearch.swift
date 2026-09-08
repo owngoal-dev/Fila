@@ -7,7 +7,9 @@ struct FileSearchResult: Hashable {
     var directory: String
     var node: FileNode
 
-    var path: String { directory == "/" ? "/" + node.name : directory + "/" + node.name }
+    var path: String {
+        directory == "/" ? "/" + node.name : directory + "/" + node.name
+    }
 }
 
 /// A recursive search, driven from the app.
@@ -65,7 +67,9 @@ enum FileSearch {
                 if node.name.lowercased().contains(needle), emitted.insert(path).inserted {
                     onHit(FileSearchResult(directory: directory, node: node))
                     found += 1
-                    if found >= resultLimit { return skippedLinks }
+                    if found >= resultLimit {
+                        return skippedLinks
+                    }
                 }
                 // Symlinks are not followed: a jailbroken filesystem is full of
                 // links back into `/private`, and a walk that follows them

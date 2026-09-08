@@ -1,8 +1,8 @@
+@testable import FilaProtocol
 import Foundation
 import Testing
-@testable import FilaProtocol
 #if canImport(XPC)
-import XPC
+    import XPC
 #endif
 
 struct FailureWireTests {
@@ -22,17 +22,17 @@ struct FailureWireTests {
     }
 
     #if canImport(XPC)
-    @Test("Detailed transfer refusals survive replies and job events", arguments: FilaFailureReason.allCases)
-    func xpcRoundTrip(_ reason: FilaFailureReason) throws {
-        let failure = FilaFailure(code: .invalidRequest, systemError: EINVAL, path: "/source", reason: reason)
-        let reply = xpc_dictionary_create(nil, nil, 0)
-        failure.encode(into: reply)
-        #expect(FilaFailure.decode(reply) == failure)
-        let event = JobEvent.completed(failure).encoded(jobIdentifier: 42)
-        let decoded = try #require(JobEvent.decode(event))
-        guard case let .completed(result) = decoded.event else { Issue.record("Expected a completed job"); return }
-        #expect(result == failure)
-        #expect(decoded.jobIdentifier == 42)
-    }
+        @Test("Detailed transfer refusals survive replies and job events", arguments: FilaFailureReason.allCases)
+        func xpcRoundTrip(_ reason: FilaFailureReason) throws {
+            let failure = FilaFailure(code: .invalidRequest, systemError: EINVAL, path: "/source", reason: reason)
+            let reply = xpc_dictionary_create(nil, nil, 0)
+            failure.encode(into: reply)
+            #expect(FilaFailure.decode(reply) == failure)
+            let event = JobEvent.completed(failure).encoded(jobIdentifier: 42)
+            let decoded = try #require(JobEvent.decode(event))
+            guard case let .completed(result) = decoded.event else { Issue.record("Expected a completed job"); return }
+            #expect(result == failure)
+            #expect(decoded.jobIdentifier == 42)
+        }
     #endif
 }

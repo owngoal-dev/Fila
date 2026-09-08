@@ -28,7 +28,9 @@ struct InstalledApp: Hashable {
         let blank = CharacterSet.whitespacesAndNewlines.union(.controlCharacters)
         for candidate in candidates {
             let name = candidate?.trimmingCharacters(in: blank) ?? ""
-            if !name.isEmpty { return name }
+            if !name.isEmpty {
+                return name
+            }
         }
         return String(identifier.split(separator: ".").last ?? Substring(identifier))
     }
@@ -55,7 +57,7 @@ enum InstalledAppCatalog {
               let type = NSClassFromString("LSApplicationWorkspace") as? NSObject.Type,
               type.responds(to: NSSelectorFromString("defaultWorkspace")),
               let workspace = type.perform(NSSelectorFromString("defaultWorkspace"))?
-                  .takeUnretainedValue() as? NSObject,
+              .takeUnretainedValue() as? NSObject,
               workspace.responds(to: #selector(ApplicationOpening.openApplicationWithBundleID(_:)))
         else { return false }
         return unsafeBitCast(workspace, to: ApplicationOpening.self).openApplicationWithBundleID(app.bundleIdentifier)
@@ -67,7 +69,9 @@ enum InstalledAppCatalog {
         // the page, the folder names, the recents, the links.
         guard SystemCapabilities.showsApplications else { return [] }
         let apps = workspaceApplications()
-        if !apps.isEmpty { return apps.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending } }
+        if !apps.isEmpty {
+            return apps.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }
         let scanned = await scanBundleContainers(session: session)
         return scanned.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }

@@ -59,7 +59,9 @@ final class ClipboardBarView: UIView {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     func configure(_ clipboard: FileClipboard) {
         let operation = clipboard.isCut ? String(localized: "Move") : String(localized: "Copy")

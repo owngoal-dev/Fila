@@ -1,7 +1,7 @@
 import AVFoundation
+@testable import FilaMedia
 import Foundation
 import Testing
-@testable import FilaMedia
 
 struct AudioMetadataTests {
     @Test func id3TagsKeepUsefulFieldsAndSkipEmptyFallbacks() async {

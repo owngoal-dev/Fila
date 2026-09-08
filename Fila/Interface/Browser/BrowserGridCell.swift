@@ -54,7 +54,9 @@ final class BrowserGridCell: UICollectionViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     override var isSelected: Bool {
         didSet { contentView.backgroundColor = isSelected ? .systemFill : nil }
@@ -62,12 +64,12 @@ final class BrowserGridCell: UICollectionViewCell {
 
     func configure(node: FileNode, path: String, session: FileSession, presentation: AppFolderPresentation? = nil) {
         let presentation = node.kind == .directory ? presentation : nil
-        label.text = presentation.map { [$0.name, $0.detail].compactMap { $0 }.joined(separator: "\n") } ?? node.name
+        label.text = presentation.map { [$0.name, $0.detail].compactMap(\.self).joined(separator: "\n") } ?? node.name
         label.textColor = presentation == nil ? .label : .systemBrown
         let isApplication = presentation != nil && URL(fileURLWithPath: node.name).pathExtension.lowercased() == "app"
         appBadge.isHidden = presentation == nil || isApplication
         accessibilityLabel = [presentation?.name, presentation?.detail, node.name]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .joined(separator: ", ")
         image.image = FilePresentation.image(for: node)
         image.contentMode = .scaleAspectFit
@@ -84,7 +86,9 @@ final class BrowserGridCell: UICollectionViewCell {
             if let cached = AppFolderDisplay.cachedIcon(for: presentation.applicationIdentifier) {
                 target.image = cached
             } else {
-                if !isApplication { appBadge.image = AppFolderDisplay.placeholderIcon }
+                if !isApplication {
+                    appBadge.image = AppFolderDisplay.placeholderIcon
+                }
                 Task { [weak self] in
                     let artwork = await AppFolderDisplay.icon(for: presentation.applicationIdentifier)
                     guard let self, self.token == token else { return }
@@ -96,9 +100,9 @@ final class BrowserGridCell: UICollectionViewCell {
         Task { [weak self] in
             let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session)
             guard let self, self.token == token, let thumbnail else { return }
-            self.image.image = thumbnail
-            self.image.contentMode = .scaleAspectFill
-            self.image.clipsToBounds = true
+            image.image = thumbnail
+            image.contentMode = .scaleAspectFill
+            image.clipsToBounds = true
         }
     }
 }

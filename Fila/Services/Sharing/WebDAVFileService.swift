@@ -72,10 +72,10 @@ final class WebDAVFileService: RemoteFileService {
 
     private static func kind(of job: JobRequest) -> OperationCenter.Kind? {
         switch job.kind {
-        case .copy: return .copy
-        case .move, .restore: return .move
-        case .delete: return job.useTrash ? .trash : .delete
-        case .search, .compress, .extract: return nil
+        case .copy: .copy
+        case .move, .restore: .move
+        case .delete: job.useTrash ? .trash : .delete
+        case .search, .compress, .extract: nil
         }
     }
 }

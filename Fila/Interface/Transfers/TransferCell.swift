@@ -27,7 +27,9 @@ final class TransferCell: UICollectionViewListCell {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     private func build() {
         symbolView.do {
@@ -151,7 +153,9 @@ final class TransferCell: UICollectionViewListCell {
             percentageLabel.isHidden = fraction == nil
             percentageLabel.text = fraction.map { $0.formatted(.percent.precision(.fractionLength(0))) }
             spinner.isHidden = fraction != nil
-            if fraction == nil { spinner.startAnimating() }
+            if fraction == nil {
+                spinner.startAnimating()
+            }
             amountLabel.text = Self.workingAmount(progress)
             currentFileLabel.text = progress.map { ($0.currentPath as NSString).lastPathComponent }
             currentFileLabel.isHidden = currentFileLabel.text?.isEmpty != false
@@ -176,8 +180,8 @@ final class TransferCell: UICollectionViewListCell {
             titleLabel.text, operation.subtitle, detailLabel.text,
             operation.isRunning ? amountLabel.text : nil,
             operation.isRunning ? percentageLabel.text : nil,
-            operation.isRunning ? currentFileLabel.text : nil
-        ].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+            operation.isRunning ? currentFileLabel.text : nil,
+        ].compactMap(\.self).filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
     private func setDetail(_ text: String, color: UIColor) {
@@ -192,9 +196,15 @@ final class TransferCell: UICollectionViewListCell {
             return FilePresentation.byteLabel(progress.bytesDone)
                 + " / " + FilePresentation.byteLabel(progress.bytesTotal)
         }
-        if progress.itemsTotal > 0 { return "\(progress.itemsDone) / \(progress.itemsTotal)" }
-        if progress.bytesDone > 0 { return FilePresentation.byteLabel(progress.bytesDone) }
-        if progress.itemsDone > 0 { return String(localized: "\(progress.itemsDone) items") }
+        if progress.itemsTotal > 0 {
+            return "\(progress.itemsDone) / \(progress.itemsTotal)"
+        }
+        if progress.bytesDone > 0 {
+            return FilePresentation.byteLabel(progress.bytesDone)
+        }
+        if progress.itemsDone > 0 {
+            return String(localized: "\(progress.itemsDone) items")
+        }
         return String(localized: "Preparing…")
     }
 }

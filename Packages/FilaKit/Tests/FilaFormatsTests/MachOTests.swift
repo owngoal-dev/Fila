@@ -1,7 +1,6 @@
+@testable import FilaFormats
 import Foundation
 import Testing
-
-@testable import FilaFormats
 
 /// Parsed against the binaries the machine already has. `/bin/ls` is a fat
 /// binary on every Mac and a thin one on a device, which is exactly the pair of
@@ -50,7 +49,9 @@ struct MachOTests {
     func toleratesNoEntitlements() throws {
         try withDescriptor(reading: URL(fileURLWithPath: "/bin/ls")) { descriptor in
             let image = try MachOImage(descriptor: descriptor)
-            for slice in image.slices { #expect(try image.entitlements(of: slice) == nil) }
+            for slice in image.slices {
+                #expect(try image.entitlements(of: slice) == nil)
+            }
         }
     }
 

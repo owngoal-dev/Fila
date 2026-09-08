@@ -46,7 +46,9 @@ final class TransfersViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,15 +87,15 @@ final class TransfersViewController: UIViewController {
 
     private func buildDataSource() {
         let cell = UICollectionView.CellRegistration<TransferCell, UUID> { [weak self] cell, _, id in
-            guard let self, let operation = self.center.operations.first(where: { $0.id == id }) else { return }
-            cell.configure(operation, center: self.center)
+            guard let self, let operation = center.operations.first(where: { $0.id == id }) else { return }
+            cell.configure(operation, center: center)
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
             elementKind: UICollectionView.elementKindSectionHeader
         ) { [weak self] view, _, indexPath in
             guard let self else { return }
             var content = UIListContentConfiguration.groupedHeader()
-            let section = self.dataSource.sectionIdentifier(for: indexPath.section)
+            let section = dataSource.sectionIdentifier(for: indexPath.section)
             content.text = section == .running
                 ? String(localized: "In Progress")
                 : String(localized: "Recent")
@@ -118,9 +120,9 @@ final class TransfersViewController: UIViewController {
         dataSource.supplementaryViewProvider = { collection, kind, indexPath in
             switch kind {
             case UICollectionView.elementKindSectionHeader:
-                return collection.dequeueConfiguredReusableSupplementary(using: header, for: indexPath)
+                collection.dequeueConfiguredReusableSupplementary(using: header, for: indexPath)
             default:
-                return collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
+                collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
             }
         }
     }
@@ -170,11 +172,16 @@ final class TransfersViewController: UIViewController {
             let root = scene.keyWindow?.rootViewController else { return }
 
         var top = root
-        while let presented = top.presentedViewController { top = presented }
+        while let presented = top.presentedViewController {
+            top = presented
+        }
         // A second failure while the list is already up must not stack another
         // copy of it on top of the first.
         if let navigation = top as? UINavigationController,
-           navigation.viewControllers.contains(where: { $0 is TransfersViewController }) { return }
+           navigation.viewControllers.contains(where: { $0 is TransfersViewController })
+        {
+            return
+        }
 
         let controller = TransfersViewController()
         let navigation = UINavigationController(rootViewController: controller)
@@ -191,5 +198,7 @@ final class TransfersViewController: UIViewController {
 extension TransfersViewController: UICollectionViewDelegate {
     /// A transfer is not a destination. Everything a row can do — undo, cancel
     /// — is a button on the row.
-    func collectionView(_: UICollectionView, shouldSelectItemAt _: IndexPath) -> Bool { false }
+    func collectionView(_: UICollectionView, shouldSelectItemAt _: IndexPath) -> Bool {
+        false
+    }
 }

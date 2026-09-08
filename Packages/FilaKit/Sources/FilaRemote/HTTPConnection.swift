@@ -12,8 +12,8 @@ enum HTTPFailure: Error {
 /// NIO owns HTTP framing and demand-driven socket reads/writes. Neither an
 /// upload nor a download is collected into a complete in-memory body.
 final class HTTPConnection {
-    static let chunkByteCount = 256 * 1_024
-    static let maximumHeadByteCount = 64 * 1_024
+    static let chunkByteCount = 256 * 1024
+    static let maximumHeadByteCount = 64 * 1024
     static let readTimeoutSeconds: Int64 = 60
 
     private var inbound: NIOAsyncChannelInboundStream<HTTPServerRequestPart>.AsyncIterator
@@ -31,7 +31,9 @@ final class HTTPConnection {
         self.ioTimeout = ioTimeout
     }
 
-    func close() { channel.close(promise: nil) }
+    func close() {
+        channel.close(promise: nil)
+    }
 
     func readRequest() async throws -> HTTPRequest? {
         while let part = try await nextPart() {
@@ -59,10 +61,14 @@ final class HTTPConnection {
             case let .body(buffer):
                 guard buffer.readableBytes <= Int.max - received else { throw HTTPFailure.tooLarge }
                 received += buffer.readableBytes
-                if let expectedCount, received > expectedCount { throw HTTPFailure.malformed }
+                if let expectedCount, received > expectedCount {
+                    throw HTTPFailure.malformed
+                }
                 try sink(Data(buffer.readableBytesView))
             case .end:
-                if let expectedCount, received != expectedCount { throw HTTPFailure.closed }
+                if let expectedCount, received != expectedCount {
+                    throw HTTPFailure.closed
+                }
                 return
             case .head: throw HTTPFailure.malformed
             }
@@ -70,9 +76,9 @@ final class HTTPConnection {
         throw HTTPFailure.closed
     }
 
-    // Await the transport's write promise, not merely enqueueing into an
-    // AsyncChannel writer. This keeps one file chunk in flight and makes the
-    // final response reach the socket before executeThenClose cancels it.
+    /// Await the transport's write promise, not merely enqueueing into an
+    /// AsyncChannel writer. This keeps one file chunk in flight and makes the
+    /// final response reach the socket before executeThenClose cancels it.
     func write(_ head: HTTPResponseHead) async throws {
         if head.status.code >= 200 {
             guard !responseStarted else { throw HTTPFailure.malformed }
@@ -86,15 +92,20 @@ final class HTTPConnection {
         try await send(.body(.byteBuffer(ByteBuffer(bytes: data))))
     }
 
-    func writeChunk(_ data: Data) async throws { try await write(data) }
+    func writeChunk(_ data: Data) async throws {
+        try await write(data)
+    }
 
-    func endChunks() async throws { try await finishResponse() }
+    func endChunks() async throws {
+        try await finishResponse()
+    }
 
     func finishResponse() async throws {
         guard responseStarted else { return }
         responseStarted = false
         try await send(.end(nil))
     }
+
     private func nextPart() async throws -> HTTPServerRequestPart? {
         try await withIOTimeout { try await self.inbound.next() }
     }
@@ -113,5 +124,4 @@ final class HTTPConnection {
         defer { deadline.cancel() }
         return try await operation()
     }
-
 }

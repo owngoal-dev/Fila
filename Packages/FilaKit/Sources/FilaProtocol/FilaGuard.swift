@@ -79,7 +79,9 @@ public enum FilaGuard {
     public static func isAncestor(_ ancestor: String, of path: String) -> Bool {
         let ancestor = normalize(ancestor)
         let path = normalize(path)
-        if ancestor == "/" { return path != "/" }
+        if ancestor == "/" {
+            return path != "/"
+        }
         return path.hasPrefix(ancestor + "/")
     }
 
@@ -92,7 +94,9 @@ public enum FilaGuard {
             case ".":
                 continue
             case "..":
-                if !components.isEmpty { components.removeLast() }
+                if !components.isEmpty {
+                    components.removeLast()
+                }
             default:
                 components.append(String(component))
             }

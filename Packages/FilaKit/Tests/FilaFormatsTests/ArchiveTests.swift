@@ -1,8 +1,7 @@
-import Foundation
-import Testing
-
 @testable import FilaFormats
 import FilaProtocol
+import Foundation
+import Testing
 
 @Suite("Archive names")
 struct ArchivePathTests {
@@ -216,7 +215,7 @@ struct ZipTests {
             let archive = scratch.appendingPathComponent("corrupt.zip")
             try withDescriptor(writing: archive) { descriptor in
                 let writer = try ArchiveWriter(descriptor: descriptor, format: .zip)
-                try writer.addData("payload.bin", samplePayload(byteCount: 4_096))
+                try writer.addData("payload.bin", samplePayload(byteCount: 4096))
                 try writer.finish()
             }
 
@@ -279,7 +278,7 @@ struct ZipTests {
     func rejectsOtherFiles() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("random.bin")
-            try samplePayload(byteCount: 4_096).write(to: url)
+            try samplePayload(byteCount: 4096).write(to: url)
             try withDescriptor(reading: url) { descriptor in
                 #expect(throws: FormatFailure.notRecognised) { try ArchiveReader.list(descriptor: descriptor) }
             }
@@ -307,7 +306,7 @@ struct TarTests {
             #expect(entries[0].isRootDirectory)
             let visible = entries.enumerated().filter { !$0.element.isRootDirectory }
             #expect(visible.map(\.offset) == [1, 2])
-            #expect(visible.map { $0.element.relativePath } == ["control", ".config"])
+            #expect(visible.map(\.element.relativePath) == ["control", ".config"])
             #expect(ArchivePath.extractionFolderName(for: archive.lastPathComponent) == "control")
             #expect(ArchivePath.extractionFolderName(for: "control.tar.zst") == "control")
             #expect(ArchivePath.extractionFolderName(for: "Release.1.TAR.XZ") == "Release.1")
@@ -431,19 +430,19 @@ struct TarTests {
             try withDescriptor(writing: archive) { descriptor in
                 let writer = try ArchiveWriter(descriptor: descriptor, format: .tarGzip)
                 try writer.addDirectory("usr/libexec")
-                try writer.addData("usr/libexec/filad", samplePayload(byteCount: 90_000))
+                try writer.addData("usr/libexec/filad", samplePayload(byteCount: 90000))
                 try writer.finish()
             }
             // The whole reason the gzip ceiling could go: browsing this never
             // expands it to anything but a 64 KB window.
             let byteCount = try FileManager.default.attributesOfItem(atPath: archive.path)[.size] as? Int ?? 0
-            #expect(byteCount < 90_000)
+            #expect(byteCount < 90000)
 
             try withDescriptor(reading: archive) { descriptor in
                 let reader = try ArchiveReader(descriptor: descriptor)
                 #expect(try reader.next()?.declaredPath == "usr/libexec/")
                 #expect(try reader.next()?.declaredPath == "usr/libexec/filad")
-                #expect(try reader.data(maximumByteCount: 1 << 20) == samplePayload(byteCount: 90_000))
+                #expect(try reader.data(maximumByteCount: 1 << 20) == samplePayload(byteCount: 90000))
             }
         }
     }
@@ -525,7 +524,7 @@ struct ForeignFormatTests {
                     let name = try #require(entry.relativePath)
                     members[name] = entry
                     guard entry.kind == .regular else { continue }
-                    contents[name] = String(decoding: try reader.data(), as: UTF8.self)
+                    contents[name] = try String(decoding: reader.data(), as: UTF8.self)
                 }
                 #expect(contents["control"] == "Package: wiki.qaq.fila\n")
                 #expect(contents["nested/inner.txt"] == "hello from 7z\n")
@@ -596,7 +595,9 @@ struct ArTests {
             archive += field("\(payload.count)", 10)
             archive += Data("`\n".utf8)
             archive += payload
-            if payload.count % 2 == 1 { archive += Data([0x0A]) }
+            if payload.count % 2 == 1 {
+                archive += Data([0x0A])
+            }
         }
         return archive
     }
@@ -616,7 +617,7 @@ struct ArTests {
             try debian([
                 ("debian-binary", Data("2.0\n".utf8)),
                 ("control.tar.gz", controlBytes),
-                ("data.tar", Data(repeating: 0, count: 1_024)),
+                ("data.tar", Data(repeating: 0, count: 1024)),
             ]).write(to: package)
 
             let entries = try withDescriptor(reading: package) { try ArchiveReader.list(descriptor: $0) }
@@ -675,7 +676,7 @@ struct CompressionChoiceTests {
         for format in ArchiveFormat.allCases {
             try withScratch { scratch in
                 let archive = scratch.appendingPathComponent("roundtrip." + format.filenameExtension)
-                let payload = samplePayload(byteCount: 32_000)
+                let payload = samplePayload(byteCount: 32000)
                 try withDescriptor(writing: archive) { descriptor in
                     let writer = try ArchiveWriter(descriptor: descriptor, format: format)
                     try writer.addDirectory("folder")
@@ -687,7 +688,9 @@ struct CompressionChoiceTests {
                     var sawFile = false
                     var sawDirectory = false
                     while let entry = try reader.next() {
-                        if entry.kind == .directory { sawDirectory = true }
+                        if entry.kind == .directory {
+                            sawDirectory = true
+                        }
                         if entry.relativePath == "folder/data.bin" {
                             sawFile = true
                             #expect(try reader.data() == payload, "\(format)")
@@ -704,7 +707,7 @@ struct CompressionChoiceTests {
         for mode in ZipCompression.allCases {
             try withScratch { scratch in
                 let archive = scratch.appendingPathComponent("mode.zip")
-                let payload = samplePayload(byteCount: 60_000)
+                let payload = samplePayload(byteCount: 60000)
                 try withDescriptor(writing: archive) { descriptor in
                     let writer = try ArchiveWriter(descriptor: descriptor, zipCompression: mode)
                     try writer.addData("data.bin", payload)
@@ -712,7 +715,7 @@ struct CompressionChoiceTests {
                 }
                 let bytes = try Data(contentsOf: archive)
                 // The local ZIP header carries method as little-endian UInt16.
-                #expect(Array(bytes.prefix(4)) == [0x50, 0x4b, 0x03, 0x04])
+                #expect(Array(bytes.prefix(4)) == [0x50, 0x4B, 0x03, 0x04])
                 #expect(bytes[8] == (mode == .store ? 0 : 8))
                 #expect(bytes[9] == 0)
                 try withDescriptor(reading: archive) { descriptor in

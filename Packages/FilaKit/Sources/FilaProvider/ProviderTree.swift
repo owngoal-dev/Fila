@@ -34,7 +34,9 @@ public final class ProviderTree {
         public var contentVersion: String
         public var metadataVersion: String
 
-        public var name: String { (path as NSString).lastPathComponent }
+        public var name: String {
+            (path as NSString).lastPathComponent
+        }
     }
 
     public struct Changes {
@@ -84,7 +86,8 @@ public final class ProviderTree {
         // A corrupt index is not a corrupt folder: the identifiers come from
         // the filesystem, so starting empty costs one re-enumeration.
         if let data = try? Data(contentsOf: index),
-           let saved = try? JSONDecoder().decode([String: Entry].self, from: data) {
+           let saved = try? JSONDecoder().decode([String: Entry].self, from: data)
+        {
             entries = saved
         }
     }
@@ -95,7 +98,9 @@ public final class ProviderTree {
     /// rescan; an item that is nowhere in the folder is `missing`.
     public func entry(_ id: String) throws -> Entry {
         if let known = entries[id], let fresh = refreshed(known) {
-            if fresh != known { try commit(entries.merging([id: fresh]) { _, new in new }) }
+            if fresh != known {
+                try commit(entries.merging([id: fresh]) { _, new in new })
+            }
             return fresh
         }
         // ponytail: a full rescan per miss, held to one every two seconds so a
@@ -111,7 +116,9 @@ public final class ProviderTree {
         let base = try directory(parent)
         let listed = try list(base, parent: parent)
         var next = entries.filter { $0.value.parent != parent }
-        for entry in listed { next[entry.id] = entry }
+        for entry in listed {
+            next[entry.id] = entry
+        }
         try commit(next)
         return listed
     }
@@ -146,7 +153,9 @@ public final class ProviderTree {
 
     // MARK: - Change tracking
 
-    public var anchor: Data { Self.digest(entries) }
+    public var anchor: Data {
+        Self.digest(entries)
+    }
 
     /// What changed since `anchor`, or nil when that baseline is gone and the
     /// system has to enumerate again.
@@ -179,8 +188,11 @@ public final class ProviderTree {
     public func createFile(name: String, parent: String?, contents: URL?) throws -> Entry {
         let relative = try destination(name: name, parent: parent)
         do {
-            if let contents { try operations.copyRegularFile(at: contents.path, to: absolute(relative)) }
-            else { try operations.create(.emptyFile, at: absolute(relative)) }
+            if let contents {
+                try operations.copyRegularFile(at: contents.path, to: absolute(relative))
+            } else {
+                try operations.create(.emptyFile, at: absolute(relative))
+            }
         } catch { throw Self.failure(error) }
         return try adopt(relative, parent: parent)
     }
@@ -225,14 +237,18 @@ public final class ProviderTree {
     public func move(_ id: String, name: String, parent: String?) throws -> Entry {
         let old = try entry(id)
         let relative = try destination(name: name, parent: parent, moving: old)
-        if relative == old.path { return old }
+        if relative == old.path {
+            return old
+        }
         do { try operations.rename(absolute(old.path), to: absolute(relative), exclusive: true) }
         catch { throw Self.failure(error) }
         var next = entries
         for (key, entry) in entries where entry.path == old.path || entry.path.hasPrefix(old.path + "/") {
             var moved = entry
             moved.path = relative + entry.path.dropFirst(old.path.count)
-            if key == id { moved.parent = parent }
+            if key == id {
+                moved.parent = parent
+            }
             next[key] = moved
         }
         try commit(next)
@@ -270,7 +286,8 @@ public final class ProviderTree {
         // Cached paths describe descendants, never filesystem aliases. A
         // moved parent or an unreadable index must not widen this provider.
         guard !relative.hasPrefix("/"), !relative.utf8.contains(0),
-              !relative.split(separator: "/").contains(where: { $0 == "." || $0 == ".." }) else {
+              !relative.split(separator: "/").contains(where: { $0 == "." || $0 == ".." })
+        else {
             throw Failure.missing
         }
         let path = relative.isEmpty ? root.path : FilaPath.join(root.path, relative)
@@ -296,9 +313,11 @@ public final class ProviderTree {
             throw Failure.invalidName
         }
         let relative = base.isEmpty ? name : base + "/" + name
-        if let moving, relative == moving.path { return relative }
+        if let moving, relative == moving.path {
+            return relative
+        }
         var info = stat()
-        guard lstat(try absolute(relative), &info) != 0 else { throw Failure.collision }
+        guard try lstat(absolute(relative), &info) != 0 else { throw Failure.collision }
         guard errno == ENOENT else { throw Self.failure(errno: errno) }
         return relative
     }
@@ -306,7 +325,7 @@ public final class ProviderTree {
     /// Record a node this tree just created or replaced.
     private func adopt(_ relative: String, parent: String?) throws -> Entry {
         var info = stat()
-        guard lstat(try absolute(relative), &info) == 0 else { throw Self.failure(errno: errno) }
+        guard try lstat(absolute(relative), &info) == 0 else { throw Self.failure(errno: errno) }
         guard let entry = Self.entry(relative, parent: parent, info: info) else { throw Failure.unsupported }
         try commit(entries.merging([entry.id: entry]) { _, new in new })
         return entry
@@ -340,7 +359,9 @@ public final class ProviderTree {
         func walk(_ relative: String, parent: String?) throws {
             for entry in try list(relative, parent: parent) {
                 next[entry.id] = entry
-                if entry.isDirectory { try walk(entry.path, parent: entry.id) }
+                if entry.isDirectory {
+                    try walk(entry.path, parent: entry.id)
+                }
             }
         }
         try walk("", parent: nil)
@@ -391,12 +412,19 @@ public final class ProviderTree {
     }
 
     private static func failure(_ error: Error) -> Failure {
-        if let failure = error as? Failure { return failure }
-        if let fila = error as? FilaFailure { return failure(errno: fila.systemError) }
-        if let posix = error as? POSIXError { return failure(errno: posix.code.rawValue) }
+        if let failure = error as? Failure {
+            return failure
+        }
+        if let fila = error as? FilaFailure {
+            return failure(errno: fila.systemError)
+        }
+        if let posix = error as? POSIXError {
+            return failure(errno: posix.code.rawValue)
+        }
         if let cocoa = error as? CocoaError,
            let underlying = cocoa.userInfo[NSUnderlyingErrorKey] as? NSError,
-           underlying.domain == NSPOSIXErrorDomain {
+           underlying.domain == NSPOSIXErrorDomain
+        {
             return failure(errno: Int32(underlying.code))
         }
         return .io(EIO)
@@ -404,14 +432,14 @@ public final class ProviderTree {
 
     private static func failure(errno code: Int32) -> Failure {
         switch code {
-        case ENOENT, ENOTDIR: return .missing
-        case EEXIST: return .collision
-        case ENOTEMPTY: return .directoryNotEmpty
-        case ENOTSUP: return .unsupported
-        case EACCES, EPERM, EROFS: return .permission
-        case ENOSPC, EDQUOT: return .noSpace
-        case ENAMETOOLONG, EINVAL: return .invalidName
-        default: return .io(code)
+        case ENOENT, ENOTDIR: .missing
+        case EEXIST: .collision
+        case ENOTEMPTY: .directoryNotEmpty
+        case ENOTSUP: .unsupported
+        case EACCES, EPERM, EROFS: .permission
+        case ENOSPC, EDQUOT: .noSpace
+        case ENAMETOOLONG, EINVAL: .invalidName
+        default: .io(code)
         }
     }
 }

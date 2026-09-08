@@ -10,12 +10,14 @@ final class PropertiesPreviewCell: UITableViewCell {
         $0.tintColor = .secondaryLabel
         $0.isAccessibilityElement = false
     }
+
     private let nameLabel = UILabel().then {
         $0.font = .preferredFont(forTextStyle: .title3)
         $0.adjustsFontForContentSizeCategory = true
         $0.textAlignment = .center
         $0.numberOfLines = 0
     }
+
     private let kindLabel = UILabel().then {
         $0.font = .preferredFont(forTextStyle: .subheadline)
         $0.adjustsFontForContentSizeCategory = true
@@ -47,7 +49,9 @@ final class PropertiesPreviewCell: UITableViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     func show(image: UIImage?, title: String, kind: String, maximumSide: CGFloat) {
         maximumWidth?.update(offset: maximumSide)

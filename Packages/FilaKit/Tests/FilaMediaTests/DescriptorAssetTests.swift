@@ -1,9 +1,8 @@
 import AVFoundation
 import CoreVideo
+@testable import FilaMedia
 import Foundation
 import Testing
-
-@testable import FilaMedia
 
 /// The resource loader is the load-bearing piece of playback: if it answers a
 /// byte range wrongly, the file plays with a corrupt picture rather than
@@ -16,7 +15,7 @@ struct DescriptorAssetTests {
             let url = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: url, frames: 30)
 
-            let media = DescriptorAsset(descriptor: try openForReading(url), name: url.lastPathComponent)
+            let media = try DescriptorAsset(descriptor: openForReading(url), name: url.lastPathComponent)
             let duration = try await media.asset.load(.duration)
             let tracks = try await media.asset.load(.tracks)
             #expect(CMTimeGetSeconds(duration) > 0.5)
@@ -36,12 +35,14 @@ struct DescriptorAssetTests {
                 reader.add(AVAssetReaderTrackOutput(track: track, outputSettings: nil))
                 reader.startReading()
                 var count = 0
-                while reader.outputs[0].copyNextSampleBuffer() != nil { count += 1 }
+                while reader.outputs[0].copyNextSampleBuffer() != nil {
+                    count += 1
+                }
                 #expect(reader.status == .completed)
                 return count
             }
 
-            let media = DescriptorAsset(descriptor: try openForReading(url), name: url.lastPathComponent)
+            let media = try DescriptorAsset(descriptor: openForReading(url), name: url.lastPathComponent)
             let throughDescriptor = try await sampleCount(of: media.asset)
             let throughPath = try await sampleCount(of: AVURLAsset(url: url))
             #expect(throughDescriptor == throughPath)
@@ -54,14 +55,14 @@ struct DescriptorAssetTests {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: url, frames: 30)
-            let media = DescriptorAsset(descriptor: try openForReading(url), name: url.lastPathComponent)
+            let media = try DescriptorAsset(descriptor: openForReading(url), name: url.lastPathComponent)
             let frame = try #require(await media.frame(maxPixelSize: 48))
             #expect(max(frame.width, frame.height) <= 48)
 
             // Nothing to see in an unreadable file, and no error either.
             let empty = directory.appendingPathComponent("silence.m4a")
-            try Data(repeating: 0, count: 4_096).write(to: empty)
-            let broken = DescriptorAsset(descriptor: try openForReading(empty), name: empty.lastPathComponent)
+            try Data(repeating: 0, count: 4096).write(to: empty)
+            let broken = try DescriptorAsset(descriptor: openForReading(empty), name: empty.lastPathComponent)
             #expect(await broken.frame(maxPixelSize: 48) == nil)
         }
     }
@@ -112,7 +113,7 @@ struct DescriptorAssetTests {
             let anonymous = directory.appendingPathComponent("recording")
             try FileManager.default.moveItem(at: named, to: anonymous)
 
-            let media = DescriptorAsset(descriptor: try openForReading(anonymous), name: "recording")
+            let media = try DescriptorAsset(descriptor: openForReading(anonymous), name: "recording")
             let tracks = try await media.asset.load(.tracks)
             #expect(tracks.count == 1)
         }
@@ -152,7 +153,9 @@ private func writeMovie(to url: URL, frames: Int) async throws {
             memset(base, Int32(index * 8 % 256), CVPixelBufferGetDataSize(pixels))
         }
         CVPixelBufferUnlockBaseAddress(pixels, [])
-        while !input.isReadyForMoreMediaData { await Task.yield() }
+        while !input.isReadyForMoreMediaData {
+            await Task.yield()
+        }
         adaptor.append(pixels, withPresentationTime: CMTime(value: CMTimeValue(index), timescale: 30))
     }
     input.markAsFinished()

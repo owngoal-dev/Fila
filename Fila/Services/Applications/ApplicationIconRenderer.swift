@@ -2,8 +2,8 @@ import Darwin
 import ObjectiveC
 import UIKit
 
-// ISIcon is a class cluster: its allocator supplies the concrete factory.
-// Declaring the initializers lets ARC own both allocation and initialization.
+/// ISIcon is a class cluster: its allocator supplies the concrete factory.
+/// Declaring the initializers lets ARC own both allocation and initialization.
 @objc private protocol SystemIcon {
     init?(bundleIdentifier: String)
     func prepareImage(forDescriptor descriptor: AnyObject) -> NSObject?
@@ -20,7 +20,7 @@ import UIKit
 }
 
 enum ApplicationIconRenderer {
-    // Keep the framework loaded for the lifetime of its Objective-C objects.
+    /// Keep the framework loaded for the lifetime of its Objective-C objects.
     private static let isAvailable = dlopen(
         "/System/Library/PrivateFrameworks/IconServices.framework/IconServices",
         RTLD_NOW
@@ -34,7 +34,7 @@ enum ApplicationIconRenderer {
                   let descriptorClass = NSClassFromString("ISImageDescriptor"),
                   let icon = unsafeBitCast(iconClass, to: SystemIcon.Type.self).init(bundleIdentifier: identifier),
                   let descriptor = unsafeBitCast(descriptorClass, to: SystemIconDescriptor.Type.self)
-                    .init(size: CGSize(width: 60, height: 60), scale: scale) else { return nil }
+                  .init(size: CGSize(width: 60, height: 60), scale: scale) else { return nil }
             descriptor.shouldApplyMask = true
             guard let rendered = icon.prepareImage(forDescriptor: descriptor) else { return nil }
             let image = unsafeBitCast(rendered, to: SystemIconImage.self)

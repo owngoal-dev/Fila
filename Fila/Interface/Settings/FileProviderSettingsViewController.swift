@@ -12,10 +12,14 @@ final class FileProviderSettingsViewController: UITableViewController {
     private var status: String?
     private var actions: [Action] = [.choose, .restore]
 
-    init() { super.init(style: .insetGrouped) }
+    init() {
+        super.init(style: .insetGrouped)
+    }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +44,8 @@ final class FileProviderSettingsViewController: UITableViewController {
 
     static func groupURL() throws -> URL {
         guard let identifier = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
-              let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier) else {
+              let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier)
+        else {
             throw ProviderLocation.Failure.invalidConfiguration
         }
         return url
@@ -67,7 +72,10 @@ final class FileProviderSettingsViewController: UITableViewController {
         tableView.reloadData()
     }
 
-    override func numberOfSections(in _: UITableView) -> Int { 2 }
+    override func numberOfSections(in _: UITableView) -> Int {
+        2
+    }
+
     override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         section == 0 ? 1 : actions.count
     }
@@ -96,7 +104,7 @@ final class FileProviderSettingsViewController: UITableViewController {
 
     override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
-            return [location?.displayPath, status].compactMap { $0 }.joined(separator: "\n\n")
+            return [location?.displayPath, status].compactMap(\.self).joined(separator: "\n\n")
         }
         return String(localized: "Changing the folder does not move files. Unsaved edits in Files are discarded. The default is Fila's Documents folder.")
     }
@@ -107,8 +115,8 @@ final class FileProviderSettingsViewController: UITableViewController {
         do {
             switch actions[indexPath.row] {
             case .choose:
-                let picker = SaveDestinationViewController(
-                    directory: try Self.defaultDocuments(),
+                let picker = try SaveDestinationViewController(
+                    directory: Self.defaultDocuments(),
                     message: String(localized: "Choose a folder that both Fila and Files can access. Files cannot use Fila's root access."),
                     link: FileSession.shared.link
                 ) { [weak self] url in
@@ -131,11 +139,10 @@ final class FileProviderSettingsViewController: UITableViewController {
     }
 
     private func show(_ error: Error) {
-        let message: String
-        if let failure = error as? ProviderLocation.Failure, case .recursiveLocation = failure {
-            message = String(localized: "Fila cannot use this folder. Choose another folder.")
+        let message = if let failure = error as? ProviderLocation.Failure, case .recursiveLocation = failure {
+            String(localized: "Fila cannot use this folder. Choose another folder.")
         } else {
-            message = String(localized: "The folder could not be opened. Choose another folder.")
+            String(localized: "The folder could not be opened. Choose another folder.")
         }
         FilaLog.error("File Provider location change failed: \(error)")
         let alert = AlertViewController(title: String(localized: "Cannot Use Folder"), message: message) { context in

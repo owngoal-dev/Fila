@@ -18,7 +18,9 @@ final class BrowserViewController: UIViewController {
     /// The trash itself. Its rows are put back or emptied, never opened,
     /// created or pasted into. Computed, not stored: a tab restored at launch
     /// exists before the handshake does.
-    var isTrash: Bool { FileActions.isTrash(directory) }
+    var isTrash: Bool {
+        FileActions.isTrash(directory)
+    }
 
     /// The displayed listing. Initial pages append as they arrive; a refresh
     /// replaces it on completion. `visible` applies preferences and sorting.
@@ -54,8 +56,12 @@ final class BrowserViewController: UIViewController {
     /// The folder title remains stable when selection changes. The trash is
     /// named for what it is, not for its dot-directory.
     private var folderTitle: String {
-        if directory == "/" { return String(localized: "Root") }
-        if isTrash { return String(localized: "Trash") }
+        if directory == "/" {
+            return String(localized: "Root")
+        }
+        if isTrash {
+            return String(localized: "Trash")
+        }
         return URL(fileURLWithPath: directory).lastPathComponent
     }
 
@@ -78,7 +84,9 @@ final class BrowserViewController: UIViewController {
     /// anywhere to scroll to. Answering with the zero it is sitting at would
     /// overwrite the position being restored with the top of the folder.
     var scrollOffset: Double {
-        if let restoredScrollOffset { return restoredScrollOffset }
+        if let restoredScrollOffset {
+            return restoredScrollOffset
+        }
         return isViewLoaded ? Double(collectionView.contentOffset.y) : 0
     }
 
@@ -95,7 +103,9 @@ final class BrowserViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     deinit { loadTask?.cancel() }
 
@@ -189,13 +199,17 @@ final class BrowserViewController: UIViewController {
 
     override func setEditing(_ editing: Bool, animated: Bool) {
         let modeChanged = editing != isEditing
-        if editing, modeChanged { recordDirectoryUse() }
+        if editing, modeChanged {
+            recordDirectoryUse()
+        }
         super.setEditing(editing, animated: animated)
         collectionView.isEditing = editing
         view.setNeedsLayout()
         // Edit mode borrows the left slot for Cancel. A split view puts its
         // own items there, so what was there is put back rather than cleared.
-        if editing, borrowedLeftItems == nil { borrowedLeftItems = navigationItem.leftBarButtonItems ?? [] }
+        if editing, borrowedLeftItems == nil {
+            borrowedLeftItems = navigationItem.leftBarButtonItems ?? []
+        }
         if !editing {
             collectionView.indexPathsForSelectedItems?.forEach {
                 collectionView.deselectItem(at: $0, animated: false)
@@ -211,7 +225,11 @@ final class BrowserViewController: UIViewController {
     /// cells for the new one draws a mix of both.
     func viewPreferenceChanged(relayout: Bool) {
         recordDirectoryUse()
-        if relayout { applyLayoutPreference() } else { applySnapshot(animated: true) }
+        if relayout {
+            applyLayoutPreference()
+        } else {
+            applySnapshot(animated: true)
+        }
         NotificationCenter.default.post(name: .filaPreferencesChanged, object: self)
     }
 
@@ -252,7 +270,7 @@ final class BrowserViewController: UIViewController {
                 }
             }
             guard let self else { return }
-            self.pathBar.setPath(self.directory) { path in
+            pathBar.setPath(self.directory) { path in
                 guard let identifier = presentation(path)?.applicationIdentifier else { return folder }
                 return AppFolderDisplay.cachedIcon(for: identifier) ?? folder
             }
@@ -338,8 +356,8 @@ final class BrowserViewController: UIViewController {
                 // this folder…" visible; the cells carry their own background.
                 $0.backgroundColor = .clear
                 $0.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-                    guard let self, let node = self.dataSource.itemIdentifier(for: indexPath) else { return nil }
-                    let title = self.isTrash ? String(localized: "Delete Permanently") : self.deleteTitle
+                    guard let self, let node = dataSource.itemIdentifier(for: indexPath) else { return nil }
+                    let title = isTrash ? String(localized: "Delete Permanently") : deleteTitle
                     let delete = UIContextualAction(style: .destructive, title: title) { _, _, done in
                         self.delete([self.path(of: node)])
                         done(true)
@@ -387,17 +405,17 @@ final class BrowserViewController: UIViewController {
     private func buildDataSource() {
         let listCell = UICollectionView.CellRegistration<IconRowCell, FileNode> { [weak self] cell, _, node in
             guard let self else { return }
-            cell.configure(node, presentation: self.appFolders[node.name])
-            cell.showThumbnail(for: self.path(of: node), node: node, session: self.session)
+            cell.configure(node, presentation: appFolders[node.name])
+            cell.showThumbnail(for: path(of: node), node: node, session: session)
         }
 
         let gridCell = UICollectionView.CellRegistration<BrowserGridCell, FileNode> { [weak self] cell, _, node in
             guard let self else { return }
             cell.configure(
                 node: node,
-                path: self.path(of: node),
-                session: self.session,
-                presentation: self.appFolders[node.name]
+                path: path(of: node),
+                session: session,
+                presentation: appFolders[node.name]
             )
         }
 
@@ -405,8 +423,8 @@ final class BrowserViewController: UIViewController {
             elementKind: UICollectionView.elementKindSectionFooter
         ) { [weak self] view, _, _ in
             guard let self else { return }
-            self.footerView = view
-            view.label.text = self.footerText
+            footerView = view
+            view.label.text = footerText
         }
 
         dataSource = UICollectionViewDiffableDataSource(
@@ -414,9 +432,9 @@ final class BrowserViewController: UIViewController {
         ) { [directory] collection, indexPath, node in
             switch AppPreferences.shared.layout(for: directory) {
             case .list:
-                return collection.dequeueConfiguredReusableCell(using: listCell, for: indexPath, item: node)
+                collection.dequeueConfiguredReusableCell(using: listCell, for: indexPath, item: node)
             case .grid:
-                return collection.dequeueConfiguredReusableCell(using: gridCell, for: indexPath, item: node)
+                collection.dequeueConfiguredReusableCell(using: gridCell, for: indexPath, item: node)
             }
         }
         dataSource.supplementaryViewProvider = { collection, _, indexPath in
@@ -472,7 +490,9 @@ final class BrowserViewController: UIViewController {
         // No detail: the daemon may still be launching, and there is nothing
         // here a user could act on — the same reason the connecting panel
         // offers nothing but the word.
-        if isListing { return .loading(String(localized: "Reading Folder…")) }
+        if isListing {
+            return .loading(String(localized: "Reading Folder…"))
+        }
         if !entries.isEmpty {
             return .message(
                 symbol: "eye.slash",
@@ -497,11 +517,11 @@ final class BrowserViewController: UIViewController {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await self.session.perform { link in
+                try await session.perform { link in
                     try await link.create(.directory, at: self.directory)
                     try await link.setAttributes(AttributeChange(mode: 0o700), at: self.directory)
                 }
-                self.reload()
+                reload()
             } catch let failure as FilaFailure {
                 self.report(failure)
             } catch {}
@@ -535,7 +555,7 @@ final class BrowserViewController: UIViewController {
             var lastApply = Date.distantPast
             var animateSnapshot = false
             do {
-                for try await page in DirectoryReader.pages(in: self.directory, session: self.session) {
+                for try await page in DirectoryReader.pages(in: directory, session: session) {
                     // Only the latest reload owns the rows. During a refresh,
                     // a partial listing must not remove later pages.
                     guard !Task.isCancelled else { return }
@@ -552,19 +572,19 @@ final class BrowserViewController: UIViewController {
                     // the critical path. A merge into the sorted array is the fix
                     // if a huge directory ever feels slow while it loads.
                     guard Date().timeIntervalSince(lastApply) > 0.15 else { continue }
-                    self.entries.append(contentsOf: pending)
+                    entries.append(contentsOf: pending)
                     pending = []
                     lastApply = Date()
-                    self.applySnapshot(animated: false)
+                    applySnapshot(animated: false)
                 }
                 guard !Task.isCancelled else { return }
-                self.listingTruncated = truncated
+                listingTruncated = truncated
                 if keepsContent {
                     let names = Set(pending.lazy.map(\.name))
-                    animateSnapshot = self.visible.contains { !names.contains($0.name) }
-                    self.entries = pending
+                    animateSnapshot = visible.contains { !names.contains($0.name) }
+                    entries = pending
                 } else {
-                    self.entries.append(contentsOf: pending)
+                    entries.append(contentsOf: pending)
                 }
             } catch let failure as FilaFailure {
                 guard !Task.isCancelled else { return }
@@ -579,28 +599,28 @@ final class BrowserViewController: UIViewController {
                 }
             } catch {}
             guard !Task.isCancelled else { return }
-            self.isListing = false
+            isListing = false
             await withCheckedContinuation { continuation in
                 self.applySnapshot(animated: animateSnapshot) { continuation.resume() }
             }
             guard !Task.isCancelled else { return }
-            self.refresher.endRefreshing()
-            self.decoratedWithApplications = SystemCapabilities.showsApplications
+            refresher.endRefreshing()
+            decoratedWithApplications = SystemCapabilities.showsApplications
             let appFolders = await AppFolderDisplay.load(
-                in: self.directory,
-                entries: self.entries,
-                session: self.session
+                in: directory,
+                entries: entries,
+                session: session
             )
             guard !Task.isCancelled else { return }
             let refreshAppFolders = !self.appFolders.isEmpty || !appFolders.isEmpty
             self.appFolders = appFolders
             if refreshAppFolders {
-                var snapshot = self.dataSource.snapshot()
+                var snapshot = dataSource.snapshot()
                 snapshot.reconfigureItems(snapshot.itemIdentifiers)
-                await self.dataSource.apply(snapshot, animatingDifferences: false)
+                await dataSource.apply(snapshot, animatingDifferences: false)
             }
             guard !Task.isCancelled else { return }
-            await self.loadVolume()
+            await loadVolume()
         }
     }
 
@@ -667,7 +687,9 @@ final class BrowserViewController: UIViewController {
         // only refreshes the footer — rebuilding the whole toolbar per page
         // would be work nobody sees.
         updateFooter()
-        if isEditing { updateChrome() }
+        if isEditing {
+            updateChrome()
+        }
     }
 
     private func arrange(_ nodes: [FileNode]) -> [FileNode] {
@@ -677,21 +699,24 @@ final class BrowserViewController: UIViewController {
         // into the snapshot, which is a crash rather than a glitch.
         var seen = Set<String>()
         var items = nodes.filter { seen.insert($0.name).inserted }
-        if !preferences.showsHidden { items.removeAll(where: \.isHidden) }
+        if !preferences.showsHidden {
+            items.removeAll(where: \.isHidden)
+        }
         return items.sorted(by: precedes)
     }
 
     /// Directories first regardless of direction — reversing that puts the way
     /// out of a folder at the bottom of a hundred thousand files.
     private func precedes(_ lhs: FileNode, _ rhs: FileNode) -> Bool {
-        if lhs.isNavigable != rhs.isNavigable { return lhs.isNavigable }
+        if lhs.isNavigable != rhs.isNavigable {
+            return lhs.isNavigable
+        }
         let preferences = AppPreferences.shared
-        let order: ComparisonResult
-        switch preferences.sortKey {
-        case .name: order = lhs.name.localizedStandardCompare(rhs.name)
-        case .date: order = compare(lhs.modified, rhs.modified)
-        case .size: order = compare(lhs.size, rhs.size)
-        case .kind: order = FilePresentation.sortKind(for: lhs).compare(FilePresentation.sortKind(for: rhs))
+        let order: ComparisonResult = switch preferences.sortKey {
+        case .name: lhs.name.localizedStandardCompare(rhs.name)
+        case .date: compare(lhs.modified, rhs.modified)
+        case .size: compare(lhs.size, rhs.size)
+        case .kind: FilePresentation.sortKind(for: lhs).compare(FilePresentation.sortKind(for: rhs))
         }
         guard order != .orderedSame else {
             return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
@@ -726,7 +751,9 @@ final class BrowserViewController: UIViewController {
             parts.append(String(localized: "\(free) free of \(total)"))
             // Last, so it sits at the right end of the line: nothing in this
             // folder can be changed, and the daemon's root does not help.
-            if volume.isReadOnly { parts.append(String(localized: "Read Only")) }
+            if volume.isReadOnly {
+                parts.append(String(localized: "Read Only"))
+            }
         }
         setFooter(parts.joined(separator: " · "))
     }
@@ -741,7 +768,9 @@ final class BrowserViewController: UIViewController {
         collectionView.collectionViewLayout.invalidateLayout()
     }
 
-    private var selectedCount: Int { collectionView.indexPathsForSelectedItems?.count ?? 0 }
+    private var selectedCount: Int {
+        collectionView.indexPathsForSelectedItems?.count ?? 0
+    }
 
     /// What was in the navigation item's left slot before edit mode borrowed it.
     private var borrowedLeftItems: [UIBarButtonItem]?
@@ -792,7 +821,9 @@ final class BrowserViewController: UIViewController {
         items.selectAll.isEnabled = !visible.isEmpty
         items.delete.image = UIImage(systemName: "trash")
         items.delete.accessibilityLabel = isTrash ? String(localized: "Delete Permanently") : deleteTitle
-        for item in [items.copy, items.move, items.compress, items.putBack, items.delete] { item.isEnabled = count > 0 }
+        for item in [items.copy, items.move, items.compress, items.putBack, items.delete] {
+            item.isEnabled = count > 0
+        }
 
         // A count update changes the existing controls without replacing the
         // toolbar, including when select(_:) follows entry into selection mode.
@@ -812,7 +843,7 @@ final class BrowserViewController: UIViewController {
                     items.move,
                     items.compress,
                     .flexibleSpace(),
-                    items.delete
+                    items.delete,
                 ],
                 animated: shouldAnimateToolbar(animated)
             )
@@ -827,7 +858,7 @@ final class BrowserViewController: UIViewController {
                     .flexibleSpace(),
                     items.compress,
                     .flexibleSpace(),
-                    items.delete
+                    items.delete,
                 ],
                 animated: false
             )
@@ -848,7 +879,7 @@ final class BrowserViewController: UIViewController {
             image: UIImage(systemName: "checkmark.circle"),
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
-                self.setAllSelected(self.selectedCount != self.visible.count)
+                setAllSelected(selectedCount != visible.count)
             }
         )
         let copy = UIBarButtonItem(
@@ -865,7 +896,7 @@ final class BrowserViewController: UIViewController {
             image: UIImage(systemName: "doc.zipper"),
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
-                FileActions(presenter: self, directory: self.directory).promptCompress(self.selectedPaths())
+                FileActions(presenter: self, directory: directory).promptCompress(selectedPaths())
             }
         )
         compress.accessibilityLabel = String(localized: "Compress")
@@ -873,7 +904,7 @@ final class BrowserViewController: UIViewController {
             image: UIImage(systemName: "arrow.uturn.backward"),
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
-                self.putBack(self.selectedPaths())
+                self.putBack(selectedPaths())
             }
         )
         putBack.accessibilityLabel = String(localized: "Put Back")
@@ -891,7 +922,7 @@ final class BrowserViewController: UIViewController {
                 (move, "move"),
                 (compress, "compress"),
                 (putBack, "putBack"),
-                (delete, "delete")
+                (delete, "delete"),
             ] {
                 item.identifier = identifier
             }
@@ -916,13 +947,13 @@ final class BrowserViewController: UIViewController {
         let more = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] done in
                 guard let self else { done([]); return }
-                self.recordDirectoryUse()
+                recordDirectoryUse()
                 let select = UIAction(
                     title: String(localized: "Select"),
                     image: UIImage(systemName: "checkmark.circle"),
-                    attributes: self.visible.isEmpty ? .disabled : []
+                    attributes: visible.isEmpty ? .disabled : []
                 ) { [weak self] _ in self?.setEditing(true, animated: true) }
-                let running = self.session.operations.operations.filter(\.isRunning).count
+                let running = session.operations.operations.filter(\.isRunning).count
                 let transfers: [UIMenuElement] = running > 0 ? [UIMenu(options: .displayInline, children: [
                     UIAction(
                         title: String(localized: "Tasks"),
@@ -930,8 +961,8 @@ final class BrowserViewController: UIViewController {
                         image: UIImage(systemName: "tray.and.arrow.down.fill")
                     ) { _ in TransfersViewController.presentAsSheet() },
                 ])] : []
-                let folder: UIMenuElement = self.isTrash ? self.emptyTrashAction() : self.newMenu()
-                done(self.browserMenuElements(folderAction: folder, selectAction: select) + transfers)
+                let folder: UIMenuElement = isTrash ? emptyTrashAction() : newMenu()
+                done(browserMenuElements(folderAction: folder, selectAction: select) + transfers)
             },
         ]))
         more.accessibilityLabel = String(localized: "More")
@@ -964,7 +995,9 @@ final class BrowserViewController: UIViewController {
         clipboardBar.isHidden = isEditing || isTrash || FileClipboard.shared.isEmpty
         clipboardBar.configure(FileClipboard.shared)
         guard !isEditing else { return }
-        if navigationItem.rightBarButtonItem !== moreButton { navigationItem.rightBarButtonItem = moreItem() }
+        if navigationItem.rightBarButtonItem !== moreButton {
+            navigationItem.rightBarButtonItem = moreItem()
+        }
 
         updatePathBarWidth()
         setToolbarItems(browsingToolbar, animated: shouldAnimateToolbar(animated))
@@ -1029,9 +1062,17 @@ final class BrowserViewController: UIViewController {
         updateChrome()
     }
 
-    @objc private func commandCopySelection() { takeSelection(cut: false) }
-    @objc private func commandMoveSelection() { takeSelection(cut: true) }
-    @objc private func commandDeleteSelection() { delete(selectedPaths()) }
+    @objc private func commandCopySelection() {
+        takeSelection(cut: false)
+    }
+
+    @objc private func commandMoveSelection() {
+        takeSelection(cut: true)
+    }
+
+    @objc private func commandDeleteSelection() {
+        delete(selectedPaths())
+    }
 
     // MARK: - Navigation
 
@@ -1077,7 +1118,8 @@ final class BrowserViewController: UIViewController {
     func open(directory path: String) {
         guard let navigation = navigationController else { return }
         if let existing = navigation.viewControllers
-            .last(where: { ($0 as? BrowserViewController)?.directory == path }) {
+            .last(where: { ($0 as? BrowserViewController)?.directory == path })
+        {
             navigation.popToViewController(existing, animated: true)
             return
         }
@@ -1156,10 +1198,22 @@ final class BrowserViewController: UIViewController {
         recordDirectoryUse()
         reload()
     }
-    @objc private func commandNewFolder() { promptCreate(.directory) }
-    @objc private func commandGoToPath() { promptGoToPath() }
-    @objc private func commandSearch() { presentSearch() }
-    @objc private func commandPaste() { paste() }
+
+    @objc private func commandNewFolder() {
+        promptCreate(.directory)
+    }
+
+    @objc private func commandGoToPath() {
+        promptGoToPath()
+    }
+
+    @objc private func commandSearch() {
+        presentSearch()
+    }
+
+    @objc private func commandPaste() {
+        paste()
+    }
 
     @objc private func commandToggleHidden() {
         recordDirectoryUse()

@@ -62,7 +62,9 @@ final class LocalService: RemoteFileService, @unchecked Sendable {
     }
 
     func run(_ job: JobRequest) async throws {
-        if jobDelayNanoseconds > 0 { try await Task.sleep(nanoseconds: jobDelayNanoseconds) }
+        if jobDelayNanoseconds > 0 {
+            try await Task.sleep(nanoseconds: jobDelayNanoseconds)
+        }
         let operations = operations
         // `FileJob.run` blocks its thread from start to finish — that is how
         // `copyfile`'s state callbacks work — so it goes somewhere it is
@@ -87,18 +89,20 @@ final class Scratch {
         removefile(root, nil, removefile_flags_t(REMOVEFILE_RECURSIVE))
     }
 
-    func path(_ relative: String) -> String { relative.isEmpty ? root : root + "/" + relative }
+    func path(_ relative: String) -> String {
+        relative.isEmpty ? root : root + "/" + relative
+    }
 
     @discardableResult
     func directory(_ relative: String) -> String {
-        let path = self.path(relative)
+        let path = path(relative)
         precondition(mkdir(path, 0o755) == 0 || errno == EEXIST, "mkdir \(path)")
         return path
     }
 
     @discardableResult
     func file(_ relative: String, contents: String = "fila") -> String {
-        let path = self.path(relative)
+        let path = path(relative)
         let descriptor = open(path, O_CREAT | O_TRUNC | O_WRONLY, 0o644)
         precondition(descriptor >= 0, "open \(path)")
         contents.withCString { _ = write(descriptor, $0, strlen($0)) }

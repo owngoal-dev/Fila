@@ -43,7 +43,8 @@ private final class Presenter {
         guard window == nil, let item = queue.first else { return }
         guard let scene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }) else {
+            .first(where: { $0.activationState == .foregroundActive })
+        else {
             guard attempt < Self.sceneAttempts else {
                 // The Tasks list retains the same result when no scene appears.
                 queue.removeAll()
@@ -76,8 +77,8 @@ private final class Presenter {
             guard let self, self.indicator === indicator else { return }
             self.indicator = nil
             host.isHidden = true
-            self.window = nil
-            self.showNext(attempt: 0)
+            window = nil
+            showNext(attempt: 0)
         }
         UIAccessibility.post(notification: .announcement, argument: indicator.accessibilityLabel)
     }
@@ -93,7 +94,7 @@ private final class ActionIndicatorView: SPIndicatorView {
 
     init(item: Toast.Item) {
         action = item.action
-        let title = [item.title, item.action?.title].compactMap { $0 }.joined(separator: " · ")
+        let title = [item.title, item.action?.title].compactMap(\.self).joined(separator: " · ")
         super.init(title: title, message: nil, preset: .done)
         self.do {
             $0.titleLabel?.adjustsFontForContentSizeCategory = true
@@ -113,7 +114,9 @@ private final class ActionIndicatorView: SPIndicatorView {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
 
     override func dismiss() {
         // Upstream's timer may fire after a tap or drag already dismissed it.
@@ -127,7 +130,9 @@ private final class ActionIndicatorView: SPIndicatorView {
         activateAction()
     }
 
-    @objc private func tapped() { _ = activateAction() }
+    @objc private func tapped() {
+        _ = activateAction()
+    }
 
     @objc private func activateAction() -> Bool {
         guard !isDismissing, let action else { return false }
@@ -141,7 +146,9 @@ private final class ActionIndicatorView: SPIndicatorView {
 private final class PassthroughWindow: UIWindow {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let hit = super.hitTest(point, with: event)
-        if hit === self || hit === rootViewController?.view { return nil }
+        if hit === self || hit === rootViewController?.view {
+            return nil
+        }
         return hit
     }
 }

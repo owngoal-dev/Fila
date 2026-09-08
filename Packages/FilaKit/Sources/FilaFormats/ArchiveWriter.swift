@@ -3,8 +3,8 @@ import FilaProtocol
 import Foundation
 import LibArchive
 
-extension ArchiveFormat {
-    fileprivate func configure(
+private extension ArchiveFormat {
+    func configure(
         _ handle: OpaquePointer,
         zipCompression: ZipCompression,
         encryption: ZipEncryption?
@@ -51,8 +51,8 @@ extension ArchiveFormat {
     }
 }
 
-extension ZipCompression {
-    fileprivate var options: String {
+private extension ZipCompression {
+    var options: String {
         switch self {
         case .balanced: "zip:compression=deflate,zip:compression-level=6"
         case .smallest: "zip:compression=deflate,zip:compression-level=9"
@@ -61,8 +61,8 @@ extension ZipCompression {
     }
 }
 
-extension ZipEncryption {
-    fileprivate var options: String {
+private extension ZipEncryption {
+    var options: String {
         switch self {
         case .aes256: "zip:encryption=aes256"
         case .zipCrypto: "zip:encryption=zipcrypt"
@@ -120,7 +120,9 @@ public final class ArchiveWriter: @unchecked Sendable {
                 )
             }
             try Self.check(handle, archive_write_set_bytes_in_last_block(handle, 1))
-            if let password { try Self.check(handle, archive_write_set_passphrase(handle, password)) }
+            if let password {
+                try Self.check(handle, archive_write_set_passphrase(handle, password))
+            }
             try Self.check(handle, archive_write_open(
                 handle,
                 Unmanaged.passUnretained(output).toOpaque(),
@@ -262,7 +264,9 @@ public final class ArchiveWriter: @unchecked Sendable {
         archive_entry_set_filetype(entry, UInt32(filetype))
         archive_entry_set_perm(entry, mode & 0o7777)
         archive_entry_set_mtime(entry, Self.unixTime(modified), 0)
-        if let linkTarget { archive_entry_set_symlink_utf8(entry, linkTarget) }
+        if let linkTarget {
+            archive_entry_set_symlink_utf8(entry, linkTarget)
+        }
         // A tar needs the length in the header it writes before the payload, so
         // this is not optional even for the formats that could stream.
         archive_entry_set_size(entry, filetype == S_IFREG ? byteCount : 0)
@@ -310,13 +314,19 @@ public final class ArchiveWriter: @unchecked Sendable {
     private static func unixTime(_ date: Date) -> time_t {
         let seconds = date.timeIntervalSince1970
         guard seconds.isFinite else { return 0 }
-        if seconds >= Double(time_t.max) { return .max }
-        if seconds <= Double(time_t.min) { return .min }
+        if seconds >= Double(time_t.max) {
+            return .max
+        }
+        if seconds <= Double(time_t.min) {
+            return .min
+        }
         return time_t(seconds)
     }
 
     private static func check(_ handle: OpaquePointer, _ status: Int32, output: ArchiveOutput? = nil) throws {
-        if let failure = output?.failure { throw FormatFailure.system(errno: failure) }
+        if let failure = output?.failure {
+            throw FormatFailure.system(errno: failure)
+        }
         guard status != ARCHIVE_OK, status != ARCHIVE_WARN else { return }
         throw archiveFailure(handle)
     }
@@ -328,7 +338,9 @@ private final class ArchiveOutput {
     let descriptor: Int32
     private(set) var failure: Int32?
 
-    init(descriptor: Int32) { self.descriptor = descriptor }
+    init(descriptor: Int32) {
+        self.descriptor = descriptor
+    }
 
     func write(_ buffer: UnsafeRawPointer, count: Int) -> Int {
         guard failure == nil else { return -1 }
@@ -337,7 +349,9 @@ private final class ArchiveOutput {
             var written = 0
             while written < count {
                 let result = Darwin.write(descriptor, buffer.advanced(by: written), count - written)
-                if result < 0, errno == EINTR { continue }
+                if result < 0, errno == EINTR {
+                    continue
+                }
                 guard result > 0 else { throw FilaFailure(errno: result == 0 ? ENOSPC : errno) }
                 written += result
             }

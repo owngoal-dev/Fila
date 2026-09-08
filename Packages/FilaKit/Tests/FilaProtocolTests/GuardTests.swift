@@ -1,8 +1,7 @@
 import Darwin
+@testable import FilaProtocol
 import Foundation
 import Testing
-
-@testable import FilaProtocol
 
 // The guard is pure logic and it is the branch that, wrong, bricks a phone. It
 // runs on the Mac against a real filesystem: no device, no simulator.

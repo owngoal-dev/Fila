@@ -30,7 +30,9 @@ public enum FilaJobKind: UInt64, Sendable, Codable {
     /// Put a trashed item back at its recorded origin, without replacing anything.
     case restore = 7
 
-    public var isArchive: Bool { self == .compress || self == .extract }
+    public var isArchive: Bool {
+        self == .compress || self == .extract
+    }
 }
 
 /// One job as the client asks for it.
@@ -97,7 +99,9 @@ public enum JobEvent: Sendable, Hashable {
     case completed(FilaFailure)
 
     public var isFinal: Bool {
-        if case .completed = self { return true }
+        if case .completed = self {
+            return true
+        }
         return false
     }
 }
@@ -129,7 +133,9 @@ public struct JobProgress: Sendable, Hashable, Codable {
     /// and the difference is a bar versus a spinner. Bytes when the job counted
     /// them; items when it only counted members, as an extraction does.
     public var fraction: Double? {
-        if bytesTotal > 0 { return min(1, Double(bytesDone) / Double(bytesTotal)) }
+        if bytesTotal > 0 {
+            return min(1, Double(bytesDone) / Double(bytesTotal))
+        }
         guard itemsTotal > 0 else { return nil }
         return min(1, Double(itemsDone) / Double(itemsTotal))
     }

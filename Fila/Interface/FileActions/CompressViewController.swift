@@ -60,7 +60,9 @@ final class CompressViewController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     /// Wrapped in its navigation controller and sized for the device.
     static func present(
@@ -113,9 +115,9 @@ final class CompressViewController: UIViewController {
         let field = UICollectionView.CellRegistration<TextFieldCell, Row> { [weak self] cell, _, _ in
             guard let self else { return }
             cell.configure(
-                text: self.name,
+                text: name,
                 placeholder: String(localized: "Archive name"),
-                suffix: "." + self.format.filenameExtension
+                suffix: "." + format.filenameExtension
             ) { self.name = $0 }
         }
         let choice = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
@@ -126,33 +128,33 @@ final class CompressViewController: UIViewController {
             case .format:
                 content.text = String(localized: "Format")
                 cell.accessories = [
-                    self.menuAccessory(ArchiveFormat.allCases, selected: self.format, title: Self.title(for:)) {
+                    menuAccessory(ArchiveFormat.allCases, selected: format, title: Self.title(for:)) {
                         self.format = $0
-                    }
+                    },
                 ]
             case .level:
                 content.text = String(localized: "Compression")
                 cell.accessories = [
-                    self.menuAccessory(ZipCompression.allCases, selected: self.level, title: Self.title(for:)) {
+                    menuAccessory(ZipCompression.allCases, selected: level, title: Self.title(for:)) {
                         self.level = $0
-                    }
+                    },
                 ]
             case .encryption:
                 content.text = String(localized: "Encryption")
                 cell.accessories = [
-                    self.menuAccessory(ZipEncryption.allCases, selected: self.encryption, title: Self.title(for:)) {
+                    menuAccessory(ZipEncryption.allCases, selected: encryption, title: Self.title(for:)) {
                         self.encryption = $0
-                    }
+                    },
                 ]
             case .password:
                 content.text = String(localized: "Password")
-                content.secondaryText = self.password.isEmpty
+                content.secondaryText = password.isEmpty
                     ? String(localized: "None")
                     : String(repeating: "•", count: 8)
                 cell.accessories = [.disclosureIndicator()]
             case .destination:
                 content.text = String(localized: "Save To")
-                content.secondaryText = self.directory
+                content.secondaryText = directory
                 content.secondaryTextProperties.lineBreakMode = .byTruncatingMiddle
                 cell.accessories = [.disclosureIndicator()]
             case .name:
@@ -211,17 +213,17 @@ final class CompressViewController: UIViewController {
     private func footerText(for section: Int) -> String? {
         switch Section(rawValue: section) {
         case .options where format != .zip:
-            return String(localized: "Only ZIP archives can be protected with a password.")
+            String(localized: "Only ZIP archives can be protected with a password.")
         case .options where !password.isEmpty:
-            return encryption == .aes256
+            encryption == .aes256
                 ? String(
                     localized: "AES-256 provides strong encryption, but some older tools cannot open these archives."
                 )
                 : String(localized: "ZipCrypto offers broad compatibility but weak password protection.")
         case .destination:
-            return String(localized: "The archive will be created in this folder.")
+            String(localized: "The archive will be created in this folder.")
         default:
-            return nil
+            nil
         }
     }
 
@@ -261,8 +263,8 @@ final class CompressViewController: UIViewController {
         ) { [weak self] entered in
             guard let self else { return }
             guard !entered.isEmpty else {
-                self.password = ""
-                self.apply()
+                password = ""
+                apply()
                 return
             }
             let second = AlertInputViewController(
@@ -283,13 +285,13 @@ final class CompressViewController: UIViewController {
                             context.dispose()
                         }
                     }
-                    self.present(alert, animated: true)
+                    present(alert, animated: true)
                     return
                 }
-                self.password = confirmed
-                self.apply()
+                password = confirmed
+                apply()
             }
-            self.present(second, animated: true)
+            present(second, animated: true)
         }
         present(first, animated: true)
     }
@@ -334,30 +336,30 @@ final class CompressViewController: UIViewController {
 
     private static func title(for format: ArchiveFormat) -> String {
         switch format {
-        case .zip: return "ZIP"
-        case .tarZstd: return "TAR + Zstandard"
-        case .tar: return "TAR"
-        case .tarGzip: return "TAR + Gzip"
-        case .tarBzip2: return "TAR + Bzip2"
-        case .tarXz: return "TAR + XZ"
-        case .tarLzma: return "TAR + LZMA"
-        case .tarLzip: return "TAR + Lzip"
-        case .tarLz4: return "TAR + LZ4"
+        case .zip: "ZIP"
+        case .tarZstd: "TAR + Zstandard"
+        case .tar: "TAR"
+        case .tarGzip: "TAR + Gzip"
+        case .tarBzip2: "TAR + Bzip2"
+        case .tarXz: "TAR + XZ"
+        case .tarLzma: "TAR + LZMA"
+        case .tarLzip: "TAR + Lzip"
+        case .tarLz4: "TAR + LZ4"
         }
     }
 
     private static func title(for level: ZipCompression) -> String {
         switch level {
-        case .balanced: return String(localized: "Balanced")
-        case .smallest: return String(localized: "Smallest")
-        case .store: return String(localized: "Uncompressed")
+        case .balanced: String(localized: "Balanced")
+        case .smallest: String(localized: "Smallest")
+        case .store: String(localized: "Uncompressed")
         }
     }
 
     private static func title(for encryption: ZipEncryption) -> String {
         switch encryption {
-        case .aes256: return "AES-256"
-        case .zipCrypto: return "ZipCrypto"
+        case .aes256: "AES-256"
+        case .zipCrypto: "ZipCrypto"
         }
     }
 }
@@ -365,8 +367,8 @@ final class CompressViewController: UIViewController {
 extension CompressViewController: UICollectionViewDelegate {
     func collectionView(_: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         switch dataSource.itemIdentifier(for: indexPath) {
-        case .password, .destination: return true
-        default: return false
+        case .password, .destination: true
+        default: false
         }
     }
 
@@ -422,7 +424,9 @@ private final class TextFieldCell: UICollectionViewListCell {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func configure(text: String, placeholder: String, suffix: String, onChange: @escaping (String) -> Void) {
         field.text = text
@@ -432,6 +436,11 @@ private final class TextFieldCell: UICollectionViewListCell {
         self.onChange = onChange
     }
 
-    @objc private func changed() { onChange?(field.text ?? "") }
-    @objc private func finishTextEntry(_ sender: UITextField) { sender.resignFirstResponder() }
+    @objc private func changed() {
+        onChange?(field.text ?? "")
+    }
+
+    @objc private func finishTextEntry(_ sender: UITextField) {
+        sender.resignFirstResponder()
+    }
 }

@@ -39,11 +39,11 @@ public enum FilaProtocol {
     /// Hard ceiling on any single reply. Nothing but metadata ever travels over
     /// the wire, so this is generous — file bytes go through a passed
     /// descriptor, never through a message.
-    public static let maximumMessageByteCount = 2 * 1_024 * 1_024
+    public static let maximumMessageByteCount = 2 * 1024 * 1024
 
     /// The largest extended-attribute value the daemon will put in a message.
     /// Anything bigger is a file in disguise and the caller wants a descriptor.
-    public static let maximumExtendedAttributeByteCount = 256 * 1_024
+    public static let maximumExtendedAttributeByteCount = 256 * 1024
 
     /// How many matches one `searchResult` message carries.
     ///
@@ -64,7 +64,7 @@ public enum FilaProtocol {
     /// number the app explains to the user is the number the daemon enforces.
     /// Reaching it is reported as `SearchLimits.resultCount`, never applied in
     /// silence.
-    public static let searchResultLimit = 10_000
+    public static let searchResultLimit = 10000
 
     /// How deep a search descends. One open directory handle per level, so this
     /// is a memory bound as much as a loop bound — sixty-four levels is far
@@ -199,25 +199,25 @@ public extension FilaOperation {
     /// around it uses — a log is only searchable if the vocabulary is fixed.
     var name: String {
         switch self {
-        case .hello: return "hello"
-        case .listDirectory: return "list"
-        case .statPath: return "stat"
-        case .openPath: return "open"
-        case .createNode: return "create"
-        case .rename: return "rename"
-        case .setAttributes: return "setattr"
-        case .startJob: return "startJob"
-        case .cancelJob: return "cancelJob"
-        case .goodbye: return "goodbye"
-        case .replaceItem: return "replace"
-        case .volumeInfo: return "volume"
-        case .readExtendedAttribute: return "getxattr"
-        case .jobEvent: return "jobEvent"
-        case .searchResult: return "searchResult"
-        case .fetchLog: return "fetchLog"
-        case .openTerminal: return "openTerminal"
-        case .closeTerminal: return "closeTerminal"
-        case .mountPoints: return "mountPoints"
+        case .hello: "hello"
+        case .listDirectory: "list"
+        case .statPath: "stat"
+        case .openPath: "open"
+        case .createNode: "create"
+        case .rename: "rename"
+        case .setAttributes: "setattr"
+        case .startJob: "startJob"
+        case .cancelJob: "cancelJob"
+        case .goodbye: "goodbye"
+        case .replaceItem: "replace"
+        case .volumeInfo: "volume"
+        case .readExtendedAttribute: "getxattr"
+        case .jobEvent: "jobEvent"
+        case .searchResult: "searchResult"
+        case .fetchLog: "fetchLog"
+        case .openTerminal: "openTerminal"
+        case .closeTerminal: "closeTerminal"
+        case .mountPoints: "mountPoints"
         }
     }
 }
@@ -270,14 +270,14 @@ public enum FilaReplyCode: Int64, Sendable, Codable {
     /// what someone reading the log will search for.
     public var name: String {
         switch self {
-        case .success: return "ok"
-        case .invalidRequest: return "invalid"
-        case .notPermitted: return "refused"
-        case .protectedPath: return "guard"
-        case .notFound: return "missing"
-        case .wrongPassword: return "password"
-        case .operationFailed: return "failed"
-        case .cancelled: return "cancelled"
+        case .success: "ok"
+        case .invalidRequest: "invalid"
+        case .notPermitted: "refused"
+        case .protectedPath: "guard"
+        case .notFound: "missing"
+        case .wrongPassword: "password"
+        case .operationFailed: "failed"
+        case .cancelled: "cancelled"
         }
     }
 }

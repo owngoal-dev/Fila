@@ -85,7 +85,9 @@ private let filaMaximumWalkDepth = 256
 /// one path string per level of depth, and nothing whatever per entry.
 private func filaApplyAttributesBeneath(_ change: AttributeChange, of root: String, operations: FileOperations) throws {
     var stack: [(handle: UnsafeMutablePointer<DIR>, path: String)] = []
-    defer { for level in stack { closedir(level.handle) } }
+    defer { for level in stack {
+        closedir(level.handle)
+    } }
 
     func descend(into path: String) throws {
         guard stack.count < filaMaximumWalkDepth else {
@@ -114,7 +116,9 @@ private func filaApplyAttributesBeneath(_ change: AttributeChange, of root: Stri
         try filaApplyAttributes(change, to: path)
         // Real directories only. Following a link here would let one `../../..`
         // inside the tree turn a chown of a folder into a chown of the device.
-        if child.metadata.st_mode & S_IFMT == S_IFDIR { try descend(into: path) }
+        if child.metadata.st_mode & S_IFMT == S_IFDIR {
+            try descend(into: path)
+        }
     }
 }
 

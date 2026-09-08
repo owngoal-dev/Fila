@@ -4,7 +4,8 @@ import UIKit
 @MainActor
 enum PermanentDeleteConfirmation {
     static func present(from presenter: UIViewController, title: String, message: String,
-                        confirmTitle: String = String(localized: "Delete Permanently"), confirm: @escaping () -> Void) {
+                        confirmTitle: String = String(localized: "Delete Permanently"), confirm: @escaping () -> Void)
+    {
         let accent = AlertControllerConfiguration.accentColor
         AlertControllerConfiguration.accentColor = .systemRed
         defer { AlertControllerConfiguration.accentColor = accent }

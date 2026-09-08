@@ -1,7 +1,6 @@
+@testable import FilaLog
 import Foundation
 import Testing
-
-@testable import FilaLog
 
 // The ring is the whole of what logging costs `filad`, and `filad` dies at
 // 6 MB. What matters is that it never grows, that it evicts whole frames, and
@@ -16,7 +15,7 @@ private let smallCapacity = FilaLogRing.headerByteCount + FilaLogRing.maximumMes
 struct RingTests {
     @Test("Reads back what was written")
     func roundTrip() {
-        var ring = FilaLogRing(capacityBytes: 64 * 1_024)
+        var ring = FilaLogRing(capacityBytes: 64 * 1024)
         ring.append(level: .warning, source: .daemon, message: "guard refused /private/var")
         ring.append(level: .error, source: .app, message: "open failed errno 1")
 
@@ -36,8 +35,10 @@ struct RingTests {
 
     @Test("A cursor returns only what came after it")
     func cursor() {
-        var ring = FilaLogRing(capacityBytes: 64 * 1_024)
-        for index in 1 ... 10 { ring.append(level: .info, source: .app, message: "line \(index)") }
+        var ring = FilaLogRing(capacityBytes: 64 * 1024)
+        for index in 1 ... 10 {
+            ring.append(level: .info, source: .app, message: "line \(index)")
+        }
 
         #expect(ring.records(since: 0).count == 10)
         #expect(ring.records(since: 7).map(\.message) == ["line 8", "line 9", "line 10"])
@@ -51,7 +52,7 @@ struct RingTests {
     func ceiling() {
         var ring = FilaLogRing(capacityBytes: smallCapacity)
         // Far more than fits: the point is that the ceiling holds regardless.
-        for index in 1 ... 5_000 {
+        for index in 1 ... 5000 {
             ring.append(level: .verbose, source: .daemon, message: "list /private/var/mobile entry \(index)")
         }
 
@@ -61,7 +62,7 @@ struct RingTests {
         // allocation, however long the flood runs.
         #expect(ring.usedBytes <= ring.capacityBytes)
         #expect(ring.capacityBytes == smallCapacity)
-        #expect(ring.droppedCount == UInt64(5_000 - records.count))
+        #expect(ring.droppedCount == UInt64(5000 - records.count))
     }
 
     @Test("Evicts oldest first and keeps the newest intact across the wrap")
@@ -86,8 +87,8 @@ struct RingTests {
 
     @Test("Truncates an over-long message rather than growing for it")
     func truncation() {
-        var ring = FilaLogRing(capacityBytes: 64 * 1_024)
-        ring.append(level: .info, source: .app, message: String(repeating: "p", count: 10_000))
+        var ring = FilaLogRing(capacityBytes: 64 * 1024)
+        ring.append(level: .info, source: .app, message: String(repeating: "p", count: 10000))
 
         let message = ring.records(since: 0)[0].message
         #expect(message.utf8.count == FilaLogRing.maximumMessageByteCount)
@@ -101,7 +102,7 @@ struct RingTests {
         // the right outcome for a log line and is why the ceiling is measured
         // on the ring rather than on the string.
         for padding in 0 ... 3 {
-            var ring = FilaLogRing(capacityBytes: 64 * 1_024)
+            var ring = FilaLogRing(capacityBytes: 64 * 1024)
             ring.append(
                 level: .info,
                 source: .app,
@@ -117,8 +118,10 @@ struct RingTests {
 
     @Test("Clearing keeps the sequence, so a poller is never handed a number twice")
     func clearing() {
-        var ring = FilaLogRing(capacityBytes: 64 * 1_024)
-        for index in 1 ... 5 { ring.append(level: .info, source: .app, message: "\(index)") }
+        var ring = FilaLogRing(capacityBytes: 64 * 1024)
+        for index in 1 ... 5 {
+            ring.append(level: .info, source: .app, message: "\(index)")
+        }
         ring.removeAll()
         #expect(ring.records(since: 0).isEmpty)
 
@@ -190,7 +193,7 @@ struct FilaLogTests {
     func endToEnd() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
-        FilaLog.start(.app, capacityBytes: 64 * 1_024)
+        FilaLog.start(.app, capacityBytes: 64 * 1024)
         FilaLog.clear()
         FilaLog.minimumLevel = .verbose
 
@@ -216,7 +219,7 @@ struct FilaLogTests {
     func redactsOnWrite() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
-        FilaLog.start(.daemon, capacityBytes: 64 * 1_024)
+        FilaLog.start(.daemon, capacityBytes: 64 * 1024)
         FilaLog.clear()
         FilaLog.minimumLevel = .verbose
 
@@ -262,8 +265,8 @@ struct FilaLogTests {
         let (all, dropped) = FilaLog.snapshot()
         let records = all.filter { $0.message.hasPrefix("worker ") }
         #expect(dropped == 0)
-        #expect(records.count == 2_000)
-        #expect(Set(records.map(\.sequence)).count == 2_000)
-        #expect(Set(records.map(\.message)).count == 2_000)
+        #expect(records.count == 2000)
+        #expect(Set(records.map(\.sequence)).count == 2000)
+        #expect(Set(records.map(\.message)).count == 2000)
     }
 }

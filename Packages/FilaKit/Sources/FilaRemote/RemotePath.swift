@@ -40,7 +40,9 @@ public enum RemotePath {
             text = String(rest[slash...])
         }
         // Query and fragment are not part of the name of a file.
-        if let cut = text.firstIndex(where: { $0 == "?" || $0 == "#" }) { text = String(text[..<cut]) }
+        if let cut = text.firstIndex(where: { $0 == "?" || $0 == "#" }) {
+            text = String(text[..<cut])
+        }
         guard text.hasPrefix("/") else { return nil }
 
         var result: [String] = []
@@ -62,7 +64,9 @@ public enum RemotePath {
     public static func href(for path: String, root: String, isCollection: Bool) -> String {
         let base = root == "/" ? "" : root
         var remainder = path
-        if !base.isEmpty, remainder.hasPrefix(base) { remainder.removeFirst(base.count) }
+        if !base.isEmpty, remainder.hasPrefix(base) {
+            remainder.removeFirst(base.count)
+        }
         let encoded = remainder
             .split(separator: "/", omittingEmptySubsequences: true)
             .map(escape)

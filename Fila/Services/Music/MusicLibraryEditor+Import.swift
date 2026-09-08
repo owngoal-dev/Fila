@@ -20,7 +20,8 @@ extension MusicLibraryEditor {
         guard try await asset.load(.isPlayable),
               try await !asset.load(.hasProtectedContent),
               try await !asset.loadTracks(withMediaType: .audio).isEmpty,
-              try await asset.loadTracks(withMediaType: .video).isEmpty else {
+              try await asset.loadTracks(withMediaType: .video).isEmpty
+        else {
             throw error(String(localized: "Choose a playable audio file without copy protection."))
         }
         let duration = try await asset.load(.duration).seconds
@@ -32,12 +33,11 @@ extension MusicLibraryEditor {
             "TotalTime": NSNumber(value: Int64(duration * 1000)),
         ]
         for item in try await asset.load(.commonMetadata) {
-            let field: String?
-            switch item.commonKey {
-            case .commonKeyTitle: field = "Title"
-            case .commonKeyArtist: field = "Artist"
-            case .commonKeyAlbumName: field = "Album"
-            default: field = nil
+            let field: String? = switch item.commonKey {
+            case .commonKeyTitle: "Title"
+            case .commonKeyArtist: "Artist"
+            case .commonKeyAlbumName: "Album"
+            default: nil
             }
             if let field, let value = try await item.load(.stringValue), !value.isEmpty {
                 metadata[field] = value
@@ -80,7 +80,9 @@ extension MusicLibraryEditor {
                     JobRequest(kind: .delete, sources: [destination]),
                     kind: .delete, subtitle: name, feedback: .silent
                 )
-                if result.code != .success, result.systemError != ENOENT { throw result }
+                if result.code != .success, result.systemError != ENOENT {
+                    throw result
+                }
             } catch { FilaLog.error("Music import cleanup failed at \(destination): \(error)") }
             throw error
         }

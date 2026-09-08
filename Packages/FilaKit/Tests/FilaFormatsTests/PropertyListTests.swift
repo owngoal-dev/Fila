@@ -1,7 +1,6 @@
+@testable import FilaFormats
 import Foundation
 import Testing
-
-@testable import FilaFormats
 
 @Suite("Property lists")
 struct PropertyListTests {

@@ -10,8 +10,13 @@ import UIKit
 /// the daemon and is the only thing that does. A greyed item here is a courtesy
 /// to save a round trip, nothing more.
 extension BrowserViewController {
-    var deleteTitle: String { FileActions.deleteTitle }
-    private var fileActions: FileActions { FileActions(presenter: self, directory: directory) }
+    var deleteTitle: String {
+        FileActions.deleteTitle
+    }
+
+    private var fileActions: FileActions {
+        FileActions(presenter: self, directory: directory)
+    }
 
     // MARK: - Menus
 
@@ -42,13 +47,13 @@ extension BrowserViewController {
                 image: UIImage(systemName: "arrowshape.turn.up.right.circle"),
                 attributes: broken ? .disabled : []
             ) { [weak self] _ in
-                guard let self, let original = self.originalPath(of: node) else { return }
+                guard let self, let original = originalPath(of: node) else { return }
                 // A directory is somewhere to be, a file is something to be
                 // shown in its folder — which is `fila://open` and
                 // `fila://reveal`, so it goes through them rather than past
                 // them. Both re-root the tab: see `open(directory:)` for why
                 // going anywhere that is not a child of this folder is a jump.
-                self.shell?.follow(link.resolvedKind == .directory ? .directory(original) : .reveal(original))
+                shell?.follow(link.resolvedKind == .directory ? .directory(original) : .reveal(original))
             })
         }
 
@@ -75,7 +80,7 @@ extension BrowserViewController {
             guard let self else { return }
             // Every entry, hidden ones included: the trash is emptied, not the
             // view of it. The permanent-delete confirmation names the count.
-            self.delete(self.entries.map(self.path(of:)), permanently: true)
+            delete(entries.map(path(of:)), permanently: true)
         }
     }
 
@@ -108,8 +113,8 @@ extension BrowserViewController {
                 state: preferences.layout(for: directory) == layout ? .on : .off
             ) { [weak self] _ in
                 guard let self else { return }
-                AppPreferences.shared.setLayout(layout, for: self.directory)
-                self.viewPreferenceChanged(relayout: true)
+                AppPreferences.shared.setLayout(layout, for: directory)
+                viewPreferenceChanged(relayout: true)
             }
         }
         // These are ordinary submenus on every OS: keep the home menu's
@@ -121,7 +126,7 @@ extension BrowserViewController {
             ) { [weak self] _ in
                 guard let self else { return }
                 AppPreferences.shared.showsHidden = showsHidden
-                self.viewPreferenceChanged(relayout: false)
+                viewPreferenceChanged(relayout: false)
             }
         }
         let view = UIMenu(options: .displayInline, children: [
@@ -152,14 +157,14 @@ extension BrowserViewController {
                 image: UIImage(systemName: preferences.isFavorite(directory) ? "star.slash" : "star")
             ) { [weak self] _ in
                 guard let self else { return }
-                AppPreferences.shared.toggleFavorite(self.directory)
+                AppPreferences.shared.toggleFavorite(directory)
             },
             UIAction(
                 title: String(localized: "Open in New Tab"),
                 image: UIImage(systemName: "plus.square.on.square")
             ) { [weak self] _ in
                 guard let self else { return }
-                self.shell?.openInNewTab(self.directory)
+                shell?.openInNewTab(directory)
             },
         ]
         // The browser's Go menu changes the current location; More acts on
@@ -185,16 +190,20 @@ extension BrowserViewController {
             isFile: Bool = false
         ) -> UIAction {
             UIAction(title: title, subtitle: subtitle, image: image) { [weak self] _ in
-                if isFile { self?.shell?.follow(.view(path)) }
-                else { self?.open(directory: path) }
+                if isFile {
+                    self?.shell?.follow(.view(path))
+                } else {
+                    self?.open(directory: path)
+                }
             }
         }
-        func name(of path: String) -> String { path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent }
+        func name(of path: String) -> String {
+            path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
+        }
         let places = SidebarLocation.jumpList(backend: session.hello?.backend).map { place in
-            let image: UIImage?
-            switch place.icon {
-            case let .artwork(name): image = UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-            case let .symbol(name): image = UIImage(systemName: name)
+            let image: UIImage? = switch place.icon {
+            case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
+            case let .symbol(name): UIImage(systemName: name)
             }
             return destination(place.path, title: place.title, image: image)
         }
@@ -326,7 +335,9 @@ extension BrowserViewController {
         fileActions.delete(paths, permanently: permanently)
     }
 
-    func compress(_ paths: [String]) { fileActions.promptCompress(paths) }
+    func compress(_ paths: [String]) {
+        fileActions.promptCompress(paths)
+    }
 
     func presentSearch() {
         recordDirectoryUse()
@@ -349,8 +360,8 @@ extension BrowserViewController {
             confirm: String.LocalizationValue("Create")
         ) { [weak self] name in
             guard let self, !name.isEmpty else { return }
-            let path = self.directory == "/" ? "/" + name : self.directory + "/" + name
-            self.run { try await $0.create(template, at: path) }
+            let path = directory == "/" ? "/" + name : directory + "/" + name
+            run { try await $0.create(template, at: path) }
         }
     }
 
@@ -363,15 +374,15 @@ extension BrowserViewController {
             link: session.link
         ) { [weak self] target in
             guard let self else { return }
-            self.prompt(
+            prompt(
                 title: String.LocalizationValue("New Symbolic Link"),
                 message: String.LocalizationValue("Enter a name for the link to the item you chose."),
                 initial: target.lastPathComponent,
                 confirm: String.LocalizationValue("Create")
             ) { [weak self] name in
                 guard let self, !name.isEmpty else { return }
-                let path = self.directory == "/" ? "/" + name : self.directory + "/" + name
-                self.run { try await $0.create(.symbolicLink(target: target.path), at: path) }
+                let path = directory == "/" ? "/" + name : directory + "/" + name
+                run { try await $0.create(.symbolicLink(target: target.path), at: path) }
             }
         }
         presentAsSheet(UINavigationController(rootViewController: picker))
@@ -393,8 +404,8 @@ extension BrowserViewController {
                   let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
                   let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
                   url.host?.isEmpty == false else { return }
-            let center = self.session.operations
-            let operationID = center.download(url, into: self.directory)
+            let center = session.operations
+            let operationID = center.download(url, into: directory)
             // Use the extraction card's delayed presentation and cancellation;
             // the returned identity also keeps simultaneous downloads separate.
             OperationCoverViewController.present(for: operationID, from: self, center: center)
@@ -409,7 +420,7 @@ extension BrowserViewController {
             confirm: String.LocalizationValue("Go")
         ) { [weak self] path in
             guard let self, path.hasPrefix("/") else { return }
-            self.open(directory: path)
+            open(directory: path)
         }
     }
 
@@ -475,7 +486,9 @@ extension BrowserViewController {
             }
             if outcome.code != .success, outcome.code != .cancelled {
                 var message = FailureMessage.text(for: outcome)
-                if let path = outcome.path { message += "\n\n" + path }
+                if let path = outcome.path {
+                    message += "\n\n" + path
+                }
                 if paste != nil {
                     message += "\n\n" + String(localized: "Check the source and destination folders before trying again. Some items may already have been transferred.")
                 }
@@ -529,11 +542,11 @@ extension BrowserViewController {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await self.session.perform(body)
+                try await session.perform(body)
             } catch let failure as FilaFailure {
                 self.report(failure)
             } catch {}
-            self.reload()
+            reload()
         }
     }
 }

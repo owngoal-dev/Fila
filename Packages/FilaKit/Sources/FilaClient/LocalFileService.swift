@@ -208,7 +208,8 @@ final class LocalFileService: FileService, @unchecked Sendable {
     /// already in `FilaLog`, where the log screen reads them without asking
     /// anybody.
     func fetchLog(since _: UInt64, level _: FilaLog.Level) async throws
-        -> (records: [FilaLog.Record], dropped: UInt64) {
+        -> (records: [FilaLog.Record], dropped: UInt64)
+    {
         ([], 0)
     }
 

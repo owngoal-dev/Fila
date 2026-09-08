@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 /// The mount point of the volume the scratch directory lives on. The trash the
 /// daemon uses is `<mount point>/.fila-trash`, and the tests below have to
@@ -27,7 +26,9 @@ let filaTrashDirectory = FilaTrash.directory(under: filaScratchMountPoint)
 /// it when it is empty — this is a real trash on the developer's own machine
 /// and a test has no business accumulating in it.
 func emptyTestTrash(_ names: [String]) {
-    for name in names { unlink(filaTrashDirectory + "/" + name) }
+    for name in names {
+        unlink(filaTrashDirectory + "/" + name)
+    }
     rmdir(filaTrashDirectory)
 }
 
@@ -69,7 +70,7 @@ struct JobTests {
     }
 
     @Test("Overwriting an existing destination preserves copied metadata")
-    func copyOverExisting() throws {
+    func copyOverExisting() {
         scratch.directory("destination")
         let source = scratch.file("payload.txt", contents: "new contents")
         setExtendedAttribute("wiki.qaq.fila.test", to: "kept", at: source)
@@ -122,7 +123,9 @@ struct JobTests {
         let source = scratch.file("payload.txt", contents: "source")
         let target = scratch.path("destination/payload.txt")
         let outcome = run(JobRequest(kind: kind, sources: [source], destination: scratch.path("destination"))) { _ in
-            if !exists(target) { self.scratch.file("destination/payload.txt", contents: "arrived") }
+            if !exists(target) {
+                scratch.file("destination/payload.txt", contents: "arrived")
+            }
         }
         #expect(outcome.systemError == EEXIST)
         #expect(try String(contentsOfFile: source, encoding: .utf8) == "source")
@@ -232,7 +235,9 @@ struct JobTests {
         let destination = scratch.directory("destination")
         let target = scratch.path("destination/tree")
         let outcome = run(JobRequest(kind: .copy, sources: [source], destination: destination)) { _ in
-            if !exists(target) { self.scratch.file("destination/tree", contents: "arrived") }
+            if !exists(target) {
+                scratch.file("destination/tree", contents: "arrived")
+            }
         }
         #expect(outcome.systemError == EEXIST)
         #expect(try FileManager.default.contentsOfDirectory(atPath: destination) == ["tree"])
@@ -317,7 +322,7 @@ struct JobTests {
         #expect(run(JobRequest(kind: .delete, sources: [doomed], useTrash: true)).code == .success)
         #expect(!exists(doomed))
         #expect(metadata(of: filaTrashDirectory + "/keepsake.txt")?.st_size == 11)
-        #expect(extendedAttribute(FilaTrash.originAttribute, at: filaTrashDirectory + "/keepsake.txt") == (try FilaPath.canonical(doomed)))
+        #expect(try extendedAttribute(FilaTrash.originAttribute, at: filaTrashDirectory + "/keepsake.txt") == (FilaPath.canonical(doomed)))
     }
 
     @Test("Two deletes of one name both survive in the trash", .enabled(if: filaTrashIsReachable))
@@ -339,7 +344,9 @@ struct JobTests {
     @Test("Cancellation at the first progress update is reported before publication")
     func cancellationIsReported() {
         scratch.directory("source")
-        for index in 0 ..< 200 { scratch.file("source/entry-\(index)", contents: "some bytes here") }
+        for index in 0 ..< 200 {
+            scratch.file("source/entry-\(index)", contents: "some bytes here")
+        }
         scratch.directory("destination")
         scratch.directory("destination/source")
 
@@ -370,7 +377,9 @@ struct JobTests {
     @Test("Progress arrives with unknown totals rather than a counting pre-pass")
     func progressLeavesTotalsUnknown() {
         scratch.directory("source")
-        for index in 0 ..< 30 { scratch.file("source/entry-\(index)", contents: "bytes") }
+        for index in 0 ..< 30 {
+            scratch.file("source/entry-\(index)", contents: "bytes")
+        }
         scratch.directory("destination")
         scratch.directory("destination/source")
 

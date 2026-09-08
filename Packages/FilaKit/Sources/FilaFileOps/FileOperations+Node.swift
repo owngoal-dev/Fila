@@ -54,8 +54,11 @@ public extension FileOperations {
         } catch {
             // Only remove the node this call created. Never walk a directory
             // if another process has already put children inside it.
-            if template == .directory { _ = rmdir(resolved) }
-            else { _ = unlink(resolved) }
+            if template == .directory {
+                _ = rmdir(resolved)
+            } else {
+                _ = unlink(resolved)
+            }
             throw error
         }
     }

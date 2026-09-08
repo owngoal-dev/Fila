@@ -1,9 +1,8 @@
 import Darwin
-import Foundation
-import Testing
-
 @testable import FilaFileOps
 @testable import FilaProtocol
+import Foundation
+import Testing
 
 /// The pipe between `filad` and `fila-archive`, driven against a shell script
 /// standing in for the helper: what the daemon writes down, what it reads
@@ -13,12 +12,11 @@ struct ArchiveHelperRunTests {
     let scratch = Scratch()
 
     private func helper(_ body: String) -> String {
-        let path = scratch.file("helper.sh", contents: "#!/bin/sh\n" + body + "\n", mode: 0o755)
-        return path
+        scratch.file("helper.sh", contents: "#!/bin/sh\n" + body + "\n", mode: 0o755)
     }
 
     private func line(_ value: ArchiveHelperLine) throws -> String {
-        String(decoding: try JSONEncoder().encode(value), as: UTF8.self)
+        try String(decoding: JSONEncoder().encode(value), as: UTF8.self)
     }
 
     private func request() -> JobRequest {

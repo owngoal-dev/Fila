@@ -21,20 +21,22 @@ public struct MusicLibraryDatabase: Sendable {
         let database = try openReadOnly()
         defer { sqlite3_close(database) }
         let statement = try prepare("""
-            SELECT item.item_pid, item_extra.title,
-                   COALESCE(item_artist.item_artist, ''), COALESCE(album.album, '')
-            FROM item JOIN item_extra USING(item_pid)
-            LEFT JOIN item_artist USING(item_artist_pid)
-            LEFT JOIN album USING(album_pid)
-            WHERE (item.media_type & 1) != 0 AND item.in_my_library != 0
-            ORDER BY item_extra.title COLLATE NOCASE, item.item_pid
-            """, in: database)
+        SELECT item.item_pid, item_extra.title,
+               COALESCE(item_artist.item_artist, ''), COALESCE(album.album, '')
+        FROM item JOIN item_extra USING(item_pid)
+        LEFT JOIN item_artist USING(item_artist_pid)
+        LEFT JOIN album USING(album_pid)
+        WHERE (item.media_type & 1) != 0 AND item.in_my_library != 0
+        ORDER BY item_extra.title COLLATE NOCASE, item.item_pid
+        """, in: database)
         defer { sqlite3_finalize(statement) }
         var result: [Track] = []
         while true {
             try Task.checkCancellation()
             let status = sqlite3_step(statement)
-            if status == SQLITE_DONE { return result }
+            if status == SQLITE_DONE {
+                return result
+            }
             guard status == SQLITE_ROW else { throw failure(database) }
             result.append(Track(id: sqlite3_column_int64(statement, 0), title: text(statement, 1),
                                 artist: text(statement, 2), album: text(statement, 3)))
@@ -50,7 +52,11 @@ public struct MusicLibraryDatabase: Sendable {
         guard descriptor >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
         close(descriptor)
         var completed = false
-        defer { if !completed { unlink(destination.path) } }
+        defer {
+            if !completed {
+                unlink(destination.path)
+            }
+        }
         var target: OpaquePointer?
         guard sqlite3_open_v2(destination.path, &target, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil)
             == SQLITE_OK
@@ -69,7 +75,9 @@ public struct MusicLibraryDatabase: Sendable {
                 throw Task.isCancelled ? CancellationError() : failure(source, code: SQLITE_BUSY)
             }
             status = sqlite3_backup_step(backup, 128)
-            if status == SQLITE_BUSY || status == SQLITE_LOCKED { sqlite3_sleep(20) }
+            if status == SQLITE_BUSY || status == SQLITE_LOCKED {
+                sqlite3_sleep(20)
+            }
         } while status == SQLITE_OK || status == SQLITE_BUSY || status == SQLITE_LOCKED
         let finished = sqlite3_backup_finish(backup)
         guard status == SQLITE_DONE, finished == SQLITE_OK else {

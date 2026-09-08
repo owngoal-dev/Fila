@@ -1,11 +1,10 @@
 import Darwin
+@testable import FilaFileOps
+@testable import FilaProtocol
 import Foundation
 import Testing
 
-@testable import FilaFileOps
-@testable import FilaProtocol
-
-// Set this to a mounted, writable second volume to exercise real EXDEV paths.
+/// Set this to a mounted, writable second volume to exercise real EXDEV paths.
 private let trashTestRoots = ["/private/tmp"] + (ProcessInfo.processInfo.environment["FILA_CROSS_VOLUME_TEST_ROOT"].map { [$0] } ?? [])
 
 @Suite("Trash and Put Back")
@@ -87,7 +86,7 @@ struct TrashTests {
     }
 
     @Test("Cancelled trash leaves the source and existing trash alone", arguments: trashTestRoots)
-    func cancellation(bootstrapParent: String) throws {
+    func cancellation(bootstrapParent: String) {
         let source = Scratch()
         let bootstrap = Scratch(parent: bootstrapParent)
         let file = source.file("payload")
@@ -98,10 +97,11 @@ struct TrashTests {
         #expect(exists(file))
         #expect(!exists(FilaTrash.directory(under: bootstrap.root) + "/payload"))
     }
+
     @Test("A failed cross-volume copy keeps the whole source and cleans staging", .enabled(if: trashTestRoots.count > 1 && geteuid() != 0))
     func failedCopy() throws {
         let source = Scratch()
-        let bootstrap = Scratch(parent: try #require(trashTestRoots.last))
+        let bootstrap = try Scratch(parent: #require(trashTestRoots.last))
         #expect(!filaSameVolume(source.root, bootstrap.root))
         source.directory("tree/locked")
         let file = source.file("tree/locked/item", contents: "irreplaceable")
@@ -119,7 +119,7 @@ struct TrashTests {
     @Test("Failed source removal retains a complete trash copy with its origin", .enabled(if: trashTestRoots.count > 1))
     func failedRemoval() throws {
         let source = Scratch()
-        let bootstrap = Scratch(parent: try #require(trashTestRoots.last))
+        let bootstrap = try Scratch(parent: #require(trashTestRoots.last))
         #expect(!filaSameVolume(source.root, bootstrap.root))
         source.directory("tree")
         let file = source.file("tree/locked", contents: "recoverable")
@@ -138,5 +138,4 @@ struct TrashTests {
         #expect(extendedAttribute(FilaTrash.jobAttribute, at: trash) == identity.uuidString)
         #expect(exists(file))
     }
-
 }

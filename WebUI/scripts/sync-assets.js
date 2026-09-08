@@ -51,7 +51,7 @@ for (const appearance of ['light', 'dark']) {
 const swift = fs.readFileSync(path.join(repo, 'Packages/FilaKit/Sources/FilaFormats/FileFormat.swift'), 'utf8');
 const table = swift.slice(swift.indexOf('func extensionMatch'));
 const formats = {};
-for (const m of table.matchAll(/case\s+((?:"[^"]+",?\s*)+):\s*\.(\w+)/g)) {
+for (const m of table.matchAll(/case\s+((?:"[^"]+",?\s*)+):\s*(?:return\s+)?\.(\w+)/g)) {
   for (const ext of m[1].match(/"([^"]+)"/g)) formats[ext.slice(1, -1)] = m[2];
 }
 if (!formats.plist || !formats.zip) throw new Error('could not read extensionMatch from FileFormat.swift');

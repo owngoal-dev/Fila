@@ -44,8 +44,9 @@ extension MachOImage {
         let flags: UInt32 = try header.integer(at: 24, bigEndian: slice.isBigEndian)
         let count: UInt32 = try header.integer(at: 16, bigEndian: slice.isBigEndian)
         let length: UInt32 = try header.integer(at: 20, bigEndian: slice.isBigEndian)
-        guard count <= 16_384, UInt64(count) * 8 <= length,
-              Int64(length) <= min(slice.byteCount - Int64(headerSize), 16 * 1_024 * 1_024) else {
+        guard count <= 16384, UInt64(count) * 8 <= length,
+              Int64(length) <= min(slice.byteCount - Int64(headerSize), 16 * 1024 * 1024)
+        else {
             throw FormatFailure.damaged("its load commands could not be read")
         }
         let data = try reader.read(at: slice.offset + Int64(headerSize), count: Int(length))
@@ -56,7 +57,7 @@ extension MachOImage {
             try Task.checkCancellation()
             guard data.count - cursor >= 8 else { throw FormatFailure.damaged("its load command list is truncated") }
             let command: UInt32 = try data.integer(at: cursor, bigEndian: slice.isBigEndian)
-            let size = Int(try data.integer(at: cursor + 4, bigEndian: slice.isBigEndian) as UInt32)
+            let size = try Int(data.integer(at: cursor + 4, bigEndian: slice.isBigEndian) as UInt32)
             guard size >= 8, size % (slice.isSixtyFourBit ? 8 : 4) == 0, size <= data.count - cursor else {
                 throw FormatFailure.damaged("part of its header is the wrong size")
             }
@@ -67,7 +68,7 @@ extension MachOImage {
                 guard size >= 12 else { throw FormatFailure.damaged("its runpaths could not be read") }
                 let relative: UInt32 = try bytes.integer(at: 8, bigEndian: slice.isBigEndian)
                 guard relative >= 12, relative < size else { throw FormatFailure.damaged("a runpath entry is invalid") }
-                result.runpaths.append(try Self.terminatedString(bytes, at: Int(relative), limit: size))
+                try result.runpaths.append(Self.terminatedString(bytes, at: Int(relative), limit: size))
             }
             if let minimum = Self.decodedCommandSizes[command] {
                 guard size >= minimum else { throw FormatFailure.damaged("a load command is truncated") }
@@ -106,14 +107,14 @@ extension MachOImage {
     ) throws {
         switch command {
         case let .segment64(segment):
-            result.segments.append(try segmentSummary(
+            try result.segments.append(segmentSummary(
                 name: fixedString(bytes, at: 8, count: 16), address: segment.layout.vmaddr,
                 size: segment.layout.vmsize, offset: segment.layout.fileoff, fileSize: segment.layout.filesize,
                 protection: segment.initialProtection, sections: segment.layout.nsects,
                 bytes: bytes, headerSize: 72, sectionSize: 80, slice: slice
             ))
         case let .segment(segment):
-            result.segments.append(try segmentSummary(
+            try result.segments.append(segmentSummary(
                 name: fixedString(bytes, at: 8, count: 16), address: UInt64(segment.layout.vmaddr),
                 size: UInt64(segment.layout.vmsize),
                 offset: UInt64(segment.layout.fileoff),
@@ -157,7 +158,8 @@ extension MachOImage {
             guard UInt64(table.layout.symoff) <= slice.byteCount,
                   UInt64(table.layout.nsyms) * symbolSize <= UInt64(slice.byteCount) - UInt64(table.layout.symoff),
                   UInt64(table.layout.stroff) <= slice.byteCount,
-                  UInt64(table.layout.strsize) <= UInt64(slice.byteCount) - UInt64(table.layout.stroff) else {
+                  UInt64(table.layout.strsize) <= UInt64(slice.byteCount) - UInt64(table.layout.stroff)
+            else {
                 throw FormatFailure.damaged("its symbols are outside this architecture")
             }
             result.symbolCount = table.layout.nsyms
@@ -167,9 +169,11 @@ extension MachOImage {
 
     private static func segmentSummary(name: String, address: UInt64, size: UInt64, offset: UInt64,
                                        fileSize: UInt64, protection: VMProtection, sections: UInt32,
-                                       bytes: Data, headerSize: Int, sectionSize: Int, slice: Slice) throws -> Segment {
+                                       bytes: Data, headerSize: Int, sectionSize: Int, slice: Slice) throws -> Segment
+    {
         guard offset <= slice.byteCount, fileSize <= UInt64(slice.byteCount) - offset,
-              UInt64(sections) * UInt64(sectionSize) <= bytes.count - headerSize else {
+              UInt64(sections) * UInt64(sectionSize) <= bytes.count - headerSize
+        else {
             throw FormatFailure.damaged("a segment or section is outside this architecture")
         }
         let names = (0 ..< Int(sections)).map { fixedString(bytes, at: headerSize + $0 * sectionSize, count: 16) }
@@ -185,7 +189,8 @@ extension MachOImage {
 
     private static func terminatedString(_ bytes: Data, at offset: Int, limit: Int) throws -> String {
         guard offset >= 0, offset < limit, limit <= bytes.count,
-              let end = bytes[offset ..< limit].firstIndex(of: 0) else {
+              let end = bytes[offset ..< limit].firstIndex(of: 0)
+        else {
             throw FormatFailure.damaged("a name inside it is truncated")
         }
         return String(decoding: bytes[offset ..< end], as: UTF8.self)
@@ -201,27 +206,27 @@ extension MachOImage {
         guard let signature = slice.signature, signature.byteCount >= 12 else { return }
         let head = try reader.read(at: signature.offset, count: 12)
         guard try head.bigEndian(at: 0) as UInt32 == 0xFADE_0CC0 else { return }
-        let length = Int64(try head.bigEndian(at: 4) as UInt32)
-        let count = Int(try head.bigEndian(at: 8) as UInt32)
+        let length = try Int64(head.bigEndian(at: 4) as UInt32)
+        let count = try Int(head.bigEndian(at: 8) as UInt32)
         guard length <= signature.byteCount, count <= 64, 12 + count * 8 <= length else {
             throw FormatFailure.damaged("its code signature is invalid")
         }
         let index = try reader.read(at: signature.offset + 12, count: count * 8)
         for number in 0 ..< count {
-            let offset = Int64(try index.bigEndian(at: number * 8 + 4) as UInt32)
+            let offset = try Int64(index.bigEndian(at: number * 8 + 4) as UInt32)
             guard offset >= 12 + count * 8, offset <= length - 8 else {
                 throw FormatFailure.damaged("its code signature is invalid")
             }
             let blobHeader = try reader.read(at: signature.offset + offset, count: 8)
             guard try blobHeader.bigEndian(at: 0) as UInt32 == 0xFADE_0C02 else { continue }
-            let blobLength = Int64(try blobHeader.bigEndian(at: 4) as UInt32)
+            let blobLength = try Int64(blobHeader.bigEndian(at: 4) as UInt32)
             guard blobLength >= 44, blobLength <= length - offset else {
                 throw FormatFailure.damaged("its code signature is truncated")
             }
             let directory = try reader.read(at: signature.offset + offset, count: Int(min(blobLength, 52)))
             let version: UInt32 = try directory.bigEndian(at: 8)
             let flags: UInt32 = try directory.bigEndian(at: 12)
-            let identifier = Int64(try directory.bigEndian(at: 20) as UInt32)
+            let identifier = try Int64(directory.bigEndian(at: 20) as UInt32)
             func string(_ relative: Int64) throws -> String? {
                 guard relative != 0 else { return nil }
                 let minimum: Int64 = version >= 0x20200 ? 52 : 44
@@ -238,7 +243,7 @@ extension MachOImage {
             result.signingIdentifier = try string(identifier)
             if version >= 0x20200 {
                 guard directory.count >= 52 else { throw FormatFailure.damaged("its team identifier is truncated") }
-                result.teamIdentifier = try string(Int64(try directory.bigEndian(at: 48) as UInt32))
+                result.teamIdentifier = try string(Int64(directory.bigEndian(at: 48) as UInt32))
             }
             return
         }

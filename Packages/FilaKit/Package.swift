@@ -1,13 +1,13 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// Everything that is not UIKit lives here, for one reason: the code that can
-// destroy the user's filesystem has to be testable without a device, without a
-// simulator, and without the app. `swift test` in this package is what stands
-// between a guard mistake and someone's phone.
-//
-// The daemon links FilaProtocol + FilaFileOps; the app links FilaProtocol +
-// FilaClient + FilaFormats + FilaMedia. Nothing here imports UIKit.
+/// Everything that is not UIKit lives here, for one reason: the code that can
+/// destroy the user's filesystem has to be testable without a device, without a
+/// simulator, and without the app. `swift test` in this package is what stands
+/// between a guard mistake and someone's phone.
+///
+/// The daemon links FilaProtocol + FilaFileOps; the app links FilaProtocol +
+/// FilaClient + FilaFormats + FilaMedia. Nothing here imports UIKit.
 let package = Package(
     name: "FilaKit",
     // A target that shows the user a sentence owns its own catalogue: Xcode's

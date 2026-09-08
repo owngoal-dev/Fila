@@ -44,7 +44,9 @@ struct PasswdEntry {
                 home: String(fields[5]),
                 shell: String(fields[6])
             )
-            if matching(entry) { return entry }
+            if matching(entry) {
+                return entry
+            }
         }
         return nil
     }

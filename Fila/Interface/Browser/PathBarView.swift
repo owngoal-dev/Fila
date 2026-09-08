@@ -31,8 +31,13 @@ final class PathBarView: UIScrollView {
     /// so a tap on it finds an answer — "nowhere" — instead of walking back to
     /// the ancestor before it.
     private static let component = NSAttributedString.Key("wiki.qaq.fila.pathComponent")
-    private static var font: UIFont { .preferredFont(forTextStyle: .subheadline) }
-    private static var currentFont: UIFont { .systemFont(ofSize: font.pointSize, weight: .semibold) }
+    private static var font: UIFont {
+        .preferredFont(forTextStyle: .subheadline)
+    }
+
+    private static var currentFont: UIFont {
+        .systemFont(ofSize: font.pointSize, weight: .semibold)
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -65,7 +70,9 @@ final class PathBarView: UIScrollView {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not supported") }
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
 
     /// `icon` answers each crumb's path with the token drawn ahead of its
     /// name at the text's own height; nil draws none.
@@ -102,7 +109,9 @@ final class PathBarView: UIScrollView {
             // The component the browser is actually showing is where you are
             // rather than somewhere to go: the one dark, weighted name in a
             // row of grey ones, and not a target.
-            if isCurrent { currentRange = NSRange(location: line.length, length: (crumb.title as NSString).length) }
+            if isCurrent {
+                currentRange = NSRange(location: line.length, length: (crumb.title as NSString).length)
+            }
             line.append(NSAttributedString(string: crumb.title, attributes: [
                 .font: isCurrent ? Self.currentFont : Self.font,
                 .foregroundColor: isCurrent ? UIColor.label : UIColor.secondaryLabel,
@@ -122,7 +131,9 @@ final class PathBarView: UIScrollView {
             width: CGFloat.greatestFiniteMagnitude,
             height: CGFloat.greatestFiniteMagnitude
         )).width))
-        if shouldReveal { revealCurrentComponent() }
+        if shouldReveal {
+            revealCurrentComponent()
+        }
     }
 
     func revealCurrentComponent() {
@@ -132,7 +143,9 @@ final class PathBarView: UIScrollView {
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        if window != nil { revealCurrentComponent() }
+        if window != nil {
+            revealCurrentComponent()
+        }
     }
 
     /// A chevron drawn as a symbol attachment, so it sits on the text's own
@@ -143,7 +156,9 @@ final class PathBarView: UIScrollView {
             withConfiguration: UIImage.SymbolConfiguration(font: font, scale: .small)
         )?.withTintColor(.tertiaryLabel, renderingMode: .alwaysOriginal)
         let line = NSMutableAttributedString(string: "  ", attributes: [.font: font])
-        if let chevron { line.append(NSAttributedString(attachment: NSTextAttachment(image: chevron))) }
+        if let chevron {
+            line.append(NSAttributedString(attachment: NSTextAttachment(image: chevron)))
+        }
         line.append(NSAttributedString(string: "  ", attributes: [.font: font]))
         return line
     }
@@ -157,7 +172,9 @@ final class PathBarView: UIScrollView {
         var index = min(text.offset(from: text.beginningOfDocument, to: position), storage.length - 1)
         while index >= 0 {
             if let path = storage.attribute(Self.component, at: index, effectiveRange: nil) as? String {
-                if !path.isEmpty { onSelect?(path) }
+                if !path.isEmpty {
+                    onSelect?(path)
+                }
                 return
             }
             index -= 1
@@ -178,7 +195,8 @@ final class PathBarView: UIScrollView {
         marker.backgroundColor = tintColor.withAlphaComponent(Self.markerAlpha)
         if let start = text.position(from: text.beginningOfDocument, offset: currentRange.location),
            let end = text.position(from: start, offset: currentRange.length),
-           let range = text.textRange(from: start, to: end) {
+           let range = text.textRange(from: start, to: end)
+        {
             let glyphs = text.convert(text.firstRect(for: range), to: self)
             marker.frame = CGRect(
                 x: glyphs.minX,
