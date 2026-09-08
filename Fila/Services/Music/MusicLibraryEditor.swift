@@ -45,6 +45,15 @@ actor MusicLibraryEditor {
         }
     }
 
+    func deleteTrack(id: Int64) async throws {
+        try await authorize()
+        do { try nativeLibrary().deleteTrackID(id) }
+        catch {
+            FilaLog.error("Music library deletion failed: \(error)")
+            throw self.error(String(localized: "The song could not be deleted from the music library. Try again."))
+        }
+    }
+
     func details(id: Int64) throws -> Details {
         let values: [String: String]
         let native: NativeMusicLibrary

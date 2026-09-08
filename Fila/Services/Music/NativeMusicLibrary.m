@@ -9,6 +9,7 @@
 - (BOOL)finish;
 - (BOOL)cancel;
 - (id)addItemsReturningResult:(NSArray *)items;
+- (id)removeItemsReturningResult:(NSArray *)items;
 @end
 
 @protocol MusicImportResultAPI
@@ -40,8 +41,11 @@
 + (BOOL)trackWithPersistentID:(int64_t)trackID existsInLibrary:(id)library;
 + (NSSet<NSString *> *)unsettableProperties;
 - (id)valueForProperty:(NSString *)property;
+- (BOOL)setValue:(id)value forProperty:(NSString *)property;
 - (void)populateLocationPropertiesWithPath:(NSString *)path;
 - (NSString *)absoluteFilePath;
+- (BOOL)populateArtworkCacheWithArtworkData:(NSData *)data;
+- (id)multiverseIdentifierLibraryOnly:(BOOL)libraryOnly;
 @end
 
 @protocol MusicEditAPI
@@ -271,23 +275,45 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             || !Signature(class_getInstanceMethod(resultClass, @selector(success)), "B", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(resultClass, @selector(resultingDatabasePersistentIDs)), "@", @[@"@", @":"], error)
             || !Signature(class_getInstanceMethod(_trackClass, @selector(populateLocationPropertiesWithPath:)), "v", @[@"@", @":", @"@"], error)
-            || !Signature(class_getInstanceMethod(_trackClass, @selector(absoluteFilePath)), "@", @[@"@", @":"], error)) return nil;
+            || (metadata[@"Lyrics"] && !Signature(class_getInstanceMethod(_trackClass, @selector(setValue:forProperty:)), "B", @[@"@", @":", @"@", @"@"], error))
+            || !Signature(class_getInstanceMethod(_trackClass, @selector(absoluteFilePath)), "@", @[@"@", @":"], error)
+            || (metadata[@"Artwork"] && !Signature(class_getInstanceMethod(_trackClass, @selector(populateArtworkCacheWithArtworkData:)), "B", @[@"@", @":", @"@"], error))) return nil;
 
         id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
             @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath], @"shouldLibraryAdd": @YES
         });
-        id artist = ImportObject(@"MIPArtist", @{@"name": metadata[@"Artist"] ?: @""});
-        id albumArtist = ImportObject(@"MIPArtist", @{@"name": metadata[@"AlbumArtist"] ?: metadata[@"Artist"] ?: @""});
-        id album = ImportObject(@"MIPAlbum", @{@"name": metadata[@"Album"] ?: @"", @"artist": albumArtist});
+        NSMutableDictionary *artistValues = [@{@"name": metadata[@"Artist"] ?: @""} mutableCopy];
+        if (metadata[@"SortArtist"]) artistValues[@"sortName"] = metadata[@"SortArtist"];
+        id artist = ImportObject(@"MIPArtist", artistValues);
+        NSMutableDictionary *albumArtistValues = [@{@"name": metadata[@"AlbumArtist"] ?: metadata[@"Artist"] ?: @""} mutableCopy];
+        if (metadata[@"SortAlbumArtist"]) albumArtistValues[@"sortName"] = metadata[@"SortAlbumArtist"];
+        id albumArtist = ImportObject(@"MIPArtist", albumArtistValues);
+        NSMutableDictionary *albumValues = [@{@"name": metadata[@"Album"] ?: @"", @"artist": albumArtist} mutableCopy];
+        NSDictionary *albumFields = @{@"SortAlbum": @"sortName", @"TrackCount": @"numTracks", @"DiscCount": @"numDiscs", @"Compilation": @"compilation"};
+        for (NSString *key in albumFields) if (metadata[key]) albumValues[albumFields[key]] = metadata[key];
+        // The native original-artwork helper resolves artwork type 1/source 500.
+        // Give both entities the same unique token before populating its cache.
+        NSString *artworkToken = metadata[@"Artwork"] ? NSUUID.UUID.UUIDString : nil;
+        if (artworkToken) { albumValues[@"artworkId"] = artworkToken; albumValues[@"artworkSourceType"] = @500; }
+        id album = ImportObject(@"MIPAlbum", albumValues);
         NSMutableDictionary *songValues = [@{@"artist": artist, @"album": album} mutableCopy];
-        if (metadata[@"Lyrics"]) songValues[@"lyrics"] = metadata[@"Lyrics"];
-        if (metadata[@"Composer"]) songValues[@"composer"] = ImportObject(@"MIPArtist", @{@"name": metadata[@"Composer"]});
+        NSDictionary *songFields = @{@"Lyrics": @"lyrics", @"TrackNumber": @"trackNumber", @"DiscNumber": @"discNumber"};
+        for (NSString *key in songFields) if (metadata[key]) songValues[songFields[key]] = metadata[key];
+        if (metadata[@"Composer"]) {
+            NSMutableDictionary *composer = [@{@"name": metadata[@"Composer"]} mutableCopy];
+            if (metadata[@"SortComposer"]) composer[@"sortName"] = metadata[@"SortComposer"];
+            songValues[@"composer"] = ImportObject(@"MIPArtist", composer);
+        }
         if (metadata[@"Genre"]) songValues[@"genre"] = ImportObject(@"MIPGenre", @{@"name": metadata[@"Genre"]});
         id song = ImportObject(@"MIPSong", songValues);
-        id media = ImportObject(@"MIPMediaItem", @{
+        NSMutableDictionary *mediaValues = [@{
             @"title": metadata[@"Title"], @"duration": metadata[@"TotalTime"],
             @"mediaType": @1, @"isInUsersLibrary": @YES, @"song": song
-        });
+        } mutableCopy];
+        NSDictionary *mediaFields = @{@"SortTitle": @"sortTitle", @"Year": @"year", @"Comment": @"comment", @"Copyright": @"copyright", @"ReleaseDateTime": @"releaseDateTime"};
+        for (NSString *key in mediaFields) if (metadata[key]) mediaValues[mediaFields[key]] = metadata[key];
+        if (artworkToken) { mediaValues[@"artworkId"] = artworkToken; mediaValues[@"artworkSourceType"] = @500; }
+        id media = ImportObject(@"MIPMediaItem", mediaValues);
         id identity = ImportObject(@"MIPMultiverseIdentifier", @{
             @"mediaType": @1, @"mediaObjectType": @6, @"name": NSUUID.UUID.UUIDString
         });
@@ -311,10 +337,25 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         // Let MusicLibrary resolve the asset's base location and file metadata.
         // No private table names or hand-built location identifiers are needed.
         if (!track) return nil;
+        // The client importer does not persist the MIPSong lyrics body. Use
+        // the track's native property writer and verify the saved text.
+        if (metadata[@"Lyrics"]) {
+            NSString *__unsafe_unretained *symbol = (NSString *__unsafe_unretained *)dlsym(RTLD_DEFAULT, "ML3TrackPropertyLyrics");
+            NSString *property = symbol ? *symbol : nil;
+            if (!property || ![track setValue:metadata[@"Lyrics"] forProperty:property]
+                || ![[track valueForProperty:property] isEqual:metadata[@"Lyrics"]]) {
+                FailedStep(error, 3, @"save lyrics");
+                return nil;
+            }
+        }
         [track populateLocationPropertiesWithPath:path];
         NSString *attachedPath = [track absoluteFilePath];
         if (![attachedPath.stringByResolvingSymlinksInPath isEqualToString:path.stringByResolvingSymlinksInPath]) {
             FailedStep(error, 3, @"verify local audio location");
+            return nil;
+        }
+        if (metadata[@"Artwork"] && ![track populateArtworkCacheWithArtworkData:metadata[@"Artwork"]]) {
+            FailedStep(error, 3, @"import cover artwork");
             return nil;
         }
         [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
@@ -334,6 +375,50 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             NSMutableDictionary *info = [(*error).userInfo mutableCopy];
             info[@"PreserveImportedFile"] = @YES;
             *error = [NSError errorWithDomain:(*error).domain code:(*error).code userInfo:info];
+        }
+    }
+}
+
+- (BOOL)deleteTrackID:(int64_t)trackID error:(NSError **)error {
+    id<MusicImportAPI> session = nil;
+    BOOL finished = NO;
+    @try {
+        Class sessionClass = NSClassFromString(@"ML3ClientImportSession");
+        Class itemClass = NSClassFromString(@"ML3ClientImportItem");
+        Class resultClass = NSClassFromString(@"ML3ClientImportResult");
+        if (!Signature(class_getInstanceMethod(sessionClass, @selector(initWithConfiguration:delegate:)), "@", @[@"@", @":", @"@", @"@"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(start)), "B", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(finish)), "B", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(cancel)), "B", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(sessionClass, @selector(removeItemsReturningResult:)), "@", @[@"@", @":", @"@"], error)
+            || !Signature(class_getInstanceMethod(itemClass, @selector(initWithMultiverseIdentifier:mediaItem:)), "@", @[@"@", @":", @"@", @"@"], error)
+            || !Signature(class_getInstanceMethod(resultClass, @selector(success)), "B", @[@"@", @":"], error)
+            || !Signature(class_getInstanceMethod(_trackClass, @selector(multiverseIdentifierLibraryOnly:)), "@", @[@"@", @":", @"B"], error)) return NO;
+        id<MusicTrackAPI> track = [self track:trackID error:error];
+        if (!track) return NO;
+        // Match this library's persistent ID, never a title or shared store ID.
+        id identity = [track multiverseIdentifierLibraryOnly:YES];
+        if (!identity) { FailedStep(error, 3, @"delete identity"); return NO; }
+        id item = [(id<MusicImportAPI>)[itemClass alloc] initWithMultiverseIdentifier:identity mediaItem:nil];
+        id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
+            @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath]
+        });
+        session = [(id<MusicImportAPI>)[sessionClass alloc] initWithConfiguration:configuration delegate:nil];
+        if (!item || ![session start]) { FailedStep(error, 3, @"delete session start"); return NO; }
+        id<MusicImportResultAPI> result = [session removeItemsReturningResult:@[item]];
+        if (![result success]) { FailedStep(error, 3, @"delete item"); return NO; }
+        if (![session finish]) { FailedStep(error, 3, @"delete session finish"); return NO; }
+        finished = YES;
+        [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
+        return YES;
+    } @catch (NSException *exception) {
+        if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:3 userInfo:@{
+            NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary delete: %@: %@", exception.name, exception.reason]
+        }];
+        return NO;
+    } @finally {
+        if (!finished) {
+            @try { [session cancel]; } @catch (NSException *exception) { }
         }
     }
 }

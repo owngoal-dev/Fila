@@ -6,7 +6,7 @@ import UIKit
 final class MusicLibraryViewController: UITableViewController, UISearchResultsUpdating {
     private var tracks: [MusicLibraryTrack] = []
     private var rows: [MusicLibraryTrack] = []
-    private var importing = false
+    private var isChangingLibrary = false
     private var load: Task<Void, Never>?
 
     init() {
@@ -21,7 +21,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
                 UIAction(
                     title: String(localized: "Import Music"),
                     image: UIImage(systemName: "square.and.arrow.down"),
-                    attributes: importing ? .disabled : []
+                    attributes: isChangingLibrary ? .disabled : []
                 ) { [weak self] _ in
                     self?.chooseMusic()
                 },
@@ -49,8 +49,8 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     }
 
     private func importMusic(_ file: URL) {
-        guard !importing else { return }
-        importing = true
+        guard !isChangingLibrary else { return }
+        isChangingLibrary = true
         configureMenu()
         let progress = AlertProgressIndicatorViewController(
             title: String.LocalizationValue("Importing Music…"),
@@ -62,7 +62,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
             do { try await MusicLibraryEditor.shared.importTrack(from: file.path) }
             catch { failure = error }
             progress.dismiss(animated: true) { [self] in
-                importing = false
+                isChangingLibrary = false
                 configureMenu()
                 if let failure {
                     FeedbackAlert.show(
@@ -113,7 +113,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
     }
 
     @objc private func libraryChanged() {
-        guard viewIfLoaded?.window != nil, !importing else { return }
+        guard viewIfLoaded?.window != nil, !isChangingLibrary else { return }
         reload()
     }
 
@@ -177,6 +177,46 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
                 $0.image = UIImage(systemName: "music.note")
             }
             $0.accessoryType = .disclosureIndicator
+        }
+    }
+
+    override func tableView(
+        _ tableView: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
+        guard !isChangingLibrary else { return nil }
+        let track = rows[indexPath.row]
+        let action = UIContextualAction(style: .destructive, title: String(localized: "Delete")) { [weak self] _, _, completion in
+            completion(false)
+            guard let self else { return }
+            PermanentDeleteConfirmation.present(
+                from: self,
+                title: String(localized: "Delete from Library"),
+                message: String(localized: "“\(track.title)” will be deleted from this device’s music library."),
+                confirmTitle: String(localized: "Delete")
+            ) { [weak self] in self?.deleteMusic(track) }
+        }
+        return UISwipeActionsConfiguration(actions: [action]).then {
+            $0.performsFirstActionWithFullSwipe = false
+        }
+    }
+
+    private func deleteMusic(_ track: MusicLibraryTrack) {
+        guard !isChangingLibrary else { return }
+        isChangingLibrary = true
+        load?.cancel()
+        configureMenu()
+        Task { [self] in
+            do {
+                try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
+                tracks.removeAll { $0.id == track.id }
+                filter()
+            } catch {
+                FeedbackAlert.show(String(localized: "Unable to Delete Music"), message: error.localizedDescription)
+            }
+            isChangingLibrary = false
+            configureMenu()
+            reload()
         }
     }
 

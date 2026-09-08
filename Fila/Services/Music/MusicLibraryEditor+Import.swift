@@ -1,3 +1,4 @@
+import FilaMedia
 import AVFoundation
 import FilaLog
 import FilaProtocol
@@ -32,29 +33,10 @@ extension MusicLibraryEditor {
             "Title": URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent,
             "TotalTime": NSNumber(value: Int64(duration * 1000)),
         ]
-        for item in try await asset.load(.commonMetadata) {
-            let field: String? = switch item.commonKey {
-            case .commonKeyTitle: "Title"
-            case .commonKeyArtist: "Artist"
-            case .commonKeyAlbumName: "Album"
-            default: nil
-            }
-            if let field, let value = try await item.load(.stringValue), !value.isEmpty {
-                metadata[field] = value
-            }
-        }
-        for item in try await asset.load(.metadata) {
-            let field: String? = switch item.identifier {
-            case .iTunesMetadataAlbumArtist: "AlbumArtist"
-            case .iTunesMetadataLyrics, .id3MetadataUnsynchronizedLyric: "Lyrics"
-            case .iTunesMetadataComposer: "Composer"
-            case .iTunesMetadataUserGenre: "Genre"
-            default: nil
-            }
-            if let field, let value = try await item.load(.stringValue), !value.isEmpty {
-                metadata[field] = value
-            }
-        }
+        let tags = try await MusicImportMetadata.read(from: asset)
+        for (key, value) in tags.strings { metadata[key] = value }
+        for (key, value) in tags.numbers { metadata[key] = NSNumber(value: value) }
+        if let artwork = tags.artwork { metadata["Artwork"] = artwork }
         // A UUID name makes every import independent of existing songs and of
         // the source filename. The copy job publishes the bytes atomically.
         let name = UUID().uuidString + "." + staged.pathExtension.lowercased()
