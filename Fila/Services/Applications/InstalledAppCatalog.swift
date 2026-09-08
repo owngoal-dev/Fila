@@ -1,3 +1,4 @@
+import FilaLog
 import FilaProtocol
 import Foundation
 import ObjectiveC
@@ -70,9 +71,13 @@ enum InstalledAppCatalog {
         guard SystemCapabilities.showsApplications else { return [] }
         let apps = workspaceApplications()
         if !apps.isEmpty {
+            FilaLog.info("\(apps.count) app(s) from LaunchServices")
             return apps.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         }
+        // The fallback, and the line that says the fast path answered nothing —
+        // which on a locked-down OS is what "Installed Apps is empty" means.
         let scanned = await scanBundleContainers(session: session)
+        FilaLog.info("LaunchServices answered nothing; \(scanned.count) app(s) from a container scan")
         return scanned.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 

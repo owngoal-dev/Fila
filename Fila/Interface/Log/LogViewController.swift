@@ -316,6 +316,12 @@ final class LogViewController: UIViewController {
                 ) { [weak self] _ in
                     LogPreferences.level = level
                     FilaLog.minimumLevel = level
+                    // The daemon writes the same line when its own level
+                    // changes. Without this one, a log that starts at verbose
+                    // halfway down looks like the app was restarted. Written
+                    // *at* the new level so raising the floor cannot drop the
+                    // line that says the floor was raised.
+                    FilaLog.log(level, "log level is now \(level.tag)")
                     self?.updateBarButtons()
                     self?.applyFilter()
                 }

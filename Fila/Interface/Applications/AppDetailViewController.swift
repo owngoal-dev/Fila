@@ -42,6 +42,11 @@ final class AppDetailViewController: UITableViewController {
         fatalError("not supported")
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadWithAnimation()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = app.name
@@ -53,7 +58,7 @@ final class AppDetailViewController: UITableViewController {
         guard AppFolderDisplay.cachedIcon(for: app.bundleIdentifier) == nil else { return }
         Task { [weak self, identifier = app.bundleIdentifier] in
             _ = await AppFolderDisplay.icon(for: identifier)
-            self?.tableView.reloadData()
+            self?.tableView.reloadWithAnimation()
         }
     }
 

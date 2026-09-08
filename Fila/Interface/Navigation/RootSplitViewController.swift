@@ -324,6 +324,13 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
+    func openMusicInNewTab() {
+        guard !BrowserTabStore.shared.isFull else { return }
+        content.captureCurrentTab()
+        guard BrowserTabStore.shared.open("/var/mobile/Media/iTunes_Control") != nil else { return }
+        content.showCurrentTab(root: MusicLibraryViewController())
+    }
+
     /// The `fila://open?path=…&tab=new` destination. `BrowserTabStore.openFromLink`
     /// decides *whether* a tab is made — it is capped and it deduplicates,
     /// because a link is an unauthenticated entry point — and this shows

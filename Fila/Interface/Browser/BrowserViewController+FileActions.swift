@@ -327,7 +327,6 @@ extension BrowserViewController {
     /// mode, then one name prompt already filled with the target's own name.
     func promptCreateLink() {
         let picker = SaveDestinationViewController(
-            directory: URL(fileURLWithPath: directory, isDirectory: true),
             picksFiles: true,
             link: session.link
         ) { [weak self] target in

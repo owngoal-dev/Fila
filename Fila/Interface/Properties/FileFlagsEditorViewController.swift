@@ -32,6 +32,11 @@ final class FileFlagsEditorViewController: UITableViewController {
         fatalError("init(coder:) is not used")
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadWithAnimation()
+    }
+
     override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         Self.flags.count
     }

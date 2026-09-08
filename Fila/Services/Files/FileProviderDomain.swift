@@ -23,10 +23,15 @@ enum FileProviderDomain {
     private static var observers: [NSObjectProtocol] = []
 
     static func register() {
-        guard #available(iOS 16.0, *) else { return }
+        guard #available(iOS 16.0, *) else {
+            FilaLog.info("Files domain skipped: replicated File Provider needs iOS 16")
+            return
+        }
         NSFileProviderManager.add(domain) { error in
             if let error {
                 FilaLog.error("Files domain registration failed: \(error)")
+            } else {
+                FilaLog.info("Files domain registered")
             }
             signalChanges()
         }
@@ -53,6 +58,10 @@ enum FileProviderDomain {
     /// unsynced edits with it; the settings page says so before the change.
     static func reset() {
         guard #available(iOS 16.0, *) else { return }
+        // The replica is dropped here, unsynced edits included. Worth a line:
+        // it is the only record that the folder the user sees in Files changed
+        // out from under whatever was mid-copy into it.
+        FilaLog.info("Files domain rebuilding for a new folder")
         NSFileProviderManager.remove(domain, mode: .removeAll) { _, error in
             if let error {
                 FilaLog.error("Files domain removal failed: \(error)")

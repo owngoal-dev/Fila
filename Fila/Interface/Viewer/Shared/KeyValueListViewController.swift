@@ -36,6 +36,13 @@ final class KeyValueListViewController: UITableViewController {
         fatalError("init(coder:) is not used")
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        var snapshot = source.snapshot()
+        snapshot.reconfigureItems(snapshot.itemIdentifiers)
+        source.apply(snapshot, animatingDifferences: true)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Only a sheet gets a Close button, and the helper is what knows the

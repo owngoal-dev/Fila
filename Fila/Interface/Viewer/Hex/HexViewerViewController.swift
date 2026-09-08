@@ -71,6 +71,13 @@ final class HexViewerViewController: UIViewController {
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        pages.removeAll()
+        pageOrder.removeAll()
+        table.reloadWithAnimation()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let width = max(1, table.bounds.width - table.layoutMargins.left - table.layoutMargins.right)

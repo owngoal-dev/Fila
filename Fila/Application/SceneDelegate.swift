@@ -1,3 +1,4 @@
+import FilaLog
 import UIKit
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -9,6 +10,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        FilaLog.info("scene connected")
         let window = UIWindow(windowScene: windowScene)
         let root = RootSplitViewController()
         window.rootViewController = root
@@ -31,6 +33,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// it gets caught — and it is the last moment before the app can be killed
     /// without warning.
     func sceneDidEnterBackground(_: UIScene) {
+        // The last moment before iOS may kill the app without warning, which is
+        // exactly what an operation "interrupted" on the next launch means.
+        FilaLog.info("scene backgrounded")
         shell?.rememberState()
     }
 

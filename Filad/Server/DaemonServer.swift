@@ -186,7 +186,7 @@ final class DaemonServer: @unchecked Sendable {
             // is the only record of it — the app is told `protectedPath` and
             // nothing about which ancestor matched.
             FilaLog.log(
-                Self.level(for: failure.code),
+                FilaLog.level(for: failure.code),
                 Self.describe(operation?.name ?? "?", path: FilaLog.requestPath(message), failure: failure)
             )
         } catch {
@@ -205,26 +205,11 @@ final class DaemonServer: @unchecked Sendable {
 
     // MARK: - Log
 
-    /// A refusal is not automatically trouble. `notFound` is what a `stat` of a
-    /// path the user just deleted answers, and `cancelled` is the user's own
-    /// doing; logging either as an error would bury the ones that matter.
-    private static func level(for code: FilaReplyCode) -> FilaLog.Level {
-        switch code {
-        case .notFound, .cancelled: .verbose
-        case .protectedPath, .notPermitted, .invalidRequest, .wrongPassword: .warning
-        default: .error
-        }
-    }
-
     /// `subject` is what was being done — an operation's name, or a job's id.
+    /// The failure's own spelling lives in `FilaLog.describe`, so the app's
+    /// line about the same refusal reads the same way.
     private static func describe(_ subject: String, path: String, failure: FilaFailure) -> String {
-        var line = "\(subject) \(path) \(failure.code.name)"
-        // The number is the answer to "it wouldn't delete": as root, EPERM is
-        // almost always an immutable flag and nothing but the errno says so.
-        if failure.systemError != 0 {
-            line += " errno \(failure.systemError) \(failure.systemErrorDescription ?? "")"
-        }
-        return line
+        "\(subject) \(path) \(FilaLog.describe(failure))"
     }
 
     // MARK: - Operations
@@ -341,7 +326,9 @@ final class DaemonServer: @unchecked Sendable {
             let request = FilaLog.Record.decodeRequest(message)
             if let level = request.level, level != FilaLog.minimumLevel {
                 FilaLog.minimumLevel = level
-                FilaLog.info("log level is now \(level.tag)")
+                // At the new level, so raising the floor cannot drop the line
+                // that says the floor was raised.
+                FilaLog.log(level, "log level is now \(level.tag)")
             }
             let snapshot = FilaLog.snapshot(since: request.sequence)
             FilaLog.Record.encodeReply(snapshot.records, dropped: snapshot.dropped, into: reply)
@@ -440,6 +427,10 @@ final class DaemonServer: @unchecked Sendable {
                 guard let self else { return }
                 self.peers[key]?.terminals[identifier] = nil
                 self.liveTerminalCount -= 1
+                // The other half of the line below. A terminal that opened and
+                // closed again in the same second is the shape of a spawn that
+                // failed after the fork, and only the pair shows it.
+                FilaLog.info("terminal \(identifier) reaped")
                 // Group signalling and direct-child reaping are complete.
                 // This count does not track detached or job-control groups.
                 self.scheduleIdleExit()
@@ -496,7 +487,7 @@ final class DaemonServer: @unchecked Sendable {
             // is not carried by any reply — the request that started it was
             // answered minutes ago.
             FilaLog.log(
-                outcome.code == .success ? .info : Self.level(for: outcome.code),
+                FilaLog.level(for: outcome.code),
                 Self.describe("job \(identifier)", path: outcome.path ?? "-", failure: outcome)
             )
             xpc_connection_send_message(connection, JobEvent.completed(outcome).encoded(jobIdentifier: identifier))
@@ -576,6 +567,10 @@ final class DaemonServer: @unchecked Sendable {
             // reaped before this owner exits. This is not a descendant count.
             guard liveTerminalCount == 0 else { return }
 
+            // The last line of a run, and the one that explains the next
+            // `ECONNRESET` the app reports: the daemon did not crash, it went
+            // home because nobody was talking to it.
+            FilaLog.info("filad idle, exiting")
             exit(EXIT_SUCCESS)
         }
     }

@@ -38,10 +38,7 @@ enum FilaMenu {
         let favorites = preferences.favorites.map {
             destination($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
         }
-        let recents = preferences.recents
-            .filter { includesFiles || !preferences.recentFiles.contains($0) }
-            .prefix(8)
-            .map {
+        let recents: [UIMenuElement] = includesFiles ? preferences.recents.prefix(8).map {
                 destination(
                     $0,
                     title: name(of: $0),
@@ -49,7 +46,20 @@ enum FilaMenu {
                     subtitle: $0,
                     isFile: preferences.recentFiles.contains($0)
                 )
-            }
+            } : [UIDeferredMenuElement.uncached { completion in
+                Task { @MainActor in
+                    var directories: [UIMenuElement] = []
+                    for path in preferences.recents {
+                        // Cached file classifications may predate this feature,
+                        // or the node may have changed since it was visited.
+                        guard let details = try? await FileSession.shared.perform({ try await $0.details(of: path) }),
+                              details.node.isNavigable else { continue }
+                        directories.append(destination(path, title: name(of: path), image: UIImage(systemName: "clock"), subtitle: path))
+                        if directories.count == 8 { break }
+                    }
+                    completion(directories)
+                }
+            }]
         let locations = [
             UIMenu(title: String(localized: "Places"), image: UIImage(systemName: "folder"), children: places),
             UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),

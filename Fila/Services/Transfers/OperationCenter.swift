@@ -1,4 +1,5 @@
 import FilaClient
+import FilaLog
 import FilaProtocol
 import Foundation
 
@@ -180,6 +181,10 @@ final class OperationCenter: ObservableObject {
             guard operation.isRunning, case .job = operation.control else { return false }
             return true
         }.map(\.id)
+        guard !lost.isEmpty else { return }
+        // Not an error the user caused, and the only explanation for rows that
+        // are about to end at 40%: the connection went and took the jobs with it.
+        FilaLog.warning("link lost, \(lost.count) running job(s) ended with it")
         for identity in lost {
             finish(identity, FilaFailure(code: .operationFailed, systemError: ECONNRESET))
         }
@@ -457,6 +462,7 @@ final class OperationCenter: ObservableObject {
     /// a body that never checks is when it finishes — the button is honest
     /// about asking, not about arriving.
     func cancel(_ operation: Operation) {
+        FilaLog.info("cancel requested · \(operation.kind.rawValue) \(operation.subtitle)")
         switch operation.control {
         case let .job(identifier):
             Task { [weak self] in
@@ -552,6 +558,14 @@ final class OperationCenter: ObservableObject {
         if failure.code != .success {
             operations[index].undo = nil
         }
+        // The verdict, on the same timeline as the line that started it. A
+        // daemon job also reports its own; this one is here because work the
+        // app runs itself — compress, extract, download, an undo — has no
+        // daemon to report anything.
+        FilaLog.log(
+            FilaLog.level(for: failure.code),
+            "\(operations[index].kind.rawValue) \(operations[index].subtitle) \(FilaLog.describe(failure))"
+        )
         var finished = operations[index]
         // Taken off the row that goes back in the list: it fires exactly once,
         // and a spent continuation has no business sitting in the receipts.
@@ -560,7 +574,10 @@ final class OperationCenter: ObservableObject {
         operations.remove(at: index)
         place(finished)
         trimFinished()
-        NotificationCenter.default.post(name: .filaJobFinished, object: finished.affected)
+        NotificationCenter.default.post(
+            name: .filaJobFinished, object: finished.affected,
+            userInfo: ["kind": finished.kind.rawValue]
+        )
         announce(finished)
         changed()
         writeBreadcrumb()
@@ -586,6 +603,22 @@ final class OperationCenter: ObservableObject {
     }
 
     private func append(_ operation: Operation) {
+        // Every filesystem change the user asked for enters the app here,
+        // whichever of the three shapes it took, so this is where it gets said
+        // once. The daemon writes its own line for the same work; this is the
+        // side that knows it was a user's tap rather than a job identifier.
+        switch operation.state {
+        case .running:
+            FilaLog.info("\(operation.kind.rawValue) \(operation.subtitle)")
+        case let .finished(failure):
+            // Never started. `finish` is not coming, so the verdict is here.
+            FilaLog.log(
+                FilaLog.level(for: failure.code),
+                "\(operation.kind.rawValue) \(operation.subtitle) \(FilaLog.describe(failure))"
+            )
+        case .interrupted:
+            break
+        }
         place(operation)
         trimFinished()
         changed()

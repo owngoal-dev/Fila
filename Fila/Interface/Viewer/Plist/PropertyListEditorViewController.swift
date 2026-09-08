@@ -256,7 +256,7 @@ final class PropertyListEditorViewController: UIViewController {
         default:
             rows = [Row(path: path, label: String(localized: "Value"), value: value)]
         }
-        table.reloadData()
+        table.reloadWithAnimation()
         if rows.isEmpty {
             table.backgroundView = StatusView(content: .message(
                 symbol: "list.bullet",

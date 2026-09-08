@@ -66,11 +66,10 @@ extension MusicLibraryEditor {
             guard result.code == .success else { throw result }
             try Task.checkCancellation()
             try await session.perform { try await $0.setAttributes(.newItemDefaults, at: destination) }
-            try backupLibrary()
             do { _ = try native.importFile(atPath: destination, metadata: metadata) }
             catch {
                 FilaLog.error("Music library import failed: \(error)")
-                throw self.error(String(localized: "The music library could not import this file. A backup is in Music Backups in Fila’s Documents folder."))
+                throw self.error(String(localized: "The music library could not import this file. Try again."))
             }
         } catch {
             // No library record refers to this file unless the native call

@@ -134,6 +134,16 @@ final class TabContainerViewController: UIViewController {
         removeClosedTabs()
     }
 
+    func showCurrentTab(root: UIViewController) {
+        showTab(BrowserTabStore.shared.currentID) {
+            let navigation = TabNavigationController()
+            navigation.owner = shell
+            navigation.setViewControllers([root], animated: false)
+            return navigation
+        }
+        removeClosedTabs()
+    }
+
     /// Removing a background tab does not install, lay out or snapshot a survivor.
     func removeClosedTabs() {
         let remaining = Set(BrowserTabStore.shared.tabs.map(\.id))
@@ -493,6 +503,7 @@ extension TabContainerViewController: UINavigationControllerDelegate {
         animated: Bool
     ) {
         shell?.configureSidebarButton(for: viewController)
+        (navigation as? TabNavigationController)?.prepareToolbar(for: viewController)
         navigation.setNavigationBarHidden(false, animated: animated)
         navigation.setToolbarHidden(viewController.toolbarItems?.isEmpty != false, animated: animated)
     }

@@ -1772,79 +1772,85 @@
         }
       }
     },
-    "%lld items will be created in this folder. Replaced items are deleted, not moved to the trash." : {
-      "comment" : "Confirmation before extracting selected archive entries into the current folder. %lld is how many items will be written.",
+    "%lld items will be extracted here. A folder is created only when needed. Existing items are kept." : {
+      "comment" : "Describes archive extraction in the current folder while preserving existing items.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "سيتم إنشاء %lld عنصر في هذا المجلد. العناصر المستبدلة تُحذف ولا تُنقل إلى المهملات."
+            "value" : "سيتم استخراج %lld من العناصر هنا. يُنشأ مجلد عند الحاجة فقط. تُحفظ العناصر الموجودة."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld Objekte werden in diesem Ordner erstellt. Ersetzte Objekte werden gelöscht, nicht in den Papierkorb bewegt."
+            "value" : "%lld Objekte werden hier entpackt. Ein Ordner wird nur bei Bedarf erstellt. Vorhandene Objekte bleiben erhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld items will be extracted here. A folder is created only when needed. Existing items are kept."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se crearán %lld elementos en esta carpeta. Los elementos sustituidos se eliminan; no se mueven a la papelera."
+            "value" : "Se extraerán %lld elementos aquí. Solo se creará una carpeta si es necesario. Se conservarán los elementos existentes."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld éléments seront créés dans ce dossier. Les éléments remplacés sont supprimés, pas placés dans la corbeille."
+            "value" : "%lld éléments seront extraits ici. Un dossier est créé uniquement si nécessaire. Les éléments existants sont conservés."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In questa cartella verranno creati %lld elementi. Gli elementi sostituiti vengono eliminati, non spostati nel Cestino."
+            "value" : "Qui verranno estratti %lld elementi. Verrà creata una cartella solo se necessario. Gli elementi esistenti verranno mantenuti."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このフォルダに%lld項目が作成されます。置き換えられた項目はゴミ箱に入らず削除されます。"
+            "value" : "%lld項目をここに展開します。フォルダは必要な場合のみ作成されます。既存の項目は保持されます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 폴더에 %lld개의 항목이 생성됩니다. 대치된 항목은 휴지통으로 이동되지 않고 삭제됩니다."
+            "value" : "항목 %lld개를 여기에 압축 해제합니다. 필요한 경우에만 폴더가 생성됩니다. 기존 항목은 유지됩니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld itens serão criados nesta pasta. Os itens substituídos são apagados, não movidos para a Lixeira."
+            "value" : "%lld itens serão extraídos aqui. Uma pasta será criada apenas se necessário. Os itens existentes serão mantidos."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "В этой папке будет создано объектов: %lld. Заменённые объекты удаляются, а не перемещаются в Корзину."
+            "value" : "Здесь будут извлечены элементы (%lld). Папка будет создана только при необходимости. Существующие элементы сохранятся."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld mục sẽ được tạo trong thư mục này. Các mục bị thay thế sẽ bị xóa chứ không được chuyển vào thùng rác."
+            "value" : "%lld mục sẽ được giải nén tại đây. Thư mục chỉ được tạo khi cần. Các mục hiện có được giữ nguyên."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将在此文件夹中创建 %lld 个项目。被替换的项目会被删除，不会移入废纸篓。"
+            "value" : "将在此处解压 %lld 个项目。仅在需要时创建文件夹，现有项目将予以保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將在此檔案夾中建立 %lld 個項目。被取代的項目會直接刪除，不會移到垃圾桶。"
+            "value" : "將在此解壓縮 %lld 個項目。僅在需要時建立資料夾，並保留現有項目。"
           }
         }
       }
@@ -17502,78 +17508,84 @@
         }
       }
     },
-    "Fields with an arrow can be edited. Before each change, Fila saves a backup in Music Backups in Fila’s Documents folder." : {
+    "Tap a field with an arrow to edit it." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يمكن تحرير الحقول التي تحمل سهمًا. قبل كل تغيير، يحفظ Fila نسخة احتياطية في Music Backups داخل مجلد المستندات الخاص بـ Fila."
+            "value" : "اضغط على حقل بجانبه سهم لتعديله."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Felder mit einem Pfeil können bearbeitet werden. Vor jeder Änderung sichert Fila eine Sicherungskopie in „Music Backups“ in Filas Ordner „Documents“."
+            "value" : "Tippe auf ein Feld mit einem Pfeil, um es zu bearbeiten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a field with an arrow to edit it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los campos con una flecha se pueden editar. Antes de cada cambio, Fila guarda una copia de seguridad en Music Backups, dentro de la carpeta Documentos de Fila."
+            "value" : "Toca un campo con una flecha para editarlo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les champs accompagnés d’une flèche peuvent être modifiés. Avant chaque modification, Fila enregistre une sauvegarde dans Music Backups, dans le dossier Documents de Fila."
+            "value" : "Touchez un champ avec une flèche pour le modifier."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I campi con una freccia possono essere modificati. Prima di ogni modifica, Fila salva un backup in Music Backups, nella cartella Documenti di Fila."
+            "value" : "Tocca un campo con una freccia per modificarlo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "矢印が付いたフィールドは編集できます。変更のたびに、FilaはFilaの「書類」フォルダ内の Music Backups にバックアップを保存します。"
+            "value" : "矢印のある項目をタップすると編集できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "화살표가 있는 필드는 편집할 수 있습니다. Fila는 변경할 때마다 먼저 Fila의 Documents 폴더에 있는 Music Backups에 백업을 저장합니다."
+            "value" : "화살표가 있는 필드를 탭하여 편집하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Os campos com uma seta podem ser editados. Antes de cada alteração, o Fila salva um backup em Music Backups, na pasta Documentos do Fila."
+            "value" : "Toque em um campo com uma seta para editá-lo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Поля со стрелкой можно изменять. Перед каждым изменением Fila сохраняет резервную копию в папке Music Backups внутри папки «Документы» приложения Fila."
+            "value" : "Нажмите на поле со стрелкой, чтобы изменить его."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Các trường có mũi tên đều có thể sửa. Trước mỗi thay đổi, Fila lưu một bản sao lưu trong Music Backups thuộc thư mục Documents của Fila."
+            "value" : "Chạm vào trường có mũi tên để chỉnh sửa."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "带箭头的字段可以编辑。每次修改前，Fila 都会将备份保存到自身 Documents 文件夹中的 Music Backups。"
+            "value" : "轻点带箭头的字段即可编辑。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有箭頭的欄位可以編輯。每次更改前，Fila 都會在自身「文件」檔案夾的 Music Backups 中儲存備份。"
+            "value" : "點一下帶有箭頭的欄位即可編輯。"
           }
         }
       }
@@ -46647,154 +46659,166 @@
         }
       }
     },
-    "The music library could not import this file. A backup is in Music Backups in Fila’s Documents folder." : {
+    "The music library could not import this file. Try again." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذر على مكتبة الموسيقى استيراد هذا الملف. توجد نسخة احتياطية في Music Backups داخل مجلد Documents في Fila."
+            "value" : "تعذّر على مكتبة الموسيقى استيراد هذا الملف. حاول مرة أخرى."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Musikmediathek konnte diese Datei nicht importieren. Ein Backup liegt unter Music Backups im Ordner Documents von Fila."
+            "value" : "Die Musikmediathek konnte diese Datei nicht importieren. Versuche es erneut."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The music library could not import this file. Try again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La biblioteca musical no pudo importar este archivo. Hay una copia de seguridad en Music Backups, dentro de la carpeta Documents de Fila."
+            "value" : "La biblioteca de música no ha podido importar este archivo. Inténtalo de nuevo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La bibliothèque musicale n’a pas pu importer ce fichier. Une sauvegarde se trouve dans Music Backups, dans le dossier Documents de Fila."
+            "value" : "La bibliothèque musicale n’a pas pu importer ce fichier. Réessayez."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La libreria musicale non ha potuto importare questo file. Un backup si trova in Music Backups nella cartella Documents di Fila."
+            "value" : "La libreria musicale non ha potuto importare questo file. Riprova."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ミュージックライブラリにこのファイルを読み込めませんでした。バックアップは Fila の Documents フォルダ内の Music Backups にあります。"
+            "value" : "このファイルをミュージックライブラリに読み込めませんでした。もう一度お試しください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "음악 보관함에서 이 파일을 가져올 수 없습니다. 백업은 Fila의 Documents 폴더 안에 있는 Music Backups에 있습니다."
+            "value" : "음악 보관함으로 이 파일을 가져올 수 없습니다. 다시 시도하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A biblioteca de música não conseguiu importar este arquivo. Há um backup em Music Backups, na pasta Documents do Fila."
+            "value" : "Não foi possível importar este arquivo para a biblioteca de músicas. Tente novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось импортировать этот файл в медиатеку. Резервная копия находится в Music Backups в папке Documents приложения Fila."
+            "value" : "Не удалось импортировать этот файл в музыкальную медиатеку. Повторите попытку."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thư viện nhạc không thể nhập tệp này. Bản sao lưu nằm trong Music Backups thuộc thư mục Documents của Fila."
+            "value" : "Thư viện nhạc không thể nhập tệp này. Hãy thử lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音乐资料库无法导入此文件。备份位于 Fila 的 Documents 文件夹中的 Music Backups。"
+            "value" : "音乐资料库无法导入此文件。请重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音樂資料庫無法匯入此檔案。備份位於 Fila 的 Documents 資料夾中的 Music Backups。"
+            "value" : "無法將此檔案匯入音樂資料庫。請再試一次。"
           }
         }
       }
     },
-    "The music library could not save this change. A backup is in Music Backups in Fila’s Documents folder." : {
+    "The music library could not save this change. Reopen the song’s details and try again." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذّر على مكتبة الموسيقى حفظ هذا التغيير. توجد نسخة احتياطية في Music Backups داخل مجلد المستندات الخاص بـ Fila."
+            "value" : "تعذّر على مكتبة الموسيقى حفظ هذا التغيير. أعد فتح تفاصيل الأغنية وحاول مرة أخرى."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Musikmediathek konnte diese Änderung nicht sichern. Eine Sicherungskopie liegt in „Music Backups“ in Filas Ordner „Documents“."
+            "value" : "Die Musikmediathek konnte diese Änderung nicht speichern. Öffne die Details des Songs erneut und versuche es noch einmal."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The music library could not save this change. Reopen the song’s details and try again."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La biblioteca de música no ha podido guardar este cambio. Hay una copia de seguridad en Music Backups, dentro de la carpeta Documentos de Fila."
+            "value" : "La biblioteca de música no ha podido guardar este cambio. Vuelve a abrir los detalles de la canción e inténtalo de nuevo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La bibliothèque musicale n’a pas pu enregistrer cette modification. Une sauvegarde se trouve dans Music Backups, dans le dossier Documents de Fila."
+            "value" : "La bibliothèque musicale n’a pas pu enregistrer cette modification. Rouvrez les détails du morceau et réessayez."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La libreria musicale non ha potuto salvare questa modifica. Un backup si trova in Music Backups, nella cartella Documenti di Fila."
+            "value" : "La libreria musicale non ha potuto salvare questa modifica. Riapri i dettagli del brano e riprova."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ミュージックライブラリはこの変更を保存できませんでした。バックアップはFilaの「書類」フォルダ内の Music Backups にあります。"
+            "value" : "変更をミュージックライブラリに保存できませんでした。曲の詳細を開き直して、もう一度お試しください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "음악 보관함이 이 변경 사항을 저장하지 못했습니다. 백업은 Fila의 Documents 폴더에 있는 Music Backups에 있습니다."
+            "value" : "음악 보관함에 변경 사항을 저장할 수 없습니다. 노래의 세부 정보를 다시 열고 다시 시도하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A biblioteca de música não conseguiu salvar esta alteração. Há um backup em Music Backups, na pasta Documentos do Fila."
+            "value" : "Não foi possível salvar esta alteração na biblioteca de músicas. Abra os detalhes da música novamente e tente outra vez."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Медиатеке не удалось сохранить это изменение. Резервная копия находится в папке Music Backups внутри папки «Документы» приложения Fila."
+            "value" : "Не удалось сохранить это изменение в музыкальной медиатеке. Откройте сведения о песне снова и повторите попытку."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thư viện nhạc không lưu được thay đổi này. Bản sao lưu nằm trong Music Backups thuộc thư mục Documents của Fila."
+            "value" : "Thư viện nhạc không thể lưu thay đổi này. Mở lại thông tin bài hát và thử lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音乐资料库未能保存此项修改。备份位于 Fila 的 Documents 文件夹中的 Music Backups。"
+            "value" : "音乐资料库无法保存此更改。请重新打开歌曲详情后重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音樂資料庫無法儲存這項更動。備份位於 Fila「文件」檔案夾中的 Music Backups。"
+            "value" : "無法將此變更儲存至音樂資料庫。請重新開啟歌曲詳細資訊，然後再試一次。"
           }
         }
       }
@@ -47416,78 +47440,84 @@
         }
       }
     },
-    "The song does not show this change. Reopen it to check. A backup is in Music Backups in Fila’s Documents folder." : {
+    "The change could not be confirmed. Reopen the song’s details to check." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "لا تُظهر الأغنية هذا التغيير. أعد فتحها للتحقق. توجد نسخة احتياطية في Music Backups داخل مجلد المستندات الخاص بـ Fila."
+            "value" : "تعذّر تأكيد التغيير. أعد فتح تفاصيل الأغنية للتحقق."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Song zeigt diese Änderung nicht. Öffne ihn erneut, um das zu prüfen. Eine Sicherungskopie liegt in „Music Backups“ in Filas Ordner „Documents“."
+            "value" : "Die Änderung konnte nicht bestätigt werden. Öffne die Details des Songs erneut, um sie zu überprüfen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The change could not be confirmed. Reopen the song’s details to check."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La canción no muestra este cambio. Vuelve a abrirla para comprobarlo. Hay una copia de seguridad en Music Backups, dentro de la carpeta Documentos de Fila."
+            "value" : "No se ha podido confirmar el cambio. Vuelve a abrir los detalles de la canción para comprobarlo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le morceau n’affiche pas cette modification. Rouvrez-le pour vérifier. Une sauvegarde se trouve dans Music Backups, dans le dossier Documents de Fila."
+            "value" : "La modification n’a pas pu être confirmée. Rouvrez les détails du morceau pour vérifier."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Il brano non mostra questa modifica. Riaprilo per verificare. Un backup si trova in Music Backups, nella cartella Documenti di Fila."
+            "value" : "Non è stato possibile confermare la modifica. Riapri i dettagli del brano per verificare."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "この曲に変更が反映されていません。開き直して確認してください。バックアップはFilaの「書類」フォルダ内の Music Backups にあります。"
+            "value" : "変更を確認できませんでした。曲の詳細を開き直して確認してください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "노래에 이 변경 사항이 반영되지 않았습니다. 다시 열어 확인하십시오. 백업은 Fila의 Documents 폴더에 있는 Music Backups에 있습니다."
+            "value" : "변경 사항을 확인할 수 없습니다. 노래의 세부 정보를 다시 열어 확인하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A música não exibe esta alteração. Reabra-a para verificar. Há um backup em Music Backups, na pasta Documentos do Fila."
+            "value" : "Não foi possível confirmar a alteração. Abra os detalhes da música novamente para verificar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Песня не отображает это изменение. Откройте её заново, чтобы проверить. Резервная копия находится в папке Music Backups внутри папки «Документы» приложения Fila."
+            "value" : "Не удалось подтвердить изменение. Откройте сведения о песне снова, чтобы проверить результат."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bài hát không hiển thị thay đổi này. Hãy mở lại để kiểm tra. Bản sao lưu nằm trong Music Backups thuộc thư mục Documents của Fila."
+            "value" : "Không thể xác nhận thay đổi. Mở lại thông tin bài hát để kiểm tra."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "歌曲未显示此项修改。重新打开歌曲以检查。备份位于 Fila 的 Documents 文件夹中的 Music Backups。"
+            "value" : "无法确认更改。请重新打开歌曲详情进行检查。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "這首歌曲並未顯示此更動。請重新打開它進行確認。備份位於 Fila「文件」檔案夾中的 Music Backups。"
+            "value" : "無法確認變更。請重新開啟歌曲詳細資訊以檢查。"
           }
         }
       }
@@ -52155,78 +52185,84 @@
         }
       }
     },
-    "Updates this song in the device’s music library. A backup is saved before the change." : {
+    "Edit this song’s details in the device’s music library." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يحدّث هذه الأغنية في مكتبة الموسيقى على الجهاز. يتم حفظ نسخة احتياطية قبل التغيير."
+            "value" : "عدّل تفاصيل هذه الأغنية في مكتبة الموسيقى على الجهاز."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktualisiert diesen Song in der Musikmediathek des Geräts. Vor der Änderung wird eine Sicherungskopie erstellt."
+            "value" : "Bearbeite die Details dieses Songs in der Musikmediathek des Geräts."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit this song’s details in the device’s music library."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actualiza esta canción en la biblioteca de música del dispositivo. Antes del cambio se guarda una copia de seguridad."
+            "value" : "Edita los detalles de esta canción en la biblioteca de música del dispositivo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Met à jour ce morceau dans la bibliothèque musicale de l’appareil. Une sauvegarde est enregistrée avant la modification."
+            "value" : "Modifiez les détails de ce morceau dans la bibliothèque musicale de l’appareil."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aggiorna questo brano nella libreria musicale del dispositivo. Prima della modifica viene salvato un backup."
+            "value" : "Modifica i dettagli di questo brano nella libreria musicale del dispositivo."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デバイスのミュージックライブラリにあるこの曲を更新します。変更前にバックアップを保存します。"
+            "value" : "デバイスのミュージックライブラリにあるこの曲の詳細を編集します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기기의 음악 보관함에서 이 노래를 업데이트합니다. 변경 전에 백업이 저장됩니다."
+            "value" : "기기의 음악 보관함에서 이 노래의 세부 정보를 편집하세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atualiza esta música na biblioteca de música do dispositivo. Um backup é salvo antes da alteração."
+            "value" : "Edite os detalhes desta música na biblioteca de músicas do dispositivo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновляет эту песню в медиатеке устройства. Перед изменением сохраняется резервная копия."
+            "value" : "Измените сведения об этой песне в музыкальной медиатеке устройства."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cập nhật bài hát này trong thư viện nhạc của thiết bị. Một bản sao lưu được lưu trước khi thay đổi."
+            "value" : "Chỉnh sửa thông tin bài hát này trong thư viện nhạc trên thiết bị."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "修改设备音乐资料库中的此歌曲。修改前会先保存备份。"
+            "value" : "编辑设备音乐资料库中这首歌曲的详细信息。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在裝置的音樂資料庫中更新這首歌曲。更動前會先儲存備份。"
+            "value" : "編輯裝置音樂資料庫中這首歌曲的詳細資訊。"
           }
         }
       }

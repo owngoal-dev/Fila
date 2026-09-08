@@ -1,3 +1,4 @@
+import FilaLog
 import Foundation
 
 extension Notification.Name {
@@ -59,6 +60,10 @@ final class FileClipboard {
     private init() {}
 
     func take(_ paths: [String], cut: Bool) {
+        // A paste is explained by what was taken and when. The clipboard holds
+        // a promise that can break between the two, and the log is where the
+        // gap becomes visible.
+        FilaLog.info("clipboard \(cut ? "cut" : "copied") \(paths.count) item(s)")
         revision = UUID()
         self.paths = paths
         isCut = cut

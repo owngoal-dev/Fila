@@ -71,6 +71,7 @@ final class PropertiesViewController: UIViewController {
     private let showsAdvanced: Bool
     private var details: FileDetails
     private var didChange: ((FileDetails) -> Void)?
+    private var refreshTask: Task<Void, Never>?
     private var previewTask: Task<Void, Never>?
     private var previewImage: UIImage?
     private var previewMaximumSide: CGFloat = 192
@@ -114,11 +115,31 @@ final class PropertiesViewController: UIViewController {
         }
     }
 
-    deinit { previewTask?.cancel() }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refreshTask?.cancel()
+        let path = details.path
+        refreshTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let updated = try await link.details(of: path)
+                guard !Task.isCancelled else { return }
+                details = updated
+                rebuild()
+                if !showsAdvanced { loadPreview() }
+            } catch {
+                guard !Task.isCancelled else { return }
+                FeedbackAlert.show(String(localized: "Unable to Read This File"), message: FailureMessage.text(for: error))
+            }
+        }
+    }
+
+    deinit { previewTask?.cancel(); refreshTask?.cancel() }
 
     /// The existing media service consumes and closes the backend descriptor.
     /// A stale or cancelled preview never updates a reused/closed page.
     private func loadPreview() {
+        previewTask?.cancel()
         let path = details.path
         let node = details.node
         let link = link
@@ -299,7 +320,7 @@ final class PropertiesViewController: UIViewController {
             snapshot.appendSections([section])
             snapshot.appendItems(rows.map { Item(section: section, row: $0) }, toSection: section)
         }
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
 
     private func itemRows() -> [Row] {

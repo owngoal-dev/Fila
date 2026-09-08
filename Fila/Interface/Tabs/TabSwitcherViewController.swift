@@ -157,12 +157,19 @@ final class TabSwitcherViewController: UIViewController {
             path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
         }
         let preferences = AppPreferences.shared
-        let places = SidebarLocation.jumpList(backend: FileSession.shared.hello?.backend).map { place in
+        var places = SidebarLocation.jumpList(backend: FileSession.shared.hello?.backend).map { place in
             let image: UIImage? = switch place.icon {
             case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
             case let .symbol(name): UIImage(systemName: name)
             }
             return open(place.path, title: place.title, image: image)
+        }
+        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") {
+            places.append(UIAction(
+                title: String(localized: "Music"),
+                image: UIImage(named: "FileIcons/music")?.withRenderingMode(.alwaysOriginal),
+                attributes: full ? .disabled : []
+            ) { [weak self] _ in self?.shell?.openMusicInNewTab() })
         }
         let favorites = preferences.favorites.map {
             open($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)

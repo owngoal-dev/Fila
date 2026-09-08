@@ -17,6 +17,27 @@ struct SidebarLocation: Hashable {
 }
 
 extension SidebarLocation {
+    enum Destination {
+        case directory(SidebarLocation), applications, music
+
+        var position: Position {
+            switch self {
+            case let .directory(place): place.position
+            case .applications: .applications
+            case .music: .music
+            }
+        }
+    }
+
+    @MainActor static var orderedDestinations: [Destination] {
+        var destinations = jumpList(backend: FileSession.shared.hello?.backend).map(Destination.directory)
+        if SystemCapabilities.showsApplications { destinations.append(.applications) }
+        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") { destinations.append(.music) }
+        let available = Dictionary(uniqueKeysWithValues: destinations.map { ($0.position, $0) })
+        let preferences = AppPreferences.shared
+        return preferences.presetOrder.filter { preferences.isPresetEnabled($0) }.compactMap { available[$0] }
+    }
+
     /// The filesystem places worth one tap on a jailbroken device, plus the bootstrap
     /// root when there is one, and the trash.
     ///

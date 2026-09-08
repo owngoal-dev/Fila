@@ -1,6 +1,7 @@
 import AlertController
 import FilaClient
 import FilaFormats
+import FilaLog
 import FilaProtocol
 import SnapKit
 import UIKit
@@ -128,10 +129,21 @@ final class ViewerContainerViewController: UIViewController {
             let file = try await DescriptorFile.open(details.path, link: link)
             let head = try file.read(at: 0, count: FileFormat.detectionByteCount)
             let format = FileFormat.detect(head: head, name: fileName)
+            // Detection is a guess from the first bytes and it will eventually
+            // be wrong on a jailbroken filesystem. The line says which guess it
+            // made, which is the difference between "the editor is broken" and
+            // "that plist is not a plist".
+            FilaLog.info("open \(details.path) as \(format) (\(details.node.size) bytes)")
             try present(format: format, file: file)
         } catch {
+            FilaLog.warning("open \(details.path) failed: \(Self.describe(error))")
             present(failure: error)
         }
+    }
+
+    /// A `FilaFailure` in the log's own words, anything else as itself.
+    private static func describe(_ error: Error) -> String {
+        (error as? FilaFailure).map { FilaLog.describe($0) } ?? "\(error)"
     }
 
     private func present(format: FileFormat, file: DescriptorFile) throws {

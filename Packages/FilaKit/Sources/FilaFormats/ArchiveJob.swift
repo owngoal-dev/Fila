@@ -136,6 +136,7 @@ public final class ArchiveJob: @unchecked Sendable {
 
     private func append(_ path: String, as name: String, into members: inout [Member]) throws {
         try checkCancelled(path)
+        guard !ArchivePath.isFinderMetadata(name) else { return }
         var metadata = stat()
         try filaCheck(path) { lstat(path, &metadata) }
         let kind = FileKind(modeBits: metadata.st_mode)
@@ -235,10 +236,16 @@ public final class ArchiveJob: @unchecked Sendable {
             name: FilaPath.name(of: archive),
             password: options.password
         )
+        let publication = try options.organizeExtraction == true
+            ? ArchiveExtractionDestination(directory: destination, operations: operations) : nil
+        defer {
+            do { try publication?.discard() }
+            catch { note("could not remove extraction temporary: \(error)") }
+        }
         let placement = try Placement(
             operations: operations,
-            destination: FilaPath.canonical(destination),
-            overwrite: request.overwrite
+            destination: publication?.temporary ?? FilaPath.canonical(destination),
+            overwrite: publication == nil ? request.overwrite : false
         )
         try placement.prepare()
 
@@ -271,6 +278,7 @@ public final class ArchiveJob: @unchecked Sendable {
                     continue
                 }
             }
+            guard !entry.isRootDirectory, !entry.isFinderMetadata else { continue }
             progress.beginItem(entry.declaredPath)
             // Their headers carry everything needed, so nothing is re-read.
             if entry.isSymbolicLink {
@@ -285,6 +293,7 @@ public final class ArchiveJob: @unchecked Sendable {
             try place(entry, with: placement, from: reader, progress: progress, note: note)
         }
         try placement.finish()
+        try publication?.publish(archiveName: archive) { try self.checkCancelled(archive) }
     }
 
     private func place(

@@ -1,4 +1,5 @@
 import FilaFileOps
+import FilaLog
 import FilaProtocol
 import Foundation
 import UniformTypeIdentifiers
@@ -62,6 +63,9 @@ enum FileImport {
         }
         let target = directory.appendingPathComponent(name)
         try FileOperations(bootstrapRoot: "").copyRegularFile(at: source.path, to: target.path)
+        // The picker's URL expires the moment this returns, so a failed import
+        // has no second chance and no trace anywhere else.
+        FilaLog.info("imported \(name) into the workspace")
         return target
     }
 }

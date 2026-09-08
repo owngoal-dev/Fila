@@ -143,6 +143,9 @@ final class FileSession {
                 return try await body(link)
             } catch let failure as FilaFailure where attempts > 0 && failure.systemError == ECONNRESET {
                 attempts -= 1
+                // Ordinary — the daemon exits when idle — but it is what stands
+                // between "the folder took a second to open" and a bug report.
+                FilaLog.info("read lost to a dropped link, \(attempts) retry(ies) left")
                 if attempts < 2 {
                     try await Task.sleep(nanoseconds: 400_000_000)
                 }
@@ -214,6 +217,9 @@ final class FileSession {
         let stale = entries.filter { $0.kind == .directory && UUID(uuidString: $0.name) != nil }
             .map { parent.appendingPathComponent($0.name).path }
         if !stale.isEmpty {
+            // Leftovers from a run that was killed. Worth a line: it is the
+            // only sign the previous launch did not exit normally.
+            FilaLog.info("sweeping \(stale.count) stale workspace(s) under \(parent.path)")
             let outcome = try await operations.awaitJob(
                 JobRequest(kind: .delete, sources: stale),
                 kind: .delete,

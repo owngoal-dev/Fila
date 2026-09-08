@@ -30,7 +30,6 @@ final class FileProviderSettingsViewController: UITableViewController {
             $0.estimatedRowHeight = FilaUI.minimumTapTarget
             $0.rowHeight = UITableView.automaticDimension
         }
-        reloadLocation()
         Task { [weak self] in
             let hello = await FileSession.shared.ready()
             guard let self else { return }
@@ -38,8 +37,13 @@ final class FileProviderSettingsViewController: UITableViewController {
             // extension cannot reach; the default is the only usable folder.
             guard case .local(.container) = hello.backend else { return }
             actions = [.restore]
-            tableView.reloadData()
+            tableView.reloadWithAnimation()
         }
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        reloadLocation()
     }
 
     static func groupURL() throws -> URL {
@@ -69,7 +73,7 @@ final class FileProviderSettingsViewController: UITableViewController {
         } catch {
             status = String(localized: "The Files app folder could not be loaded. Reinstall Fila and try again.")
         }
-        tableView.reloadData()
+        tableView.reloadWithAnimation()
     }
 
     override func numberOfSections(in _: UITableView) -> Int {
@@ -115,8 +119,7 @@ final class FileProviderSettingsViewController: UITableViewController {
         do {
             switch actions[indexPath.row] {
             case .choose:
-                let picker = try SaveDestinationViewController(
-                    directory: Self.defaultDocuments(),
+                let picker = SaveDestinationViewController(
                     message: String(localized: "Choose a folder that both Fila and Files can access. Files cannot use Fila's root access."),
                     link: FileSession.shared.link
                 ) { [weak self] url in

@@ -1,6 +1,7 @@
 import AlertController
 import FilaClient
 import FilaFormats
+import FilaLog
 import FilaProtocol
 import SnapKit
 import Then
@@ -218,7 +219,7 @@ final class ArchiveBrowserViewController: UIViewController {
     }
 
     private func refreshActions() {
-        let hasMembers = (members ?? []).contains { !$0.entry.isRootDirectory }
+        let hasMembers = (members ?? []).contains { !$0.entry.isRootDirectory && !$0.entry.isFinderMetadata }
         let canSelect = hasMembers && (!isViewLoaded || progress.isHidden)
         let canExtract = canSelect && (!isEditing || !(collectionView.indexPathsForSelectedItems ?? []).isEmpty)
         let select = UIAction(
@@ -267,7 +268,7 @@ final class ArchiveBrowserViewController: UIViewController {
         var items: [Item] = []
         let prefix = directory.isEmpty ? "" : directory + "/"
         for row in members ?? [] {
-            guard !row.entry.isRootDirectory else { continue }
+            guard !row.entry.isRootDirectory, !row.entry.isFinderMetadata else { continue }
             guard let relative = row.entry.relativePath else {
                 if directory.isEmpty {
                     items.append(.member(row))
@@ -348,6 +349,7 @@ final class ArchiveBrowserViewController: UIViewController {
     private func show(_ result: Result<[ArchiveEntry], Error>) {
         switch result {
         case let .success(entries):
+            FilaLog.info("archive \(title_) listed: \(entries.count) member(s)")
             // Numbered in the archive's own order, then shown in name order.
             // The number is the identity and never changes; the sort is only
             // what the reader sees.
@@ -356,6 +358,10 @@ final class ArchiveBrowserViewController: UIViewController {
                 .sorted { $0.entry.declaredPath < $1.entry.declaredPath }
             rebuild()
         case let .failure(error):
+            // libarchive's own refusal — an unsupported filter, a truncated
+            // file, a password. The screen shows one sentence; this keeps the
+            // rest.
+            FilaLog.warning("archive \(title_) could not be listed: \(error)")
             let label = UILabel()
             label.text = FailureMessage.text(for: error)
             label.numberOfLines = 0
@@ -378,14 +384,11 @@ final class ArchiveBrowserViewController: UIViewController {
     }
 
     private func chooseDestination(for selected: [Row]) {
-        let selected = selected.filter { !$0.entry.isRootDirectory }
+        let selected = selected.filter { !$0.entry.isRootDirectory && !$0.entry.isFinderMetadata }
         guard !selected.isEmpty else { return }
 
-        let stem = ArchivePath.extractionFolderName(for: title_)
         let form = SaveDestinationViewController(
-            directory: URL(fileURLWithPath: destinationHint, isDirectory: true),
-            folderName: stem.isEmpty ? "extracted" : stem,
-            message: String(format: String(localized: "%lld items will be created in this folder. Replaced items are deleted, not moved to the trash."), Int64(selected.count)),
+            message: String(format: String(localized: "%lld items will be extracted here. A folder is created only when needed. Existing items are kept."), Int64(selected.count)),
             link: link
         ) { [weak self] destination in
             self?.extract(selected, to: destination.path)
@@ -419,10 +422,10 @@ final class ArchiveBrowserViewController: UIViewController {
             kind: .extract,
             sources: [archivePath],
             destination: destination,
-            overwrite: true,
             archive: ArchiveOptions(
                 password: password,
-                members: selection.map { ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath) }
+                members: selection.map { ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath) },
+                organizeExtraction: true
             )
         )
         let center = FileSession.shared.operations

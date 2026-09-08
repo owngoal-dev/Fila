@@ -1,3 +1,4 @@
+import FilaLog
 import FilaProtocol
 import Foundation
 import Network
@@ -344,6 +345,11 @@ public final class WebDAVServer: @unchecked Sendable {
     // MARK: - State
 
     private func set(status: Status) {
+        if case let .failed(reason) = status {
+            // The listener refusing the port never goes through `note` — the
+            // start threw before there was a log to write into.
+            FilaLog.error("webdav listener failed: \(reason)")
+        }
         lock.lock()
         storedStatus = status
         lock.unlock()
@@ -351,8 +357,14 @@ public final class WebDAVServer: @unchecked Sendable {
     }
 
     /// One line for the connection log the settings screen shows. This is the
-    /// only place a user finds out that something reached the port.
+    /// only place a user finds out that something reached the port — and the
+    /// one place every server line is written, so it is also where they join
+    /// the app's own timeline. The settings screen's window is 200 lines and
+    /// goes away with the switch; the log screen keeps what happened before.
+    /// Credentials never reach here (see `HTTPAuthentication`), and
+    /// `FilaLog.redacting` is the second net under that.
     func note(_ text: String) {
+        FilaLog.info("webdav \(text)")
         lock.lock()
         storedLog.append(LogEntry(date: Date(), text: text))
         if storedLog.count > Self.logLimit {

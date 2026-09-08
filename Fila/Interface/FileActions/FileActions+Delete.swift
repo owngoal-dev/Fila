@@ -1,4 +1,5 @@
 import AlertController
+import FilaLog
 import FilaProtocol
 import UIKit
 
@@ -31,6 +32,15 @@ extension FileActions {
     }
 
     private func startDelete(_ paths: [String], useTrash: Bool = false, overrideGuard: Bool = false) {
+        if overrideGuard {
+            // The user was shown what the guard said and chose to delete
+            // anyway. The one decision in this app that can leave a device
+            // needing a restore, and it is logged at a level nothing switches
+            // off — with the paths, because afterwards nothing else has them.
+            FilaLog.warning("guard overridden for delete: \(paths.joined(separator: ", "))")
+        } else if !useTrash {
+            FilaLog.info("permanent delete of \(paths.count) item(s)")
+        }
         presenter?.setEditing(false, animated: true)
         Task {
             let kind: OperationCenter.Kind = useTrash ? .trash : .delete

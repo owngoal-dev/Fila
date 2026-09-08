@@ -275,10 +275,7 @@ final class SidebarViewController: UIViewController {
         case let .favorite(path), let .recent(path):
             name = path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
             detail = path
-            // Until `details(of:)` answers, draw what the path was when it was
-            // recorded: a file keeps its type artwork instead of a folder.
-            let kind: FileKind = AppPreferences.shared.recentFiles.contains(path) ? .regular : .directory
-            image = recentItems[path]?.image ?? FilePresentation.image(kind: kind, name: name)
+            image = recentItems[path]?.image ?? FilePresentation.image(kind: .directory, name: name)
             if let displayName = recentItems[path]?.name {
                 name = displayName
                 color = .systemBrown
@@ -304,16 +301,13 @@ final class SidebarViewController: UIViewController {
     // MARK: - Snapshot
 
     private var presets: [Item] {
-        var items = SidebarLocation.jumpList(backend: session.hello?.backend).map { ($0.position, Item.place($0)) }
-        if SystemCapabilities.showsApplications {
-            items.append((.applications, .apps))
+        SidebarLocation.orderedDestinations.map {
+            switch $0 {
+            case let .directory(place): .place(place)
+            case .applications: .apps
+            case .music: .music
+            }
         }
-        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") {
-            items.append((.music, .music))
-        }
-        let available = Dictionary(uniqueKeysWithValues: items)
-        let preferences = AppPreferences.shared
-        return preferences.presetOrder.filter { preferences.isPresetEnabled($0) }.compactMap { available[$0] }
     }
 
     @objc private func rebuild() {

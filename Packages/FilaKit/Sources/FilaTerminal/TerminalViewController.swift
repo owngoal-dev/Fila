@@ -1,6 +1,7 @@
 #if canImport(UIKit)
     import Darwin
     import FilaClient
+    import FilaLog
     import FilaProtocol
     import Foundation
     import GhosttyTerminal
@@ -323,6 +324,10 @@
                         link.invalidate()
                         try? await Task.sleep(nanoseconds: 1_000_000_000)
                     } catch {
+                        // A refusal, as opposed to a daemon that has not come up
+                        // yet — the loop above never leaves a line because it is
+                        // the ordinary case. This one ends the screen.
+                        FilaLog.warning("terminal could not start \(program.executablePath ?? "the shell"): \(error)")
                         await MainActor.run { self?.present(failure: error) }
                         return
                     }
@@ -356,6 +361,10 @@
                 Self.close(terminal.identifier, link: link, onProcessExit: onProcessExit)
                 return
             }
+            // The daemon logged what it spawned and as whom. This is the app's
+            // half: the pair is what tells a session that ran from one that
+            // opened and closed in the same second.
+            FilaLog.info("terminal attached, uid \(terminal.userIdentifier)")
             terminalIdentifier = terminal.identifier
             startedAt = Date()
             terminalView.isHidden = false
@@ -404,6 +413,10 @@
         private func programEnded() {
             guard !isFinished else { return }
             isFinished = true
+            // The identifier belongs to the daemon's line a moment earlier; what
+            // this side knows and it does not is how long the program ran.
+            let elapsedMilliseconds = Int(Date().timeIntervalSince(startedAt) * 1000)
+            FilaLog.info("terminal ended after \(elapsedMilliseconds)ms")
             guardAgainstDismissal(false)
             terminalView.resignFirstResponder()
             statusLabel.text = nil

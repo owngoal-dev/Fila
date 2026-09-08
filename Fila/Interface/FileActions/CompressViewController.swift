@@ -298,7 +298,6 @@ final class CompressViewController: UIViewController {
 
     private func promptDestination() {
         let picker = SaveDestinationViewController(
-            directory: URL(fileURLWithPath: directory, isDirectory: true),
             link: link
         ) { [weak self] url in
             self?.directory = url.path

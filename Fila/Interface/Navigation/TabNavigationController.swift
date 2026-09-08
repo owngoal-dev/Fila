@@ -6,14 +6,45 @@ import UIKit
 final class TabNavigationController: UINavigationController {
     weak var owner: RootSplitViewController?
 
+    func prepareToolbar(for controller: UIViewController) {
+        var items = controller.toolbarItems ?? []
+        guard !items.contains(where: { $0.accessibilityIdentifier == "fila.tabs" }) else { return }
+        if #available(iOS 26.0, *), items.isEmpty, controller.navigationItem.searchController != nil {
+            controller.navigationItem.preferredSearchBarPlacement = .integrated
+            items.append(controller.navigationItem.searchBarPlacementBarButtonItem)
+        }
+        let tabs = UIBarButtonItem(image: UIImage(systemName: "square.on.square"), primaryAction: UIAction { [weak self] _ in
+            self?.owner?.presentTabSwitcher()
+        })
+        tabs.accessibilityIdentifier = "fila.tabs"
+        tabs.accessibilityLabel = String(localized: "Tabs")
+        if #available(iOS 26.0, *) {
+            tabs.sharesBackground = false
+            tabs.identifier = "tabs"
+        }
+        controller.setToolbarItems(items + [.flexibleSpace(), tabs], animated: false)
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        if let topViewController { prepareToolbar(for: topViewController) }
+    }
+
+    override func setToolbarHidden(_ hidden: Bool, animated: Bool) {
+        if let topViewController { prepareToolbar(for: topViewController) }
+        super.setToolbarHidden(false, animated: animated)
+    }
+
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {
         owner?.prepareNavigationItems(for: viewController, in: self, ancestors: viewControllers)
+        prepareToolbar(for: viewController)
         super.pushViewController(viewController, animated: animated)
     }
 
     override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
         for (index, controller) in viewControllers.enumerated() {
             owner?.prepareNavigationItems(for: controller, in: self, ancestors: Array(viewControllers.prefix(index)))
+            prepareToolbar(for: controller)
         }
         super.setViewControllers(viewControllers, animated: animated)
     }

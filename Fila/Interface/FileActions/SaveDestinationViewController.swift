@@ -50,6 +50,10 @@ final class SaveDestinationViewController: UIViewController {
 
     private let nameField = UITextField()
     private var folders: [FileNode] = []
+    private lazy var dataSource = UICollectionViewDiffableDataSource<Int, String>(collectionView: list) { [weak self] list, indexPath, name in
+        guard let self, let node = folders.first(where: { $0.name == name }) else { return nil }
+        return list.dequeueConfiguredReusableCell(using: rowCell, for: indexPath, item: node)
+    }
     private var work: Task<Void, Never>?
     private var availability: Availability = .unavailable
 
@@ -84,7 +88,7 @@ final class SaveDestinationViewController: UIViewController {
     }()
 
     convenience init(
-        directory: URL,
+        directory: URL? = nil,
         folderName: String? = nil,
         message: String? = nil,
         picksFiles: Bool = false,
@@ -93,7 +97,7 @@ final class SaveDestinationViewController: UIViewController {
         confirm: @escaping (URL) -> Void
     ) {
         self.init(
-            directory: directory,
+            directory: directory ?? URL(fileURLWithPath: AppPreferences.shared.lastDirectory, isDirectory: true),
             link: link,
             selection: Selection(
                 folderName: folderName,
@@ -128,13 +132,17 @@ final class SaveDestinationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        NotificationCenter.default.addObserver(self, selector: #selector(filesChanged), name: .filaJobFinished, object: nil)
+        list.refreshControl = UIRefreshControl()
+        list.refreshControl?.addTarget(self, action: #selector(filesChanged), for: .valueChanged)
+        list.alwaysBounceVertical = true
         view.backgroundColor = .systemBackground
         pathBar.setPath(directory.path)
         pathBar.onSelect = { [weak self] path in self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true)) }
 
         list.do {
             $0.delegate = self
-            $0.dataSource = self
+            $0.dataSource = dataSource
             $0.keyboardDismissMode = .onDrag
             $0.contentInsetAdjustmentBehavior = .never
         }
@@ -202,13 +210,28 @@ final class SaveDestinationViewController: UIViewController {
             make.top.leading.trailing.equalTo(view.safeAreaLayoutGuide)
             make.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
         }
-        load()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         nameField.text = selection.folderName
-        refreshActions()
+        load()
+    }
+
+    @objc private func filesChanged() {
+        guard viewIfLoaded?.window != nil else { return }
+        load()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        rememberDirectory()
+    }
+
+    private func rememberDirectory() {
+        guard availability == .ready, viewIfLoaded?.window != nil,
+              navigationController?.topViewController === self else { return }
+        AppPreferences.shared.lastDirectory = directory.path
     }
 
     private func refreshActions() {
@@ -232,12 +255,6 @@ final class SaveDestinationViewController: UIViewController {
             ) { [weak self] _ in
                 self?.promptNewFolder()
             },
-            UIAction(
-                title: String(localized: "Refresh"),
-                image: UIImage(systemName: "arrow.clockwise")
-            ) { [weak self] _ in
-                self?.load()
-            },
         ], [
             UIAction(title: String(localized: "Cancel"), image: UIImage(systemName: "xmark")) { [weak self] _ in
                 self?.cancel()
@@ -257,20 +274,21 @@ final class SaveDestinationViewController: UIViewController {
     private func load() {
         work?.cancel()
         availability = .unavailable
-        folders = []
-        list.reloadData()
-        list.backgroundView = StatusView(content: .loading(String(localized: "Reading Folder…")))
+        if dataSource.snapshot().sectionIdentifiers.isEmpty {
+            list.backgroundView = StatusView(content: .loading(String(localized: "Reading Folder…")))
+        }
         refreshActions()
         let link = link
         let path = directory.path
         work = Task { [weak self] in
             do {
                 var cursor: UInt64 = 0
+                var received: [FileNode] = []
                 repeat {
                     let page = try await link.list(directory: path, cursor: cursor)
                     guard !Task.isCancelled, let self else { return }
                     let picksFiles = selection.picksFiles
-                    folders.append(contentsOf: page.entries.filter { node in
+                    received.append(contentsOf: page.entries.filter { node in
                         if node.isNavigable {
                             return true
                         }
@@ -280,33 +298,40 @@ final class SaveDestinationViewController: UIViewController {
                         }
                         return picksFiles
                     })
-                    folders.sort {
-                        $0.isNavigable != $1.isNavigable
-                            ? $0.isNavigable
-                            : $0.name.localizedStandardCompare($1.name) == .orderedAscending
-                    }
-                    list.reloadData()
-                    availability = .ready
-                    if !folders.isEmpty {
-                        list.backgroundView = nil
-                    } else if page.cursor == 0 {
-                        let title: String = if selection.fileTypes != nil {
-                            String(localized: "No Audio Files")
-                        } else {
-                            picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
-                        }
-                        list.backgroundView = StatusView(content: .message(
-                            symbol: "folder", title: title
-                        ))
-                    }
-                    refreshActions()
                     cursor = page.cursor
                 } while cursor != 0
+                guard let self, !Task.isCancelled else { return }
+                folders = received.sorted {
+                    $0.isNavigable != $1.isNavigable
+                        ? $0.isNavigable
+                        : $0.name.localizedStandardCompare($1.name) == .orderedAscending
+                }
+                var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
+                snapshot.appendSections([0])
+                snapshot.appendItems(folders.map(\.name))
+                let existing = Set(dataSource.snapshot().itemIdentifiers)
+                snapshot.reconfigureItems(snapshot.itemIdentifiers.filter(existing.contains))
+                await dataSource.apply(snapshot, animatingDifferences: true)
+                guard !Task.isCancelled else { return }
+                list.refreshControl?.endRefreshing()
+                availability = .ready
+                rememberDirectory()
+                if !folders.isEmpty {
+                    list.backgroundView = nil
+                } else {
+                    let title: String = if selection.fileTypes != nil {
+                        String(localized: "No Audio Files")
+                    } else {
+                        selection.picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
+                    }
+                    list.backgroundView = StatusView(content: .message(symbol: "folder", title: title))
+                }
+                refreshActions()
             } catch {
                 guard !Task.isCancelled, let self else { return }
+                list.refreshControl?.endRefreshing()
                 availability = .unavailable
-                folders = []
-                list.reloadData()
+                guard folders.isEmpty else { refreshActions(); return }
                 list.backgroundView = StatusView(content: .message(
                     symbol: "exclamationmark.triangle",
                     title: String(localized: "Unable to Read Folder"),
@@ -431,21 +456,11 @@ final class SaveDestinationViewController: UIViewController {
     }
 }
 
-extension SaveDestinationViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
-        folders.count
-    }
-
-    func collectionView(
-        _ collectionView: UICollectionView,
-        cellForItemAt indexPath: IndexPath
-    ) -> UICollectionViewCell {
-        collectionView.dequeueConfiguredReusableCell(using: rowCell, for: indexPath, item: folders[indexPath.item])
-    }
-
+extension SaveDestinationViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
-        let node = folders[indexPath.item]
+        guard let name = dataSource.itemIdentifier(for: indexPath),
+              let node = folders.first(where: { $0.name == name }) else { return }
         guard node.isNavigable else {
             // A file is a leaf: tapping it is the choice.
             work?.cancel()

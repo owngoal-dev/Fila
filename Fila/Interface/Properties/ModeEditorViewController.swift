@@ -83,6 +83,11 @@ final class ModeEditorViewController: UIViewController {
         fatalError("init(coder:) is not used")
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        refresh(dataSource.snapshot().itemIdentifiers)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground
@@ -171,7 +176,7 @@ final class ModeEditorViewController: UIViewController {
     private func refresh(_ items: [Item]) {
         var snapshot = dataSource.snapshot()
         snapshot.reconfigureItems(items)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
 
     @objc private func commit() {

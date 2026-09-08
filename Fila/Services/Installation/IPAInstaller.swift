@@ -76,6 +76,21 @@ enum IPAInstaller {
     /// consumes what it is handed. Coordinator (iOS 16+) first, workspace
     /// (iOS 15) as the fallback.
     static func install(ipaAt ipa: URL, packageType: String?) async -> Outcome {
+        FilaLog.info("installing \(ipa.lastPathComponent)\(packageType.map { " as \($0)" } ?? "")")
+        let outcome = await coordinateInstall(ipa, packageType: packageType)
+        // Which of the two private APIs answered, and what installd said. This
+        // is the whole diagnosis of "it says installed and nothing appeared",
+        // and none of it is visible from the card the user is looking at.
+        let level: FilaLog.Level = switch outcome {
+        case .installed: .info
+        case .unsupported: .warning
+        case .failed, .timedOut: .error
+        }
+        FilaLog.log(level, "install \(ipa.lastPathComponent): \(outcome.describe)")
+        return outcome
+    }
+
+    private static func coordinateInstall(_ ipa: URL, packageType: String?) async -> Outcome {
         let viaCoordinator = await installViaCoordination(ipa, packageType: packageType)
         if case .unsupported = viaCoordinator {
             let viaWorkspace = await installViaWorkspace(ipa, packageType: packageType)

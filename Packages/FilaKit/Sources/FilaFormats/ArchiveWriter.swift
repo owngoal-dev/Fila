@@ -23,7 +23,7 @@ private extension ArchiveFormat {
         case .tar: return ARCHIVE_OK
         case .tarZstd:
             filter = archive_write_add_filter_zstd(handle)
-            options = "zstd:compression-level=22,zstd:threads=1"
+            options = "zstd:compression-level=3,zstd:threads=1"
         case .tarGzip:
             filter = archive_write_add_filter_gzip(handle)
             options = "gzip:compression-level=9"
@@ -32,13 +32,13 @@ private extension ArchiveFormat {
             options = "bzip2:compression-level=9"
         case .tarXz:
             filter = archive_write_add_filter_xz(handle)
-            options = "xz:compression-level=9,xz:threads=1"
+            options = "xz:compression-level=4,xz:threads=1"
         case .tarLzma:
             filter = archive_write_add_filter_lzma(handle)
-            options = "lzma:compression-level=9"
+            options = "lzma:compression-level=4"
         case .tarLzip:
             filter = archive_write_add_filter_lzip(handle)
-            options = "lzip:compression-level=9"
+            options = "lzip:compression-level=4"
         case .tarLz4:
             filter = archive_write_add_filter_lz4(handle)
             options = "lz4:compression-level=9"
@@ -73,7 +73,8 @@ private extension ZipEncryption {
 /// An archive written to a descriptor, one member at a time.
 ///
 /// Member bytes stream in chunks. The codec additionally owns its compression
-/// dictionary; maximum XZ/Zstd settings can require substantial memory.
+/// dictionary. XZ/LZMA/Lzip and Zstd use moderate presets: maximum settings
+/// can exhaust an iOS helper's memory even when the source is small.
 ///
 /// The descriptor's life belongs to the caller — it came from the daemon and
 /// this never closes it.
@@ -109,11 +110,9 @@ public final class ArchiveWriter: @unchecked Sendable {
         guard let handle = archive_write_new() else { throw FormatFailure.system(errno: ENOMEM) }
         let output = ArchiveOutput(descriptor: descriptor)
         do {
-            let configuration = format.configure(
-                handle,
-                zipCompression: zipCompression,
-                encryption: password == nil ? nil : encryption
-            )
+            let configuration = try withArchiveLocale {
+                format.configure(handle, zipCompression: zipCompression, encryption: password == nil ? nil : encryption)
+            }
             guard configuration == ARCHIVE_OK else {
                 throw FormatFailure.damaged(
                     archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created"
@@ -271,7 +270,9 @@ public final class ArchiveWriter: @unchecked Sendable {
         // this is not optional even for the formats that could stream.
         archive_entry_set_size(entry, filetype == S_IFREG ? byteCount : 0)
 
-        try Self.check(handle, archive_write_header(handle, entry), output: output)
+        try withArchiveLocale {
+            try Self.check(handle, archive_write_header(handle, entry), output: output)
+        }
 
         var written: Int64 = 0
         while let chunk = try chunks() {

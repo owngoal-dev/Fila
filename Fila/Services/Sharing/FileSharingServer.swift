@@ -1,3 +1,4 @@
+import FilaLog
 import FilaProtocol
 import FilaRemote
 import Foundation
@@ -90,6 +91,7 @@ final class FileSharingServer {
             }
             resolvingRoot = false
             guard let root, root.node.kind == .directory else {
+                FilaLog.warning("sharing not started: \(preferences.serverRoot) is not a directory")
                 startFailure = String(
                     localized: "The shared folder is unavailable. Choose another folder and start sharing again."
                 )
@@ -116,6 +118,10 @@ final class FileSharingServer {
                 webRoot: Bundle.main.url(forResource: "WebUI", withExtension: nil)
             ))
         } catch {
+            // The listener's own failures already log themselves; this is the
+            // pair the server refuses before there is one — no password, or a
+            // port number that is not one.
+            FilaLog.warning("sharing refused to start on port \(preferences.serverPort): \(error)")
             startFailure = String(localized: "Unable to start sharing. Check the port number and try again.")
         }
         refresh()

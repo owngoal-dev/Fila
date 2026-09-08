@@ -29,6 +29,11 @@ final class LicensesViewController: UITableViewController {
         fatalError("init(coder:) is not used")
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.reloadWithAnimation()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = String(localized: "Open Source Licenses")

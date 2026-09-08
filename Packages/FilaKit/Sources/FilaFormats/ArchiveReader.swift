@@ -58,6 +58,10 @@ public struct ArchiveEntry: Sendable, Hashable {
             && declaredPath.split(separator: "/").allSatisfy { $0 == "." }
     }
 
+    public var isFinderMetadata: Bool {
+        ArchivePath.isFinderMetadata(declaredPath)
+    }
+
     public var isSymbolicLink: Bool {
         kind == .symbolicLink
     }
@@ -94,6 +98,13 @@ public struct ArchiveEntry: Sendable, Hashable {
 }
 
 public enum ArchivePath {
+    /// Finder's layout database and ZIP metadata directory are not user files.
+    /// Other dotfiles, including ordinary names starting with `._`, stay intact.
+    public static func isFinderMetadata(_ path: String) -> Bool {
+        let components = path.split(separator: "/")
+        return components.last == ".DS_Store" || components.contains("__MACOSX")
+    }
+
     /// Remove the compound tar suffix as one format, preserving dots in names.
     public static func extractionFolderName(for name: String) -> String {
         let file = (name as NSString).lastPathComponent
@@ -204,10 +215,13 @@ public final class ArchiveReader: @unchecked Sendable {
             return Unmanaged<ArchiveSource>.fromOpaque(clientData).takeUnretainedValue().skip(request)
         }
 
-        guard archive_read_open1(handle) == ARCHIVE_OK else {
-            let failure = archiveFailure(handle)
+        do {
+            guard try withArchiveLocale({ archive_read_open1(handle) }) == ARCHIVE_OK else {
+                throw archiveFailure(handle)
+            }
+        } catch {
             archive_read_free(handle)
-            throw failure
+            throw error
         }
         self.init(handle: handle, source: source, name: name)
     }
@@ -223,22 +237,24 @@ public final class ArchiveReader: @unchecked Sendable {
     /// The next header, or nil at the end of the archive. Any bytes left in the
     /// current entry are skipped.
     public func next() throws -> ArchiveEntry? {
-        guard !isFinished else { return nil }
-        var entry: OpaquePointer?
-        let status = archive_read_next_header(handle, &entry)
-        if status == ARCHIVE_EOF {
-            isFinished = true
-            current = nil
-            return nil
+        try withArchiveLocale {
+            guard !isFinished else { return nil }
+            var entry: OpaquePointer?
+            let status = archive_read_next_header(handle, &entry)
+            if status == ARCHIVE_EOF {
+                isFinished = true
+                current = nil
+                return nil
+            }
+            try check(status)
+            guard let entry else {
+                isFinished = true
+                return nil
+            }
+            try refuseABareRawMember()
+            current = entry
+            return makeEntry(entry)
         }
-        try check(status)
-        guard let entry else {
-            isFinished = true
-            return nil
-        }
-        try refuseABareRawMember()
-        current = entry
-        return makeEntry(entry)
     }
 
     /// The price of `support_format_raw`: it bids on *anything*, so with it

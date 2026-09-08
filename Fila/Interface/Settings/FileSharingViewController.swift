@@ -278,7 +278,6 @@ final class FileSharingViewController: UIViewController {
     /// default is one tap away and anything else is a walk from there.
     private func chooseSharedFolder() {
         let picker = SaveDestinationViewController(
-            directory: URL(fileURLWithPath: AppPreferences.shared.serverRoot, isDirectory: true),
             message: String(localized: "Devices on the network see only what is inside this folder."),
             link: FileSession.shared.link
         ) { [weak self] url in

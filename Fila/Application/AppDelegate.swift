@@ -46,7 +46,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         return configuration
     }
 
+    /// A listing of a directory with a hundred thousand entries is the app's
+    /// largest allocation by a wide margin, and jetsam gives no other notice.
+    /// A screen that went blank right after one of these lines is explained.
+    func applicationDidReceiveMemoryWarning(_: UIApplication) {
+        FilaLog.warning("memory warning")
+    }
+
     func applicationWillTerminate(_: UIApplication) {
+        FilaLog.info("terminating")
         do { try TerminalTemporaryFiles.cleanup() }
         catch { FilaLog.error("Terminal configuration cleanup failed: \(error)") }
         FileSession.shared.cleanupTemporaryFiles()

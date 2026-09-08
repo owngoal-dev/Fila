@@ -95,9 +95,12 @@ let package = Package(
         // which is exactly why they run in the app and never in the daemon —
         // and why `ArchiveJob`, which needs FilaFileOps for the guard and the
         // atomic replace, runs in `fila-archive` rather than in `filad`.
+        // Darwin's thread-local locale API is omitted from its Swift overlay.
+        .systemLibrary(name: "CArchiveLocale", path: "Sources/CArchiveLocale"),
         .target(
             name: "FilaFormats",
             dependencies: [
+                "CArchiveLocale",
                 "FilaProtocol", "FilaFileOps",
                 // The Swift wrapper and its C framework differ only by case.
                 // Give the wrapper a distinct module name for Xcode's loader.
@@ -132,6 +135,7 @@ let package = Package(
                 "FilaProtocol",
                 "FilaClient",
                 "FilaFileOps",
+                "FilaLog",
                 .product(name: "GhosttyTerminal", package: "libghostty-spm"),
                 .product(name: "SnapKit", package: "SnapKit"),
                 .product(name: "Then", package: "Then"),
@@ -154,6 +158,7 @@ let package = Package(
             dependencies: [
                 "FilaProtocol",
                 "FilaFileOps", // Shared descriptor-based storage reserve checks.
+                "FilaLog", // Connection lines land on the same timeline as everything else.
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),

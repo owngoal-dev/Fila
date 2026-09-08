@@ -1,4 +1,5 @@
 import FilaClient
+import FilaLog
 import FilaProtocol
 import Foundation
 
@@ -44,5 +45,9 @@ enum AtomicSave {
             await FileSession.shared.discardTemporary(temporary)
             throw error
         }
+        // Every write an editor in this app makes, in the one place they all
+        // go through. The byte count, never a byte: a save that "did nothing"
+        // and a save of an empty document look identical from the outside.
+        FilaLog.info("saved \(data.count) bytes to \(path)")
     }
 }

@@ -69,6 +69,15 @@ final class MachOInspectorViewController: UIViewController {
         view.addSubview(table)
         table.snp.makeConstraints { $0.edges.equalToSuperview() }
 
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        reload()
+    }
+
+    private func reload() {
+        readingTask?.cancel()
         do {
             let descriptor = try file.duplicate()
             readingTask = Task { [weak self] in
@@ -85,6 +94,8 @@ final class MachOInspectorViewController: UIViewController {
                         try await worker.value
                     } onCancel: { worker.cancel() }
                     guard !Task.isCancelled, let self else { return }
+                    var updatedRows: [Item: Row] = [:]
+                    var updatedNames: [String] = []
                     var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
                     for (index, architecture) in architectures.enumerated() {
                         let entitlements = architecture.2.map(Self.displayValue)
@@ -96,14 +107,18 @@ final class MachOInspectorViewController: UIViewController {
                         )
                         let items = built.map { Item(slice: index, label: $0.label) }
                         for (item, row) in zip(items, built) {
-                            rows[item] = row
+                            updatedRows[item] = row
                         }
-                        names.append(architecture.0.architecture)
+                        updatedNames.append(architecture.0.architecture)
                         snapshot.appendSections([index])
                         snapshot.appendItems(items, toSection: index)
                     }
+                    rows = updatedRows
+                    names = updatedNames
                     table.backgroundView = nil
-                    dataSource.apply(snapshot, animatingDifferences: false, completion: nil)
+                    let existing = Set(dataSource.snapshot().itemIdentifiers)
+                    snapshot.reconfigureItems(snapshot.itemIdentifiers.filter(existing.contains))
+                    dataSource.apply(snapshot, animatingDifferences: true, completion: nil)
                 } catch {
                     guard !Task.isCancelled else { return }
                     self?.showFailure(error)
@@ -115,6 +130,7 @@ final class MachOInspectorViewController: UIViewController {
     deinit { readingTask?.cancel() }
 
     private func showFailure(_ error: Error) {
+        guard rows.isEmpty else { return }
         table.backgroundView = StatusView(content: .message(
             symbol: "exclamationmark.triangle",
             title: String(localized: "Unable to Read This File"),

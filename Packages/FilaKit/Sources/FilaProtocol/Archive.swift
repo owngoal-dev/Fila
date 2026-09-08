@@ -58,19 +58,25 @@ public struct ArchiveOptions: Codable, Sendable, Hashable {
     public var password: String?
     /// `.extract` only: the members to create, or nil for every member.
     public var members: [ArchiveSelection]?
+    /// Extract privately, then publish one top-level item beside the archive,
+    /// or a containing folder for multiple items. Destination is the parent.
+    /// Nil preserves the explicit-destination behavior of older requests.
+    public var organizeExtraction: Bool?
 
     public init(
         format: ArchiveFormat = .zip,
         zipCompression: ZipCompression = .balanced,
         encryption: ZipEncryption = .aes256,
         password: String? = nil,
-        members: [ArchiveSelection]? = nil
+        members: [ArchiveSelection]? = nil,
+        organizeExtraction: Bool? = nil
     ) {
         self.format = format
         self.zipCompression = zipCompression
         self.encryption = encryption
         self.password = password
         self.members = members
+        self.organizeExtraction = organizeExtraction
     }
 }
 

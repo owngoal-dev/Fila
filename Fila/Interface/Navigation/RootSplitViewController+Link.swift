@@ -1,4 +1,5 @@
 import AlertController
+import FilaLog
 import FilaProtocol
 import UIKit
 
@@ -32,9 +33,13 @@ extension RootSplitViewController {
         // window either animates from nowhere or is dropped.
         Task { @MainActor in
             guard let link = FilaLink(url) else {
+                // An unauthenticated entry point — anything on the device can
+                // hand this app a URL — so both outcomes are written down.
+                FilaLog.warning("link not recognised: \(url)")
                 self.reportUnrecognized(url)
                 return
             }
+            FilaLog.info("following link \(url)")
             await FileSession.shared.ready()
             self.follow(link)
         }

@@ -1,4 +1,4 @@
-import FilaMedia
+import FilaLog
 import Foundation
 import MediaPlayer
 
@@ -7,6 +7,7 @@ import MediaPlayer
 actor MusicLibraryEditor {
     static let shared = MusicLibraryEditor()
     static let databasePath = "/var/mobile/Media/iTunes_Control/iTunes/MediaLibrary.sqlitedb"
+    private var observingLibrary = false
 
     enum Field: String, CaseIterable, Sendable {
         case title = "Title", artist = "Artist", album = "Album", albumArtist = "AlbumArtist"
@@ -24,9 +25,24 @@ actor MusicLibraryEditor {
         let editableFields: Set<Field>
     }
 
-    func tracks() async throws -> [MusicLibraryDatabase.Track] {
+    func tracks() async throws -> [MusicLibraryTrack] {
         try await authorize()
-        return try MusicLibraryDatabase(path: Self.databasePath).tracks()
+        if !observingLibrary {
+            MPMediaLibrary.default().beginGeneratingLibraryChangeNotifications()
+            observingLibrary = true
+        }
+        // MediaPlayer resolves the active library and owns the music predicate.
+        // Avoid relying on private columns to decide which songs are visible.
+        let items = MPMediaQuery.songs().items ?? []
+        try Task.checkCancellation()
+        FilaLog.info("Music library query returned \(items.count) songs")
+        return items.map {
+            MusicLibraryTrack(id: Int64(bitPattern: $0.persistentID), title: $0.title ?? "",
+                              artist: $0.artist ?? "", album: $0.albumTitle ?? "")
+        }.sorted {
+            let order = $0.title.localizedStandardCompare($1.title)
+            return order == .orderedSame ? $0.id < $1.id : order == .orderedAscending
+        }
     }
 
     func details(id: Int64) throws -> Details {
@@ -67,20 +83,19 @@ actor MusicLibraryEditor {
             return before
         }
 
-        try backupLibrary()
         // The native bridge rereads before writing and catches Objective-C
-        // exceptions before they can unwind Swift. Its failure keeps the backup.
+        // exceptions before they can unwind Swift.
         do {
             try nativeLibrary().setValue(replacement, forField: field.rawValue, trackID: id, expected: original)
         } catch let failure as NSError {
             if failure.domain == "MusicLibrary", failure.code == 2 {
                 throw changed()
             }
-            throw error(String(localized: "The music library could not save this change. A backup is in Music Backups in Fila’s Documents folder."))
+            throw error(String(localized: "The music library could not save this change. Reopen the song’s details and try again."))
         }
         let saved = try details(id: id)
         guard saved.values[field] == expected else {
-            throw error(String(localized: "The song does not show this change. Reopen it to check. A backup is in Music Backups in Fila’s Documents folder."))
+            throw error(String(localized: "The change could not be confirmed. Reopen the song’s details to check."))
         }
         return saved
     }
@@ -97,21 +112,6 @@ actor MusicLibraryEditor {
             throw error(String(
                 localized: "Fila does not have access to Music. Allow access in Settings, then try again."
             ))
-        }
-    }
-
-    func backupLibrary() throws {
-        let backups = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Music Backups", isDirectory: true)
-        let directory = backups.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
-                                                attributes: [.posixPermissions: 0o700])
-        do {
-            try MusicLibraryDatabase(path: Self.databasePath)
-                .backup(to: directory.appendingPathComponent("MediaLibrary.sqlitedb"))
-        } catch {
-            try? FileManager.default.removeItem(at: directory)
-            throw error
         }
     }
 

@@ -319,7 +319,11 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         }
         [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
     } @catch (NSException *exception) {
-        if (!committedIdentifier) Failure(error, 3);
+        if (!committedIdentifier && error) {
+            *error = [NSError errorWithDomain:@"MusicLibrary" code:3 userInfo:@{
+                NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary import: %@: %@", exception.name, exception.reason]
+            }];
+        }
     }
     // Once committed, even a notification/connection-cleanup exception must
     // preserve the file now referenced by the library.

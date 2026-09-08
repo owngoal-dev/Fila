@@ -125,55 +125,56 @@ final class LocalFileService: FileService, @unchecked Sendable {
     }
 
     func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage {
-        try await run {
+        try await run("list \(directory)") {
             let page = try self.listings.page(directory: directory, cursor: cursor)
             return DaemonLink.DirectoryPage(entries: page.entries, cursor: page.cursor)
         }
     }
 
     func details(of path: String) async throws -> FileDetails {
-        try await run { try self.operations.details(of: path) }
+        try await run("stat \(path)") { try self.operations.details(of: path) }
     }
 
     /// A descriptor the caller owns and must close, exactly as when the daemon
     /// opens one — the difference is only who opened it. The bytes were never
     /// going through a message either way.
     func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32 {
-        try await run { try self.operations.open(path, flags: flags, mode: mode) }
+        try await run("open \(path)") { try self.operations.open(path, flags: flags, mode: mode) }
     }
 
     func create(_ template: NodeTemplate, at path: String, mode: mode_t? = nil) async throws {
-        try await run { try self.operations.create(template, at: path, mode: mode) }
+        try await run("create \(path)") { try self.operations.create(template, at: path, mode: mode) }
     }
 
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws {
-        try await run {
+        try await run("rename \(source) → \(destination)") {
             try self.operations.rename(source, to: destination, exclusive: exclusive, overrideGuard: overrideGuard)
         }
     }
 
     func setAttributes(_ change: AttributeChange, at path: String) async throws {
-        try await run { try self.operations.setAttributes(change, at: path) }
+        try await run("setAttributes \(path)") { try self.operations.setAttributes(change, at: path) }
     }
 
     func replaceItem(at target: String, withTemporary temporary: String) async throws {
-        try await run { try self.operations.replaceItem(at: target, withTemporary: temporary) }
+        try await run("replace \(target)") { try self.operations.replaceItem(at: target, withTemporary: temporary) }
     }
 
     func mountPoints() async throws -> [MountPoint] {
-        try await run { try self.operations.mountPoints() }
+        try await run("mountPoints") { try self.operations.mountPoints() }
     }
 
     func volumeInfo(for path: String) async throws -> VolumeInfo {
-        try await run { try self.operations.volumeInfo(for: path) }
+        try await run("volumeInfo \(path)") { try self.operations.volumeInfo(for: path) }
     }
 
     func extendedAttribute(_ name: String, at path: String) async throws -> Data {
-        try await run { try self.operations.extendedAttribute(name, at: path) }
+        // The attribute's name, never its bytes: an xattr is a file in disguise.
+        try await run("xattr \(name) \(path)") { try self.operations.extendedAttribute(name, at: path) }
     }
 
     func startJob(_ job: JobRequest) async throws -> UInt64 {
-        try await run {
+        try await run("startJob \(job.kind)") {
             let identifier = self.nextJobIdentifier
             self.nextJobIdentifier &+= 1
 
@@ -181,6 +182,15 @@ final class LocalFileService: FileService, @unchecked Sendable {
                 ? ArchiveJob(request: job, operations: self.operations)
                 : FileJob(request: job, operations: self.operations)
             self.jobs[identifier] = work
+            // The same two lines `DaemonServer` writes for the same job, so a
+            // log read off the simulator or a `.tipa` says what a log read off
+            // a jailbroken device says.
+            FilaLog.info(
+                "job \(identifier) \(job.kind) \(job.sources.count) source(s)"
+                    + " → \(job.destination ?? "-")"
+                    + (job.useTrash ? " trash" : "")
+                    + (job.overrideGuard ? " override" : "")
+            )
             let lane = job.kind == .search ? self.searchQueue : self.jobQueue
             lane.async {
                 let outcome = work.run { progress in
@@ -190,6 +200,10 @@ final class LocalFileService: FileService, @unchecked Sendable {
                 } note: { line in
                     FilaLog.warning("job \(identifier): \(line)")
                 }
+                FilaLog.log(
+                    FilaLog.level(for: outcome.code),
+                    "job \(identifier) \(outcome.path ?? "-") \(FilaLog.describe(outcome))"
+                )
                 self.events.yield(DaemonLink.JobUpdate(identifier: identifier, event: .completed(outcome)))
                 // Dropped after the completion is out, so a cancel that arrives
                 // in between still finds the job rather than silently doing
@@ -201,7 +215,7 @@ final class LocalFileService: FileService, @unchecked Sendable {
     }
 
     func cancelJob(_ identifier: UInt64) async throws {
-        try await run { self.jobs[identifier]?.cancel() }
+        try await run("cancelJob \(identifier)") { self.jobs[identifier]?.cancel() }
     }
 
     /// There is no daemon, so there is no daemon log. The app's own lines are
@@ -220,11 +234,29 @@ final class LocalFileService: FileService, @unchecked Sendable {
     /// `withCheckedThrowingContinuation` rather than a `Task.detached`, because
     /// the point is the *serial* queue: the listing registry and the job table
     /// have exactly one owner, the same way they do in the daemon.
-    private func run<T>(_ body: @escaping () throws -> T) async throws -> T {
-        try await withCheckedThrowingContinuation { continuation in
-            queue.async {
-                continuation.resume(with: Result { try body() })
+    ///
+    /// `what` is the line this operation writes at verbose. It is here for the
+    /// reason `DaemonFileService.send` logs in one place: this is every request
+    /// the local backend serves, so the trace costs three lines rather than one
+    /// at each of a dozen call sites — and the two backends then read the same.
+    /// The description is built whether or not verbose is on, because the
+    /// failure line below is not gated on verbose and a refusal with no subject
+    /// is not a log line. One interpolation against a syscall and a queue hop.
+    private func run<T>(_ what: String, _ body: @escaping () throws -> T) async throws -> T {
+        FilaLog.verbose("→ \(what)")
+        do {
+            let value: T = try await withCheckedThrowingContinuation { continuation in
+                queue.async {
+                    continuation.resume(with: Result { try body() })
+                }
             }
+            FilaLog.verbose("← \(what) ok")
+            return value
+        } catch let failure as FilaFailure {
+            // Not gated on verbose: with no daemon there is no second process
+            // writing the refusal down, so this line is the only record of it.
+            FilaLog.log(FilaLog.level(for: failure.code), "\(what) \(FilaLog.describe(failure))")
+            throw failure
         }
     }
 }

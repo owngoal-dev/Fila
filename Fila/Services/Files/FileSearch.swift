@@ -1,3 +1,4 @@
+import FilaLog
 import FilaProtocol
 import Foundation
 
@@ -46,9 +47,24 @@ enum FileSearch {
     ) async -> Int {
         let needle = needle.lowercased()
         guard !needle.isEmpty else { return 0 }
+        // The needle is what the user typed, not a path and not content. A
+        // search that "found nothing" is nearly always a search of the wrong
+        // root, and this is the pair of lines that shows it.
+        FilaLog.info("search \"\(needle)\" under \(root)")
+        let startedAt = Date()
         var frontier = [(path: root, depth: 0)]
         var found = 0
         var skippedLinks = 0
+        // One exit line however the walk ends — the limit, the cancellation
+        // that leaving the screen causes, or running out of frontier. There
+        // are four returns and they should not each carry their own.
+        defer {
+            FilaLog.info(
+                "search \"\(needle)\" ended: \(found) hit(s), \(skippedLinks) link(s) not entered"
+                    + (Task.isCancelled ? ", cancelled" : "")
+                    + ", \(Int(Date().timeIntervalSince(startedAt) * 1000))ms"
+            )
+        }
         // A directory being listed is live, so a name can come back on two
         // pages, and a name queued twice would walk its whole subtree twice.
         // Emitting the same path twice is worse than wasteful: the results list

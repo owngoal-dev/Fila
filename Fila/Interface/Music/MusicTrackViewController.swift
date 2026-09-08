@@ -1,15 +1,14 @@
 import AlertController
-import FilaMedia
 import Then
 import UIKit
 
 final class MusicTrackViewController: UITableViewController {
-    private let track: MusicLibraryDatabase.Track
+    private let track: MusicLibraryTrack
     private var details: MusicLibraryEditor.Details?
     private var isSaving = false
     private var load: Task<Void, Never>?
 
-    init(track: MusicLibraryDatabase.Track) {
+    init(track: MusicLibraryTrack) {
         self.track = track
         super.init(style: .insetGrouped)
         title = track.title.isEmpty ? String(localized: "Song Details") : track.title
@@ -25,16 +24,29 @@ final class MusicTrackViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Field")
-        tableView.backgroundView = StatusView(content: .loading(String(localized: "Loading Music…")))
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        guard !isSaving else { return }
+        reload()
+    }
+
+    private func reload() {
+        load?.cancel()
+        if details == nil {
+            tableView.backgroundView = StatusView(content: .loading(String(localized: "Loading Music…")))
+        }
         load = Task { [weak self, track] in
             do {
                 let result = try await MusicLibraryEditor.shared.details(id: track.id)
                 guard let self, !Task.isCancelled else { return }
                 details = result
                 tableView.backgroundView = nil
-                tableView.reloadData()
+                tableView.reloadWithAnimation()
             } catch {
                 guard let self, !Task.isCancelled else { return }
+                guard details == nil else { return }
                 tableView.backgroundView = StatusView(content: .message(
                     symbol: "music.note",
                     title: String(localized: "Music Unavailable"),
@@ -51,7 +63,7 @@ final class MusicTrackViewController: UITableViewController {
     override func tableView(_: UITableView, titleForFooterInSection _: Int) -> String? {
         guard details != nil else { return nil }
         return isSaving ? String(localized: "Saving…")
-            : String(localized: "Fields with an arrow can be edited. Before each change, Fila saves a backup in Music Backups in Fila’s Documents folder.")
+            : String(localized: "Tap a field with an arrow to edit it.")
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -76,7 +88,7 @@ final class MusicTrackViewController: UITableViewController {
         let alert = AlertInputViewController(
             title: field.title,
             message: String.LocalizationValue(
-                "Updates this song in the device’s music library. A backup is saved before the change."
+                "Edit this song’s details in the device’s music library."
             ),
             placeholder: .noPlaceholder,
             text: original,
@@ -90,12 +102,13 @@ final class MusicTrackViewController: UITableViewController {
 
     private func save(_ field: MusicLibraryEditor.Field, original: String, value: String) {
         guard !isSaving else { return }
+        load?.cancel()
         isSaving = true
-        tableView.reloadData()
+        tableView.reloadWithAnimation()
         Task { [self] in
             defer {
                 isSaving = false
-                tableView.reloadData()
+                tableView.reloadWithAnimation()
             }
             do {
                 details = try await MusicLibraryEditor.shared.save(

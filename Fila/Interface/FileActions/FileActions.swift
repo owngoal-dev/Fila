@@ -357,8 +357,8 @@ final class FileActions {
     func promptCompress(_ paths: [String]) {
         guard !paths.isEmpty, let presenter = activePresenter else { return }
         let base = paths.count == 1
-            ? URL(fileURLWithPath: paths[0]).deletingPathExtension().lastPathComponent
-            : URL(fileURLWithPath: directory).lastPathComponent
+            ? URL(fileURLWithPath: paths[0]).lastPathComponent
+            : "Archive"
         CompressViewController.present(
             from: presenter,
             suggestedName: base.isEmpty ? "Archive" : base,
@@ -399,9 +399,8 @@ final class FileActions {
         }
     }
 
-    /// Every member, into a new folder beside the archive named after it. No
-    /// picker and no listing pass: the whole point of this one is that it is
-    /// one tap. An encrypted archive fails asking for its password, and the
+    /// The helper publishes one item directly, or groups multiple top-level
+    /// items in a folder. An encrypted archive asks for its password, and the
     /// archive browser is where that question gets asked.
     func extract(_ path: String) {
         presenter?.setEditing(false, animated: true)
@@ -409,25 +408,18 @@ final class FileActions {
         let center = session.operations
         Task {
             do {
-                let stem = ArchivePath.extractionFolderName(for: path)
-                let destination = try await freePath(
-                    base: stem.isEmpty ? "extracted" : stem,
-                    extension: "",
-                    in: directory
-                )
                 let identifier = try await center.startJob(
                     // Options are not optional for an archive job — the helper
                     // refuses one without them. Nil members is every member.
                     JobRequest(
                         kind: .extract,
                         sources: [path],
-                        destination: destination,
-                        overwrite: true,
-                        archive: ArchiveOptions()
+                        destination: directory,
+                        archive: ArchiveOptions(organizeExtraction: true)
                     ),
                     kind: .extract,
                     title: OperationCenter.Kind.extract.runningTitle,
-                    subtitle: OperationCenter.describe([path], destination: destination)
+                    subtitle: OperationCenter.describe([path], destination: directory)
                 )
                 guard let operation = center.operation(forJob: identifier),
                       let presenter = activePresenter else { return }

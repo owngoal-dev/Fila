@@ -1,4 +1,5 @@
 import FilaClient
+import FilaLog
 import FilaProtocol
 import SnapKit
 import Then
@@ -171,6 +172,7 @@ final class BrowserViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateChrome()
+        if !isListing { reload() }
         // Initialize the shared operation observer when a browser first appears.
         _ = session.operations
     }
@@ -574,7 +576,8 @@ final class BrowserViewController: UIViewController {
             var received = 0
             var truncated = false
             var lastApply = Date.distantPast
-            var animateSnapshot = false
+            let startedAt = Date()
+            let animateSnapshot = keepsContent
             do {
                 for try await page in DirectoryReader.pages(in: directory, session: session) {
                     // Only the latest reload owns the rows. During a refresh,
@@ -601,18 +604,30 @@ final class BrowserViewController: UIViewController {
                 guard !Task.isCancelled else { return }
                 listingTruncated = truncated
                 if keepsContent {
-                    let names = Set(pending.lazy.map(\.name))
-                    animateSnapshot = visible.contains { !names.contains($0.name) }
                     entries = pending
                 } else {
                     entries.append(contentsOf: pending)
                 }
+                // What the user is looking at, and how long it took to get
+                // there. Verbose, because it is one line per folder opened and
+                // browsing is what this app mostly does — but it is also the
+                // first thing anyone asks about a listing that came back short
+                // or slow, so it carries the count and the milliseconds.
+                FilaLog.verbose(
+                    "listed \(directory): \(received) entr(ies)"
+                        + (truncated ? " (truncated)" : "")
+                        + " in \(Int(Date().timeIntervalSince(startedAt) * 1000))ms"
+                )
             } catch let failure as FilaFailure {
                 guard !Task.isCancelled else { return }
                 // With nothing on screen the refusal *is* the screen, and an
                 // alert dismissed over a blank list leaves the user with the
                 // blank list. With rows already listed it is a refresh that
                 // went wrong halfway, which nothing on screen would show.
+                FilaLog.log(
+                    FilaLog.level(for: failure.code),
+                    "listing \(directory) \(FilaLog.describe(failure))"
+                )
                 if self.entries.isEmpty {
                     self.listingFailure = failure
                 } else {
@@ -653,7 +668,16 @@ final class BrowserViewController: UIViewController {
     }
 
     @objc private func jobFinished(_ note: Notification) {
-        guard let paths = note.object as? [String], paths.contains(directory) else { return }
+        if note.userInfo?["kind"] as? String == OperationCenter.Kind.extract.rawValue {
+            reload()
+            return
+        }
+        guard let paths = note.object as? [String] else { return }
+        let current = URL(fileURLWithPath: directory).resolvingSymlinksInPath().path
+        guard paths.contains(where: {
+            let changed = URL(fileURLWithPath: $0).resolvingSymlinksInPath().path
+            return current == changed || current.hasPrefix(changed == "/" ? "/" : changed + "/")
+        }) else { return }
         reload()
     }
 
@@ -1036,6 +1060,7 @@ final class BrowserViewController: UIViewController {
             }
         )
         tabs.accessibilityLabel = String(localized: "Tabs")
+        tabs.accessibilityIdentifier = "fila.tabs"
         if #available(iOS 26.0, *) {
             search.sharesBackground = false
             tabs.sharesBackground = false

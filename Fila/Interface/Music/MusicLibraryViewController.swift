@@ -1,11 +1,11 @@
 import AlertController
-import FilaMedia
+import MediaPlayer
 import Then
 import UIKit
 
 final class MusicLibraryViewController: UITableViewController, UISearchResultsUpdating {
-    private var tracks: [MusicLibraryDatabase.Track] = []
-    private var rows: [MusicLibraryDatabase.Track] = []
+    private var tracks: [MusicLibraryTrack] = []
+    private var rows: [MusicLibraryTrack] = []
     private var importing = false
     private var load: Task<Void, Never>?
 
@@ -25,10 +25,6 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
                 ) { [weak self] _ in
                     self?.chooseMusic()
                 },
-                UIAction(
-                    title: String(localized: "Refresh"),
-                    image: UIImage(systemName: "arrow.clockwise")
-                ) { [weak self] _ in self?.reload() },
             ], [
                 UIAction(
                     title: String(localized: "Show Library Folder"),
@@ -46,9 +42,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
 
     private func chooseMusic() {
         let session = FileSession.shared
-        let directory = session.hello?.isPrivileged == true ? "/var/mobile" : NSHomeDirectory()
         let picker = SaveDestinationViewController(
-            directory: URL(fileURLWithPath: directory, isDirectory: true),
             fileTypes: MusicLibraryEditor.audioExtensions, link: session.link
         ) { [weak self] file in self?.importMusic(file) }
         presentAsSheet(UINavigationController(rootViewController: picker))
@@ -108,10 +102,18 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
 
         refreshControl = UIRefreshControl()
         refreshControl?.addTarget(self, action: #selector(reload), for: .valueChanged)
+        for name in [Notification.Name.MPMediaLibraryDidChange, UIApplication.didBecomeActiveNotification] {
+            NotificationCenter.default.addObserver(self, selector: #selector(libraryChanged), name: name, object: nil)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        reload()
+    }
+
+    @objc private func libraryChanged() {
+        guard viewIfLoaded?.window != nil, !importing else { return }
         reload()
     }
 
@@ -152,7 +154,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         rows = tracks.filter { query.isEmpty || $0.title.localizedStandardContains(query)
             || $0.artist.localizedStandardContains(query) || $0.album.localizedStandardContains(query)
         }
-        tableView.reloadData()
+        tableView.reloadWithAnimation()
         tableView.backgroundView = rows.isEmpty ? StatusView(content: .message(
             symbol: "music.note",
             title: query.isEmpty ? String(localized: "No Music") : String(localized: "No Matches"),

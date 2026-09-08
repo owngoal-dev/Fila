@@ -175,13 +175,7 @@ final class ClipboardViewController: UIViewController {
         dataSource.footer = { [weak self] section in self?.footer(for: section) }
     }
 
-    /// Rebuilds the whole list.
-    ///
-    /// `applySnapshotUsingReloadData` rather than a plain apply: the header
-    /// counts the entries and the footer counts the missing ones, and a plain
-    /// apply only redraws the sections it moved — so removing one entry would
-    /// leave "Move · 3 items" over two rows. Reloading is also exactly what this
-    /// screen did before, so nothing gained an animation it did not have.
+    /// Refresh section summaries together with the newly received rows.
     private func applySnapshot() {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.items])
@@ -190,26 +184,13 @@ final class ClipboardViewController: UIViewController {
             snapshot.appendSections([.missing])
             snapshot.appendItems([.removeMissing], toSection: .missing)
         }
-        dataSource.applySnapshotUsingReloadData(snapshot)
+        let existing = Set(dataSource.snapshot().sectionIdentifiers)
+        snapshot.reloadSections(snapshot.sectionIdentifiers.filter(existing.contains))
+        dataSource.apply(snapshot, animatingDifferences: true)
         table.backgroundView = paths.isEmpty ? StatusView(content: .message(
             symbol: "doc.on.clipboard", title: String(localized: "Clipboard Is Empty"),
             detail: String(localized: "Items you copy or move wait here until you paste them.")
         )) : nil
-    }
-
-    /// One answer landing changes one row and nothing else on the screen.
-    /// Every occurrence of the path, because the status is the path's.
-    private func reconfigure(_ path: String) {
-        var snapshot = dataSource.snapshot()
-        let rows = snapshot.itemIdentifiers.filter {
-            if case let .entry(entry) = $0 {
-                return entry.path == path
-            }
-            return false
-        }
-        guard !rows.isEmpty else { return }
-        snapshot.reconfigureItems(rows)
-        dataSource.apply(snapshot, animatingDifferences: false)
     }
 
     // MARK: - State
@@ -218,7 +199,7 @@ final class ClipboardViewController: UIViewController {
         paths = clipboard.paths
         statuses = statuses.filter { paths.contains($0.key) }
         navigationItem.rightBarButtonItem?.isEnabled = !paths.isEmpty
-        applySnapshot()
+        if dataSource.snapshot().sectionIdentifiers.isEmpty { applySnapshot() }
         startSurvey()
     }
 
@@ -230,28 +211,19 @@ final class ClipboardViewController: UIViewController {
     /// everything else using it — for a screen whose entire job is to answer a
     /// question the user is looking at.
     ///
-    /// The whole table is reloaded only when an answer is one that changes
-    /// something outside its own row: the footer counts the missing entries and
-    /// the second section offers to remove them. Everything else touches one row.
+    /// Keep the previous snapshot visible until every status has arrived.
     private func startSurvey() {
         survey?.cancel()
         let paths = paths
         survey = Task { [weak self] in
+            var received: [String: Status] = [:]
             for path in paths {
-                if Task.isCancelled {
-                    return
-                }
-                guard let self else { return }
-                let status = await Self.status(of: path, session: session)
-                guard !Task.isCancelled, self.paths == paths else { return }
-                let wasMissing = missingPaths.contains(path)
-                statuses[path] = status
-                if case .missing = status, !wasMissing {
-                    applySnapshot()
-                } else {
-                    reconfigure(path)
-                }
+                guard let self, !Task.isCancelled else { return }
+                received[path] = await Self.status(of: path, session: session)
             }
+            guard let self, !Task.isCancelled, self.paths == paths else { return }
+            statuses = received
+            applySnapshot()
         }
     }
 
