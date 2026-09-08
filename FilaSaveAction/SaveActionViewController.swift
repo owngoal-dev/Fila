@@ -85,7 +85,7 @@ final class SaveActionViewController: UIViewController {
         }
         // Provider URLs live only for the callback. Copy before it returns.
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            func receive(_ url: URL?, _ error: Error?) {
+            @Sendable func receive(_ url: URL?, _ error: Error?) {
                 do {
                     guard let url, url.isFileURL else { throw error ?? POSIXError(.EINVAL) }
                     let scoped = url.startAccessingSecurityScopedResource()
