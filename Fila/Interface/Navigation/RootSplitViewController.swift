@@ -214,7 +214,7 @@ final class RootSplitViewController: UISplitViewController {
                   destination !== source else { return }
             navigation.popToViewController(destination, animated: true)
         }
-        if let confirm = (source as? ViewerContainerViewController)?.confirmReplacement { confirm(perform) }
+        if let confirm = (source as? ViewerContainerViewController)?.confirmReplacement { confirm({}, perform) }
         else { perform() }
     }
 
@@ -326,8 +326,8 @@ final class RootSplitViewController: UISplitViewController {
         closeTabs(BrowserTabStore.shared.tabs.map(\.id)[...])
     }
 
-    /// A background editor must be visible to present its existing save guard.
-    /// Cancellation leaves that document open and stops the remaining closes.
+    /// Keep the overview and surviving previews installed while removing cards.
+    /// Only an editor that actually needs a save/discard prompt becomes visible.
     private func closeTabs(_ ids: ArraySlice<UUID>) {
         guard let id = ids.first else {
             content.showTabSwitcher()
@@ -337,12 +337,10 @@ final class RootSplitViewController: UISplitViewController {
             closeTabs(ids.dropFirst())
             return
         }
-        selectTab(id)
-        confirmLeavingContent { [weak self] in
+        content.confirmClosingTab(id) { [weak self] in
             guard let self else { return }
-            self.content.captureCurrentTab()
             BrowserTabStore.shared.close(id)
-            self.content.showCurrentTab()
+            self.content.removeClosedTabs()
             self.closeTabs(ids.dropFirst())
         }
     }
@@ -361,7 +359,7 @@ final class RootSplitViewController: UISplitViewController {
                   navigation?.topViewController === source else { return }
             leave()
         }
-        if let confirm = viewer?.confirmReplacement { confirm(finish) }
+        if let confirm = viewer?.confirmReplacement { confirm({}, finish) }
         else { leave() }
     }
 

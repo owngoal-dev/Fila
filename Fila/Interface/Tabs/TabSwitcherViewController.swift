@@ -168,7 +168,14 @@ final class TabSwitcherViewController: UIViewController {
         snapshot.appendItems(BrowserTabStore.shared.tabs.map(\.id).filter { $0 != deferred })
         let existing = Set(dataSource.snapshot().itemIdentifiers)
         let arriving = Set(snapshot.itemIdentifiers)
-        snapshot.reconfigureItems(snapshot.itemIdentifiers.filter { existing.contains($0) })
+        // Structural changes leave surviving thumbnails untouched. Only the
+        // selection border can change while this overview stays on screen.
+        let current = BrowserTabStore.shared.currentID
+        for cell in collectionView.visibleCells {
+            guard let indexPath = collectionView.indexPath(for: cell),
+                  let id = dataSource.itemIdentifier(for: indexPath), arriving.contains(id) else { continue }
+            (cell as? TabCardCell)?.setCurrent(id == current)
+        }
         if animated, !UIAccessibility.isReduceMotionEnabled {
             entering.formUnion(arriving.subtracting(existing))
             for id in existing.subtracting(arriving) {
@@ -320,6 +327,10 @@ private final class TabCardCell: UICollectionViewCell {
         imageView.contentMode = image == nil ? .center : .scaleAspectFill
         self.onClose = onClose
         accessibilityLabel = title + ", " + path
+        setCurrent(current)
+    }
+
+    func setCurrent(_ current: Bool) {
         accessibilityValue = current ? String(localized: "Current Tab") : nil
         accessibilityTraits = current ? [.button, .selected] : [.button]
         updateBorder()

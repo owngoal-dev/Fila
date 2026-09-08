@@ -302,13 +302,14 @@ final class TextViewerViewController: UIViewController {
         navigationItem.rightBarButtonItems = isEditingFile ? [saveItem] : (canEdit ? [editItem] : nil)
 
         container?.childMenuElements = menuElements()
-        container?.confirmReplacement = { [weak self] replace in
+        container?.confirmReplacement = { [weak self] prepareToPresent, replace in
             guard let self, !self.isSaving else { return }
             guard self.hasUnsavedChanges else {
                 self.leaveEditing()
                 replace()
                 return
             }
+            prepareToPresent()
             self.confirmDiscarding {
                 self.apply(text: self.savedText)
                 self.hasUnsavedChanges = false

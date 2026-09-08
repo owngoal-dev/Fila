@@ -22,9 +22,7 @@ final class TabContainerViewController: UIViewController {
     /// The zoom or crossfade between a tab and the overview, while it runs.
     private var transition: UIViewPropertyAnimator?
     /// False until the displayed child has had a run loop turn to reach the
-    /// screen. The shell closes a tab from the overview by showing it, closing
-    /// it and reopening the overview in one call; none of that is on screen,
-    /// so none of it animates.
+    /// screen. Unsettled pages must not replace a previously captured preview.
     private var settled = false
     private var connectionTask: Task<Void, Never>?
 
@@ -127,13 +125,37 @@ final class TabContainerViewController: UIViewController {
             navigation.setViewControllers(Self.browsers(for: tab), animated: false)
             return navigation
         }
+        removeClosedTabs()
+    }
+
+    /// Removing a background tab does not install, lay out or snapshot a survivor.
+    func removeClosedTabs() {
         let remaining = Set(BrowserTabStore.shared.tabs.map(\.id))
         for id in tabs.keys.filter({ !remaining.contains($0) }) {
             guard let closed = tabs.removeValue(forKey: id)?.navigation else { continue }
             closed.willMove(toParent: nil)
             closed.viewIfLoaded?.removeFromSuperview()
             closed.removeFromParent()
+            if installedTabID == id { installedTabID = nil }
         }
+    }
+
+    func confirmClosingTab(_ id: UUID, confirmed: @escaping () -> Void) {
+        guard let navigation = tabs[id]?.navigation else { confirmed(); return }
+        let viewer = navigation.viewControllers.compactMap { $0 as? ViewerContainerViewController }.last
+        guard let confirm = viewer?.confirmReplacement else { confirmed(); return }
+        let source = navigation.topViewController
+        confirm({ [weak self] in
+            self?.shell?.selectTab(id)
+        }, { [weak self, weak navigation, weak source] in
+            guard let self, let navigation, let source,
+                  self.tabs[id]?.navigation === navigation,
+                  navigation.topViewController === source else { return }
+            // If a prompt displayed the editor, return to a settled overview
+            // before removing it. Clean tabs never leave the existing overview.
+            self.showTabSwitcher()
+            confirmed()
+        })
     }
 
     private func showConnecting() {
@@ -230,7 +252,7 @@ final class TabContainerViewController: UIViewController {
     }
 
     private func capturePreview() {
-        guard let id = installedTabID, let navigation, displayed === navigation,
+        guard settled, transition == nil, let id = installedTabID, let navigation, displayed === navigation,
               let surface = navigation.topViewController?.viewIfLoaded, surface.window != nil else { return }
         let bounds = surface.bounds.inset(by: surface.safeAreaInsets)
         guard bounds.width > 0, bounds.height > 0 else { return }
