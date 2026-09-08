@@ -43,6 +43,11 @@ final class StatusView: UIView {
     /// reads as the app working, a blank screen reads as it hanging.
     static let revealDelay: TimeInterval = 0.35
 
+    /// Centres the content in the band above the keyboard instead of the
+    /// whole view, riding the keyboard's own animation through the layout
+    /// guide. Fixed at construction; the panel is built once per owner.
+    private let followsKeyboard: Bool
+
     var content: Content {
         didSet {
             guard content != oldValue else { return }
@@ -58,8 +63,9 @@ final class StatusView: UIView {
         self?.action?()
     })
 
-    init(content: Content) {
+    init(content: Content, followsKeyboard: Bool = false) {
         self.content = content
+        self.followsKeyboard = followsKeyboard
         super.init(frame: .zero)
         build()
         apply()
@@ -104,6 +110,7 @@ final class StatusView: UIView {
             $0.setCustomSpacing(FilaUI.Spacing.medium, after: symbolView)
             $0.setCustomSpacing(FilaUI.Spacing.large, after: detailLabel)
         }
+        addSubview(band)
         addSubview(stack)
         addSubview(spinner)
         spinner.snp.makeConstraints { make in
@@ -124,13 +131,31 @@ final class StatusView: UIView {
         // measure. The fill is not required, so it yields in a column narrower
         // than the margins rather than overflowing it.
         stack.snp.makeConstraints { make in
-            make.center.equalToSuperview()
+            make.centerX.equalToSuperview()
+            make.centerY.equalTo(band.snp.centerY)
             make.leading.greaterThanOrEqualTo(layoutMarginsGuide)
             make.trailing.lessThanOrEqualTo(layoutMarginsGuide)
             make.width.lessThanOrEqualTo(320)
             make.width.equalTo(layoutMarginsGuide).priority(.high)
         }
+
+        // A one-point tall view spanning from the view's top edge to the
+        // keyboard's: its centre is the middle of the band above the keyboard,
+        // and pinning the stack's centre to it centres the panel there. The
+        // keyboard guide tracks the keyboard frame and animates with its own
+        // curve, so the panel rides along as the keyboard appears or hides.
+        // (Without the keyboard in the way the band is the whole view and the
+        // midpoint is the view's centre — the ordinary placement.) Only the
+        // guide's bottom edge is conditional, so a keyboard moving in or out
+        // relayouts the panel with it; no constraint swap, no priority game.
+        band.snp.makeConstraints { make in
+            make.top.equalTo(snp.top)
+            make.bottom.equalTo(followsKeyboard ? keyboardLayoutGuide.snp.top : snp.bottom)
+            make.width.equalTo(self).priority(.low)
+        }
     }
+
+    private let band = UIView()
 
     // MARK: - State
 
@@ -183,13 +208,15 @@ extension UICollectionView {
     /// caller that finds this panel invisible should check the same thing
     /// before assuming the panel is broken.
     /// State changes are immediate; the indicator only animates its rotation.
-    func showStatus(_ content: StatusView.Content?, action: (() -> Void)? = nil) {
+    func showStatus(_ content: StatusView.Content?, action: (() -> Void)? = nil, followsKeyboard: Bool = false) {
         guard let content else {
             guard backgroundView is StatusView else { return }
             backgroundView = nil
             return
         }
-        let panel = backgroundView as? StatusView ?? StatusView(content: content)
+        // The flag shapes the panel's constraints, and a panel is built once
+        // per owner — so it only matters when the panel is first created.
+        let panel = backgroundView as? StatusView ?? StatusView(content: content, followsKeyboard: followsKeyboard)
         panel.action = action
         panel.content = content
         backgroundView = panel

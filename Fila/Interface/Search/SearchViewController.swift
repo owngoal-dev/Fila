@@ -326,7 +326,9 @@ final class SearchViewController: UIViewController {
     }
 
     private func updateStatus() {
-        collectionView.showStatus(status)
+        // The empty states are read while the keyboard is up; centre them in
+        // the band above it instead of behind it.
+        collectionView.showStatus(status, followsKeyboard: true)
         // Empty results already show their own loading indicator. Once hits
         // arrive, the only remaining question is whether more may come, and
         // the search field's magnifier is the one slot that can say so
