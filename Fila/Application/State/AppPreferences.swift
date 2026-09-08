@@ -83,7 +83,7 @@ final class AppPreferences {
     }
 
     var launchLocation: LaunchLocation {
-        get { defaults.string(forKey: "launchLocation").flatMap(LaunchLocation.init) ?? .root }
+        get { defaults.string(forKey: "launchLocation").flatMap(LaunchLocation.init) ?? .lastVisited }
         set { defaults.set(newValue.rawValue, forKey: "launchLocation") }
     }
 

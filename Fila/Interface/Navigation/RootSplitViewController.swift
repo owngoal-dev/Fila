@@ -184,6 +184,7 @@ final class RootSplitViewController: UISplitViewController {
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
         let tabs = self.item(in: tabButtons, for: controller, make: makeTabButton)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
+        (controller as? TabSwitcherViewController)?.updateToolbar(sidebarVisible: inSidebar)
         var buttons = (leadingItems ?? item.leftBarButtonItems ?? [])
             .filter { $0 !== toggle && $0 !== back && $0 !== tabs }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
@@ -381,25 +382,30 @@ final class RootSplitViewController: UISplitViewController {
     }
 
     func closeAllTabs() {
-        closeTabs(BrowserTabStore.shared.tabs.map(\.id)[...])
+        closeTabs(BrowserTabStore.shared.tabs.map(\.id)[...]) { [weak self] in
+            guard let self else { return }
+            BrowserTabStore.shared.closeAll()
+            content.removeClosedTabs()
+            content.showCurrentTab()
+        }
     }
 
     /// Keep the overview and surviving previews installed while removing cards.
     /// Only an editor that actually needs a save/discard prompt becomes visible.
-    private func closeTabs(_ ids: ArraySlice<UUID>) {
+    private func closeTabs(_ ids: ArraySlice<UUID>, completion: (() -> Void)? = nil) {
         guard let id = ids.first else {
-            content.showTabSwitcher()
+            if let completion { completion() } else { content.showTabSwitcher() }
             return
         }
         guard BrowserTabStore.shared.tabs.contains(where: { $0.id == id }) else {
-            closeTabs(ids.dropFirst())
+            closeTabs(ids.dropFirst(), completion: completion)
             return
         }
         content.confirmClosingTab(id) { [weak self] in
             guard let self else { return }
             BrowserTabStore.shared.close(id)
             content.removeClosedTabs()
-            closeTabs(ids.dropFirst())
+            closeTabs(ids.dropFirst(), completion: completion)
         }
     }
 

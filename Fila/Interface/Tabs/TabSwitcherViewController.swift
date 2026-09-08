@@ -114,6 +114,10 @@ final class TabSwitcherViewController: UIViewController {
             UIDeferredMenuElement.uncached { [weak self] complete in complete(self?.newTabMenuElements() ?? []) },
         ]))
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "New Tab")
+        updateToolbar(sidebarVisible: false)
+    }
+
+    func updateToolbar(sidebarVisible: Bool) {
         let closeAll = UIBarButtonItem(title: String(localized: "Close All"), primaryAction: UIAction { [weak self] _ in
             self?.confirmCloseAll()
         })
@@ -136,7 +140,7 @@ final class TabSwitcherViewController: UIViewController {
             closeAll.sharesBackground = false
             places.sharesBackground = false
         }
-        toolbarItems = [
+        toolbarItems = sidebarVisible ? [.flexibleSpace(), closeAll, .flexibleSpace()] : [
             .flexibleSpace(), settings, .fixedSpace(FilaUI.Spacing.medium),
             closeAll, .fixedSpace(FilaUI.Spacing.medium), places, .flexibleSpace(),
         ]

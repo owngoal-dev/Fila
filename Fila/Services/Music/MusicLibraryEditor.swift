@@ -1,6 +1,7 @@
 import FilaLog
 import Foundation
 import MediaPlayer
+import UIKit
 
 /// All writes stay with MusicLibrary, which owns album/artist grouping, sort
 /// maps and library notifications. No SQL UPDATE is issued by Fila.
@@ -57,6 +58,38 @@ actor MusicLibraryEditor {
             throw self.error(String(localized: "The song could not be deleted from the music library. Try again."))
         }
         return try await tracks(confirming: id, present: false)
+    }
+
+    nonisolated static func exportName(title: String, sourcePath: String) -> String {
+        let cleaned = title.components(separatedBy: CharacterSet.controlCharacters.union(CharacterSet(charactersIn: "/:")))
+            .filter { !$0.isEmpty }.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        var stem = cleaned.isEmpty || cleaned == "." || cleaned == ".." ? String(localized: "Untitled") : cleaned
+        while stem.utf8.count > 180 { stem.removeLast() }
+        let suffix = (sourcePath as NSString).pathExtension
+        return suffix.isEmpty ? stem : stem + "." + suffix
+    }
+
+    func exportPath(id: Int64) async throws -> String {
+        try await authorize()
+        let query = MPMediaQuery.songs()
+        query.addFilterPredicate(MPMediaPropertyPredicate(
+            value: NSNumber(value: UInt64(bitPattern: id)), forProperty: MPMediaItemPropertyPersistentID
+        ))
+        guard let item = query.items?.first, !item.hasProtectedAsset, !item.isCloudItem else {
+            throw error(String(localized: "Only downloaded, unprotected songs can be exported."))
+        }
+        return try nativeLibrary().localPath(forTrackID: id)
+    }
+
+    func artwork(id: Int64, pixelSize: Int) -> Data? {
+        guard !Task.isCancelled, MPMediaLibrary.authorizationStatus() == .authorized else { return nil }
+        let query = MPMediaQuery.songs()
+        query.addFilterPredicate(MPMediaPropertyPredicate(
+            value: NSNumber(value: UInt64(bitPattern: id)), forProperty: MPMediaItemPropertyPersistentID
+        ))
+        let image = query.items?.first?.artwork?.image(at: CGSize(width: pixelSize, height: pixelSize))
+        guard !Task.isCancelled else { return nil }
+        return image?.pngData()
     }
 
     // MusicLibrary's write completes before MediaPlayer invalidates its cache.

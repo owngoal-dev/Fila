@@ -7,6 +7,8 @@ final class TabNavigationController: UINavigationController {
     weak var owner: RootSplitViewController?
 
     func prepareToolbar(for controller: UIViewController) {
+        // Song details stay within their library's navigation stack.
+        guard !(controller is MusicTrackViewController) else { return }
         // These library screens expose Tabs in the leading navigation bar.
         guard !(controller is AppListViewController || controller is MusicLibraryViewController) else { return }
         var items = controller.toolbarItems ?? []

@@ -9,7 +9,8 @@ import UIKit
 /// cannot represent the root filesystem this app is browsing.
 final class SaveDestinationViewController: UIViewController {
     private final class Selection {
-        var folderName: String?
+        var name: String?
+        let namesFile: Bool
         let message: String?
         /// Files are listed too and tapping one is the answer; the checkmark
         /// still answers with the folder being shown. For a symlink target.
@@ -19,12 +20,15 @@ final class SaveDestinationViewController: UIViewController {
 
         init(
             folderName: String?,
+            fileName: String?,
             message: String?,
             picksFiles: Bool,
             fileTypes: Set<String>? = nil,
             confirm: @escaping (URL) -> Void
         ) {
-            self.folderName = folderName
+            precondition(folderName == nil || fileName == nil)
+            name = fileName ?? folderName
+            namesFile = fileName != nil
             self.message = message
             self.picksFiles = picksFiles
             self.fileTypes = fileTypes
@@ -92,6 +96,7 @@ final class SaveDestinationViewController: UIViewController {
     convenience init(
         directory: URL? = nil,
         folderName: String? = nil,
+        fileName: String? = nil,
         message: String? = nil,
         picksFiles: Bool = false,
         fileTypes: Set<String>? = nil,
@@ -103,6 +108,7 @@ final class SaveDestinationViewController: UIViewController {
             link: link,
             selection: Selection(
                 folderName: folderName,
+                fileName: fileName,
                 message: message,
                 picksFiles: picksFiles || fileTypes != nil,
                 fileTypes: fileTypes,
@@ -157,7 +163,7 @@ final class SaveDestinationViewController: UIViewController {
         let stack = UIStackView(arrangedSubviews: [pathBar, list])
         stack.axis = .vertical
         view.addSubview(stack)
-        if selection.folderName != nil || selection.message != nil {
+        if selection.name != nil || selection.message != nil {
             let form = UIStackView().then {
                 $0.axis = .vertical
                 $0.spacing = FilaUI.Spacing.small
@@ -170,10 +176,10 @@ final class SaveDestinationViewController: UIViewController {
                 )
                 $0.backgroundColor = .secondarySystemBackground
             }
-            if selection.folderName != nil {
+            if selection.name != nil {
                 nameField.do {
-                    $0.placeholder = String(localized: "Folder name")
-                    $0.accessibilityLabel = String(localized: "Folder name")
+                    $0.placeholder = selection.namesFile ? String(localized: "Name") : String(localized: "Folder name")
+                    $0.accessibilityLabel = $0.placeholder
                     $0.font = .preferredFont(forTextStyle: .body)
                     $0.adjustsFontForContentSizeCategory = true
                     $0.borderStyle = .roundedRect
@@ -221,7 +227,7 @@ final class SaveDestinationViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        nameField.text = selection.folderName
+        nameField.text = selection.name
         load()
     }
 
@@ -242,7 +248,7 @@ final class SaveDestinationViewController: UIViewController {
     }
 
     private func refreshActions() {
-        confirmItem.isEnabled = availability == .ready && (selection.folderName.map(Self.isValidName) ?? true)
+        confirmItem.isEnabled = availability == .ready && (selection.name.map(Self.isValidName) ?? true)
         cancelItem.isEnabled = availability != .creatingFolder
         menuItem.isEnabled = availability != .creatingFolder
         menuItem.menu = UIMenu(children: FilaMenu.groups([
@@ -373,7 +379,7 @@ final class SaveDestinationViewController: UIViewController {
     }
 
     @objc private func nameChanged() {
-        selection.folderName = nameField.text ?? ""
+        selection.name = nameField.text ?? ""
         refreshActions()
     }
 
@@ -457,8 +463,8 @@ final class SaveDestinationViewController: UIViewController {
         guard selection.fileTypes == nil, confirmItem.isEnabled else { return }
         confirmItem.isEnabled = false
         work?.cancel()
-        let destination = selection.folderName
-            .map { directory.appendingPathComponent($0, isDirectory: true) } ?? directory
+        let destination = selection.name
+            .map { directory.appendingPathComponent($0, isDirectory: !selection.namesFile) } ?? directory
         dismiss(animated: true) { [selection] in selection.confirm(destination) }
     }
 }

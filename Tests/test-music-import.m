@@ -36,6 +36,25 @@
 - (NSString *)artworkTokenForSource:(int64_t)source { return self.tokens[@(source)]; }
 @end
 
+@interface ExportTrack : NSObject
+@property(nonatomic, copy) NSString *path;
+@property(nonatomic) BOOL allowsDeletion;
+@property(nonatomic) NSUInteger deletionCount;
+@end
+@implementation ExportTrack
+- (NSString *)absoluteFilePath { return self.path; }
+- (BOOL)deleteFromLibrary { self.deletionCount++; return self.allowsDeletion; }
+@end
+
+@interface ExportLibrary : NativeMusicLibrary
+@property(nonatomic) ExportTrack *exportTrack;
+@end
+@implementation ExportLibrary
+- (id<MusicTrackAPI>)track:(int64_t)trackID error:(NSError **)error {
+    return (id<MusicTrackAPI>)self.exportTrack;
+}
+@end
+
 int main(void) {
     @autoreleasepool {
         id legacy = ImportObject(@"LegacyImportHints", @{@"operationCount": @1});
@@ -69,6 +88,27 @@ int main(void) {
                   @"An existing album's unrelated cover must not be overwritten");
         NSCAssert(ArtworkSource(@{}, @"our-cover", 6) == nil,
                   @"Legacy albums without a separate token use their representative track");
+        ExportLibrary *library = [ExportLibrary new];
+        [library setValue:ExportTrack.class forKey:@"trackClass"];
+        library.exportTrack = [ExportTrack new];
+        library.exportTrack.path = @"/var/mobile/Media/song.m4a";
+        NSCAssert([[library localPathForTrackID:1 error:nil] isEqual:library.exportTrack.path],
+                  @"Export must use the library's resolved audio path");
+        for (NSString *invalid in @[@"", @"relative/song.m4a", @"/var/mobile/Media/song\0.m4a"]) {
+            library.exportTrack.path = invalid;
+            NSError *error = nil;
+            NSCAssert([library localPathForTrackID:1 error:&error] == nil && error != nil,
+                      @"Export must reject missing, relative and NUL-containing paths");
+        }
+        library.exportTrack.allowsDeletion = YES;
+        NSCAssert([library deleteTrackID:1 error:nil] && library.exportTrack.deletionCount == 1,
+                  @"Deletion must call the resolved single entity once");
+        library.exportTrack.allowsDeletion = NO;
+        NSError *deletionError = nil;
+        NSCAssert(![library deleteTrackID:1 error:&deletionError] && deletionError != nil,
+                  @"A refused native deletion must remain a failure");
+        library.exportTrack = nil;
+        NSCAssert(![library deleteTrackID:1 error:nil], @"A missing entity must not be deleted");
         puts("Music import compatibility tests passed");
     }
     return 0;

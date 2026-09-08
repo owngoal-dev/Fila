@@ -93,6 +93,9 @@ jobs:
           operations are protected by FilaGuard on both bootstrap layouts. RootHide device
           validation remains pending; CI verifies builds, host tests and archives.
           NOTES
+          if [ -f "Documentation/Releases/$version.md" ]; then
+            cp "Documentation/Releases/$version.md" "$notes"
+          fi
           files=("build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64.deb"
                  "build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64e.deb"
                  "build/Packages/Fila_${version}.ipa" "build/Packages/Fila_${version}.tipa"

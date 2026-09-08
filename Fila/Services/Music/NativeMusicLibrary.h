@@ -15,6 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSNumber *)importFileAtPath:(NSString *)path
                                metadata:(NSDictionary<NSString *, id> *)metadata
                                   error:(NSError **)error;
+- (nullable NSString *)localPathForTrackID:(int64_t)trackID error:(NSError **)error;
 - (BOOL)deleteTrackID:(int64_t)trackID error:(NSError **)error;
 @end
 

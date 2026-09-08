@@ -206,19 +206,27 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         ) { [weak self] _, _, completion in
             completion(false)
             guard let self else { return }
-            PermanentDeleteConfirmation.present(
-                from: self,
-                title: String(localized: "Delete from Library"),
-                message: String(localized: "“\(track.title)” will be deleted from this device’s music library."),
-                confirmTitle: String(localized: "Delete")
-            ) { [weak self] in self?.deleteMusic(track) }
+            confirmDelete(track, from: self)
         }
         return UISwipeActionsConfiguration(actions: [action]).then {
             $0.performsFirstActionWithFullSwipe = false
         }
     }
 
-    private func deleteMusic(_ track: MusicLibraryTrack) {
+    private func confirmDelete(_ track: MusicLibraryTrack, from presenter: UIViewController) {
+        guard !isChangingLibrary else { return }
+        PermanentDeleteConfirmation.present(
+            from: presenter,
+            title: String(localized: "Delete from Library"),
+            message: String(localized: "“\(track.title)” will be deleted from this device’s music library."),
+            confirmTitle: String(localized: "Delete")
+        ) { [weak self, weak presenter] in
+            guard let self, let presenter else { return }
+            deleteMusic(track, from: presenter)
+        }
+    }
+
+    private func deleteMusic(_ track: MusicLibraryTrack, from presenter: UIViewController) {
         guard !isChangingLibrary else { return }
         isChangingLibrary = true
         load?.cancel()
@@ -227,7 +235,7 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
             title: String.LocalizationValue("Deleting…"),
             message: String.LocalizationValue("Updating the music library. Keep Fila open until this finishes.")
         )
-        present(progress, animated: true)
+        presenter.present(progress, animated: true)
         Task { [self] in
             var failure: Error?
             do {
@@ -238,6 +246,9 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
                 isChangingLibrary = false
                 configureMenu()
                 refreshControl?.endRefreshing()
+                if failure == nil, presenter !== self, navigationController?.topViewController === presenter {
+                    navigationController?.popViewController(animated: true)
+                }
                 if let failure {
                     FeedbackAlert.show(String(localized: "Unable to Delete Music"), message: failure.localizedDescription)
                 }
@@ -249,6 +260,13 @@ final class MusicLibraryViewController: UITableViewController, UISearchResultsUp
         tableView.deselectRow(at: indexPath, animated: true)
         guard !isChangingLibrary, let id = dataSource.itemIdentifier(for: indexPath),
               let track = rows.first(where: { $0.id == id }) else { return }
-        navigationController?.pushViewController(MusicTrackViewController(track: track), animated: true)
+        let detail = MusicTrackViewController(track: track) { [weak self] presenter in
+            self?.confirmDelete(track, from: presenter)
+        }
+        navigationController?.pushViewController(detail, animated: true)
+    }
+
+    override func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        self.tableView(tableView, didSelectRowAt: indexPath)
     }
 }

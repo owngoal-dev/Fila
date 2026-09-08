@@ -45,7 +45,11 @@ older loads are cancelled, and background notifications cannot reload during a
 mutation. Loaded content stays visible during later background fetches, including
 an already loaded empty library. Identical rows do not animate again. Diffable
 snapshots use persistent IDs and reconfigure changed metadata. Song rows show
-title and artist together, followed by album and duration.
+artwork, title, artist and duration, with native detail-disclosure controls. Wide
+rows include the album beside the artist; narrow rows omit it. A shared rounded
+placeholder uses a small music note until artwork is available. Song details
+include a large cover preview and keep that preview through field refreshes;
+the details screen has no tab-switcher toolbar item.
 
 ## Evidence and limits
 
@@ -69,3 +73,15 @@ title and artist together, followed by album and duration.
 - [iOS 15.5 MusicLibrary headers](https://github.com/lechium/iPhone_OS_15.5/tree/master/System/Library/PrivateFrameworks/MusicLibrary)
 - [iOS 16 MusicLibrary headers](https://github.com/qingralf/iOS16-Runtime-Headers/tree/main/PrivateFrameworks/MusicLibrary.framework)
 - [iOS 17.0.3 MusicLibrary headers](https://github.com/MTACS/iOS-17-Runtime-Headers/tree/main/PrivateFrameworks/MusicLibrary.framework)
+
+## iPad deletion incident, 2026-09-08
+
+The iOS 18.5 device reported a stuck query after a deletion. At 22:45:21 the
+client import session removed one track and committed; a concurrent library
+reader then reported `SQLITE_IOERR_SHORT_READ` (522). MusicLibrary's recovery
+unlinked the shared-memory file while Fila, atc, Music and medialibraryd still
+held it, and Music subsequently crashed with a database I/O exception. A raw
+copy of the database plus WAL passed `PRAGMA integrity_check` on the host.
+The library service was restarted; its previously queued recovery request then rebuilt the live library empty. Audio files and the host backup remain preserved. The owner confirmed these were test records and requested keeping the empty library.
+This establishes the failure sequence, not the underlying cause of the first
+short read. The revised single-entity deletion path passes host boundary tests; device regression testing of deletion followed by queries remains outstanding. The owner requested starting the 0.4.2 release workflow with this limitation recorded.

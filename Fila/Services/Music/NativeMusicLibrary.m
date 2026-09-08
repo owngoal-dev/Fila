@@ -53,6 +53,7 @@
 - (id)valueForProperty:(NSString *)property;
 - (BOOL)setValue:(id)value forProperty:(NSString *)property;
 - (void)populateLocationPropertiesWithPath:(NSString *)path;
+- (BOOL)deleteFromLibrary;
 - (NSString *)absoluteFilePath;
 - (id)multiverseIdentifierLibraryOnly:(BOOL)libraryOnly;
 @end
@@ -506,49 +507,39 @@ static NSNumber *ArtworkSource(id entity, NSString *token, int64_t artworkType) 
     }
 }
 
-- (BOOL)deleteTrackID:(int64_t)trackID error:(NSError **)error {
-    id<MusicImportAPI> session = nil;
-    BOOL finished = NO;
+- (NSString *)localPathForTrackID:(int64_t)trackID error:(NSError **)error {
     @try {
-        Class sessionClass = NSClassFromString(@"ML3ClientImportSession");
-        Class itemClass = NSClassFromString(@"ML3ClientImportItem");
-        Class resultClass = NSClassFromString(@"ML3ClientImportResult");
-        if (!Signature(class_getInstanceMethod(sessionClass, @selector(initWithConfiguration:delegate:)), "@", @[@"@", @":", @"@", @"@"], error)
-            || !Signature(class_getInstanceMethod(sessionClass, @selector(start)), "B", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(sessionClass, @selector(finish)), "B", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(sessionClass, @selector(cancel)), "B", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(sessionClass, @selector(removeItemsReturningResult:)), "@", @[@"@", @":", @"@"], error)
-            || !Signature(class_getInstanceMethod(itemClass, @selector(initWithMultiverseIdentifier:mediaItem:)), "@", @[@"@", @":", @"@", @"@"], error)
-            || !Signature(class_getInstanceMethod(resultClass, @selector(success)), "B", @[@"@", @":"], error)
-            || !Signature(class_getInstanceMethod(_trackClass, @selector(multiverseIdentifierLibraryOnly:)), "@", @[@"@", @":", @"B"], error)) return NO;
+        if (!Signature(class_getInstanceMethod(_trackClass, @selector(absoluteFilePath)), "@", @[@"@", @":"], error)) return nil;
+        id<MusicTrackAPI> track = [self track:trackID error:error];
+        if (!track) return nil;
+        NSString *path = [track absoluteFilePath];
+        if (![path isKindOfClass:NSString.class] || !path.isAbsolutePath || [path rangeOfString:@"\0"].location != NSNotFound) {
+            Failure(error, 1);
+            return nil;
+        }
+        return path;
+    } @catch (NSException *exception) {
+        Failure(error, 1);
+        return nil;
+    }
+}
+
+- (BOOL)deleteTrackID:(int64_t)trackID error:(NSError **)error {
+    @try {
+        if (!Signature(class_getInstanceMethod(_trackClass, @selector(deleteFromLibrary)), "B", @[@"@", @":"], error)) return NO;
         id<MusicTrackAPI> track = [self track:trackID error:error];
         if (!track) return NO;
-        // Match this library's persistent ID, never a title or shared store ID.
-        id identity = [track multiverseIdentifierLibraryOnly:YES];
-        if (!identity) { FailedStep(error, 3, @"delete identity"); return NO; }
-        id item = [(id<MusicImportAPI>)[itemClass alloc] initWithMultiverseIdentifier:identity mediaItem:nil];
-        id configuration = ImportObject(@"ML3ClientImportSessionConfiguration", @{
-            @"operationCount": @1, @"libraryPath": [(id<MusicLibraryAPI>)_library databasePath]
-        });
-        session = [(id<MusicImportAPI>)[sessionClass alloc] initWithConfiguration:configuration delegate:nil];
-        if (!item || ![session start]) { FailedStep(error, 3, @"delete session start"); return NO; }
-        id<MusicImportResultAPI> result = [session removeItemsReturningResult:@[item]];
-        if (![result success]) { FailedStep(error, 3, @"delete item"); return NO; }
-        if (![session finish]) { FailedStep(error, 3, @"delete session finish"); return NO; }
-        finished = YES;
+        // A single entity deletion owns its transaction and collection cleanup.
+        // Do not rebuild import triggers through a client import session here.
+        if (![track deleteFromLibrary]) { Failure(error, 3); return NO; }
         [(id<MusicLibraryAPI>)_library notifyEntitiesAddedOrRemoved];
         return YES;
     } @catch (NSException *exception) {
         if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:3 userInfo:@{
             NSLocalizedDescriptionKey: [NSString stringWithFormat:@"MusicLibrary delete: %@: %@",
-                                        exception.name,
-                                        exception.reason]
+                                        exception.name, exception.reason]
         }];
         return NO;
-    } @finally {
-        if (!finished) {
-            @try { [session cancel]; } @catch (NSException *exception) { }
-        }
     }
 }
 
