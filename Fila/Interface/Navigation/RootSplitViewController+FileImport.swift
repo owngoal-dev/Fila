@@ -20,8 +20,11 @@ extension RootSplitViewController {
             let names = urls.map(\.lastPathComponent)
             let paths = urls.map(\.path)
             let listed = ListFormatter.localizedString(byJoining: names.map { "“\($0)”" })
+            // Start where the file already is. The Inbox is the one folder the
+            // user has not chosen and cannot have been looking at, so opening
+            // on it shows the arrival rather than wherever a tab was left.
             let picker = SaveDestinationViewController(
-                directory: URL(fileURLWithPath: BrowserTabStore.shared.current.path, isDirectory: true),
+                directory: URL(fileURLWithPath: SidebarLocation.inboxDirectory, isDirectory: true),
                 message: String(localized: "\(listed) will be moved into the folder you choose."),
                 link: session.link
             ) { destination in

@@ -18,7 +18,7 @@ final class OperationCoverViewController: UIViewController {
     private let subtitleLabel = UILabel()
     private let bar = UIProgressView(progressViewStyle: .default)
     private let spinner = UIActivityIndicatorView(style: .medium)
-    private let currentLabel = UILabel()
+    private let separator = UIView()
     private let countLabel = UILabel()
     private let backgroundButton = UIButton(type: .system)
     private let cancelButton = UIButton(type: .system)
@@ -101,7 +101,7 @@ final class OperationCoverViewController: UIViewController {
             $0.numberOfLines = 0
             $0.setContentCompressionResistancePriority(.required, for: .vertical)
         }
-        for label in [subtitleLabel, currentLabel, countLabel] {
+        for label in [subtitleLabel, countLabel] {
             label.do {
                 $0.font = .preferredFont(forTextStyle: .footnote)
                 $0.adjustsFontForContentSizeCategory = true
@@ -114,8 +114,6 @@ final class OperationCoverViewController: UIViewController {
         subtitleLabel.textColor = .label
         subtitleLabel.numberOfLines = 2
         subtitleLabel.lineBreakMode = .byTruncatingMiddle
-        currentLabel.numberOfLines = 1
-        currentLabel.lineBreakMode = .byTruncatingMiddle
         spinner.hidesWhenStopped = true
         bar.progressTintColor = AlertControllerConfiguration.accentColor
         let gauge = UIView()
@@ -124,7 +122,6 @@ final class OperationCoverViewController: UIViewController {
         gauge.snp.makeConstraints { $0.height.equalTo(24) }
         bar.snp.makeConstraints { $0.leading.trailing.centerY.equalToSuperview() }
         spinner.snp.makeConstraints { $0.center.equalToSuperview() }
-        let separator = UIView()
         separator.backgroundColor = AlertControllerConfiguration.separatorColor
         separator.snp.makeConstraints { $0.height.equalTo(1 / UIScreen.main.scale) }
 
@@ -145,13 +142,12 @@ final class OperationCoverViewController: UIViewController {
             $0.addArrangedSubview(backgroundButton)
         }
         let stack = UIStackView(arrangedSubviews: [
-            artwork, titleLabel, subtitleLabel, separator, gauge, currentLabel, countLabel, actionStack,
+            artwork, titleLabel, subtitleLabel, separator, gauge, countLabel, actionStack,
         ]).then {
             $0.axis = .vertical
             $0.alignment = .center
             $0.spacing = 16
             $0.setCustomSpacing(8, after: gauge)
-            $0.setCustomSpacing(8, after: currentLabel)
         }
         // Keep the same compact card at ordinary text sizes. The content can
         // scroll when accessibility text or a short window exceeds its height.
@@ -229,7 +225,11 @@ final class OperationCoverViewController: UIViewController {
             return
         }
         titleLabel.text = operation.title
-        subtitleLabel.text = operation.subtitle.isEmpty ? String(localized: "Preparing…") : operation.subtitle
+        // One description, not two: the item being worked on now, falling back
+        // to what the job is about before the first progress report names one.
+        let current = operation.progress.map { ($0.currentPath as NSString).lastPathComponent } ?? ""
+        let description = current.isEmpty ? operation.subtitle : current
+        subtitleLabel.text = description.isEmpty ? String(localized: "Preparing…") : description
         if let fraction = operation.progress?.fraction {
             updateProgress(Float(fraction))
             bar.isHidden = false
@@ -239,8 +239,9 @@ final class OperationCoverViewController: UIViewController {
             bar.isHidden = true
             spinner.startAnimating()
         }
-        let current = operation.progress.map { ($0.currentPath as NSString).lastPathComponent } ?? ""
-        currentLabel.text = current.isEmpty ? String(localized: "Preparing…") : current
+        // A rule above a spinner divides the card into nothing. It earns its
+        // place only when there is a bar under it.
+        separator.isHidden = bar.isHidden
         countLabel.text = operation.progress.map(Self.count(for:))
         countLabel.isHidden = countLabel.text?.isEmpty != false
         cancelButton.isEnabled = operation.isCancellable

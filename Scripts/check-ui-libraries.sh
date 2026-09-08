@@ -77,7 +77,7 @@ alert_message_hits="$(perl -0777 -ne '
         # to retain a non-empty fallback while the job is preparing.
         next if $ARGV =~ m{/Fila/Interface/Transfers/OperationCoverViewController\.swift$}
             && $args =~ /^contentViewController:\s*content\b/
-            && /subtitleLabel\.text\s*=\s*operation\.subtitle\.isEmpty\s*\?\s*String\(localized:\s*"Preparing…"\)\s*:\s*operation\.subtitle/;
+            && /subtitleLabel\.text\s*=\s*\w+\.isEmpty\s*\?\s*String\(localized:\s*"Preparing…"\)\s*:\s*\w+/;
         # Permanent deletion uses the public custom-content API for a red
         # action without changing the global accent.
         next if $ARGV =~ m{/Fila/Interface/Feedback/PermanentDeleteConfirmation\.swift$}

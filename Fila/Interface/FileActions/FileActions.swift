@@ -82,7 +82,18 @@ final class FileActions {
         let previewActions: [UIMenuElement] = preview.map { open in
             [UIAction(title: String(localized: "Preview"), image: UIImage(systemName: "eye")) { _ in confirm(open) }]
         } ?? []
-        let inspection = additional + previewActions + properties
+        // By name alone: a menu is built from a listing row, and sniffing the
+        // bytes of every archive-shaped name would be an `open(2)` per row.
+        // A name that lies costs one failed job, not a wrong file.
+        let extraction: [UIMenuElement] = FileFormat.detect(head: Data(), name: node.name) == .archive ? [
+            UIAction(
+                title: String(localized: "Extract"),
+                image: UIImage(systemName: OperationCenter.Kind.extract.symbol)
+            ) { [self] _ in
+                confirm { self.extract(path) }
+            },
+        ] : []
+        let inspection = additional + previewActions + extraction + properties
         let copy = UIMenu(
             title: String(localized: "Copy"),
             image: UIImage(systemName: "doc.on.doc"),
@@ -194,25 +205,36 @@ final class FileActions {
     func putBack(_ paths: [String]) {
         guard !paths.isEmpty else { return }
         presenter?.setEditing(false, animated: true)
+        // A put back off the trash volume copies the whole file back, which is
+        // as long as the delete that put it there. Same card, same reasons.
+        let cover = jobCover()
         Task {
+            let outcome: Error?
             do {
-                try await session.operations.putBack(trashed: paths)
-            } catch let failure as FilaFailure where failure.systemError == ENOATTR {
-                let name = failure.path.map { ($0 as NSString).lastPathComponent } ?? ""
-                if let presenter = activePresenter {
-                    let alert = AlertViewController(
-                        title: String(localized: "Cannot Put Back"),
-                        message: String(localized: "The original location of “\(name)” was not recorded. It can only be deleted permanently.")
-                    ) { context in
-                        context.allowSimpleDispose()
-                        context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                            context.dispose()
+                try await session.operations.putBack(trashed: paths, started: cover.show)
+                outcome = nil
+            } catch { outcome = error }
+            cover.settle { [self] in
+                switch outcome {
+                case let failure as FilaFailure where failure.systemError == ENOATTR:
+                    let name = failure.path.map { ($0 as NSString).lastPathComponent } ?? ""
+                    if let presenter = activePresenter {
+                        let alert = AlertViewController(
+                            title: String(localized: "Cannot Put Back"),
+                            message: String(localized: "The original location of “\(name)” was not recorded. It can only be deleted permanently.")
+                        ) { context in
+                            context.allowSimpleDispose()
+                            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
+                                context.dispose()
+                            }
                         }
+                        presenter.present(alert, animated: true)
                     }
-                    presenter.present(alert, animated: true)
+                case let error?: report(error)
+                case nil: break
                 }
-            } catch { report(error) }
-            didRemove()
+                didRemove()
+            }
         }
     }
 
@@ -356,13 +378,54 @@ final class FileActions {
         let center = session.operations
         Task {
             do {
-                let destination = try await freeArchivePath(base: stem, format: options.format, in: directory)
+                let destination = try await freePath(
+                    base: stem,
+                    extension: options.format.filenameExtension,
+                    in: directory
+                )
                 let request = JobRequest(kind: .compress, sources: paths, destination: destination, archive: options)
                 let identifier = try await center.startJob(
                     request,
                     kind: .compress,
                     title: OperationCenter.Kind.compress.runningTitle,
                     subtitle: OperationCenter.describe(paths, destination: directory)
+                )
+                guard let operation = center.operation(forJob: identifier),
+                      let presenter = activePresenter else { return }
+                OperationCoverViewController.present(for: operation.id, from: presenter, center: center)
+            } catch { report(error) }
+        }
+    }
+
+    /// Every member, into a new folder beside the archive named after it. No
+    /// picker and no listing pass: the whole point of this one is that it is
+    /// one tap. An encrypted archive fails asking for its password, and the
+    /// archive browser is where that question gets asked.
+    func extract(_ path: String) {
+        presenter?.setEditing(false, animated: true)
+        let directory = (path as NSString).deletingLastPathComponent
+        let center = session.operations
+        Task {
+            do {
+                let stem = ArchivePath.extractionFolderName(for: path)
+                let destination = try await freePath(
+                    base: stem.isEmpty ? "extracted" : stem,
+                    extension: "",
+                    in: directory
+                )
+                let identifier = try await center.startJob(
+                    // Options are not optional for an archive job — the helper
+                    // refuses one without them. Nil members is every member.
+                    JobRequest(
+                        kind: .extract,
+                        sources: [path],
+                        destination: destination,
+                        overwrite: true,
+                        archive: ArchiveOptions()
+                    ),
+                    kind: .extract,
+                    title: OperationCenter.Kind.extract.runningTitle,
+                    subtitle: OperationCenter.describe([path], destination: destination)
                 )
                 guard let operation = center.operation(forJob: identifier),
                       let presenter = activePresenter else { return }
@@ -406,6 +469,12 @@ final class FileActions {
             buttons.forEach { $0.0.isEnabled = $0.1 }
         }
         return try await body()
+    }
+
+    /// The delayed progress card for whatever job this action is about to
+    /// start. It reads `activePresenter` at the moment the job exists, not now.
+    func jobCover() -> JobCover {
+        JobCover(center: session.operations) { [weak self] in self?.activePresenter }
     }
 
     var activePresenter: UIViewController? {
@@ -458,12 +527,13 @@ final class FileActions {
         presenter.present(alert, animated: true)
     }
 
-    private func freeArchivePath(base: String, format: ArchiveFormat, in directory: String) async throws -> String {
+    /// The first name this directory does not already hold. An empty extension
+    /// is the extraction folder; anything else is the archive being written.
+    private func freePath(base: String, extension suffix: String, in directory: String) async throws -> String {
+        let dot = suffix.isEmpty ? "" : ".\(suffix)"
         for index in 1 ... Int.max {
             try Task.checkCancellation()
-            let name = index == 1
-                ? "\(base).\(format.filenameExtension)"
-                : "\(base) \(index).\(format.filenameExtension)"
+            let name = index == 1 ? "\(base)\(dot)" : "\(base) \(index)\(dot)"
             let candidate = URL(fileURLWithPath: directory, isDirectory: true).appendingPathComponent(name).path
             do {
                 _ = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: candidate) }

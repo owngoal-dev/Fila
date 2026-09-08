@@ -204,7 +204,11 @@ final class OperationCenter: ObservableObject {
 
     /// Capture the identities before starting the delete so success can offer
     /// Put Back. Failures and cancellations discard this offer with the row.
-    func trash(_ paths: [String], feedback: Feedback = .automatic) async throws -> FilaFailure {
+    func trash(
+        _ paths: [String],
+        feedback: Feedback = .automatic,
+        started: ((UInt64) -> Void)? = nil
+    ) async throws -> FilaFailure {
         let identity = UUID()
         var recorded: [String] = []
         for path in paths {
@@ -225,7 +229,8 @@ final class OperationCenter: ObservableObject {
             kind: .trash,
             subtitle: Self.describe(paths),
             undo: undo,
-            feedback: feedback
+            feedback: feedback,
+            started: started
         )
     }
 
@@ -251,7 +256,11 @@ final class OperationCenter: ObservableObject {
     ) async throws -> UInt64 {
         var directories = request.sources.map { ($0 as NSString).deletingLastPathComponent }
         if let destination = request.destination {
+            // The destination gains entries; its parent gains the destination.
+            // An extraction folder and a new archive are both created by the
+            // job, so the folder listing them is only right afterwards.
             directories.append(destination)
+            directories.append((destination as NSString).deletingLastPathComponent)
         }
         let identifier = try await session.perform { try await $0.startJob(request) }
         // `filad` counts job identifiers from the start of each run, so one can
@@ -304,12 +313,17 @@ final class OperationCenter: ObservableObject {
     /// fixed at the source: `DaemonLink.onLinkLost` turns a dropped connection
     /// into a failure for every job the peer had running, which resumes this
     /// wait and stops the transfers row spinning at the same time.
+    /// `started` receives the job identifier once its row exists, for a caller
+    /// that wants to show progress for the job it is waiting on. A job that
+    /// finished inside `startJob` has no row left by then; a caller reading it
+    /// back gets nothing, which is what a finished job should show.
     func awaitJob(
         _ request: JobRequest,
         kind: Kind,
         subtitle: String,
         undo: Undo? = nil,
-        feedback: Feedback = .automatic
+        feedback: Feedback = .automatic,
+        started: ((UInt64) -> Void)? = nil
     ) async throws -> FilaFailure {
         try await withCheckedThrowingContinuation { continuation in
             Task { @MainActor in
@@ -317,7 +331,7 @@ final class OperationCenter: ObservableObject {
                     // A job small enough to finish inside `startJob` resumes the
                     // continuation before this call returns, which is exactly
                     // once — the same as every other path out of here.
-                    try await startJob(
+                    let identifier = try await startJob(
                         request,
                         kind: kind,
                         title: kind.runningTitle,
@@ -325,6 +339,7 @@ final class OperationCenter: ObservableObject {
                         undo: undo,
                         feedback: feedback
                     ) { continuation.resume(returning: $0) }
+                    started?(identifier)
                 } catch {
                     continuation.resume(throwing: error)
                 }

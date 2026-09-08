@@ -63,7 +63,10 @@ extension OperationCenter {
     /// it is home. An item without the note fails with `ENOATTR` naming it —
     /// the daemon's own answer for a missing attribute, kept distinct from a
     /// link that dropped so the app does not call a disconnect "no record".
-    func putBack(trashed paths: [String]) async throws {
+    ///
+    /// `started` receives each restore in turn: the items go home one at a
+    /// time, and a cross-volume one is a whole copy of the file.
+    func putBack(trashed paths: [String], started: ((UInt64) -> Void)? = nil) async throws {
         // One item's refusal is no reason to leave the rest in the trash: every
         // item is tried, and the first refusal is what the caller hears about.
         var firstFailure: Error?
@@ -75,7 +78,7 @@ extension OperationCenter {
                 guard let origin = String(data: data, encoding: .utf8), origin.hasPrefix("/") else {
                     throw FilaFailure(code: .operationFailed, systemError: ENOATTR, path: path)
                 }
-                try await restore(path, to: origin)
+                try await restore(path, to: origin, started: started)
             } catch {
                 if firstFailure == nil {
                     firstFailure = error
@@ -87,7 +90,12 @@ extension OperationCenter {
         }
     }
 
-    private func restore(_ path: String, to original: String, identity: UUID? = nil) async throws {
+    private func restore(
+        _ path: String,
+        to original: String,
+        identity: UUID? = nil,
+        started: ((UInt64) -> Void)? = nil
+    ) async throws {
         let outcome = try await awaitJob(
             JobRequest(
                 kind: .restore,
@@ -97,7 +105,8 @@ extension OperationCenter {
             ),
             kind: .move,
             subtitle: Self.describe([path], destination: original),
-            feedback: .silent
+            feedback: .silent,
+            started: started
         )
         guard outcome.code == .success else { throw outcome }
     }

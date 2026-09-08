@@ -67,6 +67,17 @@ static void Failure(NSError **error, NSInteger code) {
     if (error) *error = [NSError errorWithDomain:@"MusicLibrary" code:code userInfo:nil];
 }
 
+// A private importer that refuses says nothing about which step refused, and
+// the code alone has never been enough to tell them apart in a log. The step
+// name is diagnostic and never shown: the user-facing sentence is fixed.
+static void FailedStep(NSError **error, NSInteger code, NSString *step) {
+    if (error) {
+        *error = [NSError errorWithDomain:@"MusicLibrary" code:code userInfo:@{
+            NSLocalizedDescriptionKey: [@"import failed at " stringByAppendingString:step]
+        }];
+    }
+}
+
 static NSString *Text(id value) {
     if ([value isKindOfClass:NSString.class]) return value;
     if ([value isKindOfClass:NSNumber.class]) return [value stringValue];
@@ -268,16 +279,16 @@ static id ImportObject(NSString *className, NSDictionary *values) {
         // constructor reuses that location across imports. It may remain empty
         // after a failed import, but no track or file is published by it.
         id<MusicTrackAPI> base = [(Class<MusicTrackAPI>)baseClass newWithDictionary:@{@"path": @"iTunes_Control/Music/F00"} inLibrary:_library];
-        if (!item || !base) { Failure(error, 3); return nil; }
+        if (!item || !base) { FailedStep(error, 3, item ? @"base location" : @"import item"); return nil; }
         id<MusicConnectionAPI> connection = [(id<MusicLibraryAPI>)_library checkoutWriterConnection];
         @try {
-            if (![connection pushTransaction]) { Failure(error, 3); return nil; }
+            if (![connection pushTransaction]) { FailedStep(error, 3, @"push transaction"); return nil; }
             id<MusicImportAPI> importer = [(id<MusicImportAPI>)[sessionClass alloc] initWithLibrary:_library connection:connection configuration:configuration];
             NSNumber *identifier = nil;
-            if (![importer begin] || ![importer addTrack:item persistentID:&identifier] || ![importer finish] || !identifier) {
-                Failure(error, 3);
-                return nil;
-            }
+            if (![importer begin]) { FailedStep(error, 3, @"begin"); return nil; }
+            if (![importer addTrack:item persistentID:&identifier]) { FailedStep(error, 3, @"add track"); return nil; }
+            if (![importer finish]) { FailedStep(error, 3, @"finish"); return nil; }
+            if (!identifier) { FailedStep(error, 3, @"no persistent id"); return nil; }
             // The importer owns metadata; this connection-scoped native edit
             // attaches the already copied asset before committing. ML3Track's
             // convenience setters dispatch to a different writer and cannot
@@ -285,13 +296,17 @@ static id ImportObject(NSString *className, NSDictionary *values) {
             id<MusicEditAPI> operation = [(id<MusicEditAPI>)[NSClassFromString(@"ML3SetValuesForPropertiesOperation") alloc] initWithLibrary:_library writer:nil];
             NSArray *values = @[@YES, @([base persistentID]), path.lastPathComponent, @1];
             if (![operation _setValues:values forProperties:@[@"in_my_library", @"base_location_id", @"item_extra.location", @"media_type"] withEntityClass:_trackClass usingPersistentID:identifier.longLongValue connection:connection error:error]) {
-                if (error && !*error) Failure(error, 3);
+                if (error && !*error) FailedStep(error, 3, @"set values");
                 return nil;
             }
             // A private API accepting a call is not proof it stored the fields.
             id<MusicResultAPI> result = [connection executeQuery:@"SELECT COUNT(*) FROM item JOIN item_extra USING(item_pid) WHERE item_pid = ? AND in_my_library = 1 AND (media_type & 1) != 0 AND base_location_id = ? AND location = ?" withParameters:@[identifier, @([base persistentID]), path.lastPathComponent]];
-            if ([[result objectForFirstRowAndColumn] longLongValue] != 1 || ![connection popTransactionAndCommit:YES]) {
-                Failure(error, 3);
+            if ([[result objectForFirstRowAndColumn] longLongValue] != 1) {
+                FailedStep(error, 3, @"row not stored");
+                return nil;
+            }
+            if (![connection popTransactionAndCommit:YES]) {
+                FailedStep(error, 3, @"commit");
                 return nil;
             }
             committedIdentifier = identifier;

@@ -35,43 +35,30 @@ extension FileActions {
         Task {
             let kind: OperationCenter.Kind = useTrash ? .trash : .delete
             let description = OperationCenter.describe(paths, destination: nil)
-            let progress = AlertProgressIndicatorViewController(title: kind.runningTitle, message: description)
-            let reveal = Task { @MainActor in
-                do {
-                    try await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000))
-                } catch { return }
-                guard !Task.isCancelled, let presenter = activePresenter else { return }
-                // Cross-volume trash can take minutes. Its existing task page
-                // provides progress and cancellation without trapping the user
-                // behind the non-interactive progress card used for deletion.
-                if useTrash {
-                    TransfersViewController.presentAsSheet()
-                    return
-                }
-                // Wait for presentation to finish before a job that completes
-                // during the animation asks this same alert to dismiss.
-                await withCheckedContinuation { continuation in
-                    presenter.present(progress, animated: true) { continuation.resume() }
-                }
-            }
+            // A folder of ten thousand files and a cross-volume trash both take
+            // minutes, and this is the card that says so.
+            let cover = jobCover()
             let result: Result<FilaFailure, Error>
             do {
                 let outcome = try await withSourceLocked {
                     if useTrash {
-                        return try await session.operations.trash(paths, feedback: .successOnly)
+                        return try await session.operations.trash(
+                            paths,
+                            feedback: .successOnly,
+                            started: cover.show
+                        )
                     }
                     return try await session.operations.awaitJob(
                         JobRequest(kind: .delete, sources: paths, useTrash: useTrash, overrideGuard: overrideGuard),
                         kind: kind,
                         subtitle: description,
-                        feedback: .successOnly
+                        feedback: .successOnly,
+                        started: cover.show
                     )
                 }
                 result = .success(outcome)
             } catch { result = .failure(error) }
 
-            reveal.cancel()
-            await reveal.value
             let complete = {
                 switch result {
                 case let .success(outcome):
@@ -85,32 +72,7 @@ extension FileActions {
                 case let .failure(error): self.report(error)
                 }
             }
-            // Background work may outlive this screen or a newer sheet. Only
-            // close the alert this operation presented, then report its result.
-            if progress.presentingViewController?.presentedViewController === progress,
-               progress.presentedViewController == nil, !progress.isBeingDismissed
-            {
-                progress.dismiss(animated: true, completion: complete)
-            } else {
-                // A toast can present Transfers above this alert. Keep that
-                // sheet and leave a truthful result underneath it.
-                if progress.presentedViewController != nil {
-                    switch result {
-                    case let .success(outcome):
-                        switch outcome.code {
-                        case .success: progress.progressContext.purpose(message: kind.completionTitle)
-                        case .cancelled: progress.progressContext.purpose(message: String(localized: "Cancelled"))
-                        default: progress.progressContext.purpose(message: FailureText.title(for: outcome))
-                        }
-                    case let .failure(error):
-                        progress.progressContext.purpose(
-                            message: error is CancellationError || (error as? FilaFailure)?.code == .cancelled
-                                ? String(localized: "Cancelled") : String(localized: "Operation Failed")
-                        )
-                    }
-                }
-                complete()
-            }
+            cover.settle(complete)
         }
     }
 

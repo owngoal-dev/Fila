@@ -95,6 +95,10 @@ final class TransferCell: UICollectionViewListCell {
         }
         let actions = UIStackView(arrangedSubviews: [undoButton, cancelButton]).then {
             $0.axis = .horizontal
+            // Never stretched to fill the row: a stretched button centres its
+            // title, and two rows' Put Back then sit at different distances
+            // from the trailing edge. The text beside it takes the slack.
+            $0.setContentHuggingPriority(.required, for: .horizontal)
         }
         let heading = UIStackView(arrangedSubviews: [text, actions]).then {
             $0.axis = .horizontal

@@ -34367,10 +34367,6 @@
         }
       }
     },
-    "OwnGoal Studio × AI" : {
-      "comment" : "Studio credit. Do not translate.",
-      "shouldTranslate" : false
-    },
     "Page %lld of %lld" : {
       "localizations" : {
         "ar" : {

@@ -216,6 +216,15 @@ final class SaveDestinationViewController: UIViewController {
         cancelItem.isEnabled = availability != .creatingFolder
         menuItem.isEnabled = availability != .creatingFolder
         menuItem.menu = UIMenu(children: FilaMenu.groups([
+            UIMenu(
+                title: String(localized: "Go"),
+                image: UIImage(systemName: "arrow.right.circle"),
+                children: FilaMenu.destinations(includesFiles: false) { [weak self] in
+                    self?.promptGoToPath()
+                } open: { [weak self] path, _ in
+                    self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true))
+                }
+            ),
             UIAction(
                 title: String(localized: "New Folder"),
                 image: UIImage(systemName: "folder.badge.plus"),
@@ -354,6 +363,20 @@ final class SaveDestinationViewController: UIViewController {
                 return
             }
             createFolder(named: name)
+        }
+        present(alert, animated: true)
+    }
+
+    private func promptGoToPath() {
+        let alert = AlertInputViewController(
+            title: String.LocalizationValue("Go to Path"),
+            message: String.LocalizationValue("Enter an absolute path, starting with a slash."),
+            placeholder: .noPlaceholder,
+            text: directory.path,
+            doneButtonText: String.LocalizationValue("Go")
+        ) { [weak self] path in
+            guard let self, path.hasPrefix("/") else { return }
+            showAncestor(URL(fileURLWithPath: path, isDirectory: true))
         }
         present(alert, animated: true)
     }

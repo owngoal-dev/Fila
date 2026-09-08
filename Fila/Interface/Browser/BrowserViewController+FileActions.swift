@@ -181,57 +181,15 @@ extension BrowserViewController {
     }
 
     private func goMenuElements() -> [UIMenuElement] {
-        let preferences = AppPreferences.shared
-        func destination(
-            _ path: String,
-            title: String,
-            image: UIImage?,
-            subtitle: String? = nil,
-            isFile: Bool = false
-        ) -> UIAction {
-            UIAction(title: title, subtitle: subtitle, image: image) { [weak self] _ in
-                if isFile {
-                    self?.shell?.follow(.view(path))
-                } else {
-                    self?.open(directory: path)
-                }
-            }
-        }
-        func name(of path: String) -> String {
-            path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
-        }
-        let places = SidebarLocation.jumpList(backend: session.hello?.backend).map { place in
-            let image: UIImage? = switch place.icon {
-            case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-            case let .symbol(name): UIImage(systemName: name)
-            }
-            return destination(place.path, title: place.title, image: image)
-        }
-        let favorites = preferences.favorites.map {
-            destination($0, title: name(of: $0), image: UIImage(systemName: "star"), subtitle: $0)
-        }
-        let recents = preferences.recents.prefix(8).map {
-            destination(
-                $0,
-                title: name(of: $0),
-                image: UIImage(systemName: "clock"),
-                subtitle: $0,
-                isFile: preferences.recentFiles.contains($0)
-            )
-        }
-        let locations = [
-            UIMenu(title: String(localized: "Places"), image: UIImage(systemName: "folder"), children: places),
-            UIMenu(title: String(localized: "Favorites"), image: UIImage(systemName: "star"), children: favorites),
-            UIMenu(title: String(localized: "Recents"), image: UIImage(systemName: "clock"), children: recents),
-        ].filter { !$0.children.isEmpty }
-        let path = UIAction(
-            title: String(localized: "Go to Path…"),
-            image: UIImage(systemName: "arrow.right.circle")
-        ) { [weak self] _ in
+        FilaMenu.destinations(includesFiles: true) { [weak self] in
             self?.promptGoToPath()
+        } open: { [weak self] path, isFile in
+            if isFile {
+                self?.shell?.follow(.view(path))
+            } else {
+                self?.open(directory: path)
+            }
         }
-        // Named destinations come first; manual path entry stays last.
-        return FilaMenu.groups(locations, [path])
     }
 
     func sortMenuElements() -> [UIMenuElement] {
