@@ -6,7 +6,7 @@ import Foundation
 /// What a terminal session is asked to run.
 ///
 /// There is deliberately **no `arguments` and no `environment`**. The wire
-/// carries a path, a user, a directory and a window size; argv and the whole
+/// carries a path, a user, a directory and a window size; argv and the initial
 /// environment are composed here, in the root process, from a plan the client
 /// cannot reach. That is the difference between "open a terminal on this file"
 /// and "run this command as root", and the second one is not an operation this
@@ -19,10 +19,11 @@ public struct TerminalRequest: Sendable {
     /// The program to run, or nil for the login shell `TerminalPlan` picks.
     public var executable: String?
     /// A Debian package to install with the bootstrap's own `dpkg -i`, on a
-    /// terminal so its output is the user's to read. The one program this
-    /// daemon runs with an argument, and the argument is a file the client
-    /// chose, never a flag: the argv is `dpkg -i <package>` and nothing else,
-    /// composed here. Refused with `executable` set, and refused for `.mobile`
+    /// terminal so its output is the user's to read. The account's supported
+    /// login shell loads its environment, then execs `dpkg -i <package>`;
+    /// without a supported executable shell, dpkg starts directly. The package
+    /// stays a separate argument, never shell source. Refused with `executable`
+    /// set, and refused for `.mobile`
     /// — dpkg as anyone but root has nothing to install into.
     public var package: String?
     /// Who it runs as. `.root` drops nothing and raises nothing.
@@ -85,16 +86,16 @@ public extension FileOperations {
     /// Open a pseudo-terminal and run one program on it, as root or as
     /// `mobile`.
     ///
-    /// **What this spawns:** one executable regular file, with an argv of
-    /// exactly itself; the interpreter that file's own `#!` line names, with an
-    /// argv of itself and that file, when the request allows it; the login
-    /// shell chosen by `TerminalPlan.loginShell` with `-il`; or the bootstrap's
-    /// `dpkg` with `-i` and one package file, as root only. Every one of those
-    /// argv lists is composed here and none of them can carry a flag the client
-    /// or the file chose. **As whom:** whoever `filad` is — root on a device — or the
+    /// **What this spawns:** the account's login shell initializes the session
+    /// and execs one fixed target: a regular executable with no extra arguments;
+    /// the requested script interpreter with that file; or the bootstrap's
+    /// `dpkg -i` with one package, as root only. Unknown or unavailable shells
+    /// fall back to the target directly. Without a target it opens the shell.
+    /// These argv lists are composed here; the client supplies no command source
+    /// or flags. **As whom:** whoever `filad` is — root on a device — or the
     /// `mobile` account resolved by name, and nothing else, because the wire
     /// carries a two-case `TerminalUser` and not a uid. **What it refuses:**
-    /// argv, an environment, a shell string, any `-c`, a package that is not a
+    /// client-supplied argv, environment or shell source, a package that is not a
     /// regular file, anything that is not a
     /// real executable regular file, and any climb in privilege — the only
     /// credential change here is downward, it happens in the child before
@@ -197,6 +198,15 @@ struct BootstrapLayout {
         case .none, .rootless: path
         case let .roothide(jbroot): path.hasPrefix("/") ? jbroot + path : path
         }
+    }
+
+    /// A kernel path passed as a program name to a bootstrap-linked shell.
+    /// Bootstrap programs use their unprefixed name under roothide; programs
+    /// outside that root are reached through its system-filesystem bridge.
+    func programPath(_ path: String) -> String {
+        guard case let .roothide(root) = kind else { return path }
+        if path.hasPrefix(root + "/") { return String(path.dropFirst(root.count)) }
+        return systemPath(path)
     }
 
     func isExecutableFile(_ bootstrapPath: String) -> Bool {
@@ -316,22 +326,29 @@ struct TerminalPlan {
                 executable = resolved
                 arguments = [resolved]
             }
-            if let shell = user?.shell, !shell.isEmpty { environment["SHELL"] = shell }
         } else {
-            // Spawned directly rather than through the bootstrap's `login`, for
-            // the reason iGhostVT documents: Procursus' `/etc/pam.d/login` runs
-            // `pam_launchd.so`, which moves the session into a per-user
-            // bootstrap namespace that cannot reach `com.apple.dnssd.service`,
-            // and every `login`-spawned process then loses DNS entirely.
-            guard let shell = Self.loginShell(user: user, layout: layout) else {
-                // No path: nothing in particular was missing. The bootstrap's
-                // passwd entry named nothing runnable and neither did any of
-                // the fallbacks, which on a device means no shell is installed.
-                throw FilaFailure(code: .notFound, systemError: ENOENT)
-            }
-            executable = layout.resolve(shell)
-            arguments = [executable, "-il"]
+            // The empty target means an interactive session below.
+            executable = ""
+            arguments = []
+        }
+
+        // Every terminal entry point uses the same account environment. Resolve
+        // argv first, then let the login shell initialize and exec that target.
+        // No PAM login process: pam_launchd can move the child into a bootstrap
+        // namespace that cannot reach the system DNS service.
+        if let shell = Self.loginShell(user: user, layout: layout) {
             environment["SHELL"] = shell
+            let shellPath = layout.resolve(shell)
+            if arguments.isEmpty {
+                executable = shellPath
+                arguments = [shellPath] + (Self.shellExecArguments(shell) == nil ? [] : ["-il"])
+            } else if let invocation = Self.shellExecArguments(shell) {
+                arguments[0] = layout.programPath(executable)
+                arguments = [shellPath] + invocation + arguments
+                executable = shellPath
+            }
+        } else if arguments.isEmpty {
+            throw FilaFailure(code: .notFound, systemError: ENOENT)
         }
 
         self.environment = environment
@@ -418,42 +435,30 @@ struct TerminalPlan {
         return stat("/usr/share/locale/\($0)/LC_CTYPE", &info) == 0
     } ?? "UTF-8"
 
-    /// Which shell a session gets.
-    ///
-    /// **The bootstrap's own shell wins over the passwd entry's, and that
-    /// inversion is the point.** Reading the shell out of the passwd database
-    /// is the obvious rule and the next person to read this will assume it is
-    /// the right one, so here is why it is not: the entry is looked up for
-    /// whoever `filad` is, root, and root's shell field is whatever the last
-    /// thing to write that file left there. On the development device it still
-    /// reads `/iosbinpack64/bin/zsh` — a zsh 5.0.8 left behind by a bootstrap
-    /// that is long gone. It is a regular file, it has its execute bit, so
-    /// every "is it runnable" test passes it; it then starts and immediately
-    /// fails to `dlopen` its own `zsh/zle` module, because the modules that
-    /// matched it went with the bootstrap that installed it. The user gets a
-    /// shell with no line editing, no history and no completion, and an error
-    /// on the first line. Run side by side under `forkpty` as root on that
-    /// device, the legacy binary emitted 370 bytes ending in that dlopen
-    /// failure and the bootstrap's own emitted 291 bytes of prompt and escape
-    /// sequences.
-    ///
-    /// So the rule is: the shell that shipped with **the bootstrap this daemon
-    /// is installed in** is the one whose modules, `/etc/zshrc` and library
-    /// paths are known to match it, and it goes first. The passwd entry is the
-    /// fallback, which is where an inherited path belongs — it still covers the
-    /// bootstrap that installs its shell somewhere these three names miss.
-    ///
-    /// `bootstrapPath` is what makes the first list mean the bootstrap's own
-    /// files: under rootless it turns `/bin/zsh` into `/var/jb/bin/zsh`, and
-    /// under roothide it is the identity because those binaries are vroot-linked
-    /// (`resolve` puts the jbroot on for the syscall). Never a literal prefix
-    /// here — the prefix comes from `InstallRoot` by way of `BootstrapLayout`.
+    /// Honour the account's shell before trying the bootstrap's defaults.
+    /// Account paths already use the bootstrap's vocabulary; an unprefixed
+    /// rootless entry is also tried beneath the derived install prefix.
     private static func loginShell(user: PasswdEntry?, layout: BootstrapLayout) -> String? {
-        if let shell = bootstrapShells.map(layout.bootstrapPath).first(where: layout.isExecutableFile) {
+        if let named = user?.shell, named.hasPrefix("/"), !named.utf8.contains(0),
+           let shell = [named, layout.bootstrapPath(named)].first(where: layout.isExecutableFile) {
             return shell
         }
-        if let shell = user?.shell, !shell.isEmpty, layout.isExecutableFile(shell) { return shell }
-        return nil
+        return bootstrapShells.map(layout.bootstrapPath).first(where: layout.isExecutableFile)
+    }
+
+    /// Fixed source only; the target and its arguments are separate argv entries.
+    /// Exec preserves the terminal leader and the target's exit status. A shell
+    /// that starts but fails is never retried: the target may have done work.
+    private static func shellExecArguments(_ shell: String) -> [String]? {
+        switch FilaPath.name(of: shell) {
+        case "sh", "dash", "bash", "zsh", "ksh":
+            ["-ilc", #"exec "$@""#, "fila-exec"]
+        case "fish":
+            // Fish has no $0 placeholder; every argument after -c is in $argv.
+            ["-ilc", "exec $argv"]
+        default:
+            nil
+        }
     }
 
     /// XNU reads a shebang out of the first page and gives up at 512 bytes, so
