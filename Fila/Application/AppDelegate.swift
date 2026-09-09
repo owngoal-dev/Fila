@@ -12,8 +12,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // is whatever the log screen was last set to; verbose does not survive
         // a relaunch, which is the right default for something that writes a
         // line per XPC call.
-        FilaLog.start(.app)
-        FilaLog.minimumLevel = LogPreferences.level
         do { try TerminalTemporaryFiles.cleanup() }
         catch { FilaLog.error("Terminal configuration cleanup failed: \(error)") }
         AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .systemBlue

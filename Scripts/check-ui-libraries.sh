@@ -27,6 +27,7 @@ search() {
 
 ui_roots=(
     "$root/Fila"
+    "$root/Frameworks"
     "$root/Packages/FilaKit/Sources/FilaTerminal"
 )
 

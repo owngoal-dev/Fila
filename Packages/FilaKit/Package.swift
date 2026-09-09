@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "FilaTerminal", targets: ["FilaTerminal"]),
         .library(name: "FilaRemote", targets: ["FilaRemote"]),
         .library(name: "FilaProvider", type: .static, targets: ["FilaProvider"]),
+        .library(name: "FilaBackendKit", targets: ["FilaBackendKit"]),
     ],
     // Dependencies are app-side only. None may reach FilaFileOps or
     // FilaProtocol: those are what the daemon links, and launchd caps the
@@ -190,6 +191,18 @@ let package = Package(
             dependencies: ["FilaProtocol"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // The backend module contract: entry class, registration, registry
+        // and the values a backend and the shell exchange. Foundation only,
+        // so a module framework can depend on it without XPC, UIKit or a
+        // vendor library, and it is linked into the process exactly once
+        // through FilaCore.framework.
+        .target(name: "FilaBackendKit", swiftSettings: [.swiftLanguageMode(.v5)]),
+        .testTarget(
+            name: "FilaBackendKitTests",
+            dependencies: ["FilaBackendKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
         .target(name: "FilaTestSupport", path: "Tests/Support", swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(
             name: "FilaFileOpsTests",
