@@ -24,7 +24,7 @@ Packages are also on [GitHub Releases](https://github.com/owngoal-dev/Fila/relea
 | TrollStore | `Fila_<version>.tipa` | Files the `mobile` user can reach |
 | AltStore, SideStore, or Sideloadly | `Fila_<version>.ipa` | Fila’s own files and files you import |
 
-Requires iOS 15 or later. Root access needs the `.deb` on a supported system environment. The `.tipa` and `.ipa` do not include it.
+Requires iOS 15 or later. Root access needs the `.deb` on a supported system environment. The `.tipa` and `.ipa` do not include it. The `.ipa` is built without the privileged, Applications and Music modules, so it contains no private API.
 
 When sideloading, provision the same App Group for Fila and its Files extension.
 

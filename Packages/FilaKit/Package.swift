@@ -25,6 +25,9 @@ let package = Package(
         .library(name: "FilaTerminal", targets: ["FilaTerminal"]),
         .library(name: "FilaRemote", targets: ["FilaRemote"]),
         .library(name: "FilaProvider", type: .static, targets: ["FilaProvider"]),
+        .library(name: "FilaBackendKit", targets: ["FilaBackendKit"]),
+        .library(name: "FilaBackendUI", targets: ["FilaBackendUI"]),
+        .library(name: "CFilaMusicLibrary", type: .static, targets: ["CFilaMusicLibrary"]),
     ],
     // Dependencies are app-side only. None may reach FilaFileOps or
     // FilaProtocol: those are what the daemon links, and launchd caps the
@@ -48,6 +51,10 @@ let package = Package(
         // must never take either: SnapKit and Then are layout and view setup.
         .package(url: "https://github.com/SnapKit/SnapKit.git", from: "6.0.0"),
         .package(url: "https://github.com/devxoul/Then.git", from: "3.0.0"),
+        // The SMB2 client, vendored at a pinned revision with one paging
+        // method added; see Packages/SMBClient/FILA-VENDOR.md. Linked by
+        // FilaSMB alone, which is app-side in both compositions.
+        .package(path: "../SMBClient"),
     ],
     targets: [
         // The wire vocabulary and the destruction guard. Compiled into both
@@ -80,17 +87,106 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // The app's side of the link: async XPC, one request per call, job
-        // events as a stream — and, when there is no daemon to talk to, the
-        // same operations run in-process. That second backend is why this
-        // depends on FilaFileOps: the app without a daemon calls exactly the
-        // code the daemon calls, rather than a second implementation of it.
-        //
-        // FilaFormats as well, for the in-process backend's archive jobs: with
-        // no daemon there is no helper to spawn, so `ArchiveJob` runs here.
+        // The local file contract and its in-process answer: `LocalFileAccess`,
+        // `LocalFileService` running the daemon's own operations in this
+        // process, and `LocalFileBackend` presenting a local root through the
+        // backend-neutral contract. It depends on FilaFileOps because the app
+        // without a daemon calls exactly the code the daemon calls, rather
+        // than a second implementation of it, and on FilaFormats for the
+        // in-process backend's archive jobs: with no daemon there is no
+        // helper to spawn, so `ArchiveJob` runs here. The XPC side is
+        // `FilaPrivileged`, below, which depends on this and never the
+        // other way round.
         .target(
             name: "FilaClient",
-            dependencies: ["FilaProtocol", "FilaLog", "FilaFileOps", "FilaFormats"],
+            dependencies: ["FilaProtocol", "FilaLog", "FilaFileOps", "FilaFormats", "FilaBackendKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // The privileged side of the local contract: `DaemonLink`, which
+        // sends every request to `filad` over XPC and falls back to the
+        // in-process service when no daemon was installed, and the only
+        // implementation of `TerminalAccess`.
+        //
+        // Deliberately **not a product**. Xcode links a package product's
+        // whole closure into every target that consumes it, so a product
+        // here would put a second copy of FilaClient, FilaProtocol and
+        // FilaLog into `FilaPrivileged.framework` beside the one in
+        // FilaCore. Instead the framework compiles this directory itself,
+        // and the target here exists for `swift test` alone.
+        //
+        // The framework ships in every wrapper of the full app and is a
+        // required load command there (`-needed_framework`): stripping it
+        // from a product that was linked with it aborts in dyld. The
+        // sandboxed composition is a separate app target that never links
+        // it, not a packaging step that removes it.
+        .target(
+            name: "FilaPrivileged",
+            dependencies: ["FilaClient", "FilaProtocol", "FilaLog"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaPrivilegedTests",
+            dependencies: ["FilaPrivileged", "FilaClient", "CRemoveFile"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // The installed-applications catalogue: LaunchServices behind a
+        // runtime lookup, the bundle-container scan through the local file
+        // contract, the app-folder decorations and the IPA installer. Like
+        // FilaPrivileged, **not a product**: `FilaApplications.framework`
+        // compiles this directory itself, the sandboxed composition never
+        // links that framework, and the target here is for `swift test`.
+        .target(
+            name: "FilaApplications",
+            dependencies: ["FilaBackendKit", "FilaClient", "FilaFormats", "FilaLog", "FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaApplicationsTests",
+            dependencies: ["FilaApplications", "FilaClient", "CRemoveFile"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // The music library: the Objective-C bridge that owns every private
+        // MediaLibrary call so its exceptions never unwind Swift, and the
+        // Swift editor over it. The bridge is a product because it has no
+        // dependency of its own to duplicate; the Swift target is not, for
+        // the same reason as FilaApplications, and its iOS-only parts are
+        // behind `os(iOS)` so the host still builds and tests the rest.
+        .target(name: "CFilaMusicLibrary", cSettings: [.unsafeFlags(["-fobjc-arc"])]),
+        .target(
+            name: "FilaMusicLibrary",
+            dependencies: ["CFilaMusicLibrary", "FilaBackendKit", "FilaClient", "FilaLog", "FilaMedia", "FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaMusicLibraryTests",
+            dependencies: ["FilaMusicLibrary"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // One saved SMB share as a file backend: the profile, the session
+        // that serialises every request and retires itself on a timeout,
+        // the paged listing and the bounded read into a descriptor. Like
+        // FilaApplications, **not a product**: `FilaSMB.framework` compiles
+        // this directory itself and is embedded by both compositions; the
+        // target here is for `swift test`, which can run it against a real
+        // server named by `FILA_SMB_SERVER`.
+        .target(
+            name: "FilaSMB",
+            dependencies: [
+                "FilaBackendKit",
+                "FilaLog",
+                .product(name: "SMBClient", package: "SMBClient"),
+            ],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // FilaClient as well: the live suite carries files between a local
+        // root and the share through `FileTransfer`, both ends real.
+        .testTarget(
+            name: "FilaSMBTests",
+            dependencies: ["FilaSMB", "FilaBackendKit", "FilaClient"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
@@ -190,6 +286,32 @@ let package = Package(
             dependencies: ["FilaProtocol"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // The backend module contract: entry class, registration, registry
+        // and the values a backend and the shell exchange. Foundation only,
+        // so a module framework can depend on it without XPC, UIKit or a
+        // vendor library, and it is linked into the process exactly once
+        // through FilaCore.framework.
+        .target(name: "FilaBackendKit", swiftSettings: [.swiftLanguageMode(.v5)]),
+        .testTarget(
+            name: "FilaBackendKitTests",
+            dependencies: ["FilaBackendKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The shared list screen every backend's root is shown with, the
+        // status panel and the layout tokens. UIKit, behind `canImport`, so
+        // the package still builds on the Mac; linked once, through FilaCore,
+        // and used by the app and every module framework alike.
+        .target(
+            name: "FilaBackendUI",
+            dependencies: [
+                "FilaBackendKit",
+                .product(name: "SnapKit", package: "SnapKit"),
+                .product(name: "Then", package: "Then"),
+            ],
+            resources: [.process("Resources")],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
         .target(name: "FilaTestSupport", path: "Tests/Support", swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(
             name: "FilaFileOpsTests",

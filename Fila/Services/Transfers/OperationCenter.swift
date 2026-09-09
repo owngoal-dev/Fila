@@ -7,7 +7,7 @@ extension Notification.Name {
     /// Something the sidebar renders changed: favorites, recents, tabs, or the
     /// operation list. One notification for all of them because the sidebar
     /// rebuilds its whole snapshot anyway.
-    static let filaSidebarChanged = Notification.Name("wiki.qaq.fila.sidebar")
+    static let filaOperationsChanged = Notification.Name("wiki.qaq.fila.sidebar")
 
     /// An operation finished. The notification's object is the `[String]` of
     /// directories it touched; a browser showing one of them reloads.
@@ -21,7 +21,7 @@ extension Notification.Name {
 /// Every filesystem change the user asked for, in one list.
 ///
 /// Three shapes go in and one comes out. A **daemon job** — copy, move, delete,
-/// trash — reports over `DaemonLink.jobEvents` and stops over XPC. A **single
+/// trash — reports over `LocalFileAccess.jobEvents` and stops over XPC. A **single
 /// round trip** — rename, create, setAttributes, replaceItem — has no progress
 /// and is over before a bar could be read. **Work the app runs itself** —
 /// compressing to a zip, extracting one — reports from its own callback and
@@ -208,7 +208,7 @@ final class OperationCenter: ObservableObject {
     ///
     /// A daemon that dies mid-job used to leave this waiting forever, because
     /// nothing synthesized the `.completed` that would never arrive. That is
-    /// fixed at the source: `DaemonLink.onLinkLost` turns a dropped connection
+    /// fixed at the source: `LocalFileAccess.onLinkLost` turns a dropped connection
     /// into a failure for every job the peer had running, which resumes this
     /// wait and stops the transfers row spinning at the same time.
     /// `started` receives the job identifier once its row exists, for a caller
@@ -294,7 +294,7 @@ final class OperationCenter: ObservableObject {
         subtitle: String,
         affected: [String],
         undo: Undo? = nil,
-        _ body: @escaping (DaemonLink) async throws -> Void
+        _ body: @escaping (any LocalFileAccess) async throws -> Void
     ) {
         run(kind: kind, title: kind.runningTitle, subtitle: subtitle, affected: affected, undo: undo) { [session] _ in
             try await session.perform(body)
@@ -315,18 +315,24 @@ final class OperationCenter: ObservableObject {
         kind: Kind,
         title: String,
         subtitle: String,
+        logSubject: String? = nil,
         affected: [String],
         undo: Undo? = nil,
+        feedback: Feedback = .automatic,
+        whenFinished: ((FilaFailure) -> Void)? = nil,
         _ body: @escaping (@escaping (JobProgress) -> Void) async throws -> Void
     ) -> UUID {
         let operation = Operation(
             kind: kind,
             title: title,
             subtitle: subtitle,
+            logSubject: logSubject,
             state: .running(nil),
             affected: affected,
             control: nil,
-            undo: undo
+            undo: undo,
+            feedback: feedback,
+            whenFinished: whenFinished
         )
         let identity = operation.id
         append(operation)
@@ -397,7 +403,7 @@ final class OperationCenter: ObservableObject {
 
     // MARK: - Events
 
-    private func apply(_ update: DaemonLink.JobUpdate) {
+    private func apply(_ update: JobUpdate) {
         guard let index = index(ofJob: update.identifier) else {
             // The row is not here yet — see `startJob`. Progress lost in that
             // gap costs nothing; a completion costs the row running forever.
@@ -471,6 +477,10 @@ final class OperationCenter: ObservableObject {
         operations.remove(at: index)
         place(finished)
         trimFinished()
+        // The browsers learn through their directory subscriptions; the
+        // notification stays for the screens that are not browsers — the
+        // save panel, the File Provider signal, the sidebar's trash probe.
+        session.local.invalidate(finished.affected)
         NotificationCenter.default.post(
             name: .filaJobFinished,
             object: finished.affected,
@@ -542,7 +552,7 @@ final class OperationCenter: ObservableObject {
     }
 
     private func changed() {
-        NotificationCenter.default.post(name: .filaSidebarChanged, object: nil)
+        NotificationCenter.default.post(name: .filaOperationsChanged, object: nil)
     }
 
     // MARK: - Announcing

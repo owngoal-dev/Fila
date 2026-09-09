@@ -9,6 +9,10 @@
       "sha256": "79b8af7a9877c42384ecc70ee213d554ec4ba0c65a029ff3e6af2fe045595523",
       "license": "MIT"
     },
+    "vendored/smbclient": {
+      "sha256": "92b9785672f66ae9c75550d328a00ff06ee6728f7d1b8874355b5dbeaf23c753",
+      "license": "MIT"
+    },
     "vendored/boringssl": {
       "sha256": "c9d230b5b6d2185409a6514aecf416b1198552769a4e8abde47521afc4895010",
       "license": "ISC / OpenSSL / SSLeay / third-party notices"

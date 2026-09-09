@@ -12,6 +12,13 @@ SCHEME              := Fila
 CONFIGURATION       ?= Release
 DERIVED_DATA        ?= /private/tmp/fila-deriveddata
 APP_BUNDLE          := $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/Fila.app
+# The sandboxed composition is a second app target over the same sources
+# (see "Two compositions" below). It builds into its own DerivedData: both
+# targets produce Fila.app, and a shared products directory would let one
+# build's frameworks and receipt be packaged as the other's.
+SANDBOX_SCHEME      := FilaSandboxed
+SANDBOX_DERIVED_DATA ?= $(DERIVED_DATA)-sandboxed
+SANDBOX_APP_BUNDLE  := $(SANDBOX_DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/Fila.app
 DAEMON_BINARY       := $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/filad
 HELPER_BINARY       := $(DERIVED_DATA)/Build/Products/$(CONFIGURATION)-iphoneos/fila-archive
 SIMULATOR_APP       := $(DERIVED_DATA)/Build/Products/Debug-iphonesimulator/Fila.app
@@ -50,10 +57,13 @@ BUILD_NUMBER        := $(call xcconfig_setting,CURRENT_PROJECT_VERSION)
 MINIMUM_IOS_VERSION := $(call base_xcconfig_setting,IPHONEOS_DEPLOYMENT_TARGET)
 DEB_OUTPUT          ?= $(ROOT_DIR)/build/Packages/$(PACKAGE_ID)_$(APP_VERSION)_$(PACKAGE_ARCHITECTURE).deb
 
-# The two archives that carry the app alone. Same Fila.app as the .deb ships —
-# the app looks the daemon's Mach service up at runtime and does the work
-# in-process when there is none, so there is no build flag and no per-packaging
-# source variant. What differs is the entitlements and where it lands.
+# The two archives that carry the app alone. The .tipa is the same Fila.app
+# the .deb ships — the app looks the daemon's Mach service up at runtime and
+# does the work in-process when there is none — signed with the same
+# entitlements. The .ipa is the sandboxed composition: the same shell sources
+# and the same shared frameworks, linked without the privileged, applications
+# and music modules, so the archive a free developer account re-signs carries
+# no private API and no jailbreak entitlement.
 TIPA_OUTPUT         ?= $(ROOT_DIR)/build/Packages/Fila_$(APP_VERSION).tipa
 IPA_OUTPUT          ?= $(ROOT_DIR)/build/Packages/Fila_$(APP_VERSION).ipa
 
@@ -82,19 +92,22 @@ DAEMON_ENTITLEMENTS := $(ROOT_DIR)/Packaging/Filad.entitlements
 LAUNCH_DAEMON       := $(ROOT_DIR)/Packaging/wiki.qaq.filad.plist
 INFO_PLIST_SUPPLEMENT := $(ROOT_DIR)/Packaging/Fila-Info.plist
 
-XCODEBUILD_BASE := $(XCODEBUILD_WRAPPER) \
+# Recursively expanded: the sandboxed recipe points XCODEBUILD_DERIVED_DATA
+# at its own directory with a target-specific variable.
+XCODEBUILD_DERIVED_DATA = $(DERIVED_DATA)
+XCODEBUILD_BASE = $(XCODEBUILD_WRAPPER) \
 	-project "$(PROJECT)" \
-	-derivedDataPath "$(DERIVED_DATA)" \
+	-derivedDataPath "$(XCODEBUILD_DERIVED_DATA)" \
 	-skipMacroValidation \
 	-skipPackagePluginValidation \
 	ARCHS=arm64 \
 	ONLY_ACTIVE_ARCH=YES \
 	ENABLE_DEBUG_DYLIB=NO
-XCODEBUILD := $(XCODEBUILD_BASE) \
+XCODEBUILD = $(XCODEBUILD_BASE) \
 	CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 # CoreSimulator needs Xcode's linker-created entitlement section. Ad-hoc
 # signing needs no developer identity, team or provisioning profile here.
-SIMULATOR_XCODEBUILD := $(XCODEBUILD_BASE) \
+SIMULATOR_XCODEBUILD = $(XCODEBUILD_BASE) \
 	CODE_SIGNING_ALLOWED=YES CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=""
 
 ifeq ($(APP_VERSION),)
@@ -106,7 +119,8 @@ endif
 
 .PHONY: all help print-version print-build-number print-deb-path print-tipa-path \
 	print-ipa-path print-flavor \
-	set-version bump-build check harness build compile sim vphone _build-ios _package-deb _packages \
+	set-version bump-build check harness build compile build-sandboxed compile-sandboxed sim vphone \
+	_build-ios _build-ios-sandboxed _package-deb _packages \
 	deb deb-roothide deb-rootless deb-all tipa ipa packages install clean
 
 all: packages
@@ -117,11 +131,13 @@ help:
 	@echo "  check       Validate the Xcode project and packaging inputs"
 	@echo "  build       Build the unsigned Fila.app, filad and fila-archive for iPhoneOS"
 	@echo "  compile     Check and compile iPhoneOS products; CI runs harness separately"
+	@echo "  build-sandboxed  Build the unsigned sandboxed Fila.app (FilaSandboxed) for iPhoneOS"
+	@echo "  compile-sandboxed  Check and compile the sandboxed composition; CI runs harness separately"
 	@echo "  sim         Build Debug and launch the app on the booted simulator"
 	@echo "  deb         Build, ad-hoc sign, package, and verify the .deb for FLAVOR"
 	@echo "  deb-all     Package both the roothide and the rootless .deb"
 	@echo "  tipa        Package the app alone for TrollStore"
-	@echo "  ipa         Package the app alone, sandboxed, for AltStore/SideStore/Sideloadly"
+	@echo "  ipa         Package the sandboxed composition for AltStore/SideStore/Sideloadly"
 	@echo "  packages    All four: both .deb flavours, the .tipa and the .ipa"
 	@echo "  install     Build for FLAVOR and install it on the device via iproxy"
 	@echo "  vphone      Incremental Debug build and serve one .deb for Safari/Sileo (no SSH)"
@@ -187,7 +203,7 @@ check:
 		[[ "$$objver" == "$(PROJECT_OBJECT_VERSION)" ]] || { echo "error: project.pbxproj objectVersion must stay $(PROJECT_OBJECT_VERSION) so Xcode 16+ can read it, got '$$objver' (newer Xcode rewrites it on save)" >&2; exit 65; }
 	@plutil -lint "$(ENTITLEMENTS)" "$(DAEMON_ENTITLEMENTS)" "$(LAUNCH_DAEMON)" "$(INFO_PLIST_SUPPLEMENT)"
 	@targets="$$(xcodebuild -project "$(PROJECT)" -list)" || exit $$?; \
-	for target in Filad FilaArchive Fila; do \
+	for target in Filad FilaArchive Fila FilaSandboxed FilaCore FilaLocal FilaPrivileged FilaApplications FilaMusicLibrary FilaSMB; do \
 		grep -Eq "^[[:space:]]*$$target[[:space:]]*$$" <<<"$$targets" \
 			|| { echo "error: missing Xcode target $$target" >&2; exit 65; }; \
 	done
@@ -209,6 +225,23 @@ build: harness compile
 compile: check
 	@$(MAKE) --no-print-directory _build-ios
 
+# Two compositions, one set of sources. `Fila` links every backend module
+# and serves the .deb and the .tipa; `FilaSandboxed` links only what a
+# sandboxed process can use and serves the .ipa. Nothing in `Fila/` knows
+# which one it is in: the module frameworks register themselves at launch,
+# and a screen that is not registered is simply not offered. What differs
+# is the link line, and `Scripts/verify-composition.sh` reads that back out
+# of the packaged binary.
+#
+# No bump here: the sandboxed app is built at the build number the full
+# app has, so `make ipa` after `make build` ships the same number in both
+# wrappers, and a bump between the two would not only split them but move
+# `Configuration/` out from under the full build's receipt.
+build-sandboxed: harness compile-sandboxed
+
+compile-sandboxed: check
+	@$(MAKE) --no-print-directory _build-ios-sandboxed
+
 # The browser frontend served by the WebDAV server: React + webpack in WebUI/,
 # static files in WebUI/dist. The app target's "Build Web UI" phase runs the
 # same script and copies dist/ into Fila.app/WebUI; this refreshes dist/ alone.
@@ -223,6 +256,20 @@ _build-ios: bump-build
 		-destination "generic/platform=iOS" \
 		build
 	@python3 "$(EXTRACTED_STRINGS)" "$(DERIVED_DATA)" "$(CONFIGURATION)-iphoneos"
+
+# Both compositions are `Fila.app`, so they cannot share a products
+# directory: a copy-files phase never prunes, and the second build would
+# inherit the first one's frameworks and overwrite its receipt.
+_build-ios-sandboxed: XCODEBUILD_DERIVED_DATA = $(SANDBOX_DERIVED_DATA)
+_build-ios-sandboxed:
+	@[ "$(abspath $(SANDBOX_DERIVED_DATA))" != "$(abspath $(DERIVED_DATA))" ] \
+		|| { echo "error: SANDBOX_DERIVED_DATA must differ from DERIVED_DATA; both compositions build Fila.app" >&2; exit 1; }
+	XCBUILD_LABEL=build-ios-sandboxed python3 Scripts/build-package-inputs.py --products Fila.app build "$(dir $(SANDBOX_APP_BUNDLE))" $(XCODEBUILD) \
+		-configuration "$(CONFIGURATION)" \
+		-scheme "$(SANDBOX_SCHEME)" \
+		-destination "generic/platform=iOS" \
+		build
+	@python3 "$(EXTRACTED_STRINGS)" --composition sandboxed "$(SANDBOX_DERIVED_DATA)" "$(CONFIGURATION)-iphoneos"
 
 # The simulator exercises the shell through the local backend. The real
 # daemon and its privileges are verified on vphone.
@@ -272,21 +319,22 @@ deb-all: build
 tipa: build
 	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" tipa "$(TIPA_OUTPUT)" "$(APP_VERSION)" "$(ENTITLEMENTS)"
 
-# Fully sandboxed, ad-hoc signed with only the standard App Group: AltStore,
-# SideStore and Sideloadly re-sign with the user's own certificate at install
-# time, and a private entitlement left in the binary makes that step fail on
-# their machine with nothing they can act on.
-ipa: build
-	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
+# The sandboxed composition, ad-hoc signed with only the standard App Group:
+# AltStore, SideStore and Sideloadly re-sign with the user's own certificate
+# at install time, and a private entitlement left in the binary makes that
+# step fail on their machine with nothing they can act on.
+ipa: build-sandboxed
+	"$(IPA_PACKAGER)" "$(SANDBOX_APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
 
 packages: build
+	@$(MAKE) --no-print-directory _build-ios-sandboxed
 	@$(MAKE) --no-print-directory _packages
 
 _packages:
 	@$(MAKE) --no-print-directory _package-deb FLAVOR=roothide
 	@$(MAKE) --no-print-directory _package-deb FLAVOR=rootless
 	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" tipa "$(TIPA_OUTPUT)" "$(APP_VERSION)" "$(ENTITLEMENTS)"
-	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
+	"$(IPA_PACKAGER)" "$(SANDBOX_APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
 
 # Build for FLAVOR and install it on the device behind `iproxy $(DEVICE_PORT) 22`.
 # The package's own postinst boots the daemon and runs uicache; nothing is
@@ -303,5 +351,5 @@ vphone:
 	@"$(ROOT_DIR)/Scripts/vphone.sh"
 
 clean:
-	rm -rf "$(DERIVED_DATA)"
+	rm -rf "$(DERIVED_DATA)" "$(SANDBOX_DERIVED_DATA)"
 	rm -rf "$(ROOT_DIR)/build/Packages"

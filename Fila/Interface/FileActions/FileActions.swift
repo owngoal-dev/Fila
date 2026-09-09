@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaProtocol
@@ -30,8 +31,8 @@ final class FileActions {
     /// `/private` prefix, so `/var/jb/.fila-trash` and its realpath agree even
     /// though the app cannot stat the directory itself (root-owned 0700).
     static func isTrash(_ directory: String) -> Bool {
-        guard let backend = FileSession.shared.hello?.backend else { return false }
-        return normalized(directory) == normalized(SidebarLocation.trashDirectory(backend: backend))
+        guard let trash = FileSession.shared.trashDirectory else { return false }
+        return normalized(directory) == normalized(trash)
     }
 
     /// A trashed item: a direct child of the trash, wherever it was reached
@@ -131,7 +132,7 @@ final class FileActions {
                 confirm { self.share([path]) }
             },
         ] + run + install
-        var destructive: [UIMenuElement] = [
+        let destructive: [UIMenuElement] = [
             UIAction(
                 title: Self.deleteTitle,
                 image: UIImage(systemName: "trash"),
@@ -140,15 +141,6 @@ final class FileActions {
                 confirm { self.delete([path]) }
             },
         ]
-        if AppPreferences.shared.allowsGuardOverride {
-            destructive.append(UIAction(
-                title: String(localized: "Override Protection…"),
-                image: UIImage(systemName: "exclamationmark.octagon"),
-                attributes: .destructive
-            ) { [self] _ in
-                confirm { self.promptOverriddenDelete([path]) }
-            })
-        }
         if groupsFileOperations {
             let file = UIMenu(
                 title: String(localized: "File Actions"),
@@ -249,7 +241,7 @@ final class FileActions {
 
     /// Offered only while `SystemCapabilities.runsPrograms` says so; and without
     /// `filad` the terminal itself refuses, for either identity — see
-    /// `DaemonLink.openTerminal` — so nothing here pretends otherwise.
+    /// `TerminalAccess.openTerminal` — so nothing here pretends otherwise.
     private func runAction(
         _ path: String,
         user: TerminalUser,
@@ -269,12 +261,15 @@ final class FileActions {
         user: TerminalUser,
         onProcessExit: (@MainActor @Sendable () -> Void)? = nil
     ) -> Bool {
-        guard let presenter = activePresenter else { return false }
+        // No privileged module, no terminal: `runsPrograms` already hides
+        // every entry that leads here, so this is the last line of defence,
+        // not a path a user can reach.
+        guard let presenter = activePresenter, let access = session.terminalAccess else { return false }
         let terminal = TerminalViewController(
             program: program,
             user: user,
             redirectsScriptInterpreter: AppPreferences.shared.redirectsScriptInterpreters,
-            link: session.link,
+            link: access,
             onProcessExit: onProcessExit
         )
         if let navigation = presenter.navigationController {
@@ -331,6 +326,7 @@ final class FileActions {
                         try await $0.rename(source, to: destination, exclusive: !replacingExisting)
                     }
                 }
+                session.local.invalidate([directory])
                 NotificationCenter.default.post(name: .filaJobFinished, object: [directory])
                 didRemove()
             } catch let failure as FilaFailure where failure.systemError == EEXIST && !replacingExisting {

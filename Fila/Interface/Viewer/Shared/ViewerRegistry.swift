@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaLog
@@ -20,7 +21,7 @@ enum ViewerRegistry {
     /// Prepare the selected viewer and its navigation items before the caller
     /// pushes it. Format detection must not add editor buttons mid-transition.
     @MainActor
-    static func makeViewer(for details: FileDetails, link: DaemonLink) async -> UIViewController? {
+    static func makeViewer(for details: FileDetails, link: any LocalFileAccess) async -> UIViewController? {
         let kind = details.node.kind == .symbolicLink ? details.node.link?.resolvedKind : details.node.kind
         guard kind == .regular else { return nil }
         let viewer = ViewerContainerViewController(details: details, link: link)
@@ -33,7 +34,7 @@ enum ViewerRegistry {
         for format: FileFormat,
         details: FileDetails,
         file: DescriptorFile,
-        link: DaemonLink
+        link: any LocalFileAccess
     ) -> UIViewController {
         switch format {
         case .propertyList:
@@ -78,7 +79,7 @@ final class ViewerContainerViewController: UIViewController {
     var confirmReplacement: ((_ prepareToPresent: () -> Void, _ replace: @escaping () -> Void) -> Void)?
 
     private let details: FileDetails
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
     /// Shown until the child is embedded or the open fails, which are the only
     /// two ways `load()` ends.
     private lazy var status = StatusView(content: .loading(
@@ -97,7 +98,7 @@ final class ViewerContainerViewController: UIViewController {
         (details.path as NSString).lastPathComponent
     }
 
-    init(details: FileDetails, link: DaemonLink) {
+    init(details: FileDetails, link: any LocalFileAccess) {
         self.details = details
         self.link = link
         super.init(nibName: nil, bundle: nil)

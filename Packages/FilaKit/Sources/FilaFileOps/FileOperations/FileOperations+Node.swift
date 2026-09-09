@@ -13,6 +13,31 @@ public extension FileOperations {
         try filaCheck(resolved) { rmdir(resolved) }
     }
 
+    /// Removes one node and never a tree: `rmdir(2)` when `directory`,
+    /// `unlink(2)` otherwise.
+    ///
+    /// The caller says which kind it verified, and the kind is checked here
+    /// with `lstat` before the call — `EISDIR` for a directory offered to
+    /// `unlink`, `ENOTDIR` the other way — so a name whose kind changed
+    /// between the caller's look and this call is left alone rather than
+    /// removed under the wrong rule. Not left to the kernel: `unlink(2)`
+    /// refuses a directory only for a process that is not the super-user,
+    /// and this one is root. Neither call follows a symlink: removing a
+    /// link removes the link, and a link to a directory is not a directory
+    /// here. The guard is consulted like every other destruction;
+    /// `overrideGuard` stops at the nodes with no recovery path, as
+    /// `rename` does.
+    func removeNode(at path: String, directory: Bool, overrideGuard: Bool = false) throws {
+        let resolved = try resolveForDestruction(path, overrideGuard: overrideGuard)
+        var metadata = stat()
+        try filaCheck(resolved) { lstat(resolved, &metadata) }
+        let isDirectory = metadata.st_mode & S_IFMT == S_IFDIR
+        guard isDirectory == directory else {
+            throw FilaFailure(errno: isDirectory ? EISDIR : ENOTDIR, path: resolved)
+        }
+        try filaCheck(resolved) { directory ? rmdir(resolved) : unlink(resolved) }
+    }
+
     /// mkdir, symlink, hardlink, or an empty regular file.
     ///
     /// An explicit `mode` keeps the caller's creation policy, such as a private

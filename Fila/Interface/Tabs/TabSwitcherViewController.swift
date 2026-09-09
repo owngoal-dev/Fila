@@ -1,4 +1,6 @@
+import FilaBackendKit
 import AlertController
+import FilaBackendUI
 import SnapKit
 import Then
 import UIKit
@@ -183,20 +185,14 @@ final class TabSwitcherViewController: UIViewController {
             switch destination {
             case let .directory(place):
                 return open(place.path, title: place.title, image: FilaMenu.preview(for: place))
-            case .applications:
+            case let .catalog(root):
                 return UIAction(
-                    title: String(localized: "Applications"),
-                    image: UIImage(named: "FileIcons/application"),
+                    title: root.displayName,
+                    image: SidebarLocation.image(for: root),
                     attributes: full ? .disabled : []
                 ) { [weak self] _ in
-                    self?.shell?.openInNewTab(AppListViewController(), directory: AppPreferences.shared.lastDirectory)
+                    self?.shell?.openInNewTab(location: root.location)
                 }
-            case .music:
-                return UIAction(
-                    title: String(localized: "Music"),
-                    image: UIImage(named: "FileIcons/music"),
-                    attributes: full ? .disabled : []
-                ) { [weak self] _ in self?.shell?.openMusicInNewTab() }
             }
         }
         return [UIMenu(title: String(localized: "Places"), options: .displayInline, children: places)]

@@ -1,3 +1,5 @@
+import FilaBackendUI
+import FilaBackendKit
 import FilaProtocol
 import SnapKit
 import Then
@@ -7,6 +9,7 @@ import UIKit
 final class SidebarViewController: UIViewController {
     private enum Section: Int {
         case places
+        case connections
         case favorites
         case mounts
         case recents
@@ -14,6 +17,7 @@ final class SidebarViewController: UIViewController {
         var title: String? {
             switch self {
             case .places: String(localized: "Places")
+            case .connections: String(localized: "Servers")
             case .favorites: String(localized: "Favorites")
             case .mounts: String(localized: "Mount Points")
             case .recents: String(localized: "Recents")
@@ -23,12 +27,14 @@ final class SidebarViewController: UIViewController {
 
     private enum Item: Hashable {
         case header(Section)
-        case place(SidebarLocation)
+        case place(SidebarPlace)
         case favorite(String)
-        case apps
-        case music
+        case catalog(BackendID)
         case recent(String)
         case mount(String)
+        /// A remote file backend's root: a saved share. Opened from here,
+        /// managed in Settings › Servers.
+        case connection(BackendID)
     }
 
     private let session = FileSession.shared
@@ -42,6 +48,7 @@ final class SidebarViewController: UIViewController {
     private var rebuildGeneration = UUID()
     private var isApplyingSnapshot = false
     private var openTask: Task<Void, Never>?
+    private var sidebarTask: Task<Void, Never>?
     private var mounts: [MountPoint] = []
     private var mountTask: Task<Void, Never>?
     /// Whether the trash holds anything, so its row can show a full or empty
@@ -112,6 +119,7 @@ final class SidebarViewController: UIViewController {
         recentImageTask?.cancel()
         openTask?.cancel()
         mountTask?.cancel()
+        sidebarTask?.cancel()
     }
 
     override func viewDidLoad() {
@@ -126,9 +134,12 @@ final class SidebarViewController: UIViewController {
             guard let self, let sections = dataSource?.snapshot().sectionIdentifiers,
                   sections.indices.contains(section) else { return nil }
             let identifier = sections[section]
-            let configuration = UICollectionLayoutListConfiguration(
-                appearance: environment.traitCollection.horizontalSizeClass == .regular ? .sidebar : .insetGrouped
-            ).with {
+            // Inset grouped at every width: the same cards in the iPad
+            // column as in the phone's sheet, and UIKit's own grouped-cell
+            // background — which follows the card's corners when a row is
+            // highlighted, on iOS 18 as on 26 — rather than a hand-painted
+            // one that does not.
+            let configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped).with {
                 $0.headerMode = identifier.title == nil ? .none : .firstItemInSection
                 $0.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
                     self?.swipeActions(at: indexPath)
@@ -151,9 +162,18 @@ final class SidebarViewController: UIViewController {
         }
 
         buildDataSource()
-        for name in [Notification.Name.filaSidebarChanged, .filaPreferencesChanged] {
-            NotificationCenter.default.addObserver(self, selector: #selector(rebuild), name: name, object: nil)
+        // The backends say when their contributions change; the
+        // notifications left are the shell's own: operations (the Tasks
+        // button), the Applications setting (a preset row) and finished
+        // jobs (the trash probe).
+        sidebarTask = Task { [weak self] in
+            for await _ in BackendComposition.sidebar.updates() {
+                guard let self, !Task.isCancelled else { return }
+                rebuild()
+            }
         }
+        NotificationCenter.default.addObserver(self, selector: #selector(operationsChanged), name: .filaOperationsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(rebuild), name: .filaPreferencesChanged, object: nil)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(probeTrash),
@@ -207,10 +227,13 @@ final class SidebarViewController: UIViewController {
         }
     }
 
+    @objc private func operationsChanged() {
+        updateBarButtons()
+    }
+
     /// One page is enough: the question is whether there is anything at all.
     @objc private func probeTrash() {
-        guard let backend = session.hello?.backend else { return }
-        let path = SidebarLocation.trashDirectory(backend: backend)
+        guard let path = session.trashDirectory else { return }
         trashProbe?.cancel()
         trashProbe = Task { [weak self, session] in
             let page = try? await session.perform(retryOnDisconnect: true) {
@@ -234,13 +257,6 @@ final class SidebarViewController: UIViewController {
     private func buildDataSource() {
         let row = UICollectionView.CellRegistration<IconRowCell, Item> { [weak self] cell, _, item in
             self?.configure(cell, for: item)
-            cell.configurationUpdateHandler = { cell, state in
-                var background = UIBackgroundConfiguration.listSidebarCell().updated(for: state)
-                background.backgroundColorTransformer = nil
-                background.backgroundColor = state.isSelected || state.isHighlighted
-                    ? UIColor.systemGray.withAlphaComponent(0.1) : .secondarySystemGroupedBackground
-                cell.backgroundConfiguration = background
-            }
         }
         let header = UICollectionView.CellRegistration<UICollectionViewListCell, Section> { cell, _, section in
             var content = UIListContentConfiguration.sidebarHeader()
@@ -257,9 +273,11 @@ final class SidebarViewController: UIViewController {
         }
     }
 
+    /// Every row is one line — a name beside its picture — so the list
+    /// reads at one rhythm. A recent's path is in its context menu and on
+    /// the screen it opens; the sidebar is not where it is read.
     private func configure(_ cell: IconRowCell, for item: Item) {
         var name: String
-        var detail: String?
         var image: UIImage?
         var color: UIColor = .label
         switch item {
@@ -274,7 +292,6 @@ final class SidebarViewController: UIViewController {
             }
         case let .favorite(path), let .recent(path):
             name = path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
-            detail = path
             image = recentItems[path]?.image ?? FilePresentation.image(kind: .directory, name: name)
             if let displayName = recentItems[path]?.name {
                 name = displayName
@@ -283,16 +300,18 @@ final class SidebarViewController: UIViewController {
         case let .mount(path):
             guard let mount = mounts.first(where: { $0.path == path }) else { return }
             name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
-            detail = mount.isReadOnly ? [path, String(localized: "Read Only")].joined(separator: " · ") : path
+            if mount.isReadOnly { name += " · " + String(localized: "Read Only") }
             image = UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal)
-        case .apps:
-            name = String(localized: "Applications")
-            image = UIImage(named: "FileIcons/application")?.withRenderingMode(.alwaysOriginal)
-        case .music:
-            name = String(localized: "Music")
-            image = UIImage(named: "FileIcons/music")?.withRenderingMode(.alwaysOriginal)
+        case let .catalog(id):
+            guard let root = BackendComposition.registry.backend(id)?.root else { return }
+            name = root.displayName
+            image = SidebarLocation.image(for: root)
+        case let .connection(id):
+            guard let root = BackendComposition.registry.backend(id)?.root else { return }
+            name = root.displayName
+            image = SidebarLocation.image(for: root)
         }
-        cell.configure(name: name, detail: detail, image: image, nameColor: color, tintColor: .tintColor)
+        cell.configure(name: name, image: image, nameColor: color, tintColor: .tintColor)
         if case .favorite = item {
             cell.showFavoriteBadge()
         }
@@ -304,10 +323,19 @@ final class SidebarViewController: UIViewController {
         SidebarLocation.orderedDestinations.map {
             switch $0 {
             case let .directory(place): .place(place)
-            case .applications: .apps
-            case .music: .music
+            case let .catalog(root): .catalog(root.location.backend)
             }
         }
+    }
+
+    /// Every remote file backend's root, in the order they were registered
+    /// or saved. Only destinations: adding, editing and removing a server
+    /// is Settings › Servers, so the jump list is never a form.
+    private var connections: [Item] {
+        let local = session.local.id
+        return BackendComposition.registry.backends
+            .filter { $0 is any FileBackend && $0.root.kind == .filesystem && $0.id != local }
+            .map { Item.connection($0.id) }
     }
 
     @objc private func rebuild() {
@@ -318,11 +346,11 @@ final class SidebarViewController: UIViewController {
         // Its completion will restart from the newest preferences.
         guard !isApplyingSnapshot else { return }
         isApplyingSnapshot = true
-        let preferences = AppPreferences.shared
         updateBarButtons()
         // Capped: the sidebar is a shortcut list, not a history browser, and a
         // hundred rows of recents pushes everything else off the screen.
-        let recents = Array(preferences.recents.prefix(8))
+        let recents = session.recentPaths(limit: 8)
+        let favorites = session.favoritePaths
         // Cached names and icons were looked up under the old Applications
         // setting; a container decorated as "Safari" must not stay that way
         // after the setting that allowed it is off.
@@ -330,10 +358,11 @@ final class SidebarViewController: UIViewController {
             recentsDecoratedWithApplications = SystemCapabilities.showsApplications
             recentItems = [:]
         }
-        recentItems = recentItems.filter { recents.contains($0.key) || preferences.favorites.contains($0.key) }
+        recentItems = recentItems.filter { recents.contains($0.key) || favorites.contains($0.key) }
         let sections: [(Section, [Item])] = [
             (.places, presets),
-            (.favorites, preferences.favorites.filter { recentItems[$0]?.isDirectory == true }.map(Item.favorite)),
+            (.connections, connections),
+            (.favorites, favorites.filter { recentItems[$0]?.isDirectory == true }.map(Item.favorite)),
             (.mounts, mounts.map { Item.mount($0.path) }),
             (.recents, recents.filter { recentItems[$0]?.isDirectory == true }.map(Item.recent)),
         ].filter { !$0.1.isEmpty }
@@ -423,12 +452,11 @@ final class SidebarViewController: UIViewController {
     private func loadRecentImages(refresh: Bool = false) {
         recentImageTask?.cancel()
         guard !isApplyingSnapshot, viewIfLoaded?.window != nil else { return }
-        let preferences = AppPreferences.shared
-        let paths = (preferences.favorites + Array(preferences.recents.prefix(8)))
+        let paths = (session.favoritePaths + session.recentPaths(limit: 8))
             .filter { refresh || recentItems[$0] == nil }
         guard !paths.isEmpty else { return }
         recentImageTask = Task { [weak self, session] in
-            let apps = await InstalledAppCatalog.load(session: session)
+            let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
             // One bounded sequence, never one task per cell or per scroll event.
             var loaded = Set<String>()
             var didLoad = false
@@ -440,10 +468,12 @@ final class SidebarViewController: UIViewController {
                 ) else { continue }
                 guard !Task.isCancelled else { return }
                 let node = details.node
-                let presentation = AppFolderDisplay.presentation(for: path, apps: apps)
+                let presentation = decoration(path)
                 var image = FilePresentation.image(for: node)
-                if let identifier = presentation?.applicationIdentifier {
-                    image = await AppFolderDisplay.icon(for: identifier)
+                if let identifier = presentation?.applicationIdentifier,
+                   let artwork = SystemCapabilities.applicationArtwork
+                {
+                    image = await artwork.icon(for: identifier)
                 }
                 guard let self, !Task.isCancelled else { return }
                 self.recentItems[path] = (image, presentation?.name, node.isNavigable)
@@ -463,7 +493,7 @@ final class SidebarViewController: UIViewController {
                 if details.node.isNavigable {
                     shell.open(path)
                 } else {
-                    AppPreferences.shared.forgetRecent(path)
+                    session.forgetVisit(path)
                 }
             } catch let failure as FilaFailure {
                 guard let self, !Task.isCancelled, self.viewIfLoaded?.window != nil,
@@ -471,7 +501,7 @@ final class SidebarViewController: UIViewController {
                 // A recent that no longer exists is not worth an alert, and
                 // not worth keeping: the entry goes, the sidebar rebuilds.
                 if failure.code == .notFound || failure.systemError == ENOENT {
-                    AppPreferences.shared.forgetRecent(path)
+                    session.forgetVisit(path)
                     Toast.show(String(localized: "Removed from Recents"))
                     return
                 }
@@ -501,8 +531,8 @@ final class SidebarViewController: UIViewController {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return nil }
         switch item {
         case let .favorite(path):
-            let remove = UIContextualAction(style: .destructive, title: String(localized: "Remove")) { _, _, done in
-                AppPreferences.shared.toggleFavorite(path)
+            let remove = UIContextualAction(style: .destructive, title: String(localized: "Remove")) { [session] _, _, done in
+                session.toggleFavorite(path)
                 done(true)
             }
             return UISwipeActionsConfiguration(actions: [remove])
@@ -531,12 +561,10 @@ extension SidebarViewController: UICollectionViewDelegate {
             open(path)
         case let .recent(path):
             openRecent(path)
-        case .apps:
+        case let .catalog(id), let .connection(id):
             collectionView.deselectItem(at: indexPath, animated: true)
-            shell?.replace(AppListViewController())
-        case .music:
-            collectionView.deselectItem(at: indexPath, animated: true)
-            shell?.replace(MusicLibraryViewController())
+            guard let screen = SidebarLocation.screen(for: .root(of: id)) else { return }
+            shell?.replace(screen)
         }
     }
 

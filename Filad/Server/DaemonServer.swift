@@ -272,6 +272,13 @@ final class DaemonServer: @unchecked Sendable {
                 overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard)
             )
 
+        case .removeNode:
+            try operations.removeNode(
+                at: string(FilaWireKey.path, in: message),
+                directory: xpc_dictionary_get_bool(message, FilaWireKey.removeDirectory),
+                overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard)
+            )
+
         case .setAttributes:
             guard let value = xpc_dictionary_get_value(message, FilaWireKey.attributes),
                   let change = AttributeChange(decoding: value)

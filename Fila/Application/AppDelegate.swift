@@ -1,4 +1,6 @@
 import AlertController
+import FilaBackendKit
+import FilaBackendUI
 import FilaLog
 import FilaTerminal
 import UIKit
@@ -12,13 +14,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // is whatever the log screen was last set to; verbose does not survive
         // a relaunch, which is the right default for something that writes a
         // line per XPC call.
-        FilaLog.start(.app)
-        FilaLog.minimumLevel = LogPreferences.level
         do { try TerminalTemporaryFiles.cleanup() }
         catch { FilaLog.error("Terminal configuration cleanup failed: \(error)") }
         AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .systemBlue
         // The app icon, light and dark, rendered by Scripts/make-app-mark.swift.
         AlertControllerConfiguration.alertImage = UIImage(named: "AppIconMark")
+        // Module screens borrow the app's browsers, pickers and feedback from
+        // here; assigned before any scene can make one.
+        BackendScreens.shell = AppBackendShell()
         let info = Bundle.main.infoDictionary
         FilaLog.info(
             "Fila \(info?["CFBundleShortVersionString"] as? String ?? "?")"
@@ -51,6 +54,20 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     /// A screen that went blank right after one of these lines is explained.
     func applicationDidReceiveMemoryWarning(_: UIApplication) {
         FilaLog.warning("memory warning")
+    }
+
+    /// No directory polling while nothing is on screen; coming back hints
+    /// every open browser once, because anything may have happened.
+    func applicationDidEnterBackground(_: UIApplication) {
+        for backend in BackendComposition.fileBackends {
+            backend.setObservationPaused(true)
+        }
+    }
+
+    func applicationWillEnterForeground(_: UIApplication) {
+        for backend in BackendComposition.fileBackends {
+            backend.setObservationPaused(false)
+        }
     }
 
     func applicationWillTerminate(_: UIApplication) {

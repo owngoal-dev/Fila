@@ -16,7 +16,7 @@ enum DirectoryReader {
         typealias Element = [FileNode]
         let path: String
         let session: FileSession
-        let link: DaemonLink
+        let link: any LocalFileAccess
 
         func makeAsyncIterator() -> AsyncIterator {
             AsyncIterator(path: path, session: session, link: link)
@@ -25,10 +25,10 @@ enum DirectoryReader {
         final class AsyncIterator: AsyncIteratorProtocol {
             let path: String
             let session: FileSession
-            let link: DaemonLink
+            let link: any LocalFileAccess
             private var cursor: UInt64? = 0
 
-            init(path: String, session: FileSession, link: DaemonLink) {
+            init(path: String, session: FileSession, link: any LocalFileAccess) {
                 self.path = path
                 self.session = session
                 self.link = link

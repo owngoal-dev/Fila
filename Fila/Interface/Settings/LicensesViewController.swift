@@ -1,3 +1,4 @@
+import FilaBackendUI
 import SnapKit
 import Then
 import UIKit
@@ -38,7 +39,7 @@ final class LicensesViewController: UITableViewController {
         super.viewDidLoad()
         title = String(localized: "Open Source Licenses")
         navigationItem.backButtonDisplayMode = .minimal
-        tableView.contentInset.bottom = SettingsFooter.spacing
+        tableView.contentInset.bottom = FilaUI.Spacing.settingsTail
         if let url = Bundle.main.url(forResource: "Licenses", withExtension: "json"),
            let data = try? Data(contentsOf: url),
            let decoded = try? JSONDecoder().decode([LicenseEntry].self, from: data)
@@ -124,7 +125,7 @@ private final class LicenseTextViewController: UIViewController {
             $0.backgroundColor = .clear
             $0.adjustsFontForContentSizeCategory = true
             $0.textContainerInset = FilaUI.textContainerInset
-            $0.contentInset.bottom = SettingsFooter.spacing
+            $0.contentInset.bottom = FilaUI.Spacing.settingsTail
             $0.attributedText = text
         }
         view.addSubview(textView)

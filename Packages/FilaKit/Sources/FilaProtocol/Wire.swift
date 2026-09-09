@@ -194,6 +194,16 @@ public enum FilaOperation: UInt64, Sendable, CaseIterable {
 
     /// Release a paged listing owned by this peer, without reading another page.
     case closeDirectory = 20
+
+    /// `unlink(2)` one non-directory, or `rmdir(2)` one empty directory —
+    /// never a tree. The request says which it means through
+    /// `FilaWireKey.removeDirectory`, and the kernel refuses the other kind,
+    /// so a name that changed kind between the look and the call is left
+    /// alone. Neither call follows a symlink: the link goes, its target
+    /// stays. This is the source cleanup of a move across backends — one
+    /// verified entry at a time, in place of a recursive delete that would
+    /// take whatever appeared meanwhile.
+    case removeNode = 21
 }
 
 public extension FilaOperation {
@@ -221,6 +231,7 @@ public extension FilaOperation {
         case .openTerminal: "openTerminal"
         case .closeTerminal: "closeTerminal"
         case .mountPoints: "mountPoints"
+        case .removeNode: "remove"
         }
     }
 }
@@ -360,6 +371,8 @@ public enum FilaWireKey {
     public static let overwrite = "clobber"
     public static let recursive = "recursive"
     public static let exclusive = "excl"
+    /// `removeNode`: true for `rmdir(2)`, false for `unlink(2)`.
+    public static let removeDirectory = "rmdir"
     public static let matches = "hits"
     public static let searchLimits = "slim"
     public static let searchText = "qtext"

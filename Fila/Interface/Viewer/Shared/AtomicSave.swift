@@ -19,7 +19,7 @@ import Foundation
 /// second path and no `O_TRUNC` anywhere in the app: truncating over the
 /// original destroys a file the user may have no copy of.
 enum AtomicSave {
-    static func write(_ data: Data, to path: String, link: DaemonLink) async throws {
+    static func write(_ data: Data, to path: String, link: any LocalFileAccess) async throws {
         let directory = (path as NSString).deletingLastPathComponent
         let temporary = (directory as NSString)
             .appendingPathComponent(".fila-tmp-\(UUID().uuidString)")

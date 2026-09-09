@@ -77,7 +77,11 @@ Nothing about this is decided. What *is* decided is that it does not arrive as
 
 | Feature | Note |
 | --- | --- |
-| FTP / SFTP / SMB / WebDAV clients | The device is already a WebDAV *server*. A client is a separate block of work. |
+| SMB / FTP clients and extensible backends | [Architecture](RemoteClients.md) and [phased implementation plan](../PLAN.md): MIT SMBClient/libcurl, shared subscriptions, backend-owned roots/DefaultStorage, merged sidebar and cross-backend copy/move. Not implemented. |
+| ApplicationBackend / MusicLibraryBackend extraction | [Named backend and controller plan](RemoteClients.md#backend-and-controller-class-plan): shared sidebar/preferences/list lifecycle, domain-specific typed actions. Not implemented. |
+| Bundled backend module discovery | [Confirmed startup design](RemoteClients.md#bundled-frameworks-and-automatic-startup-discovery): Local/Privileged/SMB/FTP/Applications/Music frameworks, shared BackendKit/BackendUI, startup Mach-O linking and manifest/name-based discovery. Exact app version/build; bootstrap failures logged and omitted from UI. Not implemented. |
+| Sandboxed IPA / potential App Store composition | Proposed FilaSandboxed target with app/music modules excluded from its binary; [root and subclass design](RemoteClients.md#backend-roots-and-sandboxed-local-specialization). Dependency isolation and distribution audit remain future work; no approval claimed. |
+| SFTP / WebDAV clients | Deferred. The device is already a WebDAV *server*; outbound clients are separate. SFTP authentication belongs to connection setup behind the proposed shared contract. |
 | Markdown preview | Asked for and declined. |
 | SQLite browser | A viewer, but much larger than the others, and the only one that wants a real database engine rather than a parser. |
 | Passcode / Face ID lock | Reasonable for an app that can read the whole filesystem. It is a feature rather than a setting. |

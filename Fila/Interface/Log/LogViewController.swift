@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaLog
 import FilaProtocol
 import SnapKit
@@ -97,7 +98,7 @@ final class LogViewController: UIViewController {
             $0.delegate = self
             $0.alwaysBounceVertical = true
             $0.contentInsetAdjustmentBehavior = .never
-            $0.contentInset.bottom = SettingsFooter.spacing
+            $0.contentInset.bottom = FilaUI.Spacing.settingsTail
         }
         droppedNotice.isHidden = true
         let content = UIStackView(arrangedSubviews: [collectionView, droppedNotice])

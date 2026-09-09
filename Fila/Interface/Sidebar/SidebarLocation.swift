@@ -1,142 +1,109 @@
-import FilaFileOps
+import FilaBackendKit
 import FilaClient
-import FilaProtocol
 import Foundation
+import UIKit
 
-/// A fixed destination in the sidebar's jump list.
-struct SidebarLocation: Hashable {
-    enum Position: Int, CaseIterable {
-        // Persisted in AppPreferences; keep these identities stable when adding presets.
-        case root = 0, bootstrap = 1, applications = 2, mobile = 3
-        case pictures = 4, music = 5, inbox = 6, trash = 7
-    }
-
-    let position: Position
+/// A destination in the sidebar's jump list, as the app draws it: the
+/// backend said what kind of place it is; the wording and the artwork are
+/// the app's.
+struct SidebarPlace: Hashable {
+    let backend: BackendID
+    let id: String
+    let path: String
     let title: String
     let icon: FilePresentation.Icon
-    let path: String
+
+    @MainActor
+    init(_ row: SidebarRow, in backend: LocalFileBackend) {
+        self.backend = backend.id
+        id = row.id
+        path = row.path.map(backend.absolutePath) ?? backend.rootPath
+        switch row.kind {
+        case .root:
+            title = String(localized: "Root")
+            icon = .artwork("drive-internal")
+        case .home:
+            // The container's Documents in a sandboxed process, the user's
+            // home on a device that can see it.
+            title = row.id == LocalFileBackend.placeID(.root) ? String(localized: "Home") : String(localized: "Mobile")
+            icon = .artwork("home")
+        case .bootstrap:
+            title = String(localized: "Bootstrap")
+            icon = .artwork("bootstrap")
+        case .pictures:
+            title = String(localized: "Pictures")
+            icon = .artwork("pictures")
+        case .inbox:
+            title = String(localized: "Inbox")
+            icon = .artwork("inbox")
+        case .trash:
+            title = String(localized: "Trash")
+            icon = .artwork("trash")
+        case let .mount(readOnly):
+            title = (path as NSString).lastPathComponent + (readOnly ? " · " + String(localized: "Read Only") : "")
+            icon = .artwork("drive-internal")
+        case .favorite:
+            title = (path as NSString).lastPathComponent
+            icon = .artwork("folder")
+        case let .named(name):
+            title = name
+            icon = .artwork("folder")
+        }
+    }
 }
 
-extension SidebarLocation {
+/// The ordered Places section, with the catalogue destinations slotted in
+/// by the same preset order the local backend keeps.
+///
+/// A catalogue backend — applications, music — contributes its root row
+/// only while it has something to show; the row's artwork and wording are
+/// the backend's own, and the shell opens it through the module's screen
+/// route rather than any concrete type.
+enum SidebarLocation {
     enum Destination {
-        case directory(SidebarLocation), applications, music
+        case directory(SidebarPlace)
+        case catalog(BackendRoot)
+    }
 
-        var position: Position {
-            switch self {
-            case let .directory(place): place.position
-            case .applications: .applications
-            case .music: .music
+    @MainActor static var orderedDestinations: [Destination] {
+        let session = FileSession.shared
+        let local = session.local
+        let rows = Dictionary(
+            uniqueKeysWithValues: BackendComposition.sidebar.contribution(of: local.id).places.map { ($0.id, $0) }
+        )
+        return local.orderedPresets.filter(local.isPresetEnabled).compactMap { preset in
+            switch preset {
+            case .applications:
+                return catalog(.applications)
+            case .music:
+                return catalog(.musicLibrary)
+            default:
+                return rows[LocalFileBackend.placeID(preset)].map { .directory(SidebarPlace($0, in: local)) }
             }
         }
     }
 
-    @MainActor static var orderedDestinations: [Destination] {
-        var destinations = jumpList(backend: FileSession.shared.hello?.backend).map(Destination.directory)
-        if SystemCapabilities.showsApplications { destinations.append(.applications) }
-        if FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control") { destinations.append(.music) }
-        let available = Dictionary(uniqueKeysWithValues: destinations.map { ($0.position, $0) })
-        let preferences = AppPreferences.shared
-        return preferences.presetOrder.filter { preferences.isPresetEnabled($0) }.compactMap { available[$0] }
+    /// The root of a catalogue backend, when it is registered and currently
+    /// offers its root row.
+    @MainActor private static func catalog(_ id: BackendID) -> Destination? {
+        guard let backend = BackendComposition.registry.backend(id),
+              BackendComposition.sidebar.contribution(of: id).places.contains(where: { $0.kind == .root })
+        else { return nil }
+        return .catalog(backend.root)
     }
 
-    /// The filesystem places worth one tap on a jailbroken device, plus the bootstrap
-    /// root when there is one, and the trash.
-    ///
-    /// The bootstrap prefix is never written down here: roothide randomizes it
-    /// and rootless fixes it at `/var/jb`, so it comes from the daemon's own
-    /// `hello` and is simply absent on a rootful layout.
-    static func jumpList(backend: DaemonLink.Backend?) -> [SidebarLocation] {
-        guard let backend else { return [] }
-        let inbox = SidebarLocation(
-            position: .inbox,
-            title: String(localized: "Inbox"),
-            icon: .artwork("inbox"),
-            path: inboxDirectory
-        )
-        if case .local(.container) = backend {
-            return [
-                SidebarLocation(
-                    position: .root,
-                    title: String(localized: "Home"),
-                    icon: .artwork("home"),
-                    path: NSHomeDirectory()
-                ),
-                inbox,
-            ]
-        }
-        let installRoot: String? = if case let .daemon(root) = backend {
-            root
-        } else {
-            nil
-        }
-        var places = [
-            SidebarLocation(
-                position: .root,
-                title: String(localized: "Root"),
-                icon: .artwork("drive-internal"),
-                path: "/"
-            ),
-            SidebarLocation(
-                position: .mobile,
-                title: String(localized: "Mobile"),
-                icon: .artwork("home"),
-                path: "/var/mobile"
-            ),
-            SidebarLocation(
-                position: .pictures,
-                title: String(localized: "Pictures"),
-                icon: .artwork("pictures"),
-                path: "/var/mobile/Media/DCIM"
-            ),
-            inbox,
-        ]
-        if let installRoot, !installRoot.isEmpty {
-            places.insert(
-                SidebarLocation(
-                    position: .bootstrap,
-                    title: String(localized: "Bootstrap"),
-                    icon: .artwork("bootstrap"),
-                    path: installRoot
-                ),
-                at: 1
-            )
-        }
-        // Checked rather than assumed, for the same reason `launchDirectory`
-        // checks it: the Mac development loop has no `/var/mobile`, and a jump
-        // list offering somewhere that does not exist sends the user to an
-        // empty folder that looks like the daemon being broken.
-        places = places.filter { FileManager.default.fileExists(atPath: $0.path) }
-        // Not filtered: the trash is root-owned 0700 on a daemon, so the app
-        // cannot see whether it exists, and the daemon lists it fine.
-        places.append(SidebarLocation(
-            position: .trash,
-            title: String(localized: "Trash"),
-            icon: .artwork("trash"),
-            path: trashDirectory(backend: backend)
-        ))
-        return places
+    /// The screen a module routes for `location`, or nil when no module
+    /// claims that backend.
+    @MainActor static func screen(for location: BackendLocation) -> UIViewController? {
+        BackendComposition.registry.screen(for: location) as? UIViewController
     }
 
-    /// Save to Fila's shared Inbox. Open In imports retain the system's
-    /// Documents/Inbox until the user chooses a destination. Without a
-    /// provisioned App Group, the app still exposes that local Inbox.
-    static var inboxDirectory: String {
-        if let identifier = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
-           let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier),
-           let inbox = try? SharedInbox.directory(in: group) {
-            return inbox.path
-        }
-        let inbox = NSHomeDirectory() + "/Documents/Inbox"
-        try? FileManager.default.createDirectory(atPath: inbox, withIntermediateDirectories: true)
-        return inbox
-    }
-
-    /// Matches the backend's trash: under a relocated bootstrap, otherwise
-    /// under the requested volume (the data volume for the sidebar).
-    static func trashDirectory(backend: DaemonLink.Backend, volume: String = "/private/var") -> String {
-        if case let .daemon(root) = backend, !root.isEmpty {
-            return FilaTrash.directory(under: root)
-        }
-        return FilaTrash.directory(under: volume)
+    /// The artwork the backend names, from the app's icon set. A name the
+    /// set does not have draws the plain folder rather than a glyph: the
+    /// sidebar is pictures throughout, and a symbol among them reads as a
+    /// control.
+    static func image(for root: BackendRoot) -> UIImage? {
+        let image = UIImage(named: "FileIcons/\(root.artworkName)") ?? UIImage(named: "FileIcons/folder")
+        return image?.withRenderingMode(.alwaysOriginal)
     }
 }

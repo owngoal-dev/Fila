@@ -21,12 +21,23 @@ fi
 
 app_bundle="$1"
 scripts="$(cd "$(dirname "$0")" && pwd -P)"
-build_identity="$(python3 "$scripts/build-package-inputs.py" verify "$(dirname "$app_bundle")")"
-[[ "$app_bundle" -ef "$(dirname "$app_bundle")/Fila.app" ]] || { echo "error: app differs from the verified build" >&2; exit 65; }
 kind="$2"
 output_archive="$3"
 version="$4"
 app_entitlements="${5:-}"
+
+# The tipa comes out of the full build beside filad and fila-archive; the
+# ipa out of the sandboxed build, whose products directory holds the app
+# alone. The receipt names which, so a full build cannot be packaged as
+# the sandboxed archive by pointing at the wrong directory.
+case "$kind" in
+    ipa) receipt=(--products Fila.app) ;;
+    *) receipt=() ;;
+esac
+# `${receipt[@]+"${receipt[@]}"}`: /bin/bash is 3.2, where an empty array
+# expanded under `set -u` is an unbound variable, and the tipa is that case.
+build_identity="$(python3 "$scripts/build-package-inputs.py" ${receipt[@]+"${receipt[@]}"} verify "$(dirname "$app_bundle")")"
+[[ "$app_bundle" -ef "$(dirname "$app_bundle")/Fila.app" ]] || { echo "error: app differs from the verified build" >&2; exit 65; }
 
 case "$kind" in
     tipa)
@@ -114,7 +125,7 @@ fi
 
 (cd "$staging" && zip -qry "$temporary_archive" Payload)
 bash "$scripts/verify-ipa.sh" "$temporary_archive" "$kind" "$version"
-[[ "$build_identity" == "$(python3 "$scripts/build-package-inputs.py" verify "$(dirname "$app_bundle")")" ]] || {
+[[ "$build_identity" == "$(python3 "$scripts/build-package-inputs.py" ${receipt[@]+"${receipt[@]}"} verify "$(dirname "$app_bundle")")" ]] || {
     echo "error: build changed during packaging; package the new build again" >&2
     exit 65
 }

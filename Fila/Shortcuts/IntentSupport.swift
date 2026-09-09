@@ -97,7 +97,7 @@ enum IntentSupport {
     @MainActor
     static func daemon<T>(
         retryOnDisconnect: Bool = false,
-        _ body: (DaemonLink) async throws -> T
+        _ body: (any LocalFileAccess) async throws -> T
     ) async throws -> T {
         let session = try await session()
         do {
@@ -195,6 +195,7 @@ enum IntentSupport {
     /// trip an intent made does not, and a browser sitting on that directory
     /// would go on showing the file the shortcut just wrote over.
     static func announceChange(in directories: [String]) {
+        Task { @MainActor in FileSession.shared.local.invalidate(directories) }
         NotificationCenter.default.post(name: .filaJobFinished, object: directories)
     }
 

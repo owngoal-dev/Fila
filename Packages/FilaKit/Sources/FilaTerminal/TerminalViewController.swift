@@ -41,7 +41,7 @@
             program: TerminalProgram,
             user: TerminalUser,
             redirectsScriptInterpreter: Bool = false,
-            link: DaemonLink,
+            link: any TerminalAccess,
             onProcessExit: (@MainActor @Sendable () -> Void)? = nil
         ) {
             self.program = program
@@ -75,7 +75,7 @@
 
         private let program: TerminalProgram
         private let redirectsScriptInterpreter: Bool
-        private let link: DaemonLink
+        private let link: any TerminalAccess
         /// Optional owner cleanup after the daemon has reaped the direct child.
         /// An unknown launch/termination outcome deliberately retains its input.
         private let onProcessExit: TerminalExitHandler?
@@ -136,7 +136,7 @@
 
         /// The request comes from the menu; the displayed identity comes from the daemon.
         private let requestedUser: TerminalUser
-        private var terminalIdentifier: DaemonLink.TerminalIdentifier?
+        private var terminalIdentifier: TerminalIdentifier?
         private var hasStarted = false
         private var authentication: LAContext?
         /// When the daemon handed the descriptor back, which is the earliest moment
@@ -339,7 +339,7 @@
                 && (failure.systemError == ENOENT || failure.systemError == ECONNRESET)
         }
 
-        private func attach(_ terminal: DaemonLink.Terminal) {
+        private func attach(_ terminal: Terminal) {
             guard !isFinished else {
                 // Closed while the daemon was answering. The descriptor is real and
                 // ours, so it has to be released, and the process with it.
@@ -456,7 +456,7 @@
             Self.close(identifier, link: link, onProcessExit: onProcessExit)
         }
 
-        private nonisolated static func close(_ identifier: DaemonLink.TerminalIdentifier, link: DaemonLink,
+        private nonisolated static func close(_ identifier: TerminalIdentifier, link: any TerminalAccess,
                                               onProcessExit: TerminalExitHandler?)
         {
             Task {

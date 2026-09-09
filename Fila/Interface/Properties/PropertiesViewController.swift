@@ -1,4 +1,6 @@
+import FilaBackendKit
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaMedia
@@ -66,7 +68,7 @@ final class PropertiesViewController: UIViewController {
         let row: Row
     }
 
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
     private let table = UITableView(frame: .zero, style: .insetGrouped)
     private var dataSource: TitledTableDataSource<Section, Item>!
 
@@ -86,7 +88,7 @@ final class PropertiesViewController: UIViewController {
     /// chmod of the wrong directory is not undoable.
     private var applyRecursively = false
 
-    init(details: FileDetails, link: DaemonLink, showsAdvanced: Bool = false) {
+    init(details: FileDetails, link: any LocalFileAccess, showsAdvanced: Bool = false) {
         self.details = details
         self.link = link
         self.showsAdvanced = showsAdvanced
@@ -202,9 +204,11 @@ final class PropertiesViewController: UIViewController {
                 image = rendered.map { UIImage(cgImage: $0) }
                 maximumSide = 512
             } else if node.isNavigable {
-                let apps = await InstalledAppCatalog.load(session: .shared)
-                if let identifier = AppFolderDisplay.presentation(for: path, apps: apps)?.applicationIdentifier {
-                    image = await AppFolderDisplay.icon(for: identifier)
+                let decoration = await SystemCapabilities.applications?.decorationLookup()
+                if let identifier = decoration?(path)?.applicationIdentifier,
+                   let artwork = SystemCapabilities.applicationArtwork
+                {
+                    image = await artwork.icon(for: identifier)
                 } else {
                     image = nil
                 }

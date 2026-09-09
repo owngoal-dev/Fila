@@ -20,31 +20,11 @@ extension FileActions {
         }
     }
 
-    func promptOverriddenDelete(_ paths: [String]) {
-        guard !paths.isEmpty else { return }
-        guard let presenter = activePresenter else { return }
-        PermanentDeleteConfirmation.present(
-            from: presenter,
-            title: String(localized: "Override Protection?"),
-            message: String(localized: "The device needs this item to start up. Deleting it cannot be undone, and the device may need to be restored."),
-            confirmTitle: String(localized: "Delete Anyway")
-        ) { self.startDelete(paths, overrideGuard: true) }
-    }
-
-    private func startDelete(_ paths: [String], useTrash: Bool = false, overrideGuard: Bool = false) {
-        if overrideGuard {
-            // The user was shown what the guard said and chose to delete
-            // anyway. The one decision in this app that can leave a device
-            // needing a restore, so it is logged at a level nothing switches
-            // off — with the paths, because afterwards nothing else has them.
-            //
-            // One line per path rather than one joined line: a record is
-            // truncated at `FilaLogRing.maximumMessageByteCount`, and a record
-            // of what was destroyed that loses its tail is not one.
-            for path in paths {
-                FilaLog.warning("guard overridden for delete: \(path)")
-            }
-        } else if !useTrash {
+    /// Never with `overrideGuard`: the app offers no way past the guard.
+    /// The wire field stays for the daemon's contract, and nothing here
+    /// sets it.
+    private func startDelete(_ paths: [String], useTrash: Bool = false) {
+        if !useTrash {
             FilaLog.info("permanent delete of \(paths.count) item(s)")
             // The names at verbose and not at info, because Empty Trash comes
             // through here with everything in it — thousands of lines would
@@ -72,7 +52,7 @@ extension FileActions {
                         )
                     }
                     return try await session.operations.awaitJob(
-                        JobRequest(kind: .delete, sources: paths, useTrash: useTrash, overrideGuard: overrideGuard),
+                        JobRequest(kind: .delete, sources: paths, useTrash: useTrash),
                         kind: kind,
                         subtitle: description,
                         feedback: .successOnly,

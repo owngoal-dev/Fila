@@ -32,7 +32,7 @@ extension OperationCenter {
         inTrashOf mountPoint: String
     ) async throws -> [String: String] {
         guard let backend = session.hello?.backend else { return [:] }
-        let directory = SidebarLocation.trashDirectory(backend: backend, volume: mountPoint)
+        let directory = LocalFileBackend.trashDirectory(backend: backend, volume: mountPoint)
         let wanted = Set(origins)
         var found: [String: String] = [:]
         for try await page in DirectoryReader.pages(in: directory, session: session) {

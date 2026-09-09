@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaProtocol
@@ -11,7 +12,7 @@ import UIKit
 final class PropertyListEditorViewController: UIViewController {
     private final class Document {
         enum Source {
-            case file(FileDetails, DescriptorFile, DaemonLink)
+            case file(FileDetails, DescriptorFile, any LocalFileAccess)
             case readOnly(PropertyListValue)
         }
 
@@ -77,7 +78,7 @@ final class PropertyListEditorViewController: UIViewController {
         return item
     }()
 
-    init(details: FileDetails, file: DescriptorFile, link: DaemonLink) {
+    init(details: FileDetails, file: DescriptorFile, link: any LocalFileAccess) {
         document = Document(source: .file(details, file, link))
         path = []
         super.init(nibName: nil, bundle: nil)

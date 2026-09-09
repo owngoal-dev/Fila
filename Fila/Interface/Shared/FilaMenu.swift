@@ -1,3 +1,5 @@
+import FilaBackendUI
+import FilaBackendKit
 import UIKit
 
 @MainActor
@@ -25,7 +27,7 @@ enum FilaMenu {
         return groups(locations, [path])
     }
 
-    static func preview(for place: SidebarLocation) -> UIImage? {
+    static func preview(for place: SidebarPlace) -> UIImage? {
         switch place.icon {
         case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
         case .symbol: FilePresentation.image(kind: .directory, name: place.title)
@@ -33,20 +35,22 @@ enum FilaMenu {
     }
 
     static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
-        let preferences = AppPreferences.shared
+        let session = FileSession.shared
         func folders(_ paths: [String], limit: Int? = nil) -> UIDeferredMenuElement {
             UIDeferredMenuElement.uncached { completion in
                 Task { @MainActor in
                     let session = FileSession.shared
-                    let apps = await InstalledAppCatalog.load(session: session)
+                    let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
                     var actions: [UIMenuElement] = []
                     for path in paths {
                         guard let details = try? await session.perform({ try await $0.details(of: path) }),
                               details.node.isNavigable else { continue }
-                        let presentation = AppFolderDisplay.presentation(for: path, apps: apps)
+                        let presentation = decoration(path)
                         var image = FilePresentation.image(for: details.node)
-                        if let identifier = presentation?.applicationIdentifier {
-                            image = await AppFolderDisplay.icon(for: identifier) ?? image
+                        if let identifier = presentation?.applicationIdentifier,
+                           let artwork = SystemCapabilities.applicationArtwork
+                        {
+                            image = await artwork.icon(for: identifier) ?? image
                         }
                         let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
                         actions.append(UIAction(
@@ -81,7 +85,7 @@ enum FilaMenu {
             UIMenu(
                 title: String(localized: "Favorites"),
                 image: UIImage(named: "FileIcons/folder"),
-                children: [folders(preferences.favorites)]
+                children: [folders(session.favoritePaths)]
             ),
             UIMenu(
                 title: String(localized: "Mount Points"),
@@ -91,7 +95,7 @@ enum FilaMenu {
             UIMenu(
                 title: String(localized: "Recents"),
                 image: UIImage(named: "FileIcons/folder"),
-                children: [folders(preferences.recents, limit: 8)]
+                children: [folders(session.recentPaths(limit: 8))]
             ),
         ]
     }

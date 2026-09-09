@@ -1,3 +1,5 @@
+import FilaBackendUI
+import FilaBackendKit
 import AlertController
 import FilaLog
 import FilaProtocol
@@ -86,10 +88,24 @@ extension RootSplitViewController {
         case let .app(bundle, container):
             openApp(bundle: bundle, container: container)
         case .installedApps:
-            push(AppListViewController())
+            guard let screen = SidebarLocation.screen(for: .root(of: .applications)) else {
+                alert(title: String(localized: "Applications Unavailable"), message: applicationsUnavailableMessage)
+                return
+            }
+            push(screen)
         case .settings:
             presentSettings()
         }
+    }
+
+    /// Why a link into Applications went nowhere. A copy without the
+    /// backend — the sandboxed composition, a module that failed to
+    /// bootstrap, or one that found no local backend to read through — has
+    /// no Show Applications switch that would help, so it is not pointed at.
+    private var applicationsUnavailableMessage: String {
+        BackendComposition.registry.backend(.applications) == nil
+            ? String(localized: "Applications are not included in this copy of Fila.")
+            : String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
     }
 
     /// A path's directory. `deletingLastPathComponent` on `/etc` gives `/`,
@@ -127,16 +143,11 @@ extension RootSplitViewController {
             // fallback source lists containers through it, so asking before the
             // handshake lands would answer "not installed" for an app that is.
             await FileSession.shared.ready()
-            guard SystemCapabilities.showsApplications else {
-                self.alert(
-                    title: String(localized: "Applications Unavailable"),
-                    message: String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
-                )
+            guard let applications = SystemCapabilities.applications, applications.isEnabled else {
+                self.alert(title: String(localized: "Applications Unavailable"), message: self.applicationsUnavailableMessage)
                 return
             }
-            let apps = await InstalledAppCatalog.load(session: FileSession.shared)
-            let match = apps.first { $0.bundleIdentifier.caseInsensitiveCompare(bundle) == .orderedSame }
-            guard let app = match else {
+            guard let app = await applications.locate(bundleIdentifier: bundle) else {
                 self.alert(
                     title: String(localized: "App Not Found"),
                     message: String(localized: "“\(bundle)” is not installed on this device.")
@@ -148,7 +159,7 @@ extension RootSplitViewController {
                 self.open(app.bundlePath)
             case .data:
                 // Absent whenever the installation database could not be read —
-                // see `InstalledAppCatalog`. Saying so beats silently showing the
+                // see `ApplicationCatalog`. Saying so beats silently showing the
                 // bundle instead and letting the user work out why.
                 guard let data = app.dataPath else {
                     self.alert(

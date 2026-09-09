@@ -57,7 +57,7 @@ extension BrowserTab {
     /// **The stack is the path.** A tab opened at `/var/mobile/Documents` holds
     /// `/`, `/var`, `/var/mobile`, `/var/mobile/Documents` — so Back is always
     /// one component shallower and the breadcrumb and Back can never disagree
-    /// about which way is out. See `BrowserViewController.open(directory:)` for
+    /// about which way is out. See `FileBrowserViewController.open(directory:)` for
     /// the rule in full and for the bug that came of not having one.
     @MainActor init(path: String) {
         self.init(stack: Self.chain(to: path))
@@ -77,12 +77,14 @@ extension BrowserTab {
             chain.append(prefix)
         }
         // This is navigation history, not a filesystem permission boundary.
-        // Inside a sandbox, Home is the first useful ancestor; avoid adding
-        // Back destinations that iOS will not let this process list.
+        // Inside a sandbox the backend's root — Documents — is where the
+        // walk starts: nothing above it is offered, so neither Back nor the
+        // breadcrumb leads there.
         if case .local(.container) = FileSession.shared.hello?.backend {
-            let homePaths = [NSHomeDirectory(), URL(fileURLWithPath: NSHomeDirectory()).resolvingSymlinksInPath().path]
-            if let home = chain.firstIndex(where: homePaths.contains) {
-                return Array(chain[home...])
+            let root = FileSession.shared.local.rootPath
+            let roots = [root, URL(fileURLWithPath: root).resolvingSymlinksInPath().path]
+            if let start = chain.firstIndex(where: roots.contains) {
+                return Array(chain[start...])
             }
         }
         return chain
@@ -119,13 +121,22 @@ final class BrowserTabStore {
         self.defaults = defaults
         var stored = Self.load(from: defaults)
         if case .local(.container) = FileSession.shared.hello?.backend {
+            // A remembered directory this container does not hold — the
+            // full root's launch directory from a build that had it, the
+            // container root from a build that started at Home, or a path
+            // under the container a sideloading tool's reinstall retired —
+            // reopens at the root that exists. Anything inside keeps its
+            // place and gets the chain that starts there.
+            let root = FileSession.shared.local.rootPath
+            let roots = [root, URL(fileURLWithPath: root).resolvingSymlinksInPath().path]
             for index in stored.indices {
-                if ["/", "/var/mobile"].contains(stored[index].path) {
-                    stored[index].stack = BrowserTab.chain(to: NSHomeDirectory())
+                let path = stored[index].path
+                if roots.contains(where: { path == $0 || path.hasPrefix($0 + "/") }) {
+                    stored[index].stack = BrowserTab.chain(to: path)
+                } else {
+                    stored[index].stack = BrowserTab.chain(to: root)
                     stored[index].offsets = [:]
                     stored[index].selection = nil
-                } else {
-                    stored[index].stack = BrowserTab.chain(to: stored[index].path)
                 }
             }
         }

@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaClient
 import FilaProtocol
 import SnapKit
@@ -6,7 +7,7 @@ import UIKit
 
 /// Native grouped settings with direct feature, diagnostic and about destinations.
 final class SettingsViewController: UIViewController {
-    private enum Page { case main, behavior, protection, about }
+    private enum Page { case main, behavior, about }
     private let page: Page
 
     convenience init() {
@@ -30,9 +31,7 @@ final class SettingsViewController: UIViewController {
         case fileOperations
         case systemFeatures
         case scripts
-        case guardOverride
         case branding
-        case diagnostics
         case about
     }
 
@@ -46,8 +45,7 @@ final class SettingsViewController: UIViewController {
         case usesTrash
         case runsPrograms
         case redirectsScriptInterpreters
-        case allowsGuardOverride
-        case appearance, behavior, sharing, protection, about
+        case appearance, behavior, sharing, servers, about
         case tasks
         case fileProvider
         case log
@@ -63,14 +61,13 @@ final class SettingsViewController: UIViewController {
 
     /// Nil until the daemon answers, which is what the About section says while
     /// it waits. Never a failure: the daemon is on-demand.
-    private var hello: DaemonLink.Hello?
+    private var hello: LocalHello?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         switch page {
         case .main: title = String(localized: "Settings")
         case .behavior: title = String(localized: "Behavior")
-        case .protection: title = String(localized: "System Protection")
         case .about: title = String(localized: "Details")
         }
         view.backgroundColor = .systemGroupedBackground
@@ -84,7 +81,9 @@ final class SettingsViewController: UIViewController {
             collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
         )
         collectionView.delegate = self
-        collectionView.contentInset.bottom = SettingsFooter.spacing
+        if page != .main {
+            collectionView.contentInset.bottom = FilaUI.Spacing.settingsTail
+        }
         view.addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -128,7 +127,11 @@ final class SettingsViewController: UIViewController {
                 content.text = "OwnGoal Studio × AI"
                 content.textProperties.alignment = .center
                 content.textProperties.color = .tertiaryLabel
-                content.directionalLayoutMargins.top = SettingsFooter.spacing
+                // The same room above and below: the line is the end of
+                // the page, and the page's own bottom inset is left off
+                // so the two do not add up under it.
+                content.directionalLayoutMargins.top = FilaUI.Spacing.settingsTail
+                content.directionalLayoutMargins.bottom = FilaUI.Spacing.settingsTail
             }
             view.contentConfiguration = content
         }
@@ -150,22 +153,21 @@ final class SettingsViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         switch page {
         case .main:
-            snapshot.appendSections([.groups, .diagnostics, .about, .branding])
-            snapshot.appendItems([.appearance, .behavior, .tasks, .sharing], toSection: .groups)
-            snapshot.appendItems([.protection], toSection: .diagnostics)
-            snapshot.appendItems([.version, .about, .license], toSection: .about)
+            snapshot.appendSections([.groups, .about, .branding])
+            // Servers only where a module offers a way to add one: a
+            // build without a remote module has no page to push.
+            let servers: [Row] = BackendComposition.registry.connectionSetups.isEmpty ? [] : [.servers]
+            snapshot.appendItems([.appearance, .behavior, .tasks, .sharing] + servers, toSection: .groups)
+            snapshot.appendItems([.version, .log, .about, .license], toSection: .about)
         case .behavior:
             snapshot.appendSections([.browsing, .fileOperations, .systemFeatures, .scripts])
             snapshot.appendItems([.launchLocation, .recordsRecents], toSection: .browsing)
             snapshot.appendItems([.usesTrash], toSection: .fileOperations)
             snapshot.appendItems([.runsPrograms, .fileProvider], toSection: .systemFeatures)
             snapshot.appendItems([.redirectsScriptInterpreters], toSection: .scripts)
-        case .protection:
-            snapshot.appendSections([.guardOverride])
-            snapshot.appendItems([.allowsGuardOverride], toSection: .guardOverride)
         case .about:
             snapshot.appendSections([.about])
-            snapshot.appendItems([.daemon, .protocolVersion, .installRoot, .log], toSection: .about)
+            snapshot.appendItems([.daemon, .protocolVersion, .installRoot], toSection: .about)
         }
         // Reload rather than apply: the item identifiers never change, so a
         // plain apply after the handshake lands would be an empty diff and the
@@ -197,14 +199,8 @@ final class SettingsViewController: UIViewController {
                 title: String(localized: "Redirect Script Interpreters"),
                 keyPath: \.redirectsScriptInterpreters
             )
-        case .allowsGuardOverride:
-            configureToggle(
-                cell,
-                title: String(localized: "Allow Overriding Protection"),
-                keyPath: \.allowsGuardOverride
-            )
-        case .protection:
-            configureDisclosure(cell, title: String(localized: "System Protection"))
+        case .servers:
+            configureDisclosure(cell, title: String(localized: "Servers"))
         case .about:
             configureDisclosure(cell, title: String(localized: "Details"))
         case .launchLocation:
@@ -298,7 +294,7 @@ final class SettingsViewController: UIViewController {
     /// The handshake, but only when it came from `filad`. Every About row that
     /// describes the daemon reads this instead of `hello`, so none of them can
     /// report a daemon fact for a build that has no daemon.
-    private var privileged: DaemonLink.Hello? {
+    private var privileged: LocalHello? {
         hello?.isPrivileged == true ? hello : nil
     }
 
@@ -337,9 +333,7 @@ final class SettingsViewController: UIViewController {
         case .fileOperations: String(localized: "File Operations")
         case .systemFeatures: String(localized: "System Features")
         case .scripts: String(localized: "Scripts")
-        case .guardOverride: nil
         case .branding: nil
-        case .diagnostics: String(localized: "Advanced")
         case .about: String(localized: "About")
         }
     }
@@ -354,10 +348,6 @@ final class SettingsViewController: UIViewController {
             )
         case .scripts:
             String(localized: "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
-        case .guardOverride:
-            String(localized: "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore.")
-        case .diagnostics:
-            nil
         case .about:
             // The only place a user is ever told they are running the
             // unprivileged build, so it says what is true and what to do about
@@ -402,7 +392,7 @@ extension SettingsViewController: UICollectionViewDelegate {
         if row == .tasks {
             return true
         }
-        return [.appearance, .behavior, .sharing, .protection, .about, .license, .log, .fileProvider].contains(row)
+        return [.appearance, .behavior, .sharing, .servers, .about, .license, .log, .fileProvider].contains(row)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -424,8 +414,8 @@ extension SettingsViewController: UICollectionViewDelegate {
             navigationController?.pushViewController(LogViewController(), animated: true)
         case .fileProvider:
             navigationController?.pushViewController(FileProviderSettingsViewController(), animated: true)
-        case .protection:
-            navigationController?.pushViewController(SettingsViewController(page: .protection), animated: true)
+        case .servers:
+            navigationController?.pushViewController(ServersSettingsViewController(), animated: true)
         case .about:
             navigationController?.pushViewController(SettingsViewController(page: .about), animated: true)
         default:
@@ -446,11 +436,10 @@ extension UIViewController {
             primaryAction: UIAction { [weak navigation] _ in navigation?.dismiss(animated: true) }
         )
         settings.navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "Close")
-        navigation.modalPresentationStyle = .formSheet
         if (presentedViewController as? UINavigationController)?.viewControllers.first is SidebarViewController {
-            dismiss(animated: true) { [weak self] in self?.present(navigation, animated: true) }
+            dismiss(animated: true) { [weak self] in self?.presentAsFormSheet(navigation) }
         } else {
-            present(navigation, animated: true)
+            presentAsFormSheet(navigation)
         }
     }
 }

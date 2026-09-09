@@ -1,3 +1,5 @@
+import FilaBackendKit
+import FilaBackendUI
 import Foundation
 
 /// Features that need more than the app's own sandbox, and the one place that
@@ -6,30 +8,36 @@ import Foundation
 /// Available means the environment permits it **and** the user has not turned
 /// it off. The environment side is the live handshake — `Hello.backend`, the
 /// only honest answer to what this process can reach — never a build flag or
-/// the construction-time `daemonIsInstalled`. The user side is `AppPreferences`.
+/// the construction-time `daemonIsInstalled`. The user side is the owning
+/// backend's preference.
 ///
 /// Everything that offers a feature asks here and offers nothing when the
 /// answer is no: the sidebar drops the row, the menu drops the submenu, the
-/// `.app` folder keeps its real name. A feature that is on and then fails at
-/// the system call still falls back on its own — see `InstalledAppCatalog.load`.
+/// `.app` folder keeps its real name.
 @MainActor
 enum SystemCapabilities {
+    /// The applications module's capability, or nil in a build that does not
+    /// bundle it or where its bootstrap failed. Every app-shaped question the
+    /// shell has goes through here.
+    static var applications: (any ApplicationCapability)? {
+        BackendComposition.registry.provider((any ApplicationCapability).self)
+    }
+
+    /// The artwork renderer the applications module provides, for rows that
+    /// show an app. Nil wherever `applications` is nil.
+    static var applicationArtwork: (any ApplicationArtwork)? {
+        BackendComposition.registry.provider((any ApplicationArtwork).self)
+    }
+
     /// The Applications page, and the app names and icons on `.app` folders
-    /// and containers. `LSApplicationWorkspace` and the bundle-container scan
-    /// both read outside this app's container, so a sandboxed local backend
-    /// can only ever answer with nothing. Wait for the handshake before
-    /// allowing private framework calls in an unknown environment.
+    /// and containers. The module answers from its own switch and the
+    /// handshake; absent module, absent feature.
     static var showsApplications: Bool {
-        guard AppPreferences.shared.showsApplications,
-              let backend = FileSession.shared.hello?.backend else { return false }
-        if case .local(.container) = backend {
-            return false
-        }
-        return true
+        applications?.isEnabled ?? false
     }
 
     /// The Run submenu. Only `filad` can open a terminal —
-    /// `DaemonLink.openTerminal` refuses without it — so this is exactly
+    /// `TerminalAccess.openTerminal` refuses without it — so this is exactly
     /// `isPrivileged`, and nothing until the handshake has landed.
     static var runsPrograms: Bool {
         AppPreferences.shared.runsPrograms && FileSession.shared.hello?.isPrivileged == true

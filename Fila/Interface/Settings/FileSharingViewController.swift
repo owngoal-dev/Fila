@@ -1,5 +1,6 @@
 import AlertController
 import CoreImage.CIFilterBuiltins
+import FilaBackendUI
 import FilaRemote
 import SnapKit
 import Then
@@ -50,7 +51,7 @@ final class FileSharingViewController: UIViewController {
             collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
         )
         collectionView.delegate = self
-        collectionView.contentInset.bottom = SettingsFooter.spacing
+        collectionView.contentInset.bottom = FilaUI.Spacing.settingsTail
         view.addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
             make.edges.equalToSuperview()

@@ -20,7 +20,11 @@ Two traps this script exists to avoid:
     package target never reaches the app's `.stringsdata`, so each target that
     shows the user a sentence owns its own catalogue and is diffed separately.
 
-Usage: check-extracted-strings.py <derived-data-path> [configuration-platform]
+Usage: check-extracted-strings.py [--composition full|sandboxed] <derived-data-path> [configuration-platform]
+
+The sandboxed composition never compiles the applications and music
+modules, so their catalogues are not looked for in its DerivedData; the
+full build is where those two are checked.
 """
 
 import json
@@ -32,6 +36,11 @@ import sys
 TARGETS = [
     ("Fila", "Fila.build", "Fila/Resources/Localizable.xcstrings"),
     ("FilaSaveAction", "Fila.build", "FilaSaveAction/Localizable.xcstrings"),
+    # Module frameworks compile their package sources themselves, so their
+    # strings land in the framework's own .stringsdata, not FilaKit's.
+    ("FilaApplications", "Fila.build", "Frameworks/FilaApplications/Resources/Localizable.xcstrings"),
+    ("FilaMusicLibrary", "Fila.build", "Frameworks/FilaMusicLibrary/Resources/Localizable.xcstrings"),
+    ("FilaSMB", "Fila.build", "Frameworks/FilaSMB/Resources/Localizable.xcstrings"),
     (
         "FilaFormats",
         "FilaKit.build",
@@ -47,7 +56,25 @@ TARGETS = [
         "FilaKit.build",
         "Packages/FilaKit/Sources/FilaTerminal/Resources/Localizable.xcstrings",
     ),
+    (
+        "FilaBackendUI",
+        "FilaKit.build",
+        "Packages/FilaKit/Sources/FilaBackendUI/Resources/Localizable.xcstrings",
+    ),
 ]
+
+# What each composition compiles: catalogue owner → the Xcode target whose
+# intermediates hold its .stringsdata. The sandboxed app is a second target
+# over the same sources and catalogue, so its keys land under its own name.
+# See verify-composition.sh for the same split read back out of the product.
+COMPOSITIONS = {
+    "full": {name: name for name, _, _ in TARGETS},
+    "sandboxed": {
+        name: ("FilaSandboxed" if name == "Fila" else name)
+        for name, _, _ in TARGETS
+        if name not in ("FilaApplications", "FilaMusicLibrary")
+    },
+}
 
 
 def target_build_dirs(intermediates: pathlib.Path, project: str, configuration: str, name: str) -> list[pathlib.Path]:
@@ -81,24 +108,35 @@ def extracted_keys(build_dir: pathlib.Path) -> set[str]:
 
 
 def main() -> int:
-    if len(sys.argv) not in (2, 3):
-        print("usage: check-extracted-strings.py <derived-data-path> [configuration-platform]", file=sys.stderr)
+    arguments = sys.argv[1:]
+    composition = "full"
+    if arguments[:1] == ["--composition"]:
+        composition = arguments[1] if len(arguments) > 1 else ""
+        arguments = arguments[2:]
+    if composition not in COMPOSITIONS or len(arguments) not in (1, 2):
+        print(
+            "usage: check-extracted-strings.py [--composition full|sandboxed] <derived-data-path> [configuration-platform]",
+            file=sys.stderr,
+        )
         return 64
     root = pathlib.Path(__file__).resolve().parent.parent
-    intermediates = pathlib.Path(sys.argv[1]) / "Build/Intermediates.noindex"
+    intermediates = pathlib.Path(arguments[0]) / "Build/Intermediates.noindex"
     if not intermediates.is_dir():
         print(f"error: no build products under {intermediates}", file=sys.stderr)
         return 66
 
-    configuration = sys.argv[2] if len(sys.argv) == 3 else "Release-iphoneos"
+    configuration = arguments[1] if len(arguments) == 2 else "Release-iphoneos"
     failed = False
     for name, project, catalogue_path in TARGETS:
+        build_name = COMPOSITIONS[composition].get(name)
+        if build_name is None:
+            continue
         catalogue = root / catalogue_path
         if not catalogue.is_file():
             print(f"error: {catalogue_path} is missing", file=sys.stderr)
             failed = True
             continue
-        build_dirs = target_build_dirs(intermediates, project, configuration, name)
+        build_dirs = target_build_dirs(intermediates, project, configuration, build_name)
         if not build_dirs:
             print(
                 f"error: no build directory for {name} in {project}/{configuration}; "

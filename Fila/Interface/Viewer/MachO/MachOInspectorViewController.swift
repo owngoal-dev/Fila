@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaProtocol
@@ -46,7 +47,7 @@ final class MachOInspectorViewController: UIViewController {
     private var names: [String] = []
     private var rows: [Item: Row] = [:]
 
-    init(details: FileDetails, file: DescriptorFile, link _: DaemonLink) {
+    init(details: FileDetails, file: DescriptorFile, link _: any LocalFileAccess) {
         self.file = file
         super.init(nibName: nil, bundle: nil)
         title = URL(fileURLWithPath: details.path).lastPathComponent

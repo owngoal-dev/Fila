@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaProtocol
 import SnapKit
@@ -21,7 +22,7 @@ final class CompressViewController: UIViewController {
     private var name: String
     private var directory: String
     private let itemCount: Int
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
     private var format: ArchiveFormat = .zip
     private var level: ZipCompression = .balanced
     private var encryption: ZipEncryption = .aes256
@@ -35,7 +36,7 @@ final class CompressViewController: UIViewController {
         suggestedName: String,
         directory: String,
         itemCount: Int,
-        link: DaemonLink,
+        link: any LocalFileAccess,
         confirm: @escaping (Choice) -> Void
     ) {
         name = suggestedName
@@ -56,7 +57,6 @@ final class CompressViewController: UIViewController {
             target: self,
             action: #selector(commit)
         )
-        preferredContentSize = CGSize(width: 440, height: 560)
     }
 
     @available(*, unavailable)
@@ -64,13 +64,13 @@ final class CompressViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Wrapped in its navigation controller and sized for the device.
+    /// Wrapped in its navigation controller; the sheet helper sizes it.
     static func present(
         from presenter: UIViewController,
         suggestedName: String,
         directory: String,
         itemCount: Int,
-        link: DaemonLink,
+        link: any LocalFileAccess,
         confirm: @escaping (Choice) -> Void
     ) {
         let form = CompressViewController(
@@ -80,13 +80,7 @@ final class CompressViewController: UIViewController {
             link: link,
             confirm: confirm
         )
-        let navigation = UINavigationController(rootViewController: form)
-        if presenter.traitCollection.horizontalSizeClass == .regular {
-            navigation.modalPresentationStyle = .formSheet
-            presenter.present(navigation, animated: true)
-        } else {
-            presenter.presentAsSheet(navigation)
-        }
+        presenter.presentAsSheet(UINavigationController(rootViewController: form))
     }
 
     override func viewDidLoad() {

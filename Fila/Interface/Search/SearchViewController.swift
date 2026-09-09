@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaProtocol
 import SnapKit
 import Then
@@ -259,7 +260,7 @@ final class SearchViewController: UIViewController {
         var names = Set<String>()
         hits = entries.filter {
             names.insert($0.name).inserted
-                && (AppPreferences.shared.showsHidden || !$0.isHidden)
+                && (FileSession.shared.showsHidden || !$0.isHidden)
                 && !query.isEmpty && $0.name.localizedStandardContains(query)
         }.map { FileSearchResult(directory: root, node: $0) }
         apply()
@@ -319,7 +320,7 @@ final class SearchViewController: UIViewController {
         return UICollectionViewCompositionalLayout { _, environment in
             let section = NSCollectionLayoutSection.list(using: configuration, layoutEnvironment: environment)
             if footer {
-                section.boundarySupplementaryItems = [BrowserViewController.footerItem()]
+                section.boundarySupplementaryItems = [FileBrowserViewController.footerItem()]
             }
             return section
         }
@@ -434,7 +435,7 @@ extension SearchViewController: UICollectionViewDelegate {
 
     private func open(_ hit: FileSearchResult) {
         if hit.node.isNavigable {
-            navigationController?.pushViewController(BrowserViewController(directory: hit.path), animated: true)
+            navigationController?.pushViewController(FileBrowserViewController(directory: hit.path), animated: true)
         } else {
             Task { await openFile(at: hit.path, session: session) }
         }

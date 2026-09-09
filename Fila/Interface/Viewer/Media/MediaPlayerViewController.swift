@@ -1,5 +1,6 @@
 import AVFoundation
 import AVKit
+import FilaBackendUI
 import FilaMedia
 import FilaProtocol
 import SnapKit

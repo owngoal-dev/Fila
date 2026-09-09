@@ -1,6 +1,6 @@
 // Run with Scripts/test-music-import.sh. Exercise the production KVC boundary
 // with old/new runtime shapes; no MusicLibrary framework or database is opened.
-#import "../Fila/Services/Music/NativeMusicLibrary.m"
+#import "../Packages/FilaKit/Sources/CFilaMusicLibrary/NativeMusicLibrary.m"
 
 @interface LegacyImportHints : NSObject
 @property(nonatomic) NSUInteger operationCount;

@@ -75,6 +75,7 @@ installed_app="$installed_root/Applications/Fila.app"
 installed_launchd="$installed_root/Library/LaunchDaemons/wiki.qaq.filad.plist"
 python3 "$(dirname "$0")/verify-payload.py" "$installed_app" deb "$version" "$installed_root/usr/libexec/filad" "$installed_root/usr/libexec/fila-archive"
 bash "$(dirname "$0")/verify-file-provider.sh" "$installed_app" deb
+bash "$(dirname "$0")/verify-composition.sh" "$installed_app" full
 ldid -e "$installed_app/Fila" >"$payload_root/icon-entitlements.plist"
 python3 "$(dirname "$0")/verify-icon-entitlements.py" "$payload_root/icon-entitlements.plist"
 
