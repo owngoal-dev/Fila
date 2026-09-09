@@ -298,6 +298,149 @@ taking the shell down with it: a private call that returns nothing falls back
 Open items for this mode — rebinding after fallback, LiveContainer
 verification, a sandboxed Applications row — live in `Roadmap.md`.
 
+## Proposed file-service extraction and remote clients
+
+**Design under review, not implemented.** The full contract, migration and
+proof plan lives in [RemoteClients.md](RemoteClients.md); the agreed execution
+sequence and acceptance gates are in [PLAN.md](../PLAN.md). The selected remote
+libraries are the MIT-licensed `kishikawakatsumi/SMBClient` and permissively
+licensed libcurl; remote networking stays in the app.
+
+The current system already carries unsolicited job progress and search
+results from service to client. Directory freshness is separate: today the
+browser reloads from `OperationCenter` completion notifications. The proposed
+extraction makes both requests and directory subscriptions part of the common
+browser-facing service contract.
+
+`FilaBackendKit` will own shared file-service/backend contracts, preference-storage
+contracts and small root/location/sidebar values.
+The existing internal `FilaClient.FileService` becomes `LocalFileAccess`;
+`DaemonLink` continues choosing the daemon or in-process local backend.
+`FilaLocal` owns reusable local backend classes and public in-process access;
+`FilaPrivileged` extracts full-build XPC/local selection from FilaClient, while
+`FilaSMB` and `FilaFTP` implement it using SMBClient and libcurl respectively. Implementations depend
+on the shared contract. New module frameworks are not linked into filad.
+
+Backend implementations ship as separate bundled dynamic frameworks: FilaLocal,
+FilaPrivileged, FilaSMB, FilaFTP, FilaApplications and FilaMusicLibrary. Included frameworks are
+retained as startup Mach-O dependencies and loaded by dyld before main. In main,
+BackendModuleDiscovery reads each embedded module's static manifest, resolves
+the `<framework basename>Module` entry class and registers factories/capabilities
+with BackendRegistry using injected BackendHost services. FilaBackendKit is the
+single shared dynamic contract module. The app has no concrete-entry-class
+switch, external plugin directory or third-party installation mechanism.
+
+FilaLocal has no dependency on FilaPrivileged. Privileged access is registered
+through shared contracts, then backend factories are resolved after all module
+registrations. Applications/Music carry their complete feature UI; the common
+list base/components live in FilaBackendUI.framework. All first-party frameworks
+ship with exactly the app's marketing version/build and shared toolchain.
+
+This is startup code loading with demand-driven connections/queries. Module
+registration does not create screens or start network/catalog I/O. Strong-link,
+embedding, signing and iOS-floor checks must catch failures that would happen
+before main; runtime discovery cannot recover from a missing required dylib.
+Manifest, version or registration failure logs `backend failed to bootstrap`
+with the module identity/reason, then omits its capabilities and entries without
+an in-app alert or failed row. Persisted state is retained. This is distinct from
+normal backend connection/operation errors and from on-demand daemon readiness.
+All packaged modules are enabled automatically; there is no module switch or
+runtime backend unload. Closing screens/subscriptions may release connections
+and observation resources without unloading the backend. A bootstrap failure
+disables only that launch's registration and is retried on the next startup.
+
+A logical backend outlives its I/O connection. `LocalFileBackend` is the
+extensible local class; every configured SMB share or FTP root has its own
+backend instance. Each owns bookmarks, recent directories and per-folder
+preferences through an injected, scoped `DefaultStorage`. Production
+storage remains UserDefaults. The storage adapter preserves existing local
+keys and isolates remote profiles; controllers no longer edit one global
+favorites array. Only global appearance/history-recording policies are shared;
+sort, hidden-file visibility, default layout and domain options belong to each
+backend. One SMB share or FTP starting directory is one backend instance.
+`DefaultStorage`, backed by UserDefaultsStorage, is injected per process and
+backend scope. App and extensions store their preferences separately; this
+design introduces no cross-process defaults sharing or synchronization.
+
+Each backend exposes an immutable root and streams a complete sidebar
+contribution from its saved preferences and available locations. The app's
+`SidebarModel` combines the latest contributions in stable backend order and
+merges recent visits by their recorded timestamps. It does not wait for all
+servers to connect, and its projection is not a second bookmark database.
+Sidebar streams remain usable offline; network-directory streams may fail.
+ApplicationBackend and MusicLibraryBackend contribute their own catalog roots
+and snapshots; Settings and task controls remain composed by the shell.
+Applications and Music have no favorite feature. Sidebar collects contributions
+into common sections with deterministic ordering; cross-section reordering is
+not supported.
+
+The common protocol is `Backend`. `FileBackend` refines it for local/SMB/FTP
+operations; ApplicationBackend and MusicLibraryBackend conform to Backend
+without pretending applications/tracks are POSIX files. Each owns typed
+preferences and domain actions over its existing services. UI reuse comes
+through `BackendListViewController<Item>`, specialized by
+`FileBrowserViewController`, `ApplicationListViewController` and
+`MusicLibraryViewController`. Per-backend screen factories keep the common
+shell independent of concrete feature imports. The complete class/migration
+table is in [the backend plan](RemoteClients.md#backend-and-controller-class-plan).
+
+`SandboxedLocalFileBackend` is a thin subclass of `LocalFileBackend`: it supplies
+a container root, in-process access and appropriate defaults while inheriting
+preference/sidebar behavior and shared file machinery. BackendRoot describes
+the navigation root; the backend's actual authority enforces access. Container
+favorites use relative paths under a stable root identity. Its default root is
+Documents; full local access retains appropriate built-in roots/locations.
+Additional user-created local roots are out of scope. Existing import/export
+and shared-container workflows remain intact. The normal root daemon is not
+confined to Documents or its bootstrap by this design.
+
+The requested sandboxed IPA must exclude ApplicationBackend and
+MusicLibraryBackend at compile/link/embed time, including their native bridges,
+controllers and indirect dependencies. The proposed `FilaApplications` and
+`FilaMusicLibrary` modules appear only in full composition. Proposed app target
+`FilaSandboxed` excludes FilaPrivileged as well and uses FilaBackendUI, public
+local access and networking; `make ipa`
+will select it. Existing Fila composition serves deb/tipa with runtime backend
+selection. This explicitly revises the former shared-app-binary assumption for
+the ordinary IPA; it does not fork shared implementation or introduce protocol
+selection flags in feature code. No target is implemented by this document.
+App Store suitability still requires a separate full binary/API audit.
+
+The common contract covers bounded pull-based directory listing, item details, content
+copying into a caller-owned private staging descriptor, and independent
+per-directory invalidation subscriptions. Local descriptors, POSIX metadata,
+root operations and trash retain their specialized interfaces. Remote files
+are not represented by fake descriptors or fabricated `lstat` fields.
+
+An invalidation means “query this directory again.” Each subscriber receives
+an initial invalidation after observation is installed, buffers at most one
+pending hint, and retains hints received during an in-flight listing. A stream
+is created for each subscriber; one shared AsyncStream is not a broadcast bus.
+Navigation cancels subscriptions and rejects stale responses. Connection loss
+ends affected streams; retry establishes a new observation and full listing.
+These hints are not a replacement for job lifecycle or search-result streams.
+
+The selected SMB library currently lacks CHANGE_NOTIFY, and FTP has no assumed
+directory-push mechanism. Their initial subscriptions use observed-directory
+polling and known mutation outcomes. Local native watching can later add
+bounded XPC subscriptions without changing the common consumer API. Any such
+watch remains owned and authorized by the backend; filad sends metadata only.
+
+Migration preserves the current local browser's paged initial listings and
+specialized file actions. New remote browsing adopts the common contract
+first, followed by local subscription/query integration. Each migrated screen
+has one reload owner. `OperationCenter` continues owning task receipts, and
+local publication continues through guarded atomic file operations.
+
+Cross-backend Copy/Move is coordinated by one FileTransfer executor under
+OperationCenter. Native local operations keep their existing bulk jobs;
+remote routes perform any necessary download/upload internally, using bounded
+per-file staging. A move publishes the complete destination before attempting
+verified source cleanup. Failed cleanup retains the copy and reports a partial
+move; cancellation does not erase already-published destinations. Backend-aware
+clipboard snapshots are consumed only after successful moves. Application/music
+domain actions stay explicit and do not acquire destructive Cut/Paste semantics.
+
 ## Testing
 
 `make harness` runs `swift test --package-path Packages/FilaKit` against a
