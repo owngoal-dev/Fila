@@ -48,6 +48,15 @@ public extension FileOperations {
         }
         let original = exists ? found : nil
         if let original {
+            // A directory at the name cannot be published over, and the
+            // metadata copy below reaches that fact first: `copyfile(3)` from
+            // a directory to a regular file fails with EINVAL, which reads as
+            // a malformed request rather than as what is in the way. Report
+            // the errno the `rename` itself would have produced — the one the
+            // client turns into `notEmpty` — while both sides are untouched.
+            guard original.st_mode & S_IFMT != S_IFDIR else {
+                throw FilaFailure(errno: EISDIR, path: destination)
+            }
             // Metadata is written to the temporary before publication. It
             // must not share an inode with a name outside the writable root.
             _ = try resolveForWrite(source, changesInode: true)

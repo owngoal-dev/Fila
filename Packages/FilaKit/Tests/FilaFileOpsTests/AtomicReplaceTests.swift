@@ -103,6 +103,22 @@ struct AtomicReplaceTests {
         #expect((metadata(of: temporary)?.st_mode ?? 0) & S_IFMT == S_IFIFO)
     }
 
+    @Test("A directory at the name is refused as EISDIR, and keeps its entries and the temporary")
+    func refusesDirectoryDestination() throws {
+        let target = scratch.directory("config")
+        let inside = scratch.file("config/kept", contents: "entry")
+        let temporary = scratch.file("config.tmp", contents: "new bytes")
+
+        // EISDIR is what the rename would have reported, and what the client
+        // turns into `notEmpty`. Reaching `copyfile(3)` instead reports EINVAL.
+        #expect(throws: FilaFailure(errno: EISDIR, path: target)) {
+            try operations.replaceItem(at: target, withTemporary: temporary)
+        }
+        #expect((metadata(of: target)?.st_mode ?? 0) & S_IFMT == S_IFDIR)
+        #expect(try String(contentsOfFile: inside, encoding: .utf8) == "entry")
+        #expect(try String(contentsOfFile: temporary, encoding: .utf8) == "new bytes")
+    }
+
     private func aclText(at path: String) throws -> String {
         let acl = try #require(acl_get_file(path, ACL_TYPE_EXTENDED))
         defer { acl_free(UnsafeMutableRawPointer(acl)) }
