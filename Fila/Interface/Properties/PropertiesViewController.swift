@@ -20,7 +20,7 @@ import UIKit
 /// Every edit is one `AttributeChange` with one field set. The daemon applies
 /// exactly what it is given, so a screen that sent the whole struct would
 /// silently re-write the owner every time somebody flipped a permission bit.
-final class PropertiesViewController: UIViewController {
+final class PropertiesViewController: TabContentViewController {
     private enum Section: Hashable {
         case item, size, dates, permissions, flags, link, extendedAttributes, identity, advanced, media, checksums
 
@@ -96,6 +96,12 @@ final class PropertiesViewController: UIViewController {
         title = showsAdvanced ? String(localized: "Advanced Information") : String(localized: "Properties")
         if !showsAdvanced {
             installActionsMenu()
+            // The item, then this screen — drawn only in a tab, where a crumb
+            // on a folder goes back to its browser.
+            let screen = PathBarView.Crumb(title: title ?? "", icon: UIImage(systemName: "info.circle"))
+            decorationSource = details.node.kind == .directory
+                ? LocalPathDecoration(directory: details.path, screen: screen)
+                : LocalPathDecoration(path: details.path, icon: FilePresentation.image(for: details.node), screen: screen)
         }
     }
 
@@ -250,7 +256,7 @@ final class PropertiesViewController: UIViewController {
             },
         ]))
         more.accessibilityLabel = String(localized: "More")
-        navigationItem.rightBarButtonItem = more
+        trailingNavigationItems = [more]
     }
 
     // MARK: - Content
@@ -623,12 +629,9 @@ final class PropertiesViewController: UIViewController {
         case .owner: editOwner()
         case .group: editGroup()
         case .flags:
-            navigationController?.pushViewController(
-                FileFlagsEditorViewController(flags: details.node.systemFlags) { [weak self] flags in
-                    self?.apply(AttributeChange(systemFlags: flags))
-                },
-                animated: true
-            )
+            pushDetail(FileFlagsEditorViewController(flags: details.node.systemFlags) { [weak self] flags in
+                self?.apply(AttributeChange(systemFlags: flags))
+            })
         case .advanced:
             let advanced = PropertiesViewController(details: details, link: link, showsAdvanced: true)
             advanced.applyRecursively = applyRecursively
@@ -636,7 +639,7 @@ final class PropertiesViewController: UIViewController {
                 self?.details = details
                 self?.rebuild()
             }
-            navigationController?.pushViewController(advanced, animated: true)
+            pushDetail(advanced)
         case let .extendedAttribute(name): showAttribute(named: name)
         }
     }

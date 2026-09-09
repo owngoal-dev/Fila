@@ -272,6 +272,21 @@ final class FileActions {
             link: access,
             onProcessExit: onProcessExit
         )
+        // The file being run, or the folder a shell starts in, then the
+        // terminal; a crumb on a folder goes back to its browser.
+        let screen = PathBarView.Crumb(title: terminal.title ?? "", icon: UIImage(systemName: "terminal"))
+        switch program {
+        case let .executable(path), let .installPackage(path):
+            terminal.decorationSource = LocalPathDecoration(
+                path: path,
+                icon: FilePresentation.image(kind: .regular, name: (path as NSString).lastPathComponent),
+                screen: screen
+            )
+        case let .loginShell(workingDirectory):
+            if let workingDirectory {
+                terminal.decorationSource = LocalPathDecoration(directory: workingDirectory, screen: screen)
+            }
+        }
         if let navigation = presenter.navigationController {
             navigation.pushViewController(terminal, animated: true)
         } else if let shell = presenter.shell {

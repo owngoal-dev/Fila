@@ -4,7 +4,7 @@ import UIKit
 
 /// A read-only list of label/value pairs. Used by every viewer that has facts to
 /// state and no interaction to offer.
-final class KeyValueListViewController: UITableViewController {
+final class KeyValueListViewController: TabContentTableViewController {
     /// Input order identifies even repeated values in an immutable fact list.
     private struct Entry: Hashable {
         let index: Int
@@ -19,17 +19,6 @@ final class KeyValueListViewController: UITableViewController {
         entries = rows.enumerated().map { Entry(index: $0.offset, label: $0.element.0, value: $0.element.1) }
         super.init(style: .insetGrouped)
         self.title = title
-        let tabs = UIAction(
-            title: String(localized: "Tabs"),
-            image: UIImage(systemName: "square.on.square")
-        ) { [weak self] _ in
-            self?.shell?.presentTabSwitcher()
-        }
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
-            menu: UIMenu(children: [tabs])
-        )
-        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
     }
 
     @available(*, unavailable)
@@ -92,7 +81,7 @@ final class KeyValueListViewController: UITableViewController {
         source.applySnapshotUsingReloadData(snapshot)
     }
 
-    override func tableView(
+    func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
         point _: CGPoint

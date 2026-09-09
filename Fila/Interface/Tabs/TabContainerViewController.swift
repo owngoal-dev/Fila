@@ -505,7 +505,6 @@ extension TabContainerViewController: UINavigationControllerDelegate {
         animated: Bool
     ) {
         shell?.configureSidebarButton(for: viewController)
-        (navigation as? TabNavigationController)?.prepareToolbar(for: viewController)
         navigation.setNavigationBarHidden(false, animated: animated)
         navigation.setToolbarHidden(viewController.toolbarItems?.isEmpty != false, animated: animated)
     }

@@ -91,7 +91,6 @@ final class RootSplitViewController: UISplitViewController {
     /// in late on the arriving one. Every screen keeps its own pair, ready
     /// before the transition starts.
     private let sidebarToggles = NSMapTable<UIViewController, UIBarButtonItem>.weakToStrongObjects()
-    private let tabButtons = NSMapTable<UIViewController, UIBarButtonItem>.weakToStrongObjects()
     private let navigationBacks = NSMapTable<UIViewController, UIBarButtonItem>.weakToStrongObjects()
     private lazy var columnToggle = makeSidebarToggle()
 
@@ -130,17 +129,6 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
-    private func makeTabButton() -> UIBarButtonItem {
-        UIBarButtonItem(image: UIImage(systemName: "square.on.square"), primaryAction: UIAction { [weak self] _ in
-            self?.content.showTabSwitcher()
-        }).then {
-            $0.accessibilityLabel = String(localized: "Tabs")
-            if #available(iOS 26.0, *) {
-                $0.identifier = "tabs"
-                $0.sharesBackground = false
-            }
-        }
-    }
 
     /// A standard Back item preserves the guarded history menu while allowing
     /// the sidebar toggle to move between columns independently.
@@ -184,11 +172,10 @@ final class RootSplitViewController: UISplitViewController {
         let item = controller.navigationItem
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
-        let tabs = self.item(in: tabButtons, for: controller, make: makeTabButton)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
         (controller as? TabSwitcherViewController)?.updateToolbar(sidebarVisible: inSidebar)
         var buttons = (leadingItems ?? item.leftBarButtonItems ?? [])
-            .filter { $0 !== toggle && $0 !== back && $0 !== tabs }
+            .filter { $0 !== toggle && $0 !== back }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
         // exit intact, rather than creating another route around its save guard.
         if !controller.isEditing, !item.hidesBackButton {
@@ -207,9 +194,6 @@ final class RootSplitViewController: UISplitViewController {
             {
                 back.menu = nil
                 buttons.insert(back, at: 0)
-            }
-            if controller is any BackendRootScreen {
-                buttons.insert(tabs, at: 0)
             }
             // Custom leading items suppress UIKit's default Back control.
             // Keep its native edge transition, subject to editor guards.
@@ -277,6 +261,20 @@ final class RootSplitViewController: UISplitViewController {
                 show(.secondary)
             }
         }
+    }
+
+    /// A folder named by a crumb on a screen that is not a browser — a
+    /// viewer, a search, a terminal. Back to that folder's browser when it is
+    /// on the stack, which it is after a descent; otherwise a jump to it,
+    /// the way the sidebar's rows arrive.
+    func showDirectory(_ path: String, from screen: UIViewController) {
+        if let navigation = screen.navigationController,
+           let browser = navigation.viewControllers.last(where: { ($0 as? FileBrowserViewController)?.directory == path })
+        {
+            navigation.popToViewController(browser, animated: true)
+            return
+        }
+        open(path)
     }
 
     /// Pushes a screen into the current tab — a viewer, an editor, a search, a

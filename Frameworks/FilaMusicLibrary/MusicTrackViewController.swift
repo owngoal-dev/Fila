@@ -8,8 +8,9 @@ import UIKit
 /// Export stages the library's own file through the shell, renames it to
 /// the title and publishes it as a copy job, so a song lands in the
 /// browser as a task and never as a raw path.
-final class MusicTrackViewController: UITableViewController, BackendDetailScreen {
+final class MusicTrackViewController: TabContentTableViewController, TabContentDecorationSource {
     private let track: MusicLibraryTrack
+    private let root: PathBarView.Crumb
     private let delete: (MusicTrackViewController) -> Void
     private var details: MusicLibraryEditor.Details?
     private var isSaving = false
@@ -17,14 +18,15 @@ final class MusicTrackViewController: UITableViewController, BackendDetailScreen
 
     private var bundle: Bundle { MusicLibraryBackend.bundle }
 
-    init(track: MusicLibraryTrack, delete: @escaping (MusicTrackViewController) -> Void) {
+    /// `root` is the library's own crumb; this screen draws it first and
+    /// pops back to the library from it.
+    init(track: MusicLibraryTrack, root: PathBarView.Crumb, delete: @escaping (MusicTrackViewController) -> Void) {
         self.delete = delete
         self.track = track
+        self.root = root
         super.init(style: .insetGrouped)
         title = track.title.isEmpty ? String(localized: "Song Details", bundle: bundle) : track.title
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
-            menu: UIMenu(children: [
+        trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
                 UIMenu(options: .displayInline, children: [
                     UIAction(
                         title: String(localized: "Export", bundle: bundle),
@@ -43,9 +45,21 @@ final class MusicTrackViewController: UITableViewController, BackendDetailScreen
                         delete(self)
                     },
                 ]),
-            ])
-        )
-        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More", bundle: bundle)
+            ]))]
+    }
+
+    // MARK: - Decoration
+
+    /// The library, then this song under its current title.
+    func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
+        [root, PathBarView.Crumb(title: title ?? "", target: track.id.description, icon: UIImage(systemName: "music.note"))]
+    }
+
+    /// The only earlier crumb is the library.
+    func tabContent(_: TabContentViewController, didSelectDecorationCrumb _: PathBarView.Crumb) {
+        guard let navigation = navigationController,
+              let list = navigation.viewControllers.last(where: { $0 is MusicLibraryViewController }) else { return }
+        navigation.popToViewController(list, animated: true)
     }
 
     @available(*, unavailable)
@@ -148,6 +162,7 @@ final class MusicTrackViewController: UITableViewController, BackendDetailScreen
         details = result
         let savedTitle = result.values[.title] ?? ""
         title = savedTitle.isEmpty ? String(localized: "Song Details", bundle: bundle) : savedTitle
+        reloadDecoration()
         let preview = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? MusicTrackPreviewCell
         preview?.show(track, details: result)
         tableView.reloadSections(IndexSet(integer: 1), with: .none)
@@ -161,7 +176,7 @@ final class MusicTrackViewController: UITableViewController, BackendDetailScreen
         return details == nil ? 0 : MusicLibraryEditor.Field.allCases.count
     }
 
-    override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
+    func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         guard section == 1, details != nil else { return nil }
         return String(localized: "Tap a field with an arrow to edit it.", bundle: bundle)
     }
@@ -184,7 +199,7 @@ final class MusicTrackViewController: UITableViewController, BackendDetailScreen
         }
     }
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard indexPath.section == 1, !isSaving, let details else { return }
         let field = MusicLibraryEditor.Field.allCases[indexPath.row]

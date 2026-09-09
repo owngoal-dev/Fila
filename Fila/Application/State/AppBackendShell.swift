@@ -90,6 +90,10 @@ final class AppBackendShell: BackendShell {
         FilePresentation.image(kind: isDirectory ? .directory : .regular, name: name)
     }
 
+    func rootArtwork(for root: BackendRoot) -> UIImage? {
+        SidebarLocation.image(for: root)
+    }
+
     func progressCard(title: String, message: String, from presenter: UIViewController) -> any BackendProgressCard {
         DelayedProgressCard(title: title, message: message, presenter: presenter)
     }
@@ -114,6 +118,14 @@ final class AppBackendShell: BackendShell {
                 return
             }
             ReleaseOnDeinit.attach(to: shown, released)
+            // The snapshot sits in a workspace nobody should see: the viewer
+            // continues the share's crumbs with the file, and a crumb on the
+            // share's folders does what it does on the share's screen.
+            if let content = shown as? TabContentViewController, let source = presenter as? TabContentViewController {
+                content.decorationSource = DetailDecoration(
+                    parent: source, title: title, target: file.path, icon: fileIcon(named: title, isDirectory: false)
+                )
+            }
         }
     }
 

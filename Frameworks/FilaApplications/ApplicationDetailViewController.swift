@@ -5,18 +5,23 @@ import UIKit
 /// One app: its artwork and identity, what the installation database says
 /// about it, and its containers. A container row pushes a browser, so Back
 /// returns here and then to the list.
-final class ApplicationDetailViewController: UITableViewController, BackendDetailScreen {
+final class ApplicationDetailViewController: TabContentTableViewController, TabContentDecorationSource {
     private let app: InstalledApp
     private let backend: ApplicationBackend
+    private let root: PathBarView.Crumb
     private var bundle: Bundle { ApplicationBackend.bundle }
 
     private enum Section: Int { case header, details }
 
-    init(app: InstalledApp, backend: ApplicationBackend) {
+    /// `root` is the list's own crumb; this screen draws it first and pops
+    /// back to the list from it.
+    init(app: InstalledApp, backend: ApplicationBackend, root: PathBarView.Crumb) {
         self.app = app
         self.backend = backend
+        self.root = root
         super.init(style: .insetGrouped)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
+        title = app.name
+        trailingNavigationItems = [UIBarButtonItem(
             title: String(localized: "Open", bundle: bundle),
             primaryAction: UIAction { [bundle] _ in
                 if !ApplicationCatalog.open(app) {
@@ -29,12 +34,21 @@ final class ApplicationDetailViewController: UITableViewController, BackendDetai
                     )
                 }
             }
-        )
+        )]
     }
 
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("not supported")
+    // MARK: - Decoration
+
+    /// The catalogue, then this app with its artwork.
+    func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
+        [root, PathBarView.Crumb(title: app.name, target: app.bundleIdentifier, icon: icon)]
+    }
+
+    /// The only earlier crumb is the list.
+    func tabContent(_: TabContentViewController, didSelectDecorationCrumb _: PathBarView.Crumb) {
+        guard let navigation = navigationController,
+              let list = navigation.viewControllers.last(where: { $0 is ApplicationListViewController }) else { return }
+        navigation.popToViewController(list, animated: true)
     }
 
     static func title(of location: InstalledApp.Location) -> String {
@@ -60,16 +74,12 @@ final class ApplicationDetailViewController: UITableViewController, BackendDetai
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = app.name
-        navigationItem.do {
-            $0.backButtonDisplayMode = .minimal
-            $0.largeTitleDisplayMode = .never
-        }
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Row")
         guard ApplicationArtworkCache.shared.cachedIcon(for: app.bundleIdentifier) == nil else { return }
         Task { [weak self, identifier = app.bundleIdentifier] in
             _ = await ApplicationArtworkCache.shared.icon(for: identifier)
             self?.tableView.reloadWithAnimation()
+            self?.reloadDecoration()
         }
     }
 
@@ -89,7 +99,7 @@ final class ApplicationDetailViewController: UITableViewController, BackendDetai
         }
     }
 
-    override func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
+    func tableView(_: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch Section(rawValue: section) {
         case .header: nil
         case .details: app.details.isEmpty ? nil : String(localized: "Details", bundle: bundle)
@@ -97,7 +107,7 @@ final class ApplicationDetailViewController: UITableViewController, BackendDetai
         }
     }
 
-    override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
+    func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         guard section >= 2 else { return nil }
         return app.locations[section - 2].path
     }
@@ -149,7 +159,7 @@ final class ApplicationDetailViewController: UITableViewController, BackendDetai
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard indexPath.section >= 2 else { return }
         let path = app.locations[indexPath.section - 2].path
@@ -162,7 +172,7 @@ final class ApplicationDetailViewController: UITableViewController, BackendDetai
 
     /// Every row's fact is copyable; the identifier and the paths are what
     /// people came to fetch.
-    override func tableView(
+    func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
         point _: CGPoint

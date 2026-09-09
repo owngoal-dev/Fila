@@ -7,7 +7,7 @@ import Then
 import UIKit
 
 /// Each architecture has a short summary and separate lists for its metadata.
-final class MachOInspectorViewController: UIViewController {
+final class MachOInspectorViewController: TabContentViewController {
     private enum Row {
         case fact(String, String)
         /// Tapping opens the entitlements as a property list tree.
@@ -312,15 +312,9 @@ extension MachOInspectorViewController: UITableViewDelegate {
         case .fact, nil:
             break
         case let .entitlements(value):
-            navigationController?.pushViewController(
-                PropertyListEditorViewController(title: String(localized: "Entitlements"), value: value),
-                animated: true
-            )
+            pushDetail(PropertyListEditorViewController(title: String(localized: "Entitlements"), value: value))
         case let .list(label, items):
-            navigationController?.pushViewController(
-                KeyValueListViewController(title: label, rows: items.map { ("", $0) }),
-                animated: true
-            )
+            pushDetail(KeyValueListViewController(title: label, rows: items.map { ("", $0) }))
         }
     }
 }

@@ -252,6 +252,20 @@ Sidebar jumps and incoming Fila links wait for the same handshake. Applications
 and its private-framework lookups remain unavailable while the backend is
 unknown and while it reports container reach.
 
+Every page in a tab — a folder, a share, a catalogue and its entries, a
+viewer, Search, Properties, a terminal — is a `TabContentViewController`
+(`FilaBackendUI`), and the bars are the base's layout, not the page's: Back
+and Places leading in the navigation bar from the shell, the page's actions
+trailing; search leading in the bottom bar, the breadcrumb in the centre,
+Tabs trailing. The shell's `TabNavigationController` tells a page it is in a
+tab before the push, which is what puts Tabs on it; a page in a sheet is
+never told and shows no Tabs. The breadcrumb is read through
+`TabContentDecorationSource`: a page conforms when it knows where it is, or
+is given a source that does — `LocalPathDecoration` for a local path,
+`DetailDecoration` for a page about part of another page or a remote
+snapshot under its share's crumbs. A catalogue's first crumb is its sidebar
+artwork and name, so Applications and Music read the same way a folder does.
+
 The embedded File Provider is a replicated extension (iOS 16; its
 `MinimumOSVersion` keeps it out of Files on 15). The system owns the on-disk
 replica, downloads, conflicts and upload state; the extension answers metadata,

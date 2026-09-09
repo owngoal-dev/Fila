@@ -1,5 +1,6 @@
 #if canImport(UIKit)
     import Darwin
+    import FilaBackendUI
     import FilaClient
     import FilaLog
     import FilaProtocol
@@ -29,7 +30,7 @@
     /// libghostty owns the emulation and the drawing. The daemon is out of the way
     /// as soon as it has answered — it holds the pid so it can hang the session up,
     /// and nothing else.
-    public final class TerminalViewController: UIViewController {
+    public final class TerminalViewController: TabContentViewController {
         /// - Parameters:
         ///   - program: what to run.
         ///   - user: the identity explicitly selected in the Run menu.
@@ -52,19 +53,15 @@
             super.init(nibName: nil, bundle: nil)
             title = Self.name(of: program)
             // Ending the session remains available in the screen's action menu.
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
-                image: UIImage(systemName: "ellipsis"),
-                menu: UIMenu(children: [
-                    UIAction(
-                        title: String(localized: "End Session", bundle: .module),
-                        image: UIImage(systemName: "stop"),
-                        attributes: .destructive
-                    ) { [weak self] _ in
-                        self?.endSession()
-                    },
-                ])
-            )
-            navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More", bundle: .module)
+            trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
+                UIAction(
+                    title: String(localized: "End Session", bundle: .module),
+                    image: UIImage(systemName: "stop"),
+                    attributes: .destructive
+                ) { [weak self] _ in
+                    self?.endSession()
+                },
+            ]))]
             navigationItem.rightBarButtonItem?.isEnabled = false
         }
 

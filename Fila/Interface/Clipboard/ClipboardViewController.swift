@@ -22,7 +22,7 @@ import UIKit
 /// one that is wrong, because the user has no way to notice either.
 ///
 /// The browser presents this in a navigation controller from its pending bar or menu.
-final class ClipboardViewController: UIViewController {
+final class ClipboardViewController: TabContentViewController {
     /// Where an entry goes when it is tapped. Set by whoever presents this: the
     /// browser owns navigation and this screen knows nothing about it.
     var onReveal: ((FileLocation) -> Void)?
@@ -89,19 +89,15 @@ final class ClipboardViewController: UIViewController {
         self.clipboard = clipboard
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Clipboard")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
-            menu: UIMenu(children: [
-                UIAction(
-                    title: String(localized: "Clear"),
-                    image: UIImage(systemName: "trash"),
-                    attributes: .destructive
-                ) { [weak self] _ in
-                    self?.confirmClear()
-                },
-            ])
-        )
-        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
+        trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
+            UIAction(
+                title: String(localized: "Clear"),
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.confirmClear()
+            },
+        ]))]
     }
 
     @available(*, unavailable)

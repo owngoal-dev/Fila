@@ -20,7 +20,7 @@ import UIKit
 /// `BackendListViewController`'s. What is here is what a directory of files
 /// adds to it: the layout preference, the cells, the application
 /// decorations, the volume footer, selection and the file actions.
-final class FileBrowserViewController: BackendListViewController<FileNode> {
+final class FileBrowserViewController: BackendListViewController<FileNode>, TabContentDecorationSource {
     let directory: String
 
     let session = FileSession.shared
@@ -40,9 +40,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
 
     override var maximumItemCount: Int { DirectoryReader.maximumEntryCount }
 
-    private let pathBar = PathBarView()
-    private lazy var pathBarItem = UIBarButtonItem(customView: pathBar)
-    private var pathBarWidth: Constraint?
     private let clipboardBar = ClipboardBarView()
     /// The list's own footer, once one has been dequeued. Weak because the
     /// collection view owns it and may recycle it; nil simply means there is
@@ -140,9 +137,12 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
             object: nil
         )
 
-        for name in [Notification.Name.filaClipboardChanged, .filaTabsChanged] {
-            NotificationCenter.default.addObserver(self, selector: #selector(refreshToolbar), name: name, object: nil)
-        }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshClipboardBar),
+            name: .filaClipboardChanged,
+            object: nil
+        )
 
         NotificationCenter.default.addObserver(
             self,
@@ -161,7 +161,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
             collectionView.contentInset.bottom = clipboardHeight
             collectionView.verticalScrollIndicatorInsets.bottom = clipboardHeight
         }
-        updatePathBarWidth()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -173,7 +172,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        pathBar.revealCurrentComponent()
         restoreScrollOffsetIfArrived()
         session.setLastDirectory(directory)
     }
@@ -197,12 +195,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
         recordDirectoryUse()
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        if previousTraitCollection?.horizontalSizeClass != traitCollection.horizontalSizeClass {
-            refreshToolbar()
-        }
-    }
 
     override func setEditing(_ editing: Bool, animated: Bool) {
         let modeChanged = editing != isEditing
@@ -257,31 +249,44 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
     /// made, so the first toggle after listing is seen as a change.
     private var decoratedWithApplications = SystemCapabilities.showsApplications
 
+    // MARK: - Decoration
+
+    /// App artwork for the crumbs that are app bundles or containers, by
+    /// crumb target, once the lookup has answered.
+    private var crumbArtwork: [String: UIImage] = [:]
+
+    /// The device or the root, then every folder down to this one; a crumb
+    /// opens its folder the way a row does — a child descends, anything
+    /// else jumps.
+    func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
+        PathBarView.localCrumbs(for: directory).map { crumb in
+            guard let icon = crumbArtwork[crumb.target] else { return crumb }
+            return PathBarView.Crumb(title: crumb.title, target: crumb.target, icon: icon)
+        }
+    }
+
+    func tabContent(_: TabContentViewController, didSelectDecorationCrumb crumb: PathBarView.Crumb) {
+        open(directory: crumb.target)
+    }
+
     // MARK: - Hierarchy
 
     private func buildHierarchy() {
-        pathBar.onSelect = { [weak self] path in self?.open(directory: path) }
-        let folder = UIImage(named: "FileIcons/folder")
-        pathBar.setPath(directory) { _ in folder }
         // An app bundle or container wears its app's icon, the same as its
         // row does; the lookup is async, so the folder stands in first.
         Task { [weak self, directory] in
             guard let applications = SystemCapabilities.applications,
                   let artwork = SystemCapabilities.applicationArtwork else { return }
             let decoration = await applications.decorationLookup()
-            // Warm every crumb's artwork first: the bar draws synchronously.
-            var prefix = ""
-            for component in directory.split(separator: "/") {
-                prefix += "/" + component
-                if let identifier = decoration(prefix)?.applicationIdentifier {
-                    _ = await artwork.icon(for: identifier)
-                }
+            var found: [String: UIImage] = [:]
+            for crumb in PathBarView.localCrumbs(for: directory) {
+                guard let identifier = decoration(crumb.target)?.applicationIdentifier,
+                      let icon = await artwork.icon(for: identifier) else { continue }
+                found[crumb.target] = icon
             }
-            guard let self else { return }
-            pathBar.setPath(self.directory) { path in
-                guard let identifier = decoration(path)?.applicationIdentifier else { return folder }
-                return artwork.cachedIcon(for: identifier) ?? folder
-            }
+            guard let self, !found.isEmpty else { return }
+            crumbArtwork = found
+            reloadDecoration()
         }
 
         collectionView.do {
@@ -296,17 +301,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
         clipboardBar.onPaste = { [weak self] in self?.paste() }
         clipboardBar.onClear = { FileClipboard.shared.clear() }
 
-        // The toolbar owns the breadcrumb's material and layout. Its custom
-        // view receives only the width left after Search, Tabs and their gaps.
-        pathBar.contentInsetAdjustmentBehavior = .never
-        pathBar.snp.makeConstraints { make in
-            pathBarWidth = make.width.equalTo(FilaUI.minimumTapTarget).constraint
-            make.height.equalTo(FilaUI.minimumTapTarget)
-        }
-        if #available(iOS 26.0, *) {
-            pathBarItem.identifier = "path"
-            pathBarItem.sharesBackground = false
-        }
         view.addSubview(clipboardBar)
         clipboardBar.snp.makeConstraints { make in
             make.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
@@ -314,10 +308,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
     }
 
     private func configureNavigationItem() {
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.backButtonDisplayMode = .minimal
-        navigationItem.rightBarButtonItem = moreItem()
-        toolbarItems = browsingToolbar
+        trailingNavigationItems = [moreItem()]
+        wantsSearchButton = true
+    }
+
+    /// The bottom bar's Search: the search screen for this folder.
+    override func search() {
+        presentSearch()
     }
 
     // MARK: - Layout
@@ -720,7 +717,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
     func updateChrome(animated: Bool = false) {
         guard isViewLoaded, navigationController?.topViewController === self else { return }
         navigationController?.setNavigationBarHidden(false, animated: false)
-        navigationController?.setToolbarHidden(false, animated: false)
         // Selection has one exit, Cancel. Outside selection UIKit supplies
         // Back from the real stack, alongside the iPad's sidebar control.
         navigationItem.setHidesBackButton(isEditing, animated: animated)
@@ -735,8 +731,8 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
                 // The split view may have collapsed or expanded meanwhile.
                 shell?.configureSidebarButton(for: self)
             }
-            navigationItem.rightBarButtonItem = moreItem()
-            rebuildBrowsingToolbar(animated: animated)
+            trailingNavigationItems = [moreItem()]
+            setToolbarOverride(nil, animated: animated)
             updateFooter()
             return
         }
@@ -751,7 +747,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
         })
         cancel.accessibilityLabel = String(localized: "Cancel")
         navigationItem.leftBarButtonItems = [cancel]
-        navigationItem.rightBarButtonItem = nil
+        trailingNavigationItems = []
 
         let items = selectionToolbar
         let allSelected = count == visible.count && !visible.isEmpty
@@ -768,15 +764,15 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
 
         // A count update changes the existing controls without replacing the
         // toolbar, including when select(_:) follows entry into selection mode.
-        guard toolbarItems?.first !== items.selectAll else { return }
+        guard toolbarOverride?.first !== items.selectAll else { return }
         if isTrash {
             // Two verbs in the trash: back where it came from, or gone for good.
-            setToolbarItems(
+            setToolbarOverride(
                 [items.selectAll, .flexibleSpace(), items.putBack, .flexibleSpace(), items.delete],
                 animated: false
             )
         } else if #available(iOS 26.0, *) {
-            setToolbarItems(
+            setToolbarOverride(
                 [
                     items.selectAll,
                     .flexibleSpace(),
@@ -786,10 +782,10 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
                     .flexibleSpace(),
                     items.delete,
                 ],
-                animated: shouldAnimateToolbar(animated)
+                animated: animated
             )
         } else {
-            setToolbarItems(
+            setToolbarOverride(
                 [
                     items.selectAll,
                     .flexibleSpace(),
@@ -872,15 +868,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
         return (selectAll, copy, move, compress, putBack, delete)
     }()
 
-    private func shouldAnimateToolbar(_ requested: Bool) -> Bool {
-        if #available(iOS 26.0, *) {
-            return requested && !UIAccessibility.isReduceMotionEnabled
-                && viewIfLoaded?.window != nil
-                && navigationController?.topViewController === self
-                && navigationController?.transitionCoordinator == nil
-        }
-        return false
-    }
 
     /// The trailing bar item groups creation, display preferences, and navigation.
     /// While transfers run, the glyph is
@@ -928,56 +915,10 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
         return moreButton
     }
 
-    @objc private func refreshToolbar() {
-        rebuildBrowsingToolbar(animated: false)
-    }
-
-    private func rebuildBrowsingToolbar(animated: Bool) {
-        guard isViewLoaded, navigationController?.topViewController === self else { return }
+    @objc private func refreshClipboardBar() {
+        guard isViewLoaded else { return }
         clipboardBar.isHidden = isEditing || isTrash || FileClipboard.shared.isEmpty
         clipboardBar.configure(FileClipboard.shared)
-        guard !isEditing else { return }
-        if navigationItem.rightBarButtonItem !== moreButton {
-            navigationItem.rightBarButtonItem = moreItem()
-        }
-
-        updatePathBarWidth()
-        setToolbarItems(browsingToolbar, animated: shouldAnimateToolbar(animated))
-    }
-
-    private lazy var browsingToolbar: [UIBarButtonItem] = {
-        let search = UIBarButtonItem(
-            systemItem: .search,
-            primaryAction: UIAction { [weak self] _ in self?.presentSearch() }
-        )
-        let tabs = UIBarButtonItem(
-            image: UIImage(systemName: "square.on.square"),
-            primaryAction: UIAction { [weak self] _ in
-                self?.shell?.presentTabSwitcher()
-            }
-        )
-        tabs.accessibilityLabel = String(localized: "Tabs")
-        tabs.accessibilityIdentifier = "fila.tabs"
-        if #available(iOS 26.0, *) {
-            search.sharesBackground = false
-            tabs.sharesBackground = false
-            for (item, identifier) in [(search, "search"), (tabs, "tabs")] {
-                item.identifier = identifier
-            }
-        }
-        return [search, .flexibleSpace(), pathBarItem, .flexibleSpace(), tabs]
-    }()
-
-    private func updatePathBarWidth() {
-        guard let pathBarWidth else { return }
-        // Reserve native control widths, outer margins and inter-group gaps.
-        // Measure this content column, never the screen or the split sidebar.
-        let available = view.safeAreaLayoutGuide.layoutFrame.width
-        let reserved = 2 * FilaUI.minimumTapTarget + 4 * FilaUI.Spacing.large + 2 * FilaUI.Spacing.small
-        let width = max(FilaUI.minimumTapTarget, available - reserved)
-        if abs((pathBarWidth.layoutConstraints.first?.constant ?? 0) - width) > 0.5 {
-            pathBarWidth.update(offset: width)
-        }
     }
 
     func presentClipboard() {

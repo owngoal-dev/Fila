@@ -15,7 +15,7 @@ import UIKit
 /// at once however large the file is, scrubbing seeks instead of downloading,
 /// and there is no ceiling to refuse above. `DescriptorAsset` carries the
 /// measurements behind that, including why `/dev/fd/<n>` is not the answer.
-final class MediaPlayerViewController: UIViewController {
+final class MediaPlayerViewController: TabContentViewController {
     private let details: FileDetails
     private let file: DescriptorFile
     private let isAudio: Bool

@@ -16,13 +16,6 @@ public protocol ApplicationArtwork: AnyObject {
     func icon(for identifier: String?) async -> UIImage?
 }
 
-/// A screen showing a backend's root: the shell gives it its Tabs control
-/// in the navigation bar rather than a toolbar, and re-roots the tab at it.
-public protocol BackendRootScreen: UIViewController {}
-
-/// A detail screen that stays inside its root screen's navigation stack
-/// and takes no shell chrome.
-public protocol BackendDetailScreen: UIViewController {}
 
 /// What the shell lends to module screens: a browser for a file location,
 /// a picker for a file, and the app's feedback chrome. Set once by the app
@@ -68,6 +61,9 @@ public protocol BackendShell: AnyObject {
     func makeWorkspace() async throws -> URL
     /// The app's icon for a file of that name, or a folder.
     func fileIcon(named name: String, isDirectory: Bool) -> UIImage?
+    /// The app's artwork for a backend's root — the same picture its
+    /// sidebar row shows — for the first crumb of the root's screens.
+    func rootArtwork(for root: BackendRoot) -> UIImage?
     /// The delayed progress card for work that may take a while: shown
     /// only once it has, updated through the handle, dismissed by it.
     func progressCard(title: String, message: String, from presenter: UIViewController) -> any BackendProgressCard

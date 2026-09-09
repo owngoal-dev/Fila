@@ -237,6 +237,7 @@ let package = Package(
             name: "FilaTerminal",
             dependencies: [
                 "FilaProtocol",
+                "FilaBackendUI",
                 "FilaClient",
                 "FilaFileOps",
                 "FilaLog",

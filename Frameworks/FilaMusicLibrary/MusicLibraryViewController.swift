@@ -10,8 +10,8 @@ import UIKit
 /// the backend; the edits go through the same editor and hold reloads
 /// until the library has confirmed them, so a half-applied change is
 /// never listed as done.
-final class MusicLibraryViewController: BackendListViewController<MusicLibraryTrack>, BackendRootScreen,
-    UISearchResultsUpdating, UICollectionViewDelegate
+final class MusicLibraryViewController: BackendListViewController<MusicLibraryTrack>,
+    TabContentDecorationSource, UISearchResultsUpdating, UICollectionViewDelegate
 {
     private let backend: MusicLibraryBackend
     /// The local backend the library folder lives in; nil without one, and
@@ -29,14 +29,30 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         self.backend = backend
         self.local = local
         super.init()
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis"),
-            menu: UIMenu(children: [
-                UIDeferredMenuElement.uncached { [weak self] done in done(self?.menuElements() ?? []) },
-            ])
-        )
-        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More", bundle: bundle)
+        title = String(localized: "Music", bundle: bundle)
+        trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
+            UIDeferredMenuElement.uncached { [weak self] done in done(self?.menuElements() ?? []) },
+        ]))]
     }
+
+    // MARK: - Decoration
+
+    /// The library as a crumb: its sidebar picture and its name. A song's
+    /// screen draws it first and pops back here from it.
+    var rootCrumb: PathBarView.Crumb {
+        PathBarView.Crumb(
+            title: title ?? String(localized: "Music", bundle: bundle),
+            target: backend.id.rawValue,
+            icon: BackendScreens.shell?.rootArtwork(for: backend.root)
+        )
+    }
+
+    func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
+        [rootCrumb]
+    }
+
+    /// One crumb, the screen itself: nothing before it to select.
+    func tabContent(_: TabContentViewController, didSelectDecorationCrumb _: PathBarView.Crumb) {}
 
     private func menuElements() -> [UIMenuElement] {
         [
@@ -64,9 +80,6 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = String(localized: "Music", bundle: bundle)
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.backButtonDisplayMode = .minimal
         definesPresentationContext = true
         collectionView.delegate = self
         collectionView.keyboardDismissMode = .onDrag
@@ -75,8 +88,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
             $0.obscuresBackgroundDuringPresentation = false
             $0.hidesNavigationBarDuringPresentation = false
         }
-        navigationItem.searchController = search
-        navigationItem.hidesSearchBarWhenScrolling = false
+        installSearch(search)
         for name in [Notification.Name.MPMediaLibraryDidChange, UIApplication.didBecomeActiveNotification] {
             NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.backend.libraryChanged() }
@@ -178,7 +190,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
     }
 
     private func showDetails(of track: MusicLibraryTrack) {
-        let detail = MusicTrackViewController(track: track) { [weak self] presenter in
+        let detail = MusicTrackViewController(track: track, root: rootCrumb) { [weak self] presenter in
             self?.confirmDelete(track, from: presenter)
         }
         navigationController?.pushViewController(detail, animated: true)

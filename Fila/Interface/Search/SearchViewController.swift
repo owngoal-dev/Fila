@@ -5,7 +5,7 @@ import Then
 import UIKit
 
 /// One search entry point: instant filtering of this folder, or a submitted subtree search.
-final class SearchViewController: UIViewController {
+final class SearchViewController: TabContentViewController {
     enum Scope {
         case folder
         case subfolders
@@ -44,16 +44,14 @@ final class SearchViewController: UIViewController {
         self.scope = scope
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Search")
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.backButtonDisplayMode = .minimal
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: nil)
+        trailingNavigationItems = [Self.actionsItem(menu: nil)]
         updateScopeMenu()
-        if #available(iOS 26.0, *) {
-            navigationItem.preferredSearchBarPlacement = .integrated
-            // The navigation delegate derives toolbar visibility from these
-            // items. Give UIKit's bottom search bar an explicit native slot.
-            toolbarItems = [navigationItem.searchBarPlacementBarButtonItem]
-        }
+        // The folder being searched, then this screen; a crumb on the
+        // folder or an ancestor goes back to its browser.
+        decorationSource = LocalPathDecoration(
+            directory: root,
+            screen: PathBarView.Crumb(title: title ?? "", icon: UIImage(systemName: "magnifyingglass"))
+        )
     }
 
     @available(*, unavailable)
@@ -74,8 +72,7 @@ final class SearchViewController: UIViewController {
         search.searchBar.placeholder = String(localized: "Search file names")
         search.obscuresBackgroundDuringPresentation = false
         search.hidesNavigationBarDuringPresentation = false
-        navigationItem.searchController = search
-        navigationItem.hidesSearchBarWhenScrolling = false
+        installSearch(search)
         magnifier = search.searchBar.searchTextField.leftView
 
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout()).then {

@@ -18,7 +18,7 @@ import UIKit
 /// catalogue switch and no preference read: those belong to the subclass
 /// and to the backend behind it.
 @MainActor
-open class BackendListViewController<Item: Hashable & Sendable>: UIViewController {
+open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewController {
     public private(set) var collectionView: UICollectionView!
     public private(set) var dataSource: UICollectionViewDiffableDataSource<Int, Item>!
     public let refresher = UIRefreshControl()

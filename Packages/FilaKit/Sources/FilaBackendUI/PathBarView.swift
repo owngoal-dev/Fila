@@ -1,4 +1,4 @@
-import FilaBackendUI
+#if canImport(UIKit)
 import SnapKit
 import Then
 import UIKit
@@ -12,10 +12,29 @@ import UIKit
 /// One line of attributed text rather than a row of buttons: the gaps around
 /// each chevron are then the font's own, the same on both sides of every
 /// separator, where a button's insets and image padding never quite were. A
-/// tap lands on the nearest character and takes the path attached to it, so
+/// tap lands on the nearest character and takes the crumb attached to it, so
 /// the whole 44pt-high bar is the target and not just the glyphs.
-final class PathBarView: UIScrollView {
-    var onSelect: ((String) -> Void)?
+///
+/// What a crumb *is* — a folder, a share, a catalogue, an app — is the
+/// caller's: the bar draws titles and icons and reports which crumb was
+/// tapped. The last crumb is where the screen is, drawn as the one dark name
+/// in a row of grey ones, and never a target.
+public final class PathBarView: UIScrollView {
+    /// One step of the path: what it says, what it looks like, and the
+    /// opaque value the caller wants back when it is tapped.
+    public struct Crumb: Equatable {
+        public let title: String
+        public let target: String
+        public let icon: UIImage?
+
+        public init(title: String, target: String = "", icon: UIImage? = nil) {
+            self.title = title
+            self.target = target
+            self.icon = icon
+        }
+    }
+
+    public var onSelect: ((Crumb) -> Void)?
 
     private let text = UITextView()
     private var textWidth: Constraint?
@@ -25,12 +44,11 @@ final class PathBarView: UIScrollView {
     /// short thick band in a wash of the accent colour, not a text underline.
     private let marker = UIView()
     private var currentRange = NSRange(location: 0, length: 0)
-    private var shown: (path: String, icon: (String) -> UIImage?)?
+    private var shown: [Crumb] = []
     private static let markerHeight: CGFloat = 3
     private static let markerAlpha: CGFloat = 0.2
-    /// The path a crumb opens. The current component carries an empty string,
-    /// so a tap on it finds an answer — "nowhere" — instead of walking back to
-    /// the ancestor before it.
+    /// The index of the crumb a character belongs to, so a tap anywhere on a
+    /// crumb — icon, name or the separator after it — finds it.
     private static let component = NSAttributedString.Key("wiki.qaq.fila.pathComponent")
     private static var font: UIFont {
         .preferredFont(forTextStyle: .subheadline)
@@ -40,9 +58,11 @@ final class PathBarView: UIScrollView {
         .systemFont(ofSize: font.pointSize, weight: .semibold)
     }
 
-    override init(frame: CGRect) {
+    override public init(frame: CGRect) {
         super.init(frame: frame)
         showsHorizontalScrollIndicator = false
+        // A bar item's view: the bar owns the insets, not the safe area.
+        contentInsetAdjustmentBehavior = .never
         marker.do {
             $0.backgroundColor = tintColor.withAlphaComponent(Self.markerAlpha)
             $0.layer.cornerRadius = Self.markerHeight / 2
@@ -75,49 +95,27 @@ final class PathBarView: UIScrollView {
         fatalError("not supported")
     }
 
-    /// `icon` answers each crumb's path with the token drawn ahead of its
-    /// name at the text's own height; nil draws none.
-    func setPath(_ path: String, icon: @escaping (String) -> UIImage? = { _ in nil }) {
-        // Folder icons arrive asynchronously. Refreshing those for the same
-        // path must not pull the user away from an ancestor they scrolled to.
-        let shouldReveal = shown?.path != path || revealsCurrentComponent
+    /// Draws `crumbs`, the last one as the current place.
+    public func setCrumbs(_ crumbs: [Crumb]) {
+        // Icons arrive asynchronously. Redrawing the same path with them must
+        // not pull the user away from an ancestor they scrolled to.
+        let shouldReveal = shown.map(\.target) != crumbs.map(\.target) || revealsCurrentComponent
             || abs(contentOffset.x - max(0, contentSize.width - bounds.width)) < 1
-        shown = (path, icon)
-        // The first crumb is the backend's root. For `/` that is the device,
-        // not a slash: the name when the entitlement lets us read it, the
-        // model otherwise. Inside a container it is the root's own name —
-        // nothing above Documents is offered, so nothing above it is drawn.
-        let local = FileSession.shared.local
-        var crumbs = [(title: "@" + UIDevice.current.name, path: "/")]
-        var prefix = ""
-        if local.rootPath != "/" {
-            let roots = [local.rootPath, URL(fileURLWithPath: local.rootPath).resolvingSymlinksInPath().path]
-            if let root = roots.first(where: { path == $0 || path.hasPrefix($0 + "/") }) {
-                crumbs = [(local.root.displayName, root)]
-                prefix = root
-            }
-        }
-        for component in path.dropFirst(prefix.count).split(separator: "/").map(String.init) {
-            prefix += "/" + component
-            crumbs.append((component, prefix))
-        }
+        shown = crumbs
         let line = NSMutableAttributedString()
         var actions: [UIAccessibilityCustomAction] = []
         for (index, crumb) in crumbs.enumerated() {
             let isCurrent = index == crumbs.count - 1
-            // The icon belongs to the crumb's tap range too, so a tap on it
-            // opens this folder and not the one before it.
-            let target = isCurrent ? "" : crumb.path
-            if let image = icon(crumb.path) {
+            if let image = crumb.icon {
                 let attachment = NSTextAttachment(image: image)
                 let side = Self.font.lineHeight
                 attachment.bounds = CGRect(x: 0, y: Self.font.descender, width: side, height: side)
                 let token = NSMutableAttributedString(attachment: attachment)
                 token.append(NSAttributedString(string: " ", attributes: [.font: Self.font]))
-                token.addAttribute(Self.component, value: target, range: NSRange(location: 0, length: token.length))
+                token.addAttribute(Self.component, value: index, range: NSRange(location: 0, length: token.length))
                 line.append(token)
             }
-            // The component the browser is actually showing is where you are
+            // The component the screen is actually showing is where you are
             // rather than somewhere to go: the one dark, weighted name in a
             // row of grey ones, and not a target.
             if isCurrent {
@@ -126,17 +124,19 @@ final class PathBarView: UIScrollView {
             line.append(NSAttributedString(string: crumb.title, attributes: [
                 .font: isCurrent ? Self.currentFont : Self.font,
                 .foregroundColor: isCurrent ? UIColor.label : UIColor.secondaryLabel,
-                Self.component: target,
+                Self.component: index,
             ]))
             guard !isCurrent else { break }
-            line.append(Self.separator)
+            let separator = NSMutableAttributedString(attributedString: Self.separator)
+            separator.addAttribute(Self.component, value: index, range: NSRange(location: 0, length: separator.length))
+            line.append(separator)
             actions.append(UIAccessibilityCustomAction(name: crumb.title) { [weak self] _ in
-                self?.onSelect?(crumb.path)
+                self?.onSelect?(crumb)
                 return true
             })
         }
         text.attributedText = line
-        text.accessibilityLabel = path
+        text.accessibilityLabel = crumbs.map(\.title).joined(separator: " › ")
         text.accessibilityCustomActions = actions
         textWidth?.update(offset: ceil(text.sizeThatFits(CGSize(
             width: CGFloat.greatestFiniteMagnitude,
@@ -147,12 +147,12 @@ final class PathBarView: UIScrollView {
         }
     }
 
-    func revealCurrentComponent() {
+    public func revealCurrentComponent() {
         revealsCurrentComponent = true
         setNeedsLayout()
     }
 
-    override func didMoveToWindow() {
+    override public func didMoveToWindow() {
         super.didMoveToWindow()
         if window != nil {
             revealCurrentComponent()
@@ -180,19 +180,13 @@ final class PathBarView: UIScrollView {
         // A tap on a separator belongs to the crumb before it.
         guard let position = text.closestPosition(to: recognizer.location(in: text)) else { return }
         let storage = text.textStorage
-        var index = min(text.offset(from: text.beginningOfDocument, to: position), storage.length - 1)
-        while index >= 0 {
-            if let path = storage.attribute(Self.component, at: index, effectiveRange: nil) as? String {
-                if !path.isEmpty {
-                    onSelect?(path)
-                }
-                return
-            }
-            index -= 1
-        }
+        let offset = min(text.offset(from: text.beginningOfDocument, to: position), storage.length - 1)
+        guard offset >= 0, let index = storage.attribute(Self.component, at: offset, effectiveRange: nil) as? Int,
+              index < shown.count - 1 else { return }
+        onSelect?(shown[index])
     }
 
-    override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         // Vertically centre the single line in the bar; the text view's own
         // inset is the only knob that moves text without moving the view.
@@ -232,12 +226,13 @@ final class PathBarView: UIScrollView {
         setContentOffset(CGPoint(x: max(0, contentSize.width - bounds.width), y: 0), animated: false)
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         // The fonts are baked into the attributed string; a Dynamic Type
         // change re-measures the line by rebuilding it.
         guard previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory,
-              let shown else { return }
-        setPath(shown.path, icon: shown.icon)
+              !shown.isEmpty else { return }
+        setCrumbs(shown)
     }
 }
+#endif

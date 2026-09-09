@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaMedia
 import FilaProtocol
 import ImageIO
@@ -11,7 +12,7 @@ import UIKit
 /// as a URL: `UIImage(contentsOfFile:)` would open the path a second time, as
 /// `mobile`, which is exactly the open that fails for every interesting file on
 /// the device.
-final class ImageViewerViewController: UIViewController {
+final class ImageViewerViewController: TabContentViewController {
     private let details: FileDetails
     private let file: DescriptorFile
     private let scrollView = UIScrollView()
@@ -125,7 +126,6 @@ final class ImageViewerViewController: UIViewController {
             title: String(localized: "Image Info"),
             rows: metadata
         )
-        controller.navigationItem.rightBarButtonItem = nil
         presentAsSheet(UINavigationController(rootViewController: controller))
     }
 

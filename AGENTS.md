@@ -633,9 +633,37 @@ controllers for restoration or tests is not a visit.
 
 ### Navigation chrome
 
+Every screen that lives in a tab subclasses `TabContentViewController`
+(`FilaBackendUI`; `TabContentTableViewController` for a table page) and
+fills slots, never assembles a bar. **Top bar:** Back and Places on the
+leading side, supplied by the shell from the destination stack and the split
+view's state; the title; the screen's `trailingNavigationItems` — usually one
+`actionsItem(menu:)` ellipsis. **Bottom bar:** search leading
+(`wantsSearchButton` with `search()` for the local browser's button, or
+`installSearch(_:)` for a search controller, whose field lands there on
+iOS 26), the breadcrumb in the centre, and the Tabs control trailing. Tabs
+is never anywhere else, and never in a menu. The Search, breadcrumb and
+Tabs objects are one `TabContentBar` per tab, made by
+`TabNavigationController` and set as every page's `bar` before the push
+starts: a page that put fresh items on the bar would make UIKit blur the
+whole bar out and in with the transition, and the same objects on both
+pages leave it standing. A sheet or a picker — which the shell never gave a
+bar — shows no Tabs and, with nothing else set, no bottom bar. A mode that
+owns the whole bottom bar (selection) uses `setToolbarOverride(_:animated:)`.
+
+The breadcrumb is one `PathBarView` on every page, read through
+`TabContentDecorationSource`, the way a table reads its data source: a
+screen that knows where it is conforms itself (a folder, a share, a
+catalogue and its entries); a screen about something else is given a
+source — `LocalPathDecoration` for a viewer, Search, Properties or a
+terminal on a local path, `DetailDecoration` for a page pushed with
+`pushDetail(_:)` about part of another page, or the share's crumbs continued
+under a remote snapshot. A catalogue's first crumb is its sidebar artwork
+and name (`BackendShell.rootArtwork`). Call `reloadDecoration()` when the
+answer changes; never draw a second breadcrumb.
+
 Every pushed screen must have all of its bar button items ready before the
-UIKit push starts. Build screen-owned items in initialization, and prepare
-Back/Places from the destination stack in `TabNavigationController`. Viewers
+UIKit push starts: build screen-owned items in initialization. Viewers
 finish format detection and prepare their child controls before being pushed.
 Appearance callbacks may refresh enabled states and menus; they must not
 remove and recreate the initial buttons during the transition.

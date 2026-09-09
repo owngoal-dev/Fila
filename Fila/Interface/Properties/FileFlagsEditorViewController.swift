@@ -2,7 +2,7 @@ import FilaBackendUI
 import UIKit
 
 /// User flags are edited together and applied once; system-only bits are retained.
-final class FileFlagsEditorViewController: UITableViewController {
+final class FileFlagsEditorViewController: TabContentTableViewController {
     static let flags: [(label: String, mask: UInt32)] = [
         (String(localized: "Locked (uchg)"), UInt32(UF_IMMUTABLE)),
         (String(localized: "Append Only (uappnd)"), UInt32(UF_APPEND)),
@@ -17,14 +17,14 @@ final class FileFlagsEditorViewController: UITableViewController {
         self.apply = apply
         super.init(style: .insetGrouped)
         title = String(localized: "Flags")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
+        trailingNavigationItems = [UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
                 apply(flags)
                 navigationController?.popViewController(animated: true)
             }
-        )
+        )]
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "Apply")
     }
 

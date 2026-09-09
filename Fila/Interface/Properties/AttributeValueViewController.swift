@@ -7,7 +7,7 @@ import UIKit
 /// is not. Read-only: setting an xattr by hand is possible through
 /// `AttributeChange`, but a text field is the wrong instrument for a value whose
 /// meaning is a binary layout somebody else defined.
-final class AttributeValueViewController: UIViewController {
+final class AttributeValueViewController: TabContentViewController {
     private let name: String
     private let value: Data
 

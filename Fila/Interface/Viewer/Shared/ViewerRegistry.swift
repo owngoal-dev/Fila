@@ -68,7 +68,7 @@ enum ViewerRegistry {
 /// detection window, and hands ownership to the child. Detecting in one place
 /// and opening in another would mean two `open(2)`s per tap, and on a device
 /// each one is a round trip to a daemon that may still be launching.
-final class ViewerContainerViewController: UIViewController {
+final class ViewerContainerViewController: TabContentViewController {
     /// Menu entries a child folds into the screen's one menu, above "Open As".
     /// A child sets this rather than adding a second menu button beside this
     /// one: two ellipses in one navigation bar is how a screen ends up with the
@@ -103,10 +103,12 @@ final class ViewerContainerViewController: UIViewController {
         self.link = link
         super.init(nibName: nil, bundle: nil)
         title = fileName
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.backButtonDisplayMode = .minimal
-        navigationItem.rightBarButtonItem = menuItem
+        trailingNavigationItems = [menuItem]
         menuItem.isEnabled = false
+        // The file's folder, then the file: a crumb on the folder goes back
+        // to its browser. A snapshot of a remote file is given its share's
+        // decoration by the shell instead, once it is on screen.
+        decorationSource = LocalPathDecoration(path: details.path, icon: FilePresentation.image(for: details.node))
     }
 
     @available(*, unavailable)
@@ -202,10 +204,7 @@ final class ViewerContainerViewController: UIViewController {
         let item = child?.navigationItem
         navigationItem.title = item?.title ?? fileName
         navigationItem.prompt = nil
-        let trailingItems = (item?.rightBarButtonItems ?? []) + [menuItem]
-        if navigationItem.rightBarButtonItems != trailingItems {
-            navigationItem.rightBarButtonItems = trailingItems
-        }
+        trailingNavigationItems = ((child as? TabContentViewController)?.trailingNavigationItems ?? []) + [menuItem]
         navigationItem.hidesBackButton = item?.hidesBackButton ?? false
         let leadingItems = item?.leftBarButtonItems ?? []
         if let shell, shell.content.visibleTop === self {
@@ -218,10 +217,6 @@ final class ViewerContainerViewController: UIViewController {
         navigationItem.scrollEdgeAppearance = item?.scrollEdgeAppearance
         isModalInPresentation = child?.isModalInPresentation ?? false
         navigationController?.isModalInPresentation = isModalInPresentation
-        toolbarItems = child?.toolbarItems
-        if navigationController?.topViewController === self {
-            navigationController?.setToolbarHidden(toolbarItems?.isEmpty ?? true, animated: false)
-        }
 
         let choices: [FileFormat] = [.text, .binary, .propertyList, .machO, .archive, .image]
         let openAs = UIMenu(
@@ -235,15 +230,8 @@ final class ViewerContainerViewController: UIViewController {
                 ) { [weak self] _ in self?.reopen(as: format) }
             }
         )
-        let tabs = UIAction(
-            title: String(localized: "Tabs"),
-            image: UIImage(systemName: "square.on.square")
-        ) { [weak self] _ in
-            self?.shell?.presentTabSwitcher()
-        }
         menuItem.menu = UIMenu(
             children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs])
-                + FilaMenu.groups([tabs])
         )
     }
 
@@ -295,7 +283,7 @@ final class ViewerContainerViewController: UIViewController {
         // viewer sees the replacement inode, never a stale pre-save handle.
         view.endEditing(true)
         view.isUserInteractionEnabled = false
-        let buttons = (navigationItem.rightBarButtonItems ?? []).map { ($0, $0.isEnabled) }
+        let buttons = trailingNavigationItems.map { ($0, $0.isEnabled) }
         for (button, _) in buttons {
             button.isEnabled = false
         }
@@ -346,7 +334,7 @@ final class ViewerContainerViewController: UIViewController {
 /// What a viewer shows when the file could not be read at all. Not a connection
 /// failure — those are never surfaced — but a real refusal from the kernel,
 /// which the user can act on by changing a mode or a flag.
-final class ViewerFailureViewController: UIViewController {
+final class ViewerFailureViewController: TabContentViewController {
     private let message: String
 
     init(message: String) {

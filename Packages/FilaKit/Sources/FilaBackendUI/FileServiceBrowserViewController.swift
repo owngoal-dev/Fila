@@ -18,7 +18,7 @@ import UIKit
 /// Not protocol-specific: the backend is `any FileBackend` and every request
 /// is one the contract names. An SMB share and an FTP root would share this
 /// screen unchanged.
-public final class FileServiceBrowserViewController: BackendListViewController<FileEntry>, BackendRootScreen {
+public final class FileServiceBrowserViewController: BackendListViewController<FileEntry>, TabContentDecorationSource {
     /// A snapshot larger than this is not downloaded for a look: the
     /// workspace is on the device's own storage and a preview is not a
     /// transfer the user asked to keep.
@@ -46,9 +46,47 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         self.path = path
         super.init()
         title = path.name ?? backend.root.displayName
-        navigationItem.backButtonDisplayMode = .minimal
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.rightBarButtonItem = actionsItem
+        trailingNavigationItems = [actionsItem]
+    }
+
+    // MARK: - Decoration
+
+    /// The share, then every folder down to this one. The share wears the
+    /// picture its sidebar row has; the folders wear the folder icon.
+    public func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
+        let shell = BackendScreens.shell
+        var crumbs = [PathBarView.Crumb(
+            title: backend.root.displayName,
+            target: ServicePath.root.description,
+            icon: shell?.rootArtwork(for: backend.root)
+        )]
+        var prefix = ServicePath.root
+        for component in path.components {
+            guard let next = try? prefix.appending(component) else { break }
+            prefix = next
+            crumbs.append(PathBarView.Crumb(
+                title: component,
+                target: prefix.description,
+                icon: shell?.fileIcon(named: component, isDirectory: true)
+            ))
+        }
+        return crumbs
+    }
+
+    /// A tapped crumb: back to that folder's screen when it is on this
+    /// stack, which it is after a descent; otherwise, after a jump into a
+    /// deep folder from the sidebar, forward into a screen for it.
+    public func tabContent(_: TabContentViewController, didSelectDecorationCrumb crumb: PathBarView.Crumb) {
+        guard let ancestor = try? ServicePath(crumb.target), let navigation = navigationController else { return }
+        let existing = navigation.viewControllers.last { controller in
+            guard let browser = controller as? FileServiceBrowserViewController else { return false }
+            return browser.backend.id == backend.id && browser.path == ancestor
+        }
+        if let existing {
+            navigation.popToViewController(existing, animated: true)
+        } else {
+            navigation.pushViewController(FileServiceBrowserViewController(backend: backend, path: ancestor), animated: true)
+        }
     }
 
     deinit {

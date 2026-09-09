@@ -13,7 +13,7 @@ import UIKit
 /// that fired on every toggle would walk the file through six wrong modes on the
 /// way to the right one, and on a directory with "apply to enclosed items" on,
 /// each of those is a tree walk.
-final class ModeEditorViewController: UIViewController {
+final class ModeEditorViewController: TabContentViewController {
     /// Also the row's identity: every mask on this screen is a different bit, so
     /// no two rows can hash the same. What the row *draws* — the switch — is not
     /// in here, because it is read from `mode` when the cell is made.

@@ -18,7 +18,7 @@ import UIKit
 /// original — the one thing the atomic-write rule forbids — and doing it
 /// atomically means rewriting a 4 GB file to change one byte. Neither is worth
 /// building before someone asks for it.
-final class HexViewerViewController: UIViewController {
+final class HexViewerViewController: TabContentViewController {
     private var bytesPerRow = 8
     private static let pageByteCount = 64 * 1024
     private static let cachedPageCount = 32

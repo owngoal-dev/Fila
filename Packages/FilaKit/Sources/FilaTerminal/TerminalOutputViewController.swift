@@ -1,4 +1,5 @@
 #if canImport(UIKit)
+    import FilaBackendUI
     import GhosttyTerminal
     import SnapKit
     import Then
@@ -6,14 +7,14 @@
 
     /// A read-only libghostty surface for the app's own diagnostic output.
     /// It owns no PTY, process, or command input.
-    public final class TerminalOutputViewController: UIViewController {
+    public final class TerminalOutputViewController: TabContentViewController {
         public init() {
             super.init(nibName: nil, bundle: nil)
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
+            trailingNavigationItems = [UIBarButtonItem(
                 barButtonSystemItem: .action,
                 target: self,
                 action: #selector(share)
-            )
+            )]
             navigationItem.rightBarButtonItem?.isEnabled = false
         }
 

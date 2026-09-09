@@ -9,7 +9,7 @@ import UIKit
 
 /// Every level edits one document. Navigating a dictionary never creates a
 /// second copy that could overwrite changes made at another level.
-final class PropertyListEditorViewController: UIViewController {
+final class PropertyListEditorViewController: TabContentViewController {
     private final class Document {
         enum Source {
             case file(FileDetails, DescriptorFile, any LocalFileAccess)
@@ -163,8 +163,6 @@ final class PropertyListEditorViewController: UIViewController {
     }
 
     private func prepareBarItems() {
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.backButtonDisplayMode = .minimal
         refreshBarItems()
     }
 
@@ -187,7 +185,7 @@ final class PropertyListEditorViewController: UIViewController {
         navigationController?.interactivePopGestureRecognizer?.isEnabled =
             !document.isSaving && (!path.isEmpty || !document.hasUnsavedChanges)
         if let container = parent as? ViewerContainerViewController {
-            navigationItem.rightBarButtonItem = nil
+            trailingNavigationItems = []
             container.childMenuElements = menuElements()
             container.confirmReplacement = { [weak self] prepareToPresent, replace in
                 self?.confirmLeaving(replace, prepareToPresent: prepareToPresent)
@@ -195,18 +193,11 @@ final class PropertyListEditorViewController: UIViewController {
             container.refreshBarItems()
         } else {
             let owner = document.rootController?.parent as? ViewerContainerViewController
-            let tabs = UIAction(
-                title: String(localized: "Tabs"),
-                image: UIImage(systemName: "square.on.square")
-            ) { [weak self] _ in
-                self?.shell?.presentTabSwitcher()
-            }
             let elements = FilaMenu.groups(menuElements())
                 + (owner?.fileMenuElements(presenting: self) ?? [])
-                + FilaMenu.groups([tabs])
             menuItem.menu = UIMenu(children: elements)
             menuItem.isEnabled = !document.isSaving
-            navigationItem.rightBarButtonItem = menuItem
+            trailingNavigationItems = [menuItem]
         }
     }
 
@@ -541,17 +532,11 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
         tableView.deselectRow(at: indexPath, animated: true)
         let row = rows[indexPath.row]
         if row.value.isContainer {
-            navigationController?.pushViewController(
-                PropertyListEditorViewController(document: document, row: row),
-                animated: true
-            )
+            pushDetail(PropertyListEditorViewController(document: document, row: row))
         } else if document.isEditing {
             edit(row)
         } else {
-            navigationController?.pushViewController(
-                KeyValueListViewController(title: row.label, rows: [(row.value.typeName, row.value.summary)]),
-                animated: true
-            )
+            pushDetail(KeyValueListViewController(title: row.label, rows: [(row.value.typeName, row.value.summary)]))
         }
     }
 

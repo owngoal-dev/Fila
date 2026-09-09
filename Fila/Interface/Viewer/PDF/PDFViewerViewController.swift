@@ -10,7 +10,7 @@ import UIKit
 /// `PDFDocument(data:)` rather than `PDFDocument(url:)` for the same reason
 /// every other viewer here avoids a URL: the app is `mobile`, and a second open
 /// of the path would be the one the kernel refuses.
-final class PDFViewerViewController: UIViewController {
+final class PDFViewerViewController: TabContentViewController {
     private let file: DescriptorFile
     private let pdfView = PDFView()
     private let pageLabel = UILabel()

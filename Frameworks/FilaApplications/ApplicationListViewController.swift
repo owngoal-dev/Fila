@@ -9,7 +9,7 @@ import UIKit
 /// container is a UUID under `/var/mobile/Containers/Data/Application` and
 /// nothing on the filesystem says which one. See `ApplicationCatalog` for
 /// where the answer comes from, and what is missing when it cannot.
-final class ApplicationListViewController: BackendListViewController<InstalledApp>, BackendRootScreen {
+final class ApplicationListViewController: BackendListViewController<InstalledApp>, TabContentDecorationSource {
     private let backend: ApplicationBackend
     private var filter = ""
     private let cell = UICollectionView.CellRegistration<BackendRowCell, InstalledApp> { cell, _, app in
@@ -22,15 +22,29 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
     init(backend: ApplicationBackend) {
         self.backend = backend
         super.init()
-        // Sort and scope sit beside the search field, wherever the field is:
-        // in the toolbar on iOS 26, in the navigation bar before it.
-        if #available(iOS 26.0, *) {
-            navigationItem.preferredSearchBarPlacement = .integrated
-            toolbarItems = [navigationItem.searchBarPlacementBarButtonItem, .flexibleSpace(), arrangementItem]
-        } else {
-            navigationItem.rightBarButtonItem = arrangementItem
-        }
+        title = String(localized: "Applications", bundle: bundle)
+        // Sort and scope are this screen's actions, trailing in the bar.
+        trailingNavigationItems = [arrangementItem]
     }
+
+    // MARK: - Decoration
+
+    /// The catalogue as a crumb: its sidebar picture and its name. Its
+    /// detail screens draw it first and pop back here from it.
+    var rootCrumb: PathBarView.Crumb {
+        PathBarView.Crumb(
+            title: title ?? String(localized: "Applications", bundle: bundle),
+            target: backend.id.rawValue,
+            icon: BackendScreens.shell?.rootArtwork(for: backend.root)
+        )
+    }
+
+    func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
+        [rootCrumb]
+    }
+
+    /// One crumb, the screen itself: nothing before it to select.
+    func tabContent(_: TabContentViewController, didSelectDecorationCrumb _: PathBarView.Crumb) {}
 
     /// The menu that orders and narrows the list: by name or identifier, all
     /// apps or only the user's or the system's.
@@ -91,17 +105,13 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = String(localized: "Applications", bundle: bundle)
-        navigationItem.backButtonDisplayMode = .minimal
-        navigationItem.largeTitleDisplayMode = .never
         definesPresentationContext = true
 
         let search = UISearchController(searchResultsController: nil)
         search.searchResultsUpdater = self
         search.obscuresBackgroundDuringPresentation = false
         search.hidesNavigationBarDuringPresentation = false
-        navigationItem.searchController = search
-        navigationItem.hidesSearchBarWhenScrolling = false
+        installSearch(search)
         collectionView.delegate = self
         collectionView.keyboardDismissMode = .onDrag
 
@@ -227,7 +237,9 @@ extension ApplicationListViewController: UICollectionViewDelegate {
                           let browser = browser(for: location.path) else { return }
                     // Detail first, unanimated, so Back from the browser lands
                     // where a tap would have: detail, then this list.
-                    navigation.pushViewController(ApplicationDetailViewController(app: app, backend: backend), animated: false)
+                    navigation.pushViewController(
+                        ApplicationDetailViewController(app: app, backend: backend, root: rootCrumb), animated: false
+                    )
                     navigation.pushViewController(browser, animated: true)
                 }
             }
@@ -247,7 +259,9 @@ extension ApplicationListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let app = dataSource.itemIdentifier(for: indexPath) else { return }
-        navigationController?.pushViewController(ApplicationDetailViewController(app: app, backend: backend), animated: true)
+        navigationController?.pushViewController(
+            ApplicationDetailViewController(app: app, backend: backend, root: rootCrumb), animated: true
+        )
     }
 
     /// A browser at a local path, from the shell.

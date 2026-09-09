@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaProtocol
@@ -28,7 +29,7 @@ import UIKit
 /// stated on screen and editing disabled, and the hex viewer opens the rest.
 /// That is the honest version of "handles a large file"; the dishonest version
 /// is a save button that silently drops the tail.
-final class TextViewerViewController: UIViewController {
+final class TextViewerViewController: TabContentViewController {
     private let details: FileDetails
     private let file: DescriptorFile
     private let link: any LocalFileAccess
@@ -148,6 +149,9 @@ final class TextViewerViewController: UIViewController {
             $0.isLineWrappingEnabled = AppPreferences.shared.wrapsLines
             $0.isEditable = false
             $0.editorDelegate = self
+            // A long line scrolls sideways, but the indicator for it draws a
+            // grey rule right above the bottom bar and reads as a divider.
+            $0.showsHorizontalScrollIndicator = false
         }
 
         // Hiding the find bar removes its height from the editor.
@@ -311,7 +315,7 @@ final class TextViewerViewController: UIViewController {
         navigationItem.hidesBackButton = isEditingFile
         navigationItem.leftBarButtonItem = isEditingFile ? cancelItem : nil
         saveItem.isEnabled = hasUnsavedChanges && !isSaving
-        navigationItem.rightBarButtonItems = isEditingFile ? [saveItem] : (canEdit ? [editItem] : nil)
+        trailingNavigationItems = isEditingFile ? [saveItem] : (canEdit ? [editItem] : [])
 
         container?.childMenuElements = menuElements()
         container?.confirmReplacement = { [weak self] prepareToPresent, replace in

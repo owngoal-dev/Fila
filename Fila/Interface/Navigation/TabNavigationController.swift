@@ -2,58 +2,43 @@ import FilaBackendUI
 import UIKit
 
 /// Every destination owns complete chrome before UIKit snapshots either bar.
-/// Screen buttons are configured in init; the shell supplies Back and Places
-/// from the future stack, without waiting for willShow or stealing source items.
+/// A screen's own buttons are configured in its init; the shell supplies
+/// Back and Places from the future stack, and gives the screen the tab's
+/// bar — the one Search, breadcrumb and Tabs every page of this tab puts on
+/// the bottom bar, so a push finds them already standing — all before the
+/// push starts, without waiting for willShow or stealing the source's items.
 final class TabNavigationController: UINavigationController {
     weak var owner: RootSplitViewController?
 
-    func prepareToolbar(for controller: UIViewController) {
-        // A module's detail screen stays within its root screen's stack.
-        guard !(controller is any BackendDetailScreen) else { return }
-        // A module's root screen exposes Tabs in the leading navigation bar.
-        guard !(controller is any BackendRootScreen) else { return }
-        var items = controller.toolbarItems ?? []
-        guard !items.contains(where: { $0.accessibilityIdentifier == "fila.tabs" }) else { return }
-        if #available(iOS 26.0, *), items.isEmpty, controller.navigationItem.searchController != nil {
-            controller.navigationItem.preferredSearchBarPlacement = .integrated
-            items.append(controller.navigationItem.searchBarPlacementBarButtonItem)
-        }
-        let tabs = UIBarButtonItem(
-            image: UIImage(systemName: "square.on.square"),
-            primaryAction: UIAction { [weak self] _ in
-                self?.owner?.presentTabSwitcher()
-            }
-        )
-        tabs.accessibilityIdentifier = "fila.tabs"
-        tabs.accessibilityLabel = String(localized: "Tabs")
-        if #available(iOS 26.0, *) {
-            tabs.sharesBackground = false
-            tabs.identifier = "tabs"
-        }
-        controller.setToolbarItems(items + [.flexibleSpace(), tabs], animated: false)
-    }
+    private lazy var bar = TabContentBar { [weak self] in self?.owner?.presentTabSwitcher() }
 
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        if let topViewController { prepareToolbar(for: topViewController) }
+    /// The one thing the shell adds to a screen's bottom bar: the tab's
+    /// shared controls. Where they sit, and everything beside them, is the
+    /// screen's own `TabContentViewController` layout.
+    func prepareContent(_ controller: UIViewController) {
+        guard let content = controller as? TabContentViewController else {
+            assertionFailure("\(type(of: controller)) is in a tab but is not a TabContentViewController")
+            return
+        }
+        guard content.bar !== bar else { return }
+        content.bar = bar
     }
 
     override func setToolbarHidden(_ hidden: Bool, animated: Bool) {
-        if let topViewController { prepareToolbar(for: topViewController) }
         let hasItems = topViewController?.toolbarItems?.isEmpty == false
         super.setToolbarHidden(!hasItems, animated: animated)
     }
 
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {
         owner?.prepareNavigationItems(for: viewController, in: self, ancestors: viewControllers)
-        prepareToolbar(for: viewController)
+        prepareContent(viewController)
         super.pushViewController(viewController, animated: animated)
     }
 
     override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
         for (index, controller) in viewControllers.enumerated() {
             owner?.prepareNavigationItems(for: controller, in: self, ancestors: Array(viewControllers.prefix(index)))
-            prepareToolbar(for: controller)
+            prepareContent(controller)
         }
         super.setViewControllers(viewControllers, animated: animated)
     }

@@ -18,7 +18,7 @@ import UIKit
 /// Both use the same path guard and atomic publication, and no archive bytes
 /// enter the daemon. Member indices retain the original archive order even
 /// when a root-directory marker is hidden from the list.
-final class ArchiveBrowserViewController: UIViewController {
+final class ArchiveBrowserViewController: TabContentViewController {
     private let title_: String
     /// What an `.extract` job reads: the file itself, or the staged member of
     /// a nested archive.
@@ -114,8 +114,6 @@ final class ArchiveBrowserViewController: UIViewController {
         self.fileActionsOwner = fileActionsOwner
         super.init(nibName: nil, bundle: nil)
         self.title = directory.isEmpty ? title : String(directory.split(separator: "/").last ?? "")
-        navigationItem.largeTitleDisplayMode = .never
-        navigationItem.backButtonDisplayMode = .minimal
         refreshActions()
     }
 
@@ -244,23 +242,16 @@ final class ArchiveBrowserViewController: UIViewController {
             self?.promptForDestination()
         }
         if let container = parent as? ViewerContainerViewController {
-            navigationItem.rightBarButtonItem = nil
+            trailingNavigationItems = []
             fileActionsOwner = container
             container.childMenuElements = [select, extract]
             container.refreshBarItems()
         } else {
-            let tabs = UIAction(
-                title: String(localized: "Tabs"),
-                image: UIImage(systemName: "square.on.square")
-            ) { [weak self] _ in
-                self?.shell?.presentTabSwitcher()
-            }
             menuItem.menu = UIMenu(
                 children: FilaMenu.groups([select, extract])
                     + (fileActionsOwner?.fileMenuElements(presenting: self) ?? [])
-                    + FilaMenu.groups([tabs])
             )
-            navigationItem.rightBarButtonItem = menuItem
+            trailingNavigationItems = [menuItem]
         }
     }
 
@@ -527,20 +518,17 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
         switch item {
         case let .directory(path):
-            navigationController?.pushViewController(
-                ArchiveBrowserViewController(
-                    title: title_,
-                    archivePath: archivePath,
-                    link: link,
-                    destinationHint: destinationHint,
-                    staged: nil,
-                    directory: path,
-                    members: members,
-                    fileActionsOwner: fileActionsOwner,
-                    openArchive: openArchive
-                ),
-                animated: true
-            )
+            pushDetail(ArchiveBrowserViewController(
+                title: title_,
+                archivePath: archivePath,
+                link: link,
+                destinationHint: destinationHint,
+                staged: nil,
+                directory: path,
+                members: members,
+                fileActionsOwner: fileActionsOwner,
+                openArchive: openArchive
+            ))
         case let .member(row):
             if Self.isNested(row.entry) {
                 descend(into: row)
@@ -660,21 +648,18 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     guard let self, let navigation = navigationController,
                           navigation.topViewController === self
                           || navigation.topViewController === self.parent else { return false }
-                    navigation.pushViewController(
-                        ArchiveBrowserViewController(
-                            title: entry.name,
-                            archivePath: staged.path,
-                            link: link,
-                            destinationHint: destinationHint,
-                            staged: staged,
-                            openArchive: {
-                                let descriptor = open(staged.path, O_RDONLY)
-                                guard descriptor >= 0 else { throw ViewerFailure.readFailed(errno) }
-                                return descriptor
-                            }
-                        ),
-                        animated: true
-                    )
+                    pushDetail(ArchiveBrowserViewController(
+                        title: entry.name,
+                        archivePath: staged.path,
+                        link: link,
+                        destinationHint: destinationHint,
+                        staged: staged,
+                        openArchive: {
+                            let descriptor = open(staged.path, O_RDONLY)
+                            guard descriptor >= 0 else { throw ViewerFailure.readFailed(errno) }
+                            return descriptor
+                        }
+                    ))
                     return true
                 }
             } catch {

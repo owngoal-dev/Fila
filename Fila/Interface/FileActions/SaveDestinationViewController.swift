@@ -151,8 +151,10 @@ final class SaveDestinationViewController: UIViewController {
         list.refreshControl?.addTarget(self, action: #selector(filesChanged), for: .valueChanged)
         list.alwaysBounceVertical = true
         view.backgroundColor = .systemBackground
-        pathBar.setPath(directory.path)
-        pathBar.onSelect = { [weak self] path in self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true)) }
+        pathBar.setCrumbs(PathBarView.localCrumbs(for: directory.path))
+        pathBar.onSelect = { [weak self] crumb in
+            self?.showAncestor(URL(fileURLWithPath: crumb.target, isDirectory: true))
+        }
 
         list.do {
             $0.delegate = self
