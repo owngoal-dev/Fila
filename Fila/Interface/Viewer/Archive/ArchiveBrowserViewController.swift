@@ -22,7 +22,7 @@ final class ArchiveBrowserViewController: UIViewController {
     /// What an `.extract` job reads: the file itself, or the staged member of
     /// a nested archive.
     private let archivePath: String
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
     /// A fresh read descriptor on the archive, closed by whoever asked for it.
     ///
     /// libarchive is forward-only, so listing and extracting are two passes and
@@ -79,7 +79,7 @@ final class ArchiveBrowserViewController: UIViewController {
 
     /// `file` is the descriptor the container opened to detect the format with.
     /// It stays the container's; see `openArchive`.
-    convenience init(details: FileDetails, file _: DescriptorFile, link: DaemonLink) {
+    convenience init(details: FileDetails, file _: DescriptorFile, link: any LocalFileAccess) {
         let path = details.path
         self.init(
             title: (path as NSString).lastPathComponent,
@@ -94,7 +94,7 @@ final class ArchiveBrowserViewController: UIViewController {
     private init(
         title: String,
         archivePath: String,
-        link: DaemonLink,
+        link: any LocalFileAccess,
         destinationHint: String,
         staged: URL?,
         directory: String = "",

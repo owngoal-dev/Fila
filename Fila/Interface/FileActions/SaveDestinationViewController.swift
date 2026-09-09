@@ -39,7 +39,7 @@ final class SaveDestinationViewController: UIViewController {
     private enum Availability { case ready, unavailable, creatingFolder }
 
     private let directory: URL
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
     private let selection: Selection
     private let pathBar = PathBarView()
     private let list = UICollectionView(
@@ -100,7 +100,7 @@ final class SaveDestinationViewController: UIViewController {
         message: String? = nil,
         picksFiles: Bool = false,
         fileTypes: Set<String>? = nil,
-        link: DaemonLink,
+        link: any LocalFileAccess,
         confirm: @escaping (URL) -> Void
     ) {
         self.init(
@@ -118,7 +118,7 @@ final class SaveDestinationViewController: UIViewController {
         )
     }
 
-    private init(directory: URL, link: DaemonLink, selection: Selection, isRoot: Bool = false) {
+    private init(directory: URL, link: any LocalFileAccess, selection: Selection, isRoot: Bool = false) {
         self.directory = directory
         self.link = link
         self.selection = selection

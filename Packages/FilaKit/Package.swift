@@ -81,17 +81,47 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // The app's side of the link: async XPC, one request per call, job
-        // events as a stream — and, when there is no daemon to talk to, the
-        // same operations run in-process. That second backend is why this
-        // depends on FilaFileOps: the app without a daemon calls exactly the
-        // code the daemon calls, rather than a second implementation of it.
-        //
-        // FilaFormats as well, for the in-process backend's archive jobs: with
-        // no daemon there is no helper to spawn, so `ArchiveJob` runs here.
+        // The local file contract and its in-process answer: `LocalFileAccess`,
+        // `LocalFileService` running the daemon's own operations in this
+        // process, and `LocalFileBackend` presenting a local root through the
+        // backend-neutral contract. It depends on FilaFileOps because the app
+        // without a daemon calls exactly the code the daemon calls, rather
+        // than a second implementation of it, and on FilaFormats for the
+        // in-process backend's archive jobs: with no daemon there is no
+        // helper to spawn, so `ArchiveJob` runs here. The XPC side is
+        // `FilaPrivileged`, below, which depends on this and never the
+        // other way round.
         .target(
             name: "FilaClient",
-            dependencies: ["FilaProtocol", "FilaLog", "FilaFileOps", "FilaFormats"],
+            dependencies: ["FilaProtocol", "FilaLog", "FilaFileOps", "FilaFormats", "FilaBackendKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // The privileged side of the local contract: `DaemonLink`, which
+        // sends every request to `filad` over XPC and falls back to the
+        // in-process service when no daemon was installed, and the only
+        // implementation of `TerminalAccess`.
+        //
+        // Deliberately **not a product**. Xcode links a package product's
+        // whole closure into every target that consumes it, so a product
+        // here would put a second copy of FilaClient, FilaProtocol and
+        // FilaLog into `FilaPrivileged.framework` beside the one in
+        // FilaCore. Instead the framework compiles this directory itself,
+        // and the target here exists for `swift test` alone.
+        //
+        // The framework ships in every wrapper of the full app and is a
+        // required load command there (`-needed_framework`): stripping it
+        // from a product that was linked with it aborts in dyld. The
+        // sandboxed composition is a separate app target that never links
+        // it, not a packaging step that removes it.
+        .target(
+            name: "FilaPrivileged",
+            dependencies: ["FilaClient", "FilaProtocol", "FilaLog"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaPrivilegedTests",
+            dependencies: ["FilaPrivileged", "FilaClient", "CRemoveFile"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

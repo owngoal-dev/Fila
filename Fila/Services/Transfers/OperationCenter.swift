@@ -21,7 +21,7 @@ extension Notification.Name {
 /// Every filesystem change the user asked for, in one list.
 ///
 /// Three shapes go in and one comes out. A **daemon job** — copy, move, delete,
-/// trash — reports over `DaemonLink.jobEvents` and stops over XPC. A **single
+/// trash — reports over `LocalFileAccess.jobEvents` and stops over XPC. A **single
 /// round trip** — rename, create, setAttributes, replaceItem — has no progress
 /// and is over before a bar could be read. **Work the app runs itself** —
 /// compressing to a zip, extracting one — reports from its own callback and
@@ -208,7 +208,7 @@ final class OperationCenter: ObservableObject {
     ///
     /// A daemon that dies mid-job used to leave this waiting forever, because
     /// nothing synthesized the `.completed` that would never arrive. That is
-    /// fixed at the source: `DaemonLink.onLinkLost` turns a dropped connection
+    /// fixed at the source: `LocalFileAccess.onLinkLost` turns a dropped connection
     /// into a failure for every job the peer had running, which resumes this
     /// wait and stops the transfers row spinning at the same time.
     /// `started` receives the job identifier once its row exists, for a caller
@@ -294,7 +294,7 @@ final class OperationCenter: ObservableObject {
         subtitle: String,
         affected: [String],
         undo: Undo? = nil,
-        _ body: @escaping (DaemonLink) async throws -> Void
+        _ body: @escaping (any LocalFileAccess) async throws -> Void
     ) {
         run(kind: kind, title: kind.runningTitle, subtitle: subtitle, affected: affected, undo: undo) { [session] _ in
             try await session.perform(body)
@@ -397,7 +397,7 @@ final class OperationCenter: ObservableObject {
 
     // MARK: - Events
 
-    private func apply(_ update: DaemonLink.JobUpdate) {
+    private func apply(_ update: JobUpdate) {
         guard let index = index(ofJob: update.identifier) else {
             // The row is not here yet — see `startJob`. Progress lost in that
             // gap costs nothing; a completion costs the row running forever.

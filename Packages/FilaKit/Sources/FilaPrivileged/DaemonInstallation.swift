@@ -1,39 +1,5 @@
 import Darwin
-import FilaLog
-import FilaProtocol
 import Foundation
-
-/// Everything the app can ask for, and the two places an answer can come from.
-///
-/// `DaemonFileService` sends the request to `filad` over XPC, where it runs as
-/// root. `LocalFileService` does the same work in this process, as whoever the
-/// app is running as. They are the same operations because underneath they are
-/// the same code: the daemon is a dispatcher over `FilaFileOps`, and so is the
-/// local service. Nothing in the file layer — not a `copyfile` call, not the
-/// guard, not a path canonicalisation — is written twice.
-///
-/// The signatures are `DaemonLink`'s, unchanged, because the app has hundreds
-/// of call sites shaped `session.perform { try await $0.list(…) }` and the
-/// abstraction is not worth one edit to any of them.
-protocol FileService: AnyObject, Sendable {
-    func hello() async throws -> DaemonLink.Hello
-    func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage
-    func closeDirectory(cursor: UInt64) async throws
-    func details(of path: String) async throws -> FileDetails
-    func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32
-    func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws
-    func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws
-    func setAttributes(_ change: AttributeChange, at path: String) async throws
-    func replaceItem(at target: String, withTemporary temporary: String) async throws
-    func mountPoints() async throws -> [MountPoint]
-    func volumeInfo(for path: String) async throws -> VolumeInfo
-    func extendedAttribute(_ name: String, at path: String) async throws -> Data
-    func startJob(_ job: JobRequest) async throws -> UInt64
-    func cancelJob(_ identifier: UInt64) async throws
-    /// The *other* process's log. Empty when there is no other process.
-    func fetchLog(since sequence: UInt64, level: FilaLog.Level) async throws
-        -> (records: [FilaLog.Record], dropped: UInt64)
-}
 
 /// Whether this copy of the app was installed with `filad` beside it.
 ///

@@ -8,11 +8,8 @@ import Testing
 
 @Suite("App installation fixture")
 struct AppInstallFixtureTests {
-    private func link() async throws -> DaemonLink {
-        let link = DaemonLink(daemonIsInstalled: false, grace: 0)
-        _ = try? await link.hello()
-        _ = try await link.hello()
-        return link
+    private func link() async throws -> any LocalFileAccess {
+        LocalFileService()
     }
 
     @Test("A RootHide fixture copies, archives and cleans up without importing runtime additions", arguments: [false, true])

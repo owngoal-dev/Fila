@@ -486,7 +486,7 @@ extension BrowserViewController {
         }
     }
 
-    private func run(_ body: @escaping (DaemonLink) async throws -> Void) {
+    private func run(_ body: @escaping (any LocalFileAccess) async throws -> Void) {
         Task { [weak self] in
             guard let self else { return }
             do {

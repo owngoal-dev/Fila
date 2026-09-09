@@ -42,7 +42,7 @@ final class DescriptorFile {
         _ path: String,
         flags: Int32 = O_RDONLY,
         mode: mode_t = 0o644,
-        link: DaemonLink
+        link: any LocalFileAccess
     ) async throws -> DescriptorFile {
         try await DescriptorFile(descriptor: link.open(path, flags: flags, mode: mode))
     }

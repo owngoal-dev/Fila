@@ -1,5 +1,7 @@
+import CRemoveFile
 import Darwin
-@testable import FilaClient
+import FilaClient
+@testable import FilaPrivileged
 @testable import FilaProtocol
 import Foundation
 import Testing
@@ -56,21 +58,6 @@ struct BackendSelectionTests {
         #expect(!DaemonInstallation.isInstalled(besideBundleAt: URL(fileURLWithPath: "/Applications/Fila.app")))
     }
 
-    /// The sentence the user is shown turns on this probe, and the sandboxed
-    /// half of it is the half no simulator run ever exercises — a simulator app
-    /// can read its container's parent, so it always answers `.user`.
-    @Test("A container it cannot read out of reads as sandboxed")
-    func reachIsProbedNotAssumed() {
-        guard geteuid() != 0 else { return } // root can open anything; the probe means nothing then.
-        let scratch = LocalScratch()
-        let container = scratch.directory("Application/UUID")
-        #expect(LocalFileService.probeReach(container: container) == .user)
-
-        chmod(scratch.path("Application"), 0)
-        defer { chmod(scratch.path("Application"), 0o755) }
-        #expect(LocalFileService.probeReach(container: container) == .container)
-    }
-
     /// The half of the rule that keeps a jailbroken device from being demoted:
     /// with a daemon installed, a lookup that fails throws and `FileSession`
     /// goes on retrying. There is no path from here to the local backend.
@@ -120,5 +107,33 @@ struct BackendSelectionTests {
         // lookup and must not answer differently.
         let again = try await link.hello()
         #expect(again.backend == hello.backend)
+    }
+
+    /// Once the link has fallen back, the requests it forwards and the
+    /// events it reports are the in-process service's — on the streams the
+    /// app was already reading before the handshake chose.
+    @Test("A fallen-back link lists and reports jobs through the streams it owned all along")
+    func fallbackWiring() async throws {
+        let link = DaemonLink(daemonIsInstalled: false, grace: 0)
+        _ = try? await link.hello()
+        _ = try await link.hello()
+
+        let root = NSTemporaryDirectory() + "fila-fallback-\(UInt32.random(in: 0 ..< .max))"
+        try FileManager.default.createDirectory(atPath: root, withIntermediateDirectories: true)
+        defer { removefile(root, nil, removefile_flags_t(REMOVEFILE_RECURSIVE)) }
+        try await link.create(.emptyFile, at: root + "/one")
+        let page = try await link.list(directory: root)
+        #expect(page.entries.map(\.name) == ["one"])
+
+        let identifier = try await link.startJob(JobRequest(kind: .delete, sources: [root + "/one"], useTrash: false))
+        var completed = false
+        for await update in link.jobEvents where update.identifier == identifier {
+            if case .completed = update.event {
+                completed = true
+                break
+            }
+        }
+        #expect(completed)
+        #expect(access(root + "/one", F_OK) != 0)
     }
 }

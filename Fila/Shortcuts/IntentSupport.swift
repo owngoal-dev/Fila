@@ -97,7 +97,7 @@ enum IntentSupport {
     @MainActor
     static func daemon<T>(
         retryOnDisconnect: Bool = false,
-        _ body: (DaemonLink) async throws -> T
+        _ body: (any LocalFileAccess) async throws -> T
     ) async throws -> T {
         let session = try await session()
         do {

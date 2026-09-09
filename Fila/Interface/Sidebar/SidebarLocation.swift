@@ -45,7 +45,7 @@ extension SidebarLocation {
     /// The bootstrap prefix is never written down here: roothide randomizes it
     /// and rootless fixes it at `/var/jb`, so it comes from the daemon's own
     /// `hello` and is simply absent on a rootful layout.
-    static func jumpList(backend: DaemonLink.Backend?) -> [SidebarLocation] {
+    static func jumpList(backend: LocalBackend?) -> [SidebarLocation] {
         guard let backend else { return [] }
         let inbox = SidebarLocation(
             position: .inbox,
@@ -133,7 +133,7 @@ extension SidebarLocation {
 
     /// Matches the backend's trash: under a relocated bootstrap, otherwise
     /// under the requested volume (the data volume for the sidebar).
-    static func trashDirectory(backend: DaemonLink.Backend, volume: String = "/private/var") -> String {
+    static func trashDirectory(backend: LocalBackend, volume: String = "/private/var") -> String {
         if case let .daemon(root) = backend, !root.isEmpty {
             return FilaTrash.directory(under: root)
         }

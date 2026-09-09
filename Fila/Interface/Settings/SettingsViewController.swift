@@ -63,7 +63,7 @@ final class SettingsViewController: UIViewController {
 
     /// Nil until the daemon answers, which is what the About section says while
     /// it waits. Never a failure: the daemon is on-demand.
-    private var hello: DaemonLink.Hello?
+    private var hello: LocalHello?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -298,7 +298,7 @@ final class SettingsViewController: UIViewController {
     /// The handshake, but only when it came from `filad`. Every About row that
     /// describes the daemon reads this instead of `hello`, so none of them can
     /// report a daemon fact for a build that has no daemon.
-    private var privileged: DaemonLink.Hello? {
+    private var privileged: LocalHello? {
         hello?.isPrivileged == true ? hello : nil
     }
 

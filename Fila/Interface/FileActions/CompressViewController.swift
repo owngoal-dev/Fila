@@ -21,7 +21,7 @@ final class CompressViewController: UIViewController {
     private var name: String
     private var directory: String
     private let itemCount: Int
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
     private var format: ArchiveFormat = .zip
     private var level: ZipCompression = .balanced
     private var encryption: ZipEncryption = .aes256
@@ -35,7 +35,7 @@ final class CompressViewController: UIViewController {
         suggestedName: String,
         directory: String,
         itemCount: Int,
-        link: DaemonLink,
+        link: any LocalFileAccess,
         confirm: @escaping (Choice) -> Void
     ) {
         name = suggestedName
@@ -70,7 +70,7 @@ final class CompressViewController: UIViewController {
         suggestedName: String,
         directory: String,
         itemCount: Int,
-        link: DaemonLink,
+        link: any LocalFileAccess,
         confirm: @escaping (Choice) -> Void
     ) {
         let form = CompressViewController(

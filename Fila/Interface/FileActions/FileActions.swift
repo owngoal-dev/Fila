@@ -249,7 +249,7 @@ final class FileActions {
 
     /// Offered only while `SystemCapabilities.runsPrograms` says so; and without
     /// `filad` the terminal itself refuses, for either identity — see
-    /// `DaemonLink.openTerminal` — so nothing here pretends otherwise.
+    /// `TerminalAccess.openTerminal` — so nothing here pretends otherwise.
     private func runAction(
         _ path: String,
         user: TerminalUser,
@@ -269,12 +269,15 @@ final class FileActions {
         user: TerminalUser,
         onProcessExit: (@MainActor @Sendable () -> Void)? = nil
     ) -> Bool {
-        guard let presenter = activePresenter else { return false }
+        // No privileged module, no terminal: `runsPrograms` already hides
+        // every entry that leads here, so this is the last line of defence,
+        // not a path a user can reach.
+        guard let presenter = activePresenter, let access = session.terminalAccess else { return false }
         let terminal = TerminalViewController(
             program: program,
             user: user,
             redirectsScriptInterpreter: AppPreferences.shared.redirectsScriptInterpreters,
-            link: session.link,
+            link: access,
             onProcessExit: onProcessExit
         )
         if let navigation = presenter.navigationController {

@@ -1,12 +1,16 @@
 import FilaCore
 import Foundation
 
-/// The entry point of `FilaLocal.framework`, found by name at startup.
+/// The local module: one local filesystem backend per launch.
 ///
-/// Registers the local filesystem backend. The backend it produces depends on
-/// which local-access provider another module supplied: the privileged module
-/// offers root access through the daemon on a full build; without it, the
-/// in-process access this framework carries is what the backend gets.
+/// Which one depends on what this launch resolved, never on how it was
+/// built. With the privileged module present, the backend is the full
+/// filesystem over its link — the link itself decides at the handshake
+/// whether `filad` or the in-process service answers, under the grace rule.
+/// Without it, the in-process service says how far this process can see:
+/// an unsandboxed process still gets the full filesystem, a sandboxed one
+/// gets its Documents directory and an access object that cannot be
+/// anything but in-process.
 @objc(FilaLocalModule)
 public final class FilaLocalModule: NSObject, BackendModule {
     public required override init() {
@@ -14,6 +18,17 @@ public final class FilaLocalModule: NSObject, BackendModule {
     }
 
     public func register(with registration: BackendRegistration) throws {
-        // Phase 2 registers the local backend here.
+        registration.backends { resolver in
+            if let privileged = resolver.provider(PrivilegedFileAccess.self) {
+                return [LocalFileBackend(access: privileged)]
+            }
+            let local = LocalFileService()
+            switch local.reach {
+            case .user:
+                return [LocalFileBackend(access: local)]
+            case .container:
+                return [SandboxedLocalFileBackend(access: local)]
+            }
+        }
     }
 }

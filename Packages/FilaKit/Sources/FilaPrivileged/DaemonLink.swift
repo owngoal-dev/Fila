@@ -1,3 +1,4 @@
+import FilaClient
 import FilaLog
 import FilaProtocol
 import Foundation
@@ -6,118 +7,29 @@ import Foundation
 /// which side of it answers.
 ///
 /// Two services sit behind it — `filad` over XPC, or `FilaFileOps` called here
-/// in this process — and every call site in the app is written against this
-/// type without knowing which one it got. The choice is made once, at the
+/// in this process — and every call site in the app is written against
+/// `LocalFileAccess` without knowing which one it got. The choice is made once, at the
 /// handshake, and never revisited; `Hello.backend` says which way it went and
 /// is the only honest answer to "am I running as root".
 ///
 /// The class is a reference type because it owns the streams and the choice; it
 /// is safe from any thread because everything it mutates is behind `stateLock`.
-public final class DaemonLink: @unchecked Sendable {
-    /// Where the answers are coming from. An enum with the install root inside
-    /// it rather than a flag beside it, so a caller cannot read the polarity
-    /// backwards and report a bootstrap prefix that does not exist.
-    public enum Backend: Sendable, Equatable {
-        /// `filad` answered. Every operation runs as root, in another process,
-        /// and `installRoot` is the prefix the daemon resolved for itself —
-        /// empty on a rootful layout, `/var/jb` on rootless, a randomized
-        /// directory on roothide.
-        case daemon(installRoot: String)
-        /// There is no daemon here, and there is not going to be one. Every
-        /// operation runs in this process as whoever the app is — `mobile`, or
-        /// less. `FilaGuard` still refuses what it refuses.
-        case local(reach: Reach)
-    }
+public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
+    private let streams: FileEventStreams
 
-    /// How much of the filesystem this process can reach without a daemon.
-    ///
-    /// It is the difference between the two unprivileged wrappers and it is not
-    /// a detail: a TrollStore `.tipa` runs unsandboxed and browses most of the
-    /// device read-only, while a sideloaded `.ipa` sees its own container and
-    /// nothing else. Telling the first user they can only see this app's files
-    /// would read as the app being broken.
-    public enum Reach: Sendable, Equatable {
-        /// Sandboxed: this app's own container, and whatever the user hands it.
-        case container
-        /// Unsandboxed: whatever the user the app runs as can read, which on a
-        /// device is most of the filesystem and very little of it writable.
-        case user
-    }
+    /// Progress and completion for every running job, in arrival order —
+    /// owned here rather than by either service, because the app starts
+    /// reading it before the handshake has chosen one. See `FileEventStreams`.
+    public var jobEvents: AsyncStream<JobUpdate> { streams.jobEvents }
 
-    public struct Hello: Sendable {
-        public let protocolVersion: UInt64
-        public let backend: Backend
+    /// Matches from every running search job, in arrival order. See
+    /// `FileEventStreams`.
+    public var searchResults: AsyncStream<SearchUpdate> { streams.searchResults }
 
-        /// The daemon's install prefix, or empty when there is no daemon —
-        /// derived from `backend` rather than stored beside it, because two
-        /// spellings of one fact is how they end up disagreeing.
-        public var installRoot: String {
-            guard case let .daemon(root) = backend else { return "" }
-            return root
-        }
-
-        /// Whether the file layer is running as root.
-        public var isPrivileged: Bool {
-            guard case .daemon = backend else { return false }
-            return true
-        }
-    }
-
-    /// One page of a directory.
-    ///
-    /// `cursor` is zero when the listing is finished; anything else goes back
-    /// in the next `list` call. The service holds the open directory between
-    /// pages, so a page must be asked for reasonably promptly — see
-    /// `FilaProtocol.listingIdleTimeoutSeconds`.
-    public struct DirectoryPage: Sendable {
-        public let entries: [FileNode]
-        public let cursor: UInt64
-
-        public var isFinal: Bool {
-            cursor == 0
-        }
-    }
-
-    public struct JobUpdate: Sendable {
-        public let identifier: UInt64
-        public let event: JobEvent
-    }
-
-    public struct SearchUpdate: Sendable {
-        public let identifier: UInt64
-        public let batch: SearchBatch
-    }
-
-    /// Progress and completion for every running job, in arrival order.
-    ///
-    /// One stream for all jobs rather than one per job: they arrive on a single
-    /// connection, a job outlives the screen that started it, and the task list
-    /// wants them all anyway. Owned here rather than by either service, because
-    /// the app starts reading it before the handshake has chosen one.
-    public let jobEvents: AsyncStream<JobUpdate>
-
-    /// Matches from every running search job, in arrival order.
-    ///
-    /// Separate from `jobEvents` because the two carry different things: a job
-    /// event is lifecycle and the newest one supersedes the last, while a batch
-    /// of matches is content and dropping one loses results the user will never
-    /// see. So this stream is unbounded — which it can afford to be, because
-    /// `FilaProtocol.searchResultLimit` bounds a search at about 160 batches
-    /// however long it runs.
-    ///
-    /// One stream for every search, and an `AsyncStream` has one iterator, so
-    /// the consumer is a single long-lived reader that fans batches out by
-    /// identifier — not a `for await` per search screen. Until something reads
-    /// it, batches accumulate here: whatever owns it must start consuming
-    /// before the first search does.
-    public let searchResults: AsyncStream<SearchUpdate>
-
-    private let events: AsyncStream<JobUpdate>.Continuation
-    private let matches: AsyncStream<SearchUpdate>.Continuation
     private let daemon: DaemonFileService
     private let daemonIsInstalled: Bool
     private let stateLock = NSLock()
-    private var bound: (any FileService)?
+    private var bound: (any LocalFileAccess)?
     /// When the first lookup missed. See `graceHasElapsed`.
     private var firstMiss: Date?
     private let grace: TimeInterval
@@ -152,16 +64,9 @@ public final class DaemonLink: @unchecked Sendable {
     /// prove it would be a test nobody runs.
     init(daemonIsInstalled: Bool, grace: TimeInterval = DaemonLink.graceBeforeFallback) {
         self.grace = grace
-        var events: AsyncStream<JobUpdate>.Continuation!
-        jobEvents = AsyncStream(bufferingPolicy: .bufferingNewest(256)) { events = $0 }
-        self.events = events
-
-        var matches: AsyncStream<SearchUpdate>.Continuation!
-        searchResults = AsyncStream(bufferingPolicy: .unbounded) { matches = $0 }
-        self.matches = matches
-
+        streams = FileEventStreams()
         self.daemonIsInstalled = daemonIsInstalled
-        daemon = DaemonFileService(events: events, matches: matches)
+        daemon = DaemonFileService(streams: streams)
     }
 
     // MARK: - Choosing a backend
@@ -222,7 +127,7 @@ public final class DaemonLink: @unchecked Sendable {
     /// looking again: a sandbox-denied lookup and a lookup for a name nobody
     /// registered both surface as a connection-invalid error with no
     /// distinguishing code. The difference is only in XPC's own log line.)
-    public func hello() async throws -> Hello {
+    public func hello() async throws -> LocalHello {
         if let bound = current() {
             return try await bound.hello()
         }
@@ -234,7 +139,7 @@ public final class DaemonLink: @unchecked Sendable {
             guard !daemonIsInstalled, graceHasElapsed() else { throw error }
             // Whoever is bound after this, rather than the service just built:
             // two handshakes at once must not end up answering differently.
-            return try await bind(LocalFileService(events: events, matches: matches)).hello()
+            return try await bind(LocalFileService(streams: streams)).hello()
         }
     }
 
@@ -273,17 +178,17 @@ public final class DaemonLink: @unchecked Sendable {
     ///
     /// What makes that safe is navigation order, not a guarantee: most callers
     /// go through `FileSession.perform`, which awaits `hello()` first, and
-    /// the few that hold a `DaemonLink` directly — the viewers, `AtomicSave`,
+    /// the few that hold the link directly — the viewers, `AtomicSave`,
     /// the properties sheet — are only reachable from a listing that already
     /// forced it. A screen opened at cold launch without one would talk to the
     /// daemon service in a build that has none and get `ECONNRESET` instead of
     /// working locally; the fix then is to await the handshake on that path,
     /// not to default this to local.
-    private func service() -> any FileService {
+    private func service() -> any LocalFileAccess {
         current() ?? daemon
     }
 
-    private func current() -> (any FileService)? {
+    private func current() -> (any LocalFileAccess)? {
         stateLock.lock()
         defer { stateLock.unlock() }
         return bound
@@ -292,7 +197,7 @@ public final class DaemonLink: @unchecked Sendable {
     /// Binds `service` unless something else won the race, and answers whoever
     /// is bound now.
     @discardableResult
-    private func bind(_ service: any FileService) -> any FileService {
+    private func bind(_ service: any LocalFileAccess) -> any LocalFileAccess {
         stateLock.lock()
         defer { stateLock.unlock() }
         if let bound {
@@ -308,7 +213,7 @@ public final class DaemonLink: @unchecked Sendable {
         try await service().closeDirectory(cursor: cursor)
     }
 
-    public func list(directory: String, cursor: UInt64 = 0) async throws -> DirectoryPage {
+    public func list(directory: String, cursor: UInt64) async throws -> DirectoryPage {
         try await service().list(directory: directory, cursor: cursor)
     }
 
@@ -320,11 +225,11 @@ public final class DaemonLink: @unchecked Sendable {
     /// **The caller owns it and must `close(2)` it** — it is a real file
     /// descriptor in this process, and leaking them is how a file manager runs
     /// a browsing session out of them.
-    public func open(_ path: String, flags: Int32, mode: mode_t = 0o644) async throws -> Int32 {
+    public func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32 {
         try await service().open(path, flags: flags, mode: mode)
     }
 
-    public func create(_ template: NodeTemplate, at path: String, mode: mode_t? = nil) async throws {
+    public func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws {
         try await service().create(template, at: path, mode: mode)
     }
 
@@ -339,8 +244,8 @@ public final class DaemonLink: @unchecked Sendable {
     public func rename(
         _ source: String,
         to destination: String,
-        exclusive: Bool = false,
-        overrideGuard: Bool = false
+        exclusive: Bool,
+        overrideGuard: Bool
     ) async throws {
         try await service().rename(source, to: destination, exclusive: exclusive, overrideGuard: overrideGuard)
     }
@@ -383,36 +288,6 @@ public final class DaemonLink: @unchecked Sendable {
         try await service().startJob(job)
     }
 
-    /// A terminal number scoped to the connection that opened it. A reconnect
-    /// must not turn an old close request into a request for a new process.
-    public struct TerminalIdentifier: Sendable {
-        let value: UInt64
-        /// Older daemons have no owner field; they cannot confirm completion.
-        let owner: String?
-    }
-
-    /// A pseudo-terminal with a program already running on it.
-    public struct Terminal: Sendable {
-        public let identifier: TerminalIdentifier
-        /// The pseudo-terminal master. **The caller owns it and must `close(2)`
-        /// it.** Everything the program prints and everything the user types
-        /// travels through this descriptor between the app and the kernel; the
-        /// daemon kept no copy and sees none of it.
-        public let descriptor: Int32
-        /// The resolved session target; account startup may exit before running it.
-        public let executable: String
-        /// Who it runs as — the daemon's answer, not the request. Zero for a
-        /// root session; `mobile`'s uid for one the daemon dropped. The UI
-        /// reads this rather than assuming, because telling someone a shell is
-        /// root when it is not, or that it is not when it is, are both mistakes
-        /// nobody can see until it is too late.
-        public let userIdentifier: UInt32
-
-        public var isRoot: Bool {
-            userIdentifier == 0
-        }
-    }
-
     /// Open a terminal on `executable`, on `dpkg -i package` (root only), or on
     /// the login shell the daemon picks when both are nil, as one of the two
     /// users `TerminalUser` names.
@@ -421,11 +296,11 @@ public final class DaemonLink: @unchecked Sendable {
     /// daemon composes both. `user` is not a uid and cannot be made into one —
     /// see `TerminalUser`. See `FilaOperation.openTerminal`.
     public func openTerminal(
-        executable: String? = nil,
-        package: String? = nil,
+        executable: String?,
+        package: String?,
         user: TerminalUser,
-        redirectsScriptInterpreter: Bool = false,
-        workingDirectory: String? = nil,
+        redirectsScriptInterpreter: Bool,
+        workingDirectory: String?,
         columns: UInt16,
         rows: UInt16
     ) async throws -> Terminal {
@@ -538,7 +413,6 @@ public final class DaemonLink: @unchecked Sendable {
     }
 
     deinit {
-        events.finish()
-        matches.finish()
+        streams.finish()
     }
 }

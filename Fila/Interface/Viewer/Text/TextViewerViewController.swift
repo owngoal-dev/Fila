@@ -31,7 +31,7 @@ import UIKit
 final class TextViewerViewController: UIViewController {
     private let details: FileDetails
     private let file: DescriptorFile
-    private let link: DaemonLink
+    private let link: any LocalFileAccess
 
     let textView = RunestoneEditorView.new()
     let findBar = FindBar()
@@ -91,7 +91,7 @@ final class TextViewerViewController: UIViewController {
         return item
     }()
 
-    init(details: FileDetails, file: DescriptorFile, link: DaemonLink) {
+    init(details: FileDetails, file: DescriptorFile, link: any LocalFileAccess) {
         self.details = details
         self.file = file
         self.link = link

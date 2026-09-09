@@ -29,7 +29,7 @@ enum SystemCapabilities {
     }
 
     /// The Run submenu. Only `filad` can open a terminal —
-    /// `DaemonLink.openTerminal` refuses without it — so this is exactly
+    /// `TerminalAccess.openTerminal` refuses without it — so this is exactly
     /// `isPrivileged`, and nothing until the handshake has landed.
     static var runsPrograms: Bool {
         AppPreferences.shared.runsPrograms && FileSession.shared.hello?.isPrivileged == true

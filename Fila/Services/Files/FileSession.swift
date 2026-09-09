@@ -3,8 +3,8 @@ import FilaLog
 import FilaProtocol
 import Foundation
 
-/// The app's shared file backend session, using either the daemon or the local
-/// service selected by `DaemonLink`.
+/// The app's shared file backend session over the local backend the modules
+/// registered at launch.
 ///
 /// One link for the whole process, not one per screen: `jobEvents` is a single
 /// stream on the connection, a job outlives the screen that started it, and a
@@ -13,7 +13,15 @@ import Foundation
 final class FileSession {
     static let shared = FileSession()
 
-    let link = DaemonLink()
+    /// The local backend from the registry, and the access behind it. With the
+    /// privileged module bundled this is its link, which chooses the daemon
+    /// or the in-process service at the handshake; without it, the local
+    /// module's own in-process access.
+    let local: LocalFileBackend
+    let link: any LocalFileAccess
+    /// The only way to open a terminal. Nil when no privileged module was
+    /// bundled — the terminal is then not offered at all.
+    let terminalAccess: (any TerminalAccess)?
     private(set) lazy var operations = OperationCenter(session: self)
 
     /// The handshake, once one has landed. Nil means it has not — which is
@@ -22,7 +30,7 @@ final class FileSession {
     ///
     /// The one fact that says the daemon has answered. The task below is not
     /// that fact: it may be a forever wait still going round.
-    private(set) var hello: DaemonLink.Hello?
+    private(set) var hello: LocalHello?
 
     /// The prefix the daemon resolved for itself. Derived, so it cannot say
     /// "connected" while `hello` says otherwise.
@@ -30,11 +38,25 @@ final class FileSession {
         hello?.installRoot
     }
 
-    private var handshake: Task<DaemonLink.Hello, Never>?
+    private var handshake: Task<LocalHello, Never>?
     private let temporaryIdentifier = UUID().uuidString
     private var temporaryPreparation: Task<URL, Error>?
 
-    private init() {}
+    private init() {
+        let registry = BackendComposition.registry
+        if let backend = registry.backends.lazy.compactMap({ $0 as? LocalFileBackend }).first {
+            local = backend
+        } else {
+            // No local module bootstrapped. The app cannot browse without one,
+            // and hiding that would be worse than a browsable in-process
+            // fallback with the failure on record; discovery already logged
+            // why the module was refused.
+            FilaLog.error("no local backend registered; file operations run in this process")
+            local = LocalFileBackend(access: LocalFileService())
+        }
+        link = local.access
+        terminalAccess = registry.provider(PrivilegedFileAccess.self)
+    }
 
     /// Waits for a backend, retrying forever. It cannot throw on purpose:
     /// there is nothing a user could do about a daemon that has not started, so
@@ -42,15 +64,15 @@ final class FileSession {
     ///
     /// "Forever" is still forever on a device with `filad` installed — the loop
     /// below is unchanged for that case. What ends it in the `.tipa`, the
-    /// `.ipa` and the simulator is `DaemonLink.hello()` answering with the
+    /// `.ipa` and the simulator is `LocalFileAccess.hello()` answering with the
     /// in-process backend instead of throwing, which it does only when no
     /// daemon is installed to wait for. See the rule written out there.
     @discardableResult
-    func ready() async -> DaemonLink.Hello {
+    func ready() async -> LocalHello {
         if let handshake {
             return await handshake.value
         }
-        let task = Task { () -> DaemonLink.Hello in
+        let task = Task { () -> LocalHello in
             while true {
                 if let hello = await self.shakeHands() {
                     return hello
@@ -73,7 +95,7 @@ final class FileSession {
     /// It does not disturb a forever wait already running: both go through
     /// `shakeHands`, so whichever gets an answer first is the one everything
     /// after it sees.
-    func ready(within seconds: Double) async -> DaemonLink.Hello? {
+    func ready(within seconds: Double) async -> LocalHello? {
         // Already answered: no round trip, and above all no `await` on the
         // handshake task, which may be the forever wait still going round —
         // awaiting that is exactly the wait this exists to avoid.
@@ -91,7 +113,7 @@ final class FileSession {
     }
 
     /// One handshake attempt, and the only place its result is recorded.
-    private func shakeHands() async -> DaemonLink.Hello? {
+    private func shakeHands() async -> LocalHello? {
         guard let answer = try? await link.hello() else {
             // Never an error, however long it goes on: `filad` is on-demand and
             // a miss only means launchd has not spawned it yet. Verbose because
@@ -130,7 +152,7 @@ final class FileSession {
     /// the copy twice, and retrying a `replaceItem` that already landed reports
     /// a failed save for a file that saved. Asking again for a listing costs
     /// nothing, so only those ask again.
-    func perform<T>(retryOnDisconnect: Bool = false, _ body: (DaemonLink) async throws -> T) async throws -> T {
+    func perform<T>(retryOnDisconnect: Bool = false, _ body: (any LocalFileAccess) async throws -> T) async throws -> T {
         await ready()
         // One immediate resend covers the daemon that exited idle; the waits
         // after it cover a daemon launchd is reloading — an upgrade with the

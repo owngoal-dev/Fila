@@ -1,3 +1,4 @@
+import FilaClient
 import FilaLog
 import FilaProtocol
 import Foundation
@@ -14,39 +15,37 @@ import XPC
 ///
 /// The class is a reference type because it owns a connection; it is safe from
 /// any thread because everything it mutates is behind `stateLock`.
-final class DaemonFileService: FileService, @unchecked Sendable {
+final class DaemonFileService: LocalFileAccess, @unchecked Sendable {
     private let queue = DispatchQueue(label: "wiki.qaq.fila.client", qos: .userInitiated)
     private let stateLock = NSLock()
     private var connection: xpc_connection_t?
 
     /// Where unsolicited messages go. Owned by `DaemonLink`, because the app
     /// starts reading the streams before either service has been chosen.
-    private let events: AsyncStream<DaemonLink.JobUpdate>.Continuation
-    private let matches: AsyncStream<DaemonLink.SearchUpdate>.Continuation
+    private let streams: FileEventStreams
+
+    var jobEvents: AsyncStream<JobUpdate> { streams.jobEvents }
+    var searchResults: AsyncStream<SearchUpdate> { streams.searchResults }
 
     /// Called when the connection goes away. Set once, before the first
     /// request; it fires on the connection's own queue and may fire more than
     /// once for a single disconnection, so whatever it does must be idempotent.
     var onLinkLost: (@Sendable () -> Void)?
 
-    init(
-        events: AsyncStream<DaemonLink.JobUpdate>.Continuation,
-        matches: AsyncStream<DaemonLink.SearchUpdate>.Continuation
-    ) {
-        self.events = events
-        self.matches = matches
+    init(streams: FileEventStreams) {
+        self.streams = streams
     }
 
     // MARK: - Requests
 
-    func hello() async throws -> DaemonLink.Hello {
+    func hello() async throws -> LocalHello {
         let reply = try await send(.hello) { request in
             xpc_dictionary_set_uint64(request, FilaWireKey.version, FilaProtocol.version)
         }
         guard let root = xpc_dictionary_get_string(reply, FilaWireKey.installRoot) else {
             throw FilaFailure(code: .operationFailed)
         }
-        return DaemonLink.Hello(
+        return LocalHello(
             protocolVersion: xpc_dictionary_get_uint64(reply, FilaWireKey.version),
             backend: .daemon(installRoot: String(cString: root))
         )
@@ -58,7 +57,7 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         }
     }
 
-    func list(directory: String, cursor: UInt64) async throws -> DaemonLink.DirectoryPage {
+    func list(directory: String, cursor: UInt64) async throws -> DirectoryPage {
         let reply = try await send(.listDirectory) { request in
             xpc_dictionary_set_string(request, FilaWireKey.path, directory)
             xpc_dictionary_set_uint64(request, FilaWireKey.cursor, cursor)
@@ -71,7 +70,7 @@ final class DaemonFileService: FileService, @unchecked Sendable {
                 entries.append(node)
             }
         }
-        return DaemonLink.DirectoryPage(entries: entries, cursor: xpc_dictionary_get_uint64(reply, FilaWireKey.cursor))
+        return DirectoryPage(entries: entries, cursor: xpc_dictionary_get_uint64(reply, FilaWireKey.cursor))
     }
 
     func details(of path: String) async throws -> FileDetails {
@@ -212,7 +211,7 @@ final class DaemonFileService: FileService, @unchecked Sendable {
     // MARK: - Transport
 
     /// Not private: `DaemonLink` sends the two terminal operations straight
-    /// through here rather than through `FileService`. A terminal is the one
+    /// through here rather than through `LocalFileAccess`. A terminal is the one
     /// thing the local backend cannot answer — a session spawned in the app would give
     /// a shell running as `mobile`, which is not the feature — so putting it on
     /// the protocol would mean a second implementation whose only job is to
@@ -283,9 +282,9 @@ final class DaemonFileService: FileService, @unchecked Sendable {
         xpc_connection_set_event_handler(created) { [weak self] message in
             guard let self else { return }
             if let update = JobEvent.decode(message) {
-                events.yield(DaemonLink.JobUpdate(identifier: update.jobIdentifier, event: update.event))
+                streams.yield(JobUpdate(identifier: update.jobIdentifier, event: update.event))
             } else if let result = SearchBatch.decode(message) {
-                matches.yield(DaemonLink.SearchUpdate(identifier: result.jobIdentifier, batch: result.batch))
+                streams.yield(SearchUpdate(identifier: result.jobIdentifier, batch: result.batch))
             } else if message === FilaXPC.errorConnectionInterrupted
                 || message === FilaXPC.errorConnectionInvalid
             {

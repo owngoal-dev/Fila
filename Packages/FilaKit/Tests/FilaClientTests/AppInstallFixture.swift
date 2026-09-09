@@ -5,7 +5,7 @@ import Foundation
 /// Selects the installed app's contents for an isolated installation fixture.
 /// The caller creates a fresh destination and awaits the returned copy job.
 public enum AppInstallFixture {
-    public static func copyRequest(from bundle: URL, to destination: URL, link: DaemonLink) async throws -> JobRequest {
+    public static func copyRequest(from bundle: URL, to destination: URL, link: any LocalFileAccess) async throws -> JobRequest {
         // RootHide's .jbroot points at the live bootstrap, so removing it
         // after a whole-bundle copy hits the daemon's destruction guard.
         // PlugIns retains the real app's identity and shared container.

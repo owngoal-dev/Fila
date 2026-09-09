@@ -5,8 +5,8 @@ import Darwin
 import Foundation
 import Testing
 
-/// The in-process backend, driven through `DaemonLink` exactly as the app
-/// drives it.
+/// The in-process backend, driven through `LocalFileAccess` exactly as the
+/// app drives it.
 ///
 /// Everything below runs against a real directory on a real filesystem, for the
 /// same reason `FilaFileOpsTests` does: an operation that is only correct
@@ -18,14 +18,25 @@ import Testing
 struct LocalFileServiceTests {
     let scratch = LocalScratch()
 
-    /// A link that has settled on the local backend, the way the app's own
-    /// retry loop settles it: ask until it stops throwing. `FileSession`
-    /// sleeps between attempts and this does not, because there is nothing to
-    /// wait for — the misses only have to be counted.
-    private func link() async throws -> DaemonLink {
-        let link = DaemonLink(daemonIsInstalled: false)
-        while await (try? link.hello()) == nil {}
-        return link
+    /// The in-process service on its own, as a build without the privileged
+    /// module runs it. The privileged link's fallback onto this same class is
+    /// covered in `FilaPrivilegedTests`.
+    private func link() async throws -> any LocalFileAccess {
+        LocalFileService()
+    }
+
+    /// The sentence the user is shown turns on this probe, and the sandboxed
+    /// half of it is the half no simulator run ever exercises — a simulator
+    /// app can read its container's parent, so it always answers `.user`.
+    @Test("A container it cannot read out of reads as sandboxed")
+    func reachIsProbedNotAssumed() {
+        guard geteuid() != 0 else { return } // root can open anything; the probe means nothing then.
+        let container = scratch.directory("Application/UUID")
+        #expect(LocalFileService.probeReach(container: container) == .user)
+
+        chmod(scratch.path("Application"), 0)
+        defer { chmod(scratch.path("Application"), 0o755) }
+        #expect(LocalFileService.probeReach(container: container) == .container)
     }
 
     @Test("Lists a directory")
