@@ -57,7 +57,6 @@ final class CompressViewController: UIViewController {
             target: self,
             action: #selector(commit)
         )
-        preferredContentSize = CGSize(width: 440, height: 560)
     }
 
     @available(*, unavailable)
@@ -65,7 +64,7 @@ final class CompressViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Wrapped in its navigation controller and sized for the device.
+    /// Wrapped in its navigation controller; the sheet helper sizes it.
     static func present(
         from presenter: UIViewController,
         suggestedName: String,
@@ -81,13 +80,7 @@ final class CompressViewController: UIViewController {
             link: link,
             confirm: confirm
         )
-        let navigation = UINavigationController(rootViewController: form)
-        if presenter.traitCollection.horizontalSizeClass == .regular {
-            navigation.modalPresentationStyle = .formSheet
-            presenter.present(navigation, animated: true)
-        } else {
-            presenter.presentAsSheet(navigation)
-        }
+        presenter.presentAsSheet(UINavigationController(rootViewController: form))
     }
 
     override func viewDidLoad() {

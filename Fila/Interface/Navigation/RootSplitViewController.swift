@@ -460,9 +460,13 @@ final class RootSplitViewController: UISplitViewController {
         presentAsSheet(UINavigationController(rootViewController: SidebarViewController(settingsShown: settingsShown)))
     }
 
+    /// The shell's own sheets — Places on a phone, Settings anywhere —
+    /// give way when content is replaced beneath them: a server saved in
+    /// Settings › Servers opens, and the sheet that added it is not left
+    /// covering it. Any other presentation stays.
     private func dismissSidebarSheet() {
-        guard (presentedViewController as? UINavigationController)?.viewControllers.first is SidebarViewController
-        else { return }
+        let root = (presentedViewController as? UINavigationController)?.viewControllers.first
+        guard root is SidebarViewController || root is SettingsViewController else { return }
         dismiss(animated: true)
     }
 }

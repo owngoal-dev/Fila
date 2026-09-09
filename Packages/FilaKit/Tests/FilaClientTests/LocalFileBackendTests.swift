@@ -20,7 +20,7 @@ struct LocalFileBackendTests {
 
     private func backends() -> [(String, LocalFileBackend)] {
         [
-            ("full", LocalFileBackend(access: LocalFileService(), rootPath: scratch.root, displayName: "Scratch", symbolName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])),
+            ("full", LocalFileBackend(access: LocalFileService(), rootPath: scratch.root, displayName: "Scratch", artworkName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])),
             ("sandboxed", SandboxedLocalFileBackend(documents: URL(fileURLWithPath: scratch.root, isDirectory: true), storage: MemoryStorage())),
         ]
     }
@@ -67,7 +67,7 @@ struct LocalFileBackendTests {
     func cursorRelease() async throws {
         for index in 0 ... FilaProtocol.directoryPageEntryCount { scratch.file("entry-\(index)") }
         let spy = RecordingAccess(LocalFileService())
-        let backend = LocalFileBackend(access: spy, rootPath: scratch.root, displayName: "Scratch", symbolName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])
+        let backend = LocalFileBackend(access: spy, rootPath: scratch.root, displayName: "Scratch", artworkName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])
         let service = try await backend.fileService()
 
         // Stopped after the first page: the release must close exactly the

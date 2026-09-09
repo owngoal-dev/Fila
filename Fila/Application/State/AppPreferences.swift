@@ -86,16 +86,6 @@ final class AppPreferences {
         set { defaults.set(newValue, forKey: "highlightsSyntax") }
     }
 
-    /// Whether the app may *offer* to send `overrideGuard` on a destructive
-    /// job. Off by default, and being on never overrides anything on its own:
-    /// it adds a second, separately-confirmed action to the delete sheet. The
-    /// daemon is still the only thing that decides, and it still refuses the
-    /// volume root and the bootstrap root whatever this says.
-    var allowsGuardOverride: Bool {
-        get { defaults.object(forKey: "allowsGuardOverride") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "allowsGuardOverride") }
-    }
-
     // MARK: - System features
 
     /// The user's half of `SystemCapabilities.runsPrograms`: on by default,

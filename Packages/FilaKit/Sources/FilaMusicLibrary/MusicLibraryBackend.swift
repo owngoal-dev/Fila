@@ -51,7 +51,6 @@ public final class MusicLibraryBackend: Backend {
             location: .root(of: .musicLibrary),
             kind: .catalog,
             displayName: String(localized: "Music", bundle: MusicLibraryBackend.bundle),
-            symbolName: "music.note",
             artworkName: "music"
         )
     }

@@ -132,7 +132,7 @@ final class FileActions {
                 confirm { self.share([path]) }
             },
         ] + run + install
-        var destructive: [UIMenuElement] = [
+        let destructive: [UIMenuElement] = [
             UIAction(
                 title: Self.deleteTitle,
                 image: UIImage(systemName: "trash"),
@@ -141,15 +141,6 @@ final class FileActions {
                 confirm { self.delete([path]) }
             },
         ]
-        if AppPreferences.shared.allowsGuardOverride {
-            destructive.append(UIAction(
-                title: String(localized: "Override Protection…"),
-                image: UIImage(systemName: "exclamationmark.octagon"),
-                attributes: .destructive
-            ) { [self] _ in
-                confirm { self.promptOverriddenDelete([path]) }
-            })
-        }
         if groupsFileOperations {
             let file = UIMenu(
                 title: String(localized: "File Actions"),

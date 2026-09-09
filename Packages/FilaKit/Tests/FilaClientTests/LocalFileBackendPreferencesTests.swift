@@ -237,7 +237,7 @@ struct LocalFileBackendPreferencesTests {
             access: LocalFileService(),
             rootPath: scratch.root,
             displayName: "Scratch",
-            symbolName: "folder",
+            artworkName: "folder",
             storage: MemoryStorage(),
             environment: .init(inboxDirectory: inbox, trashVolume: scratch.root),
             defaultFavorites: []

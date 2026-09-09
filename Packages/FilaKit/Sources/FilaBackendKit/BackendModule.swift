@@ -106,19 +106,20 @@ public final class BackendRegistration {
     }
 
     /// Register a way to add a backend of this module's kind: an SMB
-    /// share, an FTP root. The shell lists every setup where it offers new
-    /// connections and opens `makeScreen` for a new one, or for an existing
-    /// backend the setup `owns`; `remove` retires that backend and its
+    /// share, an FTP root. The shell's Servers settings list every setup
+    /// under `listTitle`, with the backends it `owns` and one row to add
+    /// another; `makeScreen` opens the setup for a new connection or for
+    /// an existing backend, and `remove` retires that backend and its
     /// saved record. A module without saved connections registers none.
     public func connectionSetup(
         title: String,
-        symbolName: String,
+        listTitle: String,
         owns: @escaping @MainActor (BackendID) -> Bool,
         makeScreen: @escaping @MainActor (BackendID?) -> AnyObject?,
         remove: @escaping @MainActor (BackendID) throws -> Void
     ) {
         connectionSetups.append(BackendConnectionSetup(
-            module: module, title: title, symbolName: symbolName, owns: owns, makeScreen: makeScreen, remove: remove
+            module: module, title: title, listTitle: listTitle, owns: owns, makeScreen: makeScreen, remove: remove
         ))
     }
 }
@@ -131,12 +132,15 @@ struct ScreenRoute {
 }
 
 /// One kind of connection the user can add, as a module describes it. The
-/// shell draws the title and symbol and never knows what the screen asks.
+/// shell draws the titles and never knows what the screen asks, so a
+/// module for another protocol needs nothing from the shell but this.
 public struct BackendConnectionSetup {
     public let module: BackendModuleIdentity
-    /// Already localized by the module: "SMB Share".
+    /// Already localized by the module, naming one connection: "SMB
+    /// Share". The shell writes "Add SMB Share…" from it.
     public let title: String
-    public let symbolName: String
+    /// The heading over this module's saved connections: "SMB Shares".
+    public let listTitle: String
     /// Whether `id` is a backend this setup edits and removes.
     public let owns: @MainActor (BackendID) -> Bool
     /// The setup screen — a view controller, typed as `AnyObject` so this

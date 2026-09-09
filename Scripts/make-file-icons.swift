@@ -57,6 +57,10 @@ let icons: [(name: String, source: Source)] = [
     ("home", .bundled("HomeFolderIcon")),
     ("inbox", .bundled("PublicFolderIcon")),
     ("trash", .bundled("FullTrashIcon")),
+    // A saved server — an SMB share today, an FTP root later: the same
+    // shared-folder picture Finder draws for a mounted share, so every
+    // sidebar row is a picture and none is a symbol.
+    ("shared-folder", .bundled("GenericSharepoint")),
     // Bundles and files the composed icon says nothing about, but CoreTypes
     // has a picture for: kernel extensions and frameworks, crash and panic
     // reports, fonts.

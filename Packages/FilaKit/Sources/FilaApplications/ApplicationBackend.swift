@@ -36,7 +36,6 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
             location: .root(of: .applications),
             kind: .catalog,
             displayName: String(localized: "Applications", bundle: ApplicationBackend.bundle),
-            symbolName: "app.badge",
             artworkName: "application"
         )
         do {

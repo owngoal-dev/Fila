@@ -27,7 +27,7 @@ private final class Fixture: Backend {
     let root: BackendRoot
     init(_ raw: String) {
         id = BackendID(raw)
-        root = BackendRoot(location: .root(of: id), kind: .filesystem, displayName: raw, symbolName: "folder")
+        root = BackendRoot(location: .root(of: id), kind: .filesystem, displayName: raw, artworkName: "folder")
     }
 
     func sidebarUpdates() -> AsyncStream<BackendSidebar> {

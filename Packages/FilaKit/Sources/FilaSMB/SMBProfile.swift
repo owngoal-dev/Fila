@@ -51,6 +51,20 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
         return trimmed.isEmpty ? "\(share) — \(host)" : trimmed
     }
 
+    /// Where the share is and who opens it, for the settings list:
+    /// `smb://host/share` with the port when it is not the default, then
+    /// the account or the word for none. Not localized: it is an address.
+    public var address: String {
+        let origin = port == SMBProfile.defaultPort ? host : "\(host):\(port)"
+        let account: String
+        if let username {
+            account = domain.map { "\($0)\\\(username)" } ?? username
+        } else {
+            account = "guest"
+        }
+        return "smb://\(origin)/\(share) · \(account)"
+    }
+
     /// Whether `other` names the same filesystem: same host, port and
     /// share. A profile edited into another namespace becomes a new backend.
     public func namesSameShare(as other: SMBProfile) -> Bool {

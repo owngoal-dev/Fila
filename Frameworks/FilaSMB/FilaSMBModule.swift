@@ -54,7 +54,7 @@ public final class FilaSMBModule: NSObject, BackendModule {
         }
         registration.connectionSetup(
             title: String(localized: "SMB Share", bundle: SMBBackend.bundle),
-            symbolName: "externaldrive.badge.plus",
+            listTitle: String(localized: "SMB Shares", bundle: SMBBackend.bundle),
             owns: { [weak self] id in self?.backends[id] != nil },
             makeScreen: { [weak self] id in
                 guard let self else { return nil }

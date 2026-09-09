@@ -16,7 +16,10 @@ public enum FilaBackendKit {
     /// 2: the host supplies a credential store and takes backends added
     /// and removed after bootstrap; a registration may name a connection
     /// setup.
-    public static let contractVersion = 2
+    ///
+    /// 3: a root names the app's artwork rather than an SF Symbol and may
+    /// carry a detail line; a connection setup names its list heading.
+    public static let contractVersion = 3
 
     /// The manifest format itself. Independent of the host contract so a
     /// manifest key can be added without pretending the module ABI changed.

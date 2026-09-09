@@ -1,4 +1,3 @@
-import AlertController
 import FilaBackendUI
 import FilaBackendKit
 import FilaProtocol
@@ -33,10 +32,9 @@ final class SidebarViewController: UIViewController {
         case catalog(BackendID)
         case recent(String)
         case mount(String)
-        /// A remote file backend's root: a saved share.
+        /// A remote file backend's root: a saved share. Opened from here,
+        /// managed in Settings › Servers.
         case connection(BackendID)
-        /// The row that adds one, per registered setup.
-        case addConnection(Int)
     }
 
     private let session = FileSession.shared
@@ -315,12 +313,6 @@ final class SidebarViewController: UIViewController {
             guard let root = BackendComposition.registry.backend(id)?.root else { return }
             name = root.displayName
             image = SidebarLocation.image(for: root)
-        case let .addConnection(index):
-            let setups = BackendComposition.registry.connectionSetups
-            guard setups.indices.contains(index) else { return }
-            name = String(localized: "Add \(setups[index].title)…")
-            image = UIImage(systemName: "plus.circle")
-            color = .tintColor
         }
         cell.configure(name: name, detail: detail, image: image, nameColor: color, tintColor: .tintColor)
         if case .favorite = item {
@@ -340,47 +332,13 @@ final class SidebarViewController: UIViewController {
     }
 
     /// Every remote file backend's root, in the order they were registered
-    /// or saved, then one row per way to add another. The section exists
-    /// only where a module offers a setup: a build without one has no
-    /// servers and no way to get one.
+    /// or saved. Only destinations: adding, editing and removing a server
+    /// is Settings › Servers, so the jump list is never a form.
     private var connections: [Item] {
-        let registry = BackendComposition.registry
-        guard !registry.connectionSetups.isEmpty else { return [] }
         let local = session.local.id
-        let roots = registry.backends
+        return BackendComposition.registry.backends
             .filter { $0 is any FileBackend && $0.root.kind == .filesystem && $0.id != local }
             .map { Item.connection($0.id) }
-        return roots + registry.connectionSetups.indices.map(Item.addConnection)
-    }
-
-    private func presentSetup(_ setup: BackendConnectionSetup, editing id: BackendID?) {
-        guard let screen = setup.makeScreen(id) as? UIViewController else { return }
-        presentAsSheet(screen)
-    }
-
-    private func confirmRemoval(of id: BackendID) {
-        let registry = BackendComposition.registry
-        guard let setup = registry.connectionSetups.first(where: { $0.owns(id) }),
-              let root = registry.backend(id)?.root else { return }
-        let name = root.displayName
-        let alert = AlertViewController(
-            title: String.LocalizationValue("Remove “\(name)”?"),
-            message: String.LocalizationValue("Its saved password and favorites are forgotten. Nothing on the server is touched.")
-        ) { context in
-            context.addAction(title: String.LocalizationValue("Cancel")) {
-                context.dispose()
-            }
-            context.addAction(title: String.LocalizationValue("Remove"), attribute: .accent) {
-                context.dispose {
-                    do {
-                        try setup.remove(id)
-                    } catch {
-                        FeedbackAlert.show(String(localized: "Could Not Remove Server"), message: FailureMessage.text(for: error))
-                    }
-                }
-            }
-        }
-        present(alert, animated: true)
     }
 
     @objc private func rebuild() {
@@ -581,17 +539,6 @@ final class SidebarViewController: UIViewController {
                 done(true)
             }
             return UISwipeActionsConfiguration(actions: [remove])
-        case let .connection(id):
-            guard let setup = BackendComposition.registry.connectionSetups.first(where: { $0.owns(id) }) else { return nil }
-            let remove = UIContextualAction(style: .destructive, title: String(localized: "Remove")) { [weak self] _, _, done in
-                done(true)
-                self?.confirmRemoval(of: id)
-            }
-            let edit = UIContextualAction(style: .normal, title: String(localized: "Edit")) { [weak self] _, _, done in
-                done(true)
-                self?.presentSetup(setup, editing: id)
-            }
-            return UISwipeActionsConfiguration(actions: [remove, edit])
         default:
             return nil
         }
@@ -621,11 +568,6 @@ extension SidebarViewController: UICollectionViewDelegate {
             collectionView.deselectItem(at: indexPath, animated: true)
             guard let screen = SidebarLocation.screen(for: .root(of: id)) else { return }
             shell?.replace(screen)
-        case let .addConnection(index):
-            collectionView.deselectItem(at: indexPath, animated: true)
-            let setups = BackendComposition.registry.connectionSetups
-            guard setups.indices.contains(index) else { return }
-            presentSetup(setups[index], editing: nil)
         }
     }
 

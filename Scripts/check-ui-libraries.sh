@@ -64,7 +64,7 @@ fi
 # `subtitleCell` stacks two lines and is for content lists only — a file row
 # with its size, a plist key with its summary — and those files are named here.
 subtitle_hits="$(search 'subtitleCell\(\)' "${ui_roots[@]}" \
-    | grep -v -E 'Clipboard/ClipboardViewController\.swift|Viewer/Archive/ArchiveBrowserViewController\.swift|Viewer/Plist/PropertyListEditorViewController\.swift|Viewer/Shared/KeyValueListViewController\.swift|FilaApplications/ApplicationDetailViewController\.swift|Settings/FileSharingViewController\.swift' || true)"
+    | grep -v -E 'Clipboard/ClipboardViewController\.swift|Viewer/Archive/ArchiveBrowserViewController\.swift|Viewer/Plist/PropertyListEditorViewController\.swift|Viewer/Shared/KeyValueListViewController\.swift|FilaApplications/ApplicationDetailViewController\.swift|Settings/FileSharingViewController\.swift|Settings/ServersSettingsViewController\.swift' || true)"
 if [[ -n "$subtitle_hits" ]]; then
     error "key/value rows are one line: use UIListContentConfiguration.valueCell(), or add a content list to the allowlist in $0:"
     echo "$subtitle_hits" >&2

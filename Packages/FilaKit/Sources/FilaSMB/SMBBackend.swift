@@ -18,7 +18,13 @@ public final class SMBBackend: FileBackend {
     public let id: BackendID
     /// Follows the profile's name; the identity underneath does not move.
     public var root: BackendRoot {
-        BackendRoot(location: .root(of: id), kind: .filesystem, displayName: profile.displayName, symbolName: "externaldrive")
+        BackendRoot(
+            location: .root(of: id),
+            kind: .filesystem,
+            displayName: profile.displayName,
+            artworkName: "shared-folder",
+            detail: profile.address
+        )
     }
 
     public private(set) var profile: SMBProfile

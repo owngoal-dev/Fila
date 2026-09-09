@@ -328,6 +328,61 @@ simulator Debug build. Not done: any paste through the screens (synthetic
 input is refused on this Mac), Windows, Samba, NAS, a full-disk staging
 volume, anything on a device.
 
+### Phase 7 review (Opus) and what changed after it
+
+The file-layer review found eight things; all but one were fixed before the
+phase was closed, with a test for each of the three that could lose data:
+
+- A cancel during a move's cleanup returned a bare success (and consumed the
+  cut) with the unreached sources still in place. `cleanUpSource` now throws
+  `CancellationError` between nodes; the outcome says cancelled and the
+  clipboard keeps the selection.
+- A `.replace` merge accepted a symlink-to-directory at the destination name
+  (`entersDirectory`) and would have written through it. Only `.directory`
+  is merged now.
+- An SMB cancel landing between the last write and the publish leaked the
+  server-side temporary; the check moved inside the scope that discards it.
+  `.connectionFailed` on publish is no longer "unknown": a connection that
+  could not be made carried no request.
+- A source that changed size between plan and read was published whole and
+  then failed as a mismatch (after `.replace` had already replaced). The
+  executor now confirms the published length against the source's current
+  length: a copy is complete, a move retains that source.
+- `removeNode` no longer relies on `unlink(2)` refusing a directory —
+  root is exempt from that refusal — and checks the kind with `lstat` first.
+- The replacement question's continuation could never resume if the card
+  went down with its presenter, holding the clipboard for the session; the
+  answer now resumes once, with No, when the card is released.
+- Cross-backend `affected` hinted the destination directory at the source
+  backend; source hints stay on the source backend now.
+- Progress reports are relayed newest-only through one main-actor hop.
+
+Not changed: a paste that hits an occupied name and is confirmed leaves two
+rows in Tasks (the refused first attempt and the replacing second). Also
+unchanged, noted: `Move Here (%lld items)` has no plural form, and a
+clipboard `take` that drops out-of-root paths (simulator only) logs but does
+not tell the user.
+
+### After Phase 7: sidebar, Servers settings, sheets
+
+- **The sidebar draws no SF Symbol.** `BackendRoot.symbolName` is gone and
+  `artworkName` is required (kit contract 3; every manifest bumped). Saved
+  servers use the new `shared-folder` artwork (`GenericSharepoint` from
+  CoreTypes, added to `make-file-icons.swift`).
+- **Servers are managed in Settings › Servers only.** The sidebar lists
+  saved remote roots as destinations; the *Add …* row and the swipe actions
+  are gone. `ServersSettingsViewController` is built from
+  `BackendConnectionSetup` alone (`listTitle` groups, `BackendRoot.detail`
+  under each name, one *Add <title>…* row per module, the module's own
+  screen presented as a form sheet, `remove` behind the same confirmation).
+  A share saved there opens: `RootSplitViewController.replace` dismisses a
+  Settings sheet the way it dismisses the phone's Places sheet.
+- Settings: Log moved to the About group under Version; the System
+  Protection page and `allowsGuardOverride` are removed for good (the wire
+  field `overrideGuard` stays; nothing in the app sets it).
+- Every form sheet is `FilaUI.formSheetSize` (555 × 555) through
+  `presentAsSheet`/`presentAsFormSheet`; compact widths keep the page sheet.
+
 ## Resume here: Phase 8
 
 Cleanup and acceptance per `PLAN.md`. Build with an isolated

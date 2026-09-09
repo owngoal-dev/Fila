@@ -98,11 +98,12 @@ enum SidebarLocation {
         BackendComposition.registry.screen(for: location) as? UIViewController
     }
 
-    /// The artwork the catalogue names, from the app's icon set.
+    /// The artwork the backend names, from the app's icon set. A name the
+    /// set does not have draws the plain folder rather than a glyph: the
+    /// sidebar is pictures throughout, and a symbol among them reads as a
+    /// control.
     static func image(for root: BackendRoot) -> UIImage? {
-        if let artwork = root.artworkName, let image = UIImage(named: "FileIcons/\(artwork)") {
-            return image.withRenderingMode(.alwaysOriginal)
-        }
-        return UIImage(systemName: root.symbolName)
+        let image = UIImage(named: "FileIcons/\(root.artworkName)") ?? UIImage(named: "FileIcons/folder")
+        return image?.withRenderingMode(.alwaysOriginal)
     }
 }

@@ -658,6 +658,34 @@ short and long names equal-width slots. Locations uses `bookmark`; the tabs
 control has no count. On iOS 26, group only the related bottom actions. On
 older systems, use five ordinary buttons separated by equal flexible spaces.
 
+**Every form sheet is `FilaUI.formSheetSize` (555 × 555).** Present through
+`presentAsSheet` or `presentAsFormSheet` in `UIViewController+Sheet.swift`
+and never set a `preferredContentSize` on a sheet of your own: settings, a
+server's setup, the compress form and the pickers are one size, so a sheet
+replacing another does not step. Popovers keep their own size.
+
+### The sidebar: pictures, never symbols, and no forms
+
+**The sidebar never draws an SF Symbol.** Every row — the presets, a
+favourite, a mount, a catalogue root, a saved server — shows a piece of the
+app's own artwork under `Assets.xcassets/FileIcons`, produced by
+`Scripts/make-file-icons.swift` from the Mac's `CoreTypes.bundle` (a saved
+server is `GenericSharepoint`, the shared-folder icon Finder uses for a
+mounted share). A glyph among pictures reads as a control, which is what
+*Add SMB Share…* with a `plus.circle` looked like. `BackendRoot.artworkName`
+is therefore required and there is no `symbolName`; a backend that needs a
+new picture adds it to the script and regenerates rather than naming a symbol.
+
+**Servers are managed in Settings › Servers, never in the sidebar.** The
+sidebar's Servers section lists saved remote roots as destinations and
+nothing else: no *Add …* row, no swipe to edit or remove. The settings page
+is built from `BackendConnectionSetup` registrations alone — one group per
+module under its `listTitle`, the backends it `owns` with their
+`BackendRoot.detail`, one *Add <title>…* row, the module's own screen for
+adding and editing, and its `remove`. Nothing in the shell names SMB: an
+FTP or SFTP module registers a setup and gets the same page, the same
+sidebar rows and the same artwork rule with no shell change.
+
 Each tab retains its full navigation subtree, including preview/editor content
 and unsaved work. The tab overview lives in the content area and captures the
 actual page. Switching tabs does not close documents; closing or replacing

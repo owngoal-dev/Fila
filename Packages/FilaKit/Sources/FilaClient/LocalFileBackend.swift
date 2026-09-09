@@ -77,7 +77,7 @@ public class LocalFileBackend: FileBackend {
         access: any LocalFileAccess,
         rootPath: String,
         displayName: String,
-        symbolName: String,
+        artworkName: String,
         storage: any DefaultStorage<LocalFilePreferences>,
         environment: Environment,
         defaultFavorites: [ServicePath]
@@ -95,7 +95,7 @@ public class LocalFileBackend: FileBackend {
             location: .root(of: LocalFileBackend.identifier),
             kind: .filesystem,
             displayName: displayName,
-            symbolName: symbolName
+            artworkName: artworkName
         )
         do {
             preferences = try storage.load() ?? LocalFilePreferences()
@@ -117,7 +117,7 @@ public class LocalFileBackend: FileBackend {
             access: access,
             rootPath: "/",
             displayName: "Local Files",
-            symbolName: "internaldrive",
+            artworkName: "drive-internal",
             storage: storage,
             environment: environment,
             defaultFavorites: LocalFileBackend.fullRootFavorites
@@ -424,7 +424,7 @@ public final class SandboxedLocalFileBackend: LocalFileBackend {
             access: access,
             rootPath: (documents ?? SandboxedLocalFileBackend.documentsDirectory()).path,
             displayName: "Documents",
-            symbolName: "folder",
+            artworkName: "folder",
             storage: storage,
             environment: environment,
             defaultFavorites: []

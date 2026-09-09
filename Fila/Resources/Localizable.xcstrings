@@ -3337,82 +3337,6 @@
         }
       }
     },
-    "Advanced" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "متقدم"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erweitert"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avanzado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avancé"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avanzate"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "詳細設定"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "고급"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avançado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дополнительно"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nâng cao"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "高级"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "進階"
-          }
-        }
-      }
-    },
     "Advanced Information" : {
       "localizations" : {
         "ar" : {
@@ -3561,82 +3485,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AES-256 提供高強度加密，但部分較舊的工具無法打開這類壓縮檔。"
-          }
-        }
-      }
-    },
-    "Allow Overriding Protection" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "السماح بتجاوز الحماية"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Umgehen des Schutzes erlauben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permitir anular la protección"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autoriser à passer outre la protection"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consenti di ignorare la protezione"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保護の解除を許可"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보호 무시 허용"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permitir Ignorar a Proteção"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Разрешить обход защиты"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cho phép bỏ qua bảo vệ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "允许绕过保护"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "允許覆寫保護"
           }
         }
       }
@@ -11835,82 +11683,6 @@
         }
       }
     },
-    "Delete Anyway" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الحذف على أي حال"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trotzdem löschen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eliminar de todos modos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer quand même"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elimina comunque"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "それでも削除"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "그래도 삭제"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apagar Mesmo Assim"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Всё равно удалить"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vẫn xóa"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仍要删除"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仍要刪除"
-          }
-        }
-      }
-    },
     "Delete Item" : {
       "comment" : "Title of the Shortcuts action that trashes or deletes a file or folder.",
       "localizations" : {
@@ -16592,82 +16364,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "喜好項目"
-          }
-        }
-      }
-    },
-    "Fila blocks deleting the files iOS needs to start. Turning this on lets you delete them after a confirmation. That can stop the device from starting and require a full restore." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يمنع Fila حذف الملفات التي يحتاجها iOS لبدء التشغيل. تشغيل هذا الخيار يتيح لك حذفها بعد تأكيد. قد يؤدي ذلك إلى منع الجهاز من بدء التشغيل ويستلزم استعادة كاملة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila blockiert das Löschen der Dateien, die iOS zum Starten braucht. Wenn du dies aktivierst, kannst du sie nach einer Bestätigung löschen. Das kann dazu führen, dass das Gerät nicht mehr startet und vollständig wiederhergestellt werden muss."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila impide eliminar los archivos que iOS necesita para arrancar. Si activas esta opción, podrás eliminarlos tras una confirmación. Eso puede impedir que el dispositivo arranque y obligar a restaurarlo por completo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila empêche la suppression des fichiers dont iOS a besoin pour démarrer. Activer cette option vous permet de les supprimer après confirmation. Cela peut empêcher l’appareil de démarrer et exiger une restauration complète."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila impedisce di eliminare i file che servono a iOS per avviarsi. Attivando questa opzione potrai eliminarli dopo una conferma. Questo può impedire l’avvio del dispositivo e richiedere un ripristino completo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FilaはiOSの起動に必要なファイルの削除をブロックします。これをオンにすると、確認のうえでそれらを削除できるようになります。その結果、デバイスが起動しなくなり、完全な復元が必要になることがあります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila는 iOS가 시동하는 데 필요한 파일의 삭제를 차단합니다. 이 옵션을 켜면 확인을 거친 후 그 파일을 삭제할 수 있습니다. 그러면 기기가 시동되지 않아 전체 복원이 필요해질 수 있습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Fila impede a exclusão dos arquivos de que o iOS precisa para iniciar. Ativar isto permite apagá-los após uma confirmação. Isso pode impedir o dispositivo de iniciar e exigir uma restauração completa."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila не даёт удалять файлы, которые нужны iOS для запуска. Если включить этот параметр, их можно будет удалить после подтверждения. Из-за этого устройство может перестать запускаться, и потребуется полное восстановление."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila chặn việc xóa các tệp mà iOS cần để khởi động. Bật tùy chọn này cho phép bạn xóa chúng sau một bước xác nhận. Điều đó có thể khiến thiết bị không khởi động được và phải khôi phục toàn bộ."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 会阻止删除 iOS 启动所需的文件。开启后，你可以在确认后删除这些文件。这可能导致设备无法启动，必须完全恢复设备。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 會阻止刪除 iOS 啟動所需的檔案。開啟此項後，經過確認即可刪除這些檔案。這可能導致裝置無法啟動，並需要完整回復。"
           }
         }
       }
@@ -31708,158 +31404,6 @@
         }
       }
     },
-    "Override Protection?" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تجاوز الحماية؟"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schutz umgehen?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Anular la protección?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passer outre la protection ?"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignorare la protezione?"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保護を解除しますか？"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보호를 무시하시겠습니까?"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignorar a Proteção?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обойти защиту?"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bỏ qua bảo vệ?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "绕过保护？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要覆寫保護嗎？"
-          }
-        }
-      }
-    },
-    "Override Protection…" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تجاوز الحماية…"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schutz umgehen…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anular la protección…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passer outre la protection…"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignora protezione…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保護を解除…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "보호 무시…"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ignorar a Proteção…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обойти защиту…"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bỏ qua bảo vệ…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "绕过保护…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "覆寫保護…"
-          }
-        }
-      }
-    },
     "Owner" : {
       "comment" : "The file's owner: a permission section header, a properties row, and the title of the alert that sets the uid.",
       "localizations" : {
@@ -41753,88 +41297,6 @@
         }
       }
     },
-    "System Protection" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "حماية النظام"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Systemschutz"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Protection"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protección del sistema"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protection du système"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Protezione del sistema"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "システム保護"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시스템 보호"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proteção do Sistema"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Защита системы"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bảo vệ hệ thống"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统保护"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系統保護"
-          }
-        }
-      }
-    },
     "Tabs" : {
       "localizations" : {
         "ar" : {
@@ -43214,83 +42676,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "裝置需要此項目才能啟動，因此 Fila 不會取代它。你仍然可以編輯其中的內容。"
-          }
-        }
-      }
-    },
-    "The device needs this item to start up. Deleting it cannot be undone, and the device may need to be restored." : {
-      "comment" : "Blunt warning before deleting a guarded system item with protection overridden. Keep it alarming.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "يحتاج الجهاز إلى هذا العنصر لبدء التشغيل. لا يمكن التراجع عن حذفه، وقد يلزم استعادة الجهاز."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Gerät braucht dieses Objekt zum Starten. Das Löschen kann nicht widerrufen werden, und das Gerät muss möglicherweise wiederhergestellt werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El dispositivo necesita este elemento para arrancar. Eliminarlo no se puede deshacer, y puede que haya que restaurar el dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’appareil a besoin de cet élément pour démarrer. Sa suppression est irréversible, et l’appareil pourrait devoir être restauré."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il dispositivo ha bisogno di questo elemento per avviarsi. La sua eliminazione non può essere annullata e il dispositivo potrebbe dover essere ripristinato."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デバイスの起動にはこの項目が必要です。削除は取り消せず、デバイスの復元が必要になることがあります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기기를 시동하려면 이 항목이 필요합니다. 삭제하면 되돌릴 수 없으며, 기기를 복원해야 할 수도 있습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O dispositivo precisa deste item para iniciar. Apagá-lo não pode ser desfeito, e o dispositivo pode precisar ser restaurado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Этот объект нужен устройству для запуска. Его удаление нельзя отменить, и устройству может потребоваться восстановление."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thiết bị cần mục này để khởi động. Việc xóa nó không thể hoàn tác, và thiết bị có thể phải được khôi phục."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设备启动需要此项目。删除后无法撤销，设备可能需要还原。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "裝置需要此項目才能啟動。刪除後無法復原，裝置可能需要回復。"
           }
         }
       }
@@ -51463,6 +50848,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」已不存在。"
+          }
+        }
+      }
+    },
+    "Saved servers are listed under Servers in the sidebar. Removing one forgets its saved password and favorites; nothing on the server is touched." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تظهر الخوادم المحفوظة تحت «الخوادم» في الشريط الجانبي. إزالة أحدها تنسى كلمة مروره المحفوظة ومفضلاته، ولا يُمسّ شيء على الخادم."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesicherte Server erscheinen in der Seitenleiste unter „Server“. Beim Entfernen werden das gesicherte Passwort und die Favoriten vergessen; auf dem Server wird nichts verändert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los servidores guardados aparecen en «Servidores» en la barra lateral. Al eliminar uno se olvidan su contraseña guardada y sus favoritos; no se toca nada en el servidor."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les serveurs enregistrés figurent sous « Serveurs » dans la barre latérale. En supprimer un oublie son mot de passe enregistré et ses favoris ; rien n’est modifié sur le serveur."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I server salvati compaiono sotto «Server» nella barra laterale. Rimuoverne uno dimentica la password salvata e i preferiti; sul server non viene toccato nulla."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存したサーバはサイドバーの「サーバ」に表示されます。削除すると保存したパスワードとお気に入りは忘れられますが、サーバ上のものには何も影響しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장된 서버는 사이드바의 ‘서버’ 아래에 표시됩니다. 제거하면 저장된 암호와 즐겨찾기가 삭제되며, 서버의 내용은 변경되지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os servidores salvos aparecem em “Servidores” na barra lateral. Remover um esquece a senha salva e os favoritos; nada no servidor é alterado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранённые серверы показаны в разделе «Серверы» боковой панели. При удалении забываются сохранённый пароль и избранное; на самом сервере ничего не меняется."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các máy chủ đã lưu được liệt kê dưới mục “Máy chủ” trong thanh bên. Xóa một máy chủ sẽ quên mật khẩu đã lưu và mục ưa thích; không có gì trên máy chủ bị thay đổi."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存的服务器会显示在边栏的“服务器”下。移除后会忘记其已保存的密码和收藏；服务器上的内容不会被改动。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已儲存的伺服器會顯示在側邊欄的「伺服器」下。移除後會忘記其已儲存的密碼和喜好項目；伺服器上的內容不會被更動。"
           }
         }
       }
