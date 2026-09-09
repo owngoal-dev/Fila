@@ -11,6 +11,18 @@ placement, its lifecycle test and agent notes. `Package.swift`, the XCFramework
 URL and checksum, bundled resources and all license files are unchanged; the
 existing binary component inventory and notice hashes still apply.
 
+The 2026-09-09 wrapper review advances libghostty-spm from `733ae3b`
+(1.5.20260906) to `7e45d27` (1.6.20260909), and with it the upstream Ghostty ref
+from `c4e1697` to `82938b6`. The wrapper's own Swift sources and its XCFramework
+URL and checksum change; its LICENSE does not. Upstream's `build.zig.zon` moves
+exactly two entries: the lazy `translate_c` build-time tool, now taken from
+Codeberg, which produces no shipped code, and the `iterm2_themes` data archive.
+The theme data does reach the app, but not from that archive — it arrives as
+libghostty-spm's own generated `GhosttyTheme` catalogue, whose
+iTerm2-Color-Schemes MIT notice is collected from the checkout as
+`libghostty-spm/Sources/GhosttyTheme/LICENSE` and whose text is unchanged
+across this bump. Every other dependency, and every notice hash, is unchanged.
+
 No mandatory GPL/AGPL-only runtime component was identified that would require
 relicensing Fila's own source away from MIT. This does **not** relicense the
 whole application binary or its third-party components as MIT.

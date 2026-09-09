@@ -35,11 +35,11 @@ let package = Package(
     dependencies: [
         // Typed Mach-O structure decoding for the inspector, behind FilaFormats
         // descriptor and size checks; never linked by filad.
-        .package(url: "https://github.com/p-x9/MachOKit.git", exact: "0.52.2"),
+        .package(url: "https://github.com/p-x9/MachOKit.git", from: "0.52.2"),
         // App-side HTTP parser/serializer and Network.framework transport.
         // The DAV adapter still delegates every filesystem decision to the backend.
-        .package(url: "https://github.com/apple/swift-nio.git", exact: "2.102.0"),
-        .package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.28.0"),
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.102.0"),
+        .package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.28.0"),
         // Linked into FilaFormats alone. libarchive reads and writes a dozen
         // formats correctly, including the ones — 7z, rar, iso, xar — that were
         // never going to be hand-written here.

@@ -1,5 +1,5 @@
 {
-  "originHash" : "495f9cae9b20f0c9d73d0861312ed6bc658bde9a20e043759fe150d4959e79b4",
+  "originHash" : "f908b7645ee847e8d0436964600e7c1758d9d8d418cdc3ef3336cc5fcd7dc236",
   "pins" : [
     {
       "identity" : "libarchive.xcframework",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/libghostty-spm.git",
       "state" : {
-        "revision" : "733ae3b29d447b6707cbfc00879027a076dfd0eb",
-        "version" : "1.5.20260906"
+        "revision" : "7e45d27160f9b34aca9ca5c9820e9207482f9f04",
+        "version" : "1.6.20260909"
       }
     },
     {
