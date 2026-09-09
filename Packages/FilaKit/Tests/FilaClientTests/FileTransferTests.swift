@@ -314,6 +314,64 @@ struct FileTransferTests {
         #expect(contents(source, "first.txt") == Data("first".utf8), "a cancelled move removes nothing")
         #expect(names(source) == ["first.txt", "huge.bin"])
     }
+
+    @Test("A cancel during a move's cleanup is reported cancelled, never as a success with sources left behind")
+    func cancellationDuringCleanup() async throws {
+        source.file("one.txt", contents: "one")
+        source.file("two.txt", contents: "two")
+        let hooked = HookedService(inner: adapter(source))
+        let progress = ReportLog()
+        let request = try request(["one.txt", "two.txt"], mode: .move, source: hooked)
+        let task = Task {
+            await FileTransfer.run(request, staging: staging) { progress.append($0) }
+        }
+        // The first removal goes ahead — the cancel is seen between nodes —
+        // and the second is never attempted.
+        hooked.beforeRemoval = { _ in progress.cancelOnce?() }
+        progress.cancelOnce = { task.cancel() }
+        let outcome = await task.value
+        #expect(outcome.wasCancelled, "\(String(describing: outcome.failure))")
+        #expect(!outcome.succeeded)
+        #expect(contents(destination, "one.txt") == Data("one".utf8))
+        #expect(contents(destination, "two.txt") == Data("two".utf8))
+        #expect(names(source) == ["two.txt"], "the source not reached is still there")
+    }
+
+    @Test("Replacing into a link to a directory is refused rather than written through")
+    func replaceRefusesLinkedDirectory() async throws {
+        source.directory("tree")
+        source.file("tree/a.txt", contents: "alpha")
+        destination.directory("elsewhere")
+        try FileManager.default.createSymbolicLink(atPath: destination.path("tree"), withDestinationPath: "elsewhere")
+        let outcome = await run(try request(["tree"], mode: .copy, policy: .replace))
+        guard case WriteFailure.alreadyExists(let path)? = outcome.failure else {
+            Issue.record("expected alreadyExists, got \(String(describing: outcome.failure))")
+            return
+        }
+        #expect(path == (try ServicePath("tree")))
+        #expect(names(destination, "elsewhere").isEmpty, "nothing was written where the link points")
+    }
+
+    @Test("A source that grew before it was read is copied whole, and a move keeps it")
+    func grownSourceIsCopiedWhole() async throws {
+        source.file("log.txt", contents: "line one\n")
+        let hooked = HookedService(inner: adapter(source))
+        hooked.afterOpen = { path in
+            guard path.name == "log.txt" else { return }
+            let handle = FileHandle(forWritingAtPath: self.source.path("log.txt"))
+            handle?.seekToEndOfFile()
+            handle?.write(Data("line two\n".utf8))
+            try? handle?.close()
+        }
+        let copy = await run(try request(["log.txt"], mode: .copy, source: hooked))
+        #expect(copy.succeeded, "\(String(describing: copy.failure))")
+        #expect(contents(destination, "log.txt") == Data("line one\nline two\n".utf8))
+
+        let move = await run(try request(["log.txt"], mode: .move, policy: .replace, source: hooked))
+        let shortfall = try #require(move.failure as? TransferShortfall)
+        #expect(shortfall.retained == [try ServicePath("log.txt")])
+        #expect(contents(source, "log.txt") == Data("line one\nline two\nline two\n".utf8), "kept")
+    }
 }
 
 // MARK: - Wrappers
@@ -335,6 +393,7 @@ final class ReportLog: @unchecked Sendable {
 final class HookedService: WritableFileService, DescriptorFileService, @unchecked Sendable {
     let inner: LocalFileServiceAdapter
     var afterOpen: (@Sendable (ServicePath) -> Void)?
+    var beforeRemoval: (@Sendable (ServicePath) -> Void)?
     var refuseRemovals = false
     struct Refused: Error {}
 
@@ -357,6 +416,7 @@ final class HookedService: WritableFileService, DescriptorFileService, @unchecke
     }
     func removeFile(_ path: ServicePath) async throws {
         if refuseRemovals { throw Refused() }
+        beforeRemoval?(path)
         try await inner.removeFile(path)
     }
     func removeEmptyDirectory(_ path: ServicePath) async throws {

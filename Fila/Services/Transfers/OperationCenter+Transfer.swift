@@ -57,17 +57,17 @@ extension OperationCenter {
                 feedback: .silent,
                 whenFinished: { continuation.resume(returning: $0) }
             ) { report in
+                let relay = ProgressRelay(report)
                 let outcome = await Self.execute(
                     sources, into: destination, mode: mode, policy: policy, backends: backends, session: self.session
                 ) { progress in
-                    let update = JobProgress(
+                    relay.post(JobProgress(
                         bytesDone: progress.bytesDone,
                         bytesTotal: progress.planning ? 0 : progress.bytesTotal,
                         itemsDone: progress.itemsDone,
                         itemsTotal: progress.itemsTotal,
                         currentPath: progress.currentName
-                    )
-                    Task { @MainActor in report(update) }
+                    ))
                 }
                 box.outcome = outcome
                 // Both ends list again, whatever happened: a partial
@@ -148,5 +148,38 @@ extension OperationCenter {
 
     private final class OutcomeBox: @unchecked Sendable {
         var outcome: TransferOutcome?
+    }
+
+    /// Progress from the backends' threads onto the main actor, newest
+    /// only: one main-actor hop in flight at a time, carrying whatever the
+    /// latest report was when it ran. A megabyte-per-chunk transfer would
+    /// otherwise queue thousands of hops with no promise of their order,
+    /// and a bar that steps backwards is a bar nobody trusts.
+    private final class ProgressRelay: @unchecked Sendable {
+        private let lock = NSLock()
+        private let report: @MainActor (JobProgress) -> Void
+        private var latest: JobProgress?
+        private var scheduled = false
+
+        init(_ report: @escaping @MainActor (JobProgress) -> Void) {
+            self.report = report
+        }
+
+        func post(_ progress: JobProgress) {
+            lock.lock()
+            latest = progress
+            let schedule = !scheduled
+            scheduled = true
+            lock.unlock()
+            guard schedule else { return }
+            Task { @MainActor [self] in
+                lock.lock()
+                let value = latest
+                latest = nil
+                scheduled = false
+                lock.unlock()
+                if let value { report(value) }
+            }
+        }
     }
 }

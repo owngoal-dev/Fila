@@ -351,7 +351,7 @@ private final class Run {
                 meter.startCarrying()
                 try await carry()
                 if request.mode == .move {
-                    await cleanUpSource()
+                    try await cleanUpSource()
                 }
             }
             return outcome(shortfall.isEmpty ? nil : shortfall)
@@ -367,7 +367,8 @@ private final class Run {
         guard !source.paths.isEmpty else { throw TransferRefusal.nothingToTransfer }
         var names: Set<String> = []
         for path in source.paths {
-            guard let name = path.name else { throw TransferRefusal.insideSource(path) }
+            // A root has no name to land under; there is nothing to carry.
+            guard let name = path.name else { throw TransferRefusal.nothingToTransfer }
             guard names.insert(name).inserted else { throw TransferRefusal.conflictingNames(name) }
             guard request.isSameBackend else { continue }
             let destination = request.destination.directory
@@ -493,13 +494,17 @@ private final class Run {
                 } catch let WriteFailure.alreadyExists(path) where request.policy == .replace {
                     // Replacing a directory means filling it: what is there
                     // is kept, files inside are replaced one by one. A file
-                    // where the directory should be is not something to fill.
+                    // where the directory should be is not something to fill,
+                    // and neither is a link to a directory: filling it would
+                    // write wherever the link points, which the user never
+                    // named. The source side skips links; so does this side.
                     let existing = try await destination.details(path)
-                    guard existing.entersDirectory else { throw WriteFailure.alreadyExists(path) }
+                    guard existing.kind == .directory else { throw WriteFailure.alreadyExists(path) }
                 }
             case let .file(source, target, size, _):
+                let published: Int64
                 do {
-                    try await carryFile(source, to: target, size: size)
+                    published = try await carryFile(source, to: target, size: size)
                 } catch let WriteFailure.publicationUnknown(path) {
                     // The reply never came. The file may be at its name or
                     // not; the transfer stops here, says which name it cannot
@@ -507,14 +512,25 @@ private final class Run {
                     shortfall.uncertain.append(path)
                     throw shortfall
                 }
-                copied.append(step)
                 publishedFiles += 1
+                if published == size {
+                    copied.append(step)
+                } else if request.mode == .move {
+                    // The destination holds what was read, whole — but the
+                    // source is not the file the plan described, so it is
+                    // not one this move can vouch for removing.
+                    shortfall.retained.append(source)
+                }
             }
             meter.itemFinished(name: name)
         }
     }
 
-    private func carryFile(_ source: ServicePath, to target: ServicePath, size: Int64) async throws {
+    /// Carries one file and returns the length the destination reports for
+    /// it. Equal to `size` unless the source grew or shrank between the
+    /// plan and the read; then it is the source's current length, and the
+    /// copy is whole for that. Anything else is a mismatch.
+    private func carryFile(_ source: ServicePath, to target: ServicePath, size: Int64) async throws -> Int64 {
         let descriptor: Int32
         var stagingFile: URL?
         if let direct = request.source.service as? any DescriptorFileService {
@@ -544,13 +560,19 @@ private final class Run {
             policy: request.policy,
             progress: meter.legCounter()
         )
-        // Length is the evidence a move deletes the source on. A server
-        // that took every byte and then wrote a different length is not
-        // trusted, and the source is kept.
+        // Length is the evidence a move deletes the source on. The write
+        // pumps to end of file, so a source that changed size before it was
+        // read publishes at its new length — complete, and confirmed by
+        // asking the source again. A length neither the plan nor the source
+        // explains is a server that wrote something else: not trusted, and
+        // the source is kept.
         let published = try await request.destination.service.details(target)
-        if let found = published.size, found != size {
+        guard let found = published.size, found != size else { return size }
+        let current = try? await request.source.service.details(source)
+        guard current?.kind == .file, current?.size == found else {
             throw TransferRefusal.sizeMismatch(target, expected: size, found: found)
         }
+        return found
     }
 
     private func checkStagingSpace(for size: Int64) throws {
@@ -576,7 +598,11 @@ private final class Run {
     /// what was read; then directories bottom-up, each only while empty.
     /// Anything that changed, refused, or is not empty is retained and
     /// reported, and the move is a partial move rather than a success.
-    private func cleanUpSource() async {
+    ///
+    /// Cancellation throws, between one node and the next, so a move
+    /// stopped half-way through its cleanup is reported cancelled — never
+    /// as a success with the sources it had not reached still in place.
+    private func cleanUpSource() async throws {
         guard let writable = request.source.service as? any WritableFileService else {
             // refuseEarly already rejected a move a non-writable source
             // could not clean up; this cannot happen.
@@ -584,7 +610,7 @@ private final class Run {
             return
         }
         for step in copied {
-            if Task.isCancelled { return }
+            try Task.checkCancellation()
             guard case let .file(source, _, size, modified) = step else { continue }
             do {
                 let current = try await request.source.service.details(source)
@@ -606,7 +632,7 @@ private final class Run {
         // every directory above it, because they are not empty either.
         var blocked: Set<ServicePath> = []
         for directory in sourceDirectories.reversed() {
-            if Task.isCancelled { return }
+            try Task.checkCancellation()
             let parent = directory.parent
             guard !blocked.contains(directory) else {
                 shortfall.retained.append(directory)
@@ -629,7 +655,10 @@ private final class Run {
         // A lost publication reply is not a failure the caller retries. It
         // surfaces as an uncertain path inside the shortfall, kept even
         // when nothing else went wrong.
-        var directories: Set<ServicePath> = [request.destination.directory]
+        // Source directories on the source backend, the destination on its
+        // own: a hint delivered to the wrong backend is a listing of a path
+        // that may not exist there.
+        var directories: Set<ServicePath> = []
         for path in request.source.paths {
             if let parent = path.parent { directories.insert(parent) }
         }

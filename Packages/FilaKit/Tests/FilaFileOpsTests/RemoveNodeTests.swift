@@ -37,12 +37,21 @@ struct RemoveNodeTests {
     func refusesTheWrongKind() {
         scratch.directory("folder")
         scratch.file("plain.txt")
-        // Verified as a file, found a directory: the kernel refuses unlink.
+        // Verified as a file, found a directory: refused here, before
+        // unlink — which root may be allowed to do to a directory.
         let asFile = #expect(throws: FilaFailure.self) {
             try operations.removeNode(at: scratch.path("folder"), directory: false)
         }
-        #expect(asFile?.systemError == EPERM || asFile?.systemError == EISDIR)
+        #expect(asFile?.systemError == EISDIR)
         #expect(exists(scratch.path("folder")))
+        // A link to a directory is a link: verified as a directory, it is
+        // refused, and verified as a file it goes while the target stays.
+        #expect(symlink(scratch.path("folder"), scratch.path("folder-link")) == 0)
+        let linkAsDirectory = #expect(throws: FilaFailure.self) {
+            try operations.removeNode(at: scratch.path("folder-link"), directory: true)
+        }
+        #expect(linkAsDirectory?.systemError == ENOTDIR)
+        #expect(exists(scratch.path("folder-link")))
         // Verified as a directory, found a file: rmdir refuses.
         let asDirectory = #expect(throws: FilaFailure.self) {
             try operations.removeNode(at: scratch.path("plain.txt"), directory: true)

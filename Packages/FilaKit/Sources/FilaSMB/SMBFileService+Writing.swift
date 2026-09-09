@@ -90,22 +90,28 @@ extension SMBFileService: WritableFileService {
             if let smb = error as? SMBError { throw Self.classify(smb, at: destination) }
             throw error
         }
-        try Task.checkCancellation()
         // Publication: the server's one rename. Exclusive by default — an
-        // occupied name is refused by the server in this same request.
+        // occupied name is refused by the server in this same request. The
+        // cancellation check sits inside, so a cancel landing between the
+        // last write and the rename still takes the temporary with it.
         do {
+            try Task.checkCancellation()
             try await connection.perform("publish", path: destination.description) { client in
                 try await client.session.rename(from: temporaryWire, to: targetWire, replaceIfExists: policy == .replace)
             }
         } catch let error as SMBError {
-            if error.retiresSession {
+            switch error {
+            case .timedOut, .disconnected:
                 // The request went out and no answer came back. The server
                 // may have renamed the file or may not; nothing here guesses.
                 FilaLog.warning("smb: publication of \(destination) unanswered; outcome unknown")
                 throw WriteFailure.publicationUnknown(destination)
+            default:
+                // Refused, or never sent — a connection that could not be
+                // made carried no request. The temporary goes either way.
+                await discard(temporary)
+                throw Self.classify(error, at: destination)
             }
-            await discard(temporary)
-            throw Self.classify(error, at: destination)
         } catch {
             await discard(temporary)
             throw error

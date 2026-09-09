@@ -49,18 +49,47 @@ enum ClipboardPaste {
     private static func confirmReplacement(from presenter: UIViewController) async -> Bool {
         guard presenter.viewIfLoaded?.window != nil, presenter.presentedViewController == nil else { return false }
         return await withCheckedContinuation { continuation in
+            // The answer is owned by the card's actions. A card torn down
+            // with its presenter — a tab closed, a sheet dismissed — never
+            // runs either action, and a paste waiting on it would hold the
+            // clipboard for the rest of the session; releasing the answer
+            // is then the answer, and it is No.
+            let answer = Answer(continuation)
             let alert = AlertViewController(
                 title: String.LocalizationValue("Replace Existing Items?"),
                 message: String.LocalizationValue("Files with the same names will be replaced; this cannot be undone. Folders with the same names are merged, and what they already hold is kept.")
             ) { context in
                 context.addAction(title: String.LocalizationValue("Cancel")) {
-                    context.dispose { continuation.resume(returning: false) }
+                    context.dispose { answer.resume(false) }
                 }
                 context.addAction(title: String.LocalizationValue("Replace"), attribute: .accent) {
-                    context.dispose { continuation.resume(returning: true) }
+                    context.dispose { answer.resume(true) }
                 }
             }
             presenter.present(alert, animated: true)
+        }
+    }
+
+    /// Resumes its continuation exactly once: from whichever action ran,
+    /// or with No when nothing ran and the card is gone.
+    private final class Answer: @unchecked Sendable {
+        private let lock = NSLock()
+        private var continuation: CheckedContinuation<Bool, Never>?
+
+        init(_ continuation: CheckedContinuation<Bool, Never>) {
+            self.continuation = continuation
+        }
+
+        func resume(_ value: Bool) {
+            lock.lock()
+            let pending = continuation
+            continuation = nil
+            lock.unlock()
+            pending?.resume(returning: value)
+        }
+
+        deinit {
+            resume(false)
         }
     }
 }
