@@ -19,6 +19,10 @@ public enum FilaUI {
 
     public static let minimumTapTarget: CGFloat = 44
 
+    /// The accent, this faint, is a pressed or selected sidebar row: the
+    /// same wash for both, never the system's solid fill.
+    public static let selectionTintAlpha: CGFloat = 0.15
+
     /// Every form sheet the app presents is this one size — settings, a
     /// server's setup, the compress form, a picker — so sheets do not
     /// step between sizes as one replaces another. Compact widths ignore
