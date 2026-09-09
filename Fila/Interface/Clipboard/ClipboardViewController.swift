@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendKit
 import FilaBackendUI
 import FilaClient
 import FilaProtocol
@@ -9,30 +10,30 @@ import UIKit
 ///
 /// Without this screen the clipboard is invisible: Paste is enabled or it is
 /// greyed out, and that is the whole of the feedback. Worse, the thing it holds
-/// is a list of *paths*, and a path is a promise that breaks quietly — the file
-/// moves, or another tab deletes it, and the only symptom is a paste that fails
-/// later with an `errno` and no explanation of which of the six items was the
-/// problem.
+/// is a list of *locations*, and a location is a promise that breaks quietly —
+/// the file moves, or another tab deletes it, and the only symptom is a paste
+/// that fails later with an `errno` and no explanation of which of the six
+/// items was the problem.
 ///
-/// So every entry is checked against the daemon when the screen appears, and an
-/// entry that no longer resolves says so here, in the one place where the user
-/// can do something about it: remove it, or clear the lot. A missing entry is
-/// never dropped silently — a clipboard that quietly shrinks is worse than one
-/// that is wrong, because the user has no way to notice either.
+/// So every entry is checked against its backend when the screen appears, and
+/// an entry that no longer resolves says so here, in the one place where the
+/// user can do something about it: remove it, or clear the lot. A missing entry
+/// is never dropped silently — a clipboard that quietly shrinks is worse than
+/// one that is wrong, because the user has no way to notice either.
 ///
 /// The browser presents this in a navigation controller from its pending bar or menu.
 final class ClipboardViewController: UIViewController {
     /// Where an entry goes when it is tapped. Set by whoever presents this: the
     /// browser owns navigation and this screen knows nothing about it.
-    var onReveal: ((String) -> Void)?
+    var onReveal: ((FileLocation) -> Void)?
 
-    /// What the daemon says about one held path, right now.
+    /// What the backend says about one held location, right now.
     private enum Status {
         case checking
-        case present(FileDetails)
-        /// The path resolves to nothing. The promise is broken.
+        case present(FileEntry)
+        /// The location resolves to nothing. The promise is broken.
         case missing
-        /// It is there, or it may be — the daemon refused to say. Reported as
+        /// It is there, or it may be — the backend refused to say. Reported as
         /// its own state rather than folded into `missing`, because removing an
         /// entry the user could still paste is a worse mistake than keeping one
         /// they cannot.
@@ -46,16 +47,16 @@ final class ClipboardViewController: UIViewController {
         case missing
     }
 
-    /// One held path, as the list identifies it.
+    /// One held location, as the list identifies it.
     ///
-    /// The path alone is not an identity: nothing stops the same path being held
-    /// twice, and two rows that hash equal is the one way a snapshot raises
-    /// rather than draws. `occurrence` counts the identical paths ahead of this
-    /// one, which is stable — the only thing that changes it is removing an
-    /// earlier copy of the *same* path, and `FileClipboard.remove` takes every copy
-    /// of a path at once.
+    /// The location alone is not an identity: nothing stops the same one
+    /// being held twice, and two rows that hash equal is the one way a
+    /// snapshot raises rather than draws. `occurrence` counts the identical
+    /// locations ahead of this one, which is stable — the only thing that
+    /// changes it is removing an earlier copy of the *same* location, and
+    /// `FileClipboard.remove` takes every copy at once.
     private struct Entry: Hashable {
-        let path: String
+        let location: FileLocation
         let occurrence: Int
     }
 
@@ -69,18 +70,18 @@ final class ClipboardViewController: UIViewController {
     private let table = UITableView(frame: .zero, style: .insetGrouped)
     private var dataSource: TitledTableDataSource<Section, Item>!
 
-    private var paths: [String] = []
-    private var statuses: [String: Status] = [:]
+    private var items: [FileLocation] = []
+    private var statuses: [FileLocation: Status] = [:]
     private var survey: Task<Void, Never>?
 
-    /// Derived rather than stored: `paths` is the clipboard's own order and
+    /// Derived rather than stored: `items` is the clipboard's own order and
     /// duplicating it as a second array is a second thing to keep true.
     private var entries: [Entry] {
-        var seen: [String: Int] = [:]
-        return paths.map { path in
-            let occurrence = seen[path, default: 0]
-            seen[path] = occurrence + 1
-            return Entry(path: path, occurrence: occurrence)
+        var seen: [FileLocation: Int] = [:]
+        return items.map { item in
+            let occurrence = seen[item, default: 0]
+            seen[item] = occurrence + 1
+            return Entry(location: item, occurrence: occurrence)
         }
     }
 
@@ -152,14 +153,14 @@ final class ClipboardViewController: UIViewController {
                 return cell
             }
 
-            let status = self?.statuses[entry.path] ?? .checking
+            let status = self?.statuses[entry.location] ?? .checking
             let (detail, color) = Self.detail(for: status)
             var content = UIListContentConfiguration.subtitleCell()
-            content.text = URL(fileURLWithPath: entry.path).lastPathComponent
+            content.text = entry.location.path.name ?? Self.backendName(entry.location.backend)
             content.textProperties.lineBreakMode = .byTruncatingMiddle
-            // The directory it came from, which is the whole answer to "which one
-            // of the four Info.plists is this".
-            content.secondaryText = "\((entry.path as NSString).deletingLastPathComponent)\n\(detail)"
+            // Where it came from, which is the whole answer to "which one of
+            // the four Info.plists is this". A share's entry names the share.
+            content.secondaryText = "\(Self.origin(of: entry.location))\n\(detail)"
             content.secondaryTextProperties.numberOfLines = 0
             content.secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
             content.secondaryTextProperties.color = color
@@ -170,7 +171,7 @@ final class ClipboardViewController: UIViewController {
             return cell
         }
         dataSource.header = { [weak self] section in
-            guard let self, section == .items, !self.paths.isEmpty else { return nil }
+            guard let self, section == .items, !self.items.isEmpty else { return nil }
             return summary
         }
         dataSource.footer = { [weak self] section in self?.footer(for: section) }
@@ -181,14 +182,14 @@ final class ClipboardViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
         snapshot.appendSections([.items])
         snapshot.appendItems(entries.map(Item.entry), toSection: .items)
-        if !missingPaths.isEmpty {
+        if !missingItems.isEmpty {
             snapshot.appendSections([.missing])
             snapshot.appendItems([.removeMissing], toSection: .missing)
         }
         let existing = Set(dataSource.snapshot().sectionIdentifiers)
         snapshot.reloadSections(snapshot.sectionIdentifiers.filter(existing.contains))
         dataSource.apply(snapshot, animatingDifferences: true)
-        table.backgroundView = paths.isEmpty ? StatusView(content: .message(
+        table.backgroundView = items.isEmpty ? StatusView(content: .message(
             symbol: "doc.on.clipboard",
             title: String(localized: "Clipboard Is Empty"),
             detail: String(localized: "Items you copy or move wait here until you paste them.")
@@ -198,56 +199,65 @@ final class ClipboardViewController: UIViewController {
     // MARK: - State
 
     private func reload() {
-        paths = clipboard.paths
-        statuses = statuses.filter { paths.contains($0.key) }
-        navigationItem.rightBarButtonItem?.isEnabled = !paths.isEmpty
+        items = clipboard.items
+        statuses = statuses.filter { items.contains($0.key) }
+        navigationItem.rightBarButtonItem?.isEnabled = !items.isEmpty
         if dataSource.snapshot().sectionIdentifiers.isEmpty { applySnapshot() }
         startSurvey()
     }
 
-    /// Asks the daemon about every held path, one at a time.
+    /// Asks each backend about every held location, one at a time.
     ///
     /// Sequential on purpose. A cut of a few thousand files is a normal thing to
-    /// do in a file manager, and firing that many `statPath` requests at once
-    /// would queue them all on the one connection the app has and stall
-    /// everything else using it — for a screen whose entire job is to answer a
-    /// question the user is looking at.
+    /// do in a file manager, and firing that many requests at once would queue
+    /// them all on the one connection each backend has and stall everything
+    /// else using it — for a screen whose entire job is to answer a question
+    /// the user is looking at.
     ///
     /// Keep the previous snapshot visible until every status has arrived.
     private func startSurvey() {
         survey?.cancel()
-        let paths = paths
+        let items = items
         survey = Task { [weak self] in
-            var received: [String: Status] = [:]
-            for path in paths {
+            var received: [FileLocation: Status] = [:]
+            for item in items {
                 guard let self, !Task.isCancelled else { return }
-                received[path] = await Self.status(of: path, session: session)
+                received[item] = await Self.status(of: item, session: session)
             }
-            guard let self, !Task.isCancelled, self.paths == paths else { return }
+            guard let self, !Task.isCancelled, self.items == items else { return }
             statuses = received
             applySnapshot()
         }
     }
 
-    private static func status(of path: String, session: FileSession) async -> Status {
+    private static func status(of item: FileLocation, session: FileSession) async -> Status {
         do {
-            return try await .present(session.perform(retryOnDisconnect: true) {
-                try await $0.details(of: path)
-            })
+            if item.backend == session.local.id {
+                let details = try await session.perform(retryOnDisconnect: true) {
+                    try await $0.details(of: session.local.absolutePath(item.path))
+                }
+                return .present(FileEntry(node: details.node))
+            }
+            guard let backend = BackendComposition.fileBackends.first(where: { $0.id == item.backend }) else {
+                // The share was removed since the copy: nothing can paste it.
+                return .missing
+            }
+            return .present(try await backend.fileService().details(item.path))
         } catch let failure as FilaFailure where failure.code == .notFound || failure.systemError == ENOENT {
             // The one answer worth acting on: the path resolves to nothing, so
             // the promise this entry was is broken and the paste will fail.
             return .missing
         } catch {
-            // Anything else — a refusal, a disconnected daemon — is not proof
-            // the file is gone, and calling it gone would invite the user to
-            // remove an entry they could still paste.
+            // Anything else — a refusal, a disconnected daemon, a server that
+            // did not answer — is not proof the file is gone, and calling it
+            // gone would invite the user to remove an entry they could still
+            // paste.
             return .unknown(FailureMessage.text(for: error))
         }
     }
 
-    private var missingPaths: [String] {
-        paths.filter {
+    private var missingItems: [FileLocation] {
+        items.filter {
             if case .missing? = statuses[$0] {
                 true
             } else {
@@ -258,15 +268,15 @@ final class ClipboardViewController: UIViewController {
 
     // MARK: - Actions
 
-    private func remove(_ path: String) {
-        clipboard.remove(path)
-        statuses[path] = nil
+    private func remove(_ item: FileLocation) {
+        clipboard.remove(item)
+        statuses[item] = nil
         reload()
     }
 
     private func removeMissing() {
-        for path in missingPaths {
-            clipboard.remove(path)
+        for item in missingItems {
+            clipboard.remove(item)
         }
         reload()
     }
@@ -289,9 +299,9 @@ final class ClipboardViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    private func reveal(_ path: String) {
+    private func reveal(_ item: FileLocation) {
         guard let onReveal else { return }
-        dismiss(animated: true) { onReveal(path) }
+        dismiss(animated: true) { onReveal(item) }
     }
 
     // MARK: - Text
@@ -300,11 +310,11 @@ final class ClipboardViewController: UIViewController {
     /// here for: a cut that was forgotten about is a move waiting to happen
     /// somewhere unexpected.
     private var summary: String {
-        guard !paths.isEmpty else { return "" }
+        guard !items.isEmpty else { return "" }
         var parts = [clipboard.isCut ? String(localized: "Move") : String(localized: "Copy")]
-        parts.append(paths.count == 1
+        parts.append(items.count == 1
             ? String(localized: "1 item")
-            : String(format: String(localized: "%lld items"), Int64(paths.count)))
+            : String(format: String(localized: "%lld items"), Int64(items.count)))
         if let takenAt = clipboard.takenAt {
             parts.append(takenAt.formatted(.relative(presentation: .named)))
         }
@@ -313,9 +323,9 @@ final class ClipboardViewController: UIViewController {
 
     private func footer(for section: Section) -> String? {
         guard section == .items else { return nil }
-        guard !paths.isEmpty else { return nil }
-        guard !missingPaths.isEmpty else { return nil }
-        guard missingPaths.count > 1 else {
+        guard !items.isEmpty else { return nil }
+        guard !missingItems.isEmpty else { return nil }
+        guard missingItems.count > 1 else {
             return String(
                 localized: "One of these items no longer exists. Remove it from the clipboard before pasting."
             )
@@ -324,19 +334,33 @@ final class ClipboardViewController: UIViewController {
             format: String(
                 localized: "%lld of these items no longer exist. Remove them from the clipboard before pasting."
             ),
-            Int64(missingPaths.count)
+            Int64(missingItems.count)
         )
+    }
+
+    /// The folder an entry came from: an absolute path on the local root,
+    /// "share name › folder" on a server.
+    private static func origin(of item: FileLocation) -> String {
+        let local = FileSession.shared.local
+        if item.backend == local.id {
+            return (local.absolutePath(item.path) as NSString).deletingLastPathComponent
+        }
+        let parent = item.path.parent?.description ?? ""
+        return parent.isEmpty ? backendName(item.backend) : backendName(item.backend) + " › " + parent
+    }
+
+    private static func backendName(_ id: BackendID) -> String {
+        BackendComposition.backends.first { $0.id == id }?.root.displayName ?? id.rawValue
     }
 
     private static func detail(for status: Status) -> (String, UIColor) {
         switch status {
         case .checking:
             return (String(localized: "Checking…"), .tertiaryLabel)
-        case let .present(details):
-            let kind = PropertiesViewController.name(of: details.node.kind)
-            guard details.node.kind != .directory else { return (kind, .secondaryLabel) }
-            let size = FilePresentation.byteLabel(details.node.size)
-            return ("\(kind) · \(size)", .secondaryLabel)
+        case let .present(entry):
+            let kind = entry.entersDirectory ? String(localized: "Folder") : String(localized: "File")
+            guard let size = entry.size, !entry.entersDirectory else { return (kind, .secondaryLabel) }
+            return ("\(kind) · \(FilePresentation.byteLabel(size))", .secondaryLabel)
         case .missing:
             return (String(localized: "This item no longer exists."), .systemRed)
         case let .unknown(reason):
@@ -350,14 +374,14 @@ extension ClipboardViewController: UITableViewDelegate {
         switch status {
         case .checking, .unknown: "questionmark.circle"
         case .missing: "exclamationmark.triangle"
-        case let .present(details): details.node.isNavigable ? "folder" : "doc"
+        case let .present(entry): entry.entersDirectory ? "folder" : "doc"
         }
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch dataSource.itemIdentifier(for: indexPath) {
-        case let .entry(entry): reveal(entry.path)
+        case let .entry(entry): reveal(entry.location)
         case .removeMissing: removeMissing()
         case nil: break
         }
@@ -368,15 +392,15 @@ extension ClipboardViewController: UITableViewDelegate {
         trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
     ) -> UISwipeActionsConfiguration? {
         guard case let .entry(entry)? = dataSource.itemIdentifier(for: indexPath) else { return nil }
-        let path = entry.path
-        // "Remove", never "Delete": this takes the path off the clipboard and
+        let item = entry.location
+        // "Remove", never "Delete": this takes the entry off the clipboard and
         // touches nothing on disk, and a red Delete on a file manager's screen
         // had better mean the other thing.
         let action = UIContextualAction(
             style: .destructive,
             title: String(localized: "Remove")
         ) { [weak self] _, _, done in
-            self?.remove(path)
+            self?.remove(item)
             done(true)
         }
         return UISwipeActionsConfiguration(actions: [action])

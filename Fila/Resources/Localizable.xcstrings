@@ -50326,6 +50326,1146 @@
           }
         }
       }
+    },
+    "%lld links or special files are not carried between backends and were skipped: %@." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يتم نقل %lld من الروابط أو الملفات الخاصة بين الواجهات الخلفية وتم تخطّيها: %@."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Links oder Spezialdateien werden nicht zwischen Backends übertragen und wurden übersprungen: %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld enlaces o archivos especiales no se transfieren entre backends y se omitieron: %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld liens ou fichiers spéciaux ne sont pas transférés entre backends et ont été ignorés : %@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld link o file speciali non vengono trasferiti tra backend e sono stati saltati: %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個のリンクまたは特殊ファイルはバックエンド間で転送されないためスキップされました: %@。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "링크 또는 특수 파일 %lld개는 백엔드 간에 전송되지 않아 건너뛰었습니다: %@."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld links ou arquivos especiais não são transferidos entre backends e foram ignorados: %@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld ссылок или специальных файлов не переносятся между хранилищами и были пропущены: %@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld liên kết hoặc tệp đặc biệt không được chuyển giữa các backend và đã bị bỏ qua: %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 个链接或特殊文件不会在后端之间传输，已跳过：%@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個連結或特殊檔案不會在後端之間傳輸，已略過：%@。"
+          }
+        }
+      }
+    },
+    "Copied, but %lld items could not be removed from the source and were kept there: %@. Folders are kept when something was added to them since the copy." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم النسخ، لكن تعذّرت إزالة %lld من العناصر من المصدر وبقيت هناك: %@. تُبقى المجلدات إذا أُضيف إليها شيء منذ النسخ."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiert, aber %lld Objekte konnten nicht aus der Quelle entfernt werden und blieben dort: %@. Ordner bleiben erhalten, wenn ihnen seit dem Kopieren etwas hinzugefügt wurde."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se copió, pero %lld elementos no se pudieron eliminar del origen y se conservaron allí: %@. Las carpetas se conservan si se les añadió algo desde la copia."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copié, mais %lld éléments n’ont pas pu être supprimés de la source et y ont été conservés : %@. Les dossiers sont conservés si quelque chose y a été ajouté depuis la copie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiato, ma %lld elementi non sono stati rimossi dall’origine e sono rimasti lì: %@. Le cartelle vengono mantenute se vi è stato aggiunto qualcosa dopo la copia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピーしましたが、%lld 個の項目をコピー元から削除できず、そのまま残しました: %@。コピー後に何かが追加されたフォルダは残されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "복사했지만 항목 %lld개를 원본에서 제거하지 못해 그대로 두었습니다: %@. 복사 후에 무언가가 추가된 폴더는 유지됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiado, mas %lld itens não puderam ser removidos da origem e foram mantidos lá: %@. Pastas são mantidas quando algo foi adicionado a elas desde a cópia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировано, но %lld объектов не удалось удалить из источника, и они оставлены там: %@. Папки сохраняются, если после копирования в них что-то добавили."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã sao chép, nhưng %lld mục không thể xóa khỏi nguồn và được giữ lại ở đó: %@. Thư mục được giữ lại khi có gì đó được thêm vào kể từ khi sao chép."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制，但有 %lld 个项目无法从来源移除并保留在原处：%@。若文件夹在复制后被添加了内容，则会保留。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已複製，但有 %lld 個項目無法從來源移除並保留在原處：%@。若資料夾在複製後被加入了內容，則會保留。"
+          }
+        }
+      }
+    },
+    "Files with the same names will be replaced; this cannot be undone. Folders with the same names are merged, and what they already hold is kept." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيتم استبدال الملفات التي تحمل الأسماء نفسها ولا يمكن التراجع عن ذلك. تُدمج المجلدات التي تحمل الأسماء نفسها ويُحتفظ بما تحتويه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien mit denselben Namen werden ersetzt; das lässt sich nicht rückgängig machen. Ordner mit denselben Namen werden zusammengeführt, ihr Inhalt bleibt erhalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los archivos con el mismo nombre se reemplazarán; esto no se puede deshacer. Las carpetas con el mismo nombre se combinan y se conserva lo que ya contienen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fichiers portant les mêmes noms seront remplacés ; cette action est irréversible. Les dossiers portant les mêmes noms sont fusionnés et leur contenu est conservé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I file con gli stessi nomi verranno sostituiti; l’operazione non può essere annullata. Le cartelle con gli stessi nomi vengono unite e il loro contenuto è mantenuto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同じ名前のファイルは置き換えられます。この操作は取り消せません。同じ名前のフォルダは統合され、既存の内容は保持されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이름이 같은 파일은 대체되며 되돌릴 수 없습니다. 이름이 같은 폴더는 병합되고 기존 내용은 유지됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos com os mesmos nomes serão substituídos; isso não pode ser desfeito. Pastas com os mesmos nomes são mescladas e o que já contêm é mantido."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файлы с такими же именами будут заменены; это нельзя отменить. Папки с такими же именами объединяются, их содержимое сохраняется."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các tệp trùng tên sẽ bị thay thế; không thể hoàn tác. Các thư mục trùng tên sẽ được gộp và nội dung hiện có được giữ lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同名文件将被替换，且无法撤销。同名文件夹将被合并，其已有内容会保留。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同名檔案將被取代，且無法復原。同名資料夾將被合併，其既有內容會保留。"
+          }
+        }
+      }
+    },
+    "Items on this server can be copied but not moved: Fila cannot remove them from it." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يمكن نسخ العناصر الموجودة على هذا الخادم لكن لا يمكن نقلها: لا يستطيع Fila إزالتها منه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objekte auf diesem Server können kopiert, aber nicht bewegt werden: Fila kann sie dort nicht entfernen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los elementos de este servidor se pueden copiar pero no mover: Fila no puede eliminarlos de él."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les éléments de ce serveur peuvent être copiés mais pas déplacés : Fila ne peut pas les en supprimer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gli elementi su questo server possono essere copiati ma non spostati: Fila non può rimuoverli da esso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このサーバ上の項目はコピーできますが移動はできません。Fila はサーバから削除できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 서버의 항목은 복사할 수 있지만 이동할 수 없습니다. Fila가 서버에서 제거할 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Itens neste servidor podem ser copiados, mas não movidos: o Fila não pode removê-los dele."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Объекты на этом сервере можно копировать, но не перемещать: Fila не может удалить их с него."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Các mục trên máy chủ này có thể sao chép nhưng không thể di chuyển: Fila không thể xóa chúng khỏi máy chủ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此服务器上的项目可以复制但不能移动：Fila 无法从服务器上移除它们。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此伺服器上的項目可以複製但無法移動：Fila 無法從伺服器上移除它們。"
+          }
+        }
+      }
+    },
+    "Nothing can be pasted here: this location does not accept files." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن لصق أي شيء هنا: هذا الموقع لا يقبل الملفات."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier kann nichts eingefügt werden: Dieser Ort nimmt keine Dateien an."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede pegar nada aquí: esta ubicación no acepta archivos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rien ne peut être collé ici : cet emplacement n’accepte pas de fichiers."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non è possibile incollare nulla qui: questa posizione non accetta file."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ここには何もペーストできません。この場所はファイルを受け付けません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "여기에는 붙여넣을 수 없습니다. 이 위치는 파일을 받지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada pode ser colado aqui: este local não aceita arquivos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сюда ничего нельзя вставить: это место не принимает файлы."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể dán gì vào đây: vị trí này không nhận tệp."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法在此粘贴：此位置不接受文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法在此貼上：此位置不接受檔案。"
+          }
+        }
+      }
+    },
+    "The folder “%@” is not empty and cannot be replaced." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المجلد ”%@“ ليس فارغًا ولا يمكن استبداله."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner „%@“ ist nicht leer und kann nicht ersetzt werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La carpeta “%@” no está vacía y no se puede reemplazar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le dossier « %@ » n’est pas vide et ne peut pas être remplacé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La cartella “%@” non è vuota e non può essere sostituita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フォルダ「%@」は空ではないため置き換えられません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” 폴더가 비어 있지 않아 대체할 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pasta “%@” não está vazia e não pode ser substituída."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка «%@» не пуста, и её нельзя заменить."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thư mục “%@” không trống và không thể thay thế."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件夹“%@”不为空，无法替换。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料夾「%@」不是空的，無法取代。"
+          }
+        }
+      }
+    },
+    "The server did not confirm publishing %@. Look in the destination folder before trying again; the originals were kept." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يؤكد الخادم نشر %@. تحقّق من مجلد الوجهة قبل المحاولة مرة أخرى؛ تم الاحتفاظ بالأصول."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat das Veröffentlichen von %@ nicht bestätigt. Sieh im Zielordner nach, bevor du es erneut versuchst; die Originale blieben erhalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor no confirmó la publicación de %@. Revisa la carpeta de destino antes de volver a intentarlo; los originales se conservaron."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur n’a pas confirmé la publication de %@. Vérifiez le dossier de destination avant de réessayer ; les originaux ont été conservés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server non ha confermato la pubblicazione di %@. Controlla la cartella di destinazione prima di riprovare; gli originali sono stati mantenuti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバは %@ の公開を確認しませんでした。再試行する前に保存先フォルダを確認してください。元のファイルは残されています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버가 %@ 게시를 확인하지 않았습니다. 다시 시도하기 전에 대상 폴더를 확인하십시오. 원본은 유지되었습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor não confirmou a publicação de %@. Verifique a pasta de destino antes de tentar novamente; os originais foram mantidos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не подтвердил публикацию %@. Проверьте папку назначения, прежде чем повторять; оригиналы сохранены."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ chưa xác nhận việc phát hành %@. Hãy kiểm tra thư mục đích trước khi thử lại; bản gốc đã được giữ lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器未确认已发布 %@。重试前请查看目标文件夹；原件已保留。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器未確認已發佈 %@。重試前請查看目標資料夾；原件已保留。"
+          }
+        }
+      }
+    },
+    "The server did not confirm publishing “%@”. Look in the destination folder before trying again." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يؤكد الخادم نشر ”%@“. تحقّق من مجلد الوجهة قبل المحاولة مرة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat das Veröffentlichen von „%@“ nicht bestätigt. Sieh im Zielordner nach, bevor du es erneut versuchst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor no confirmó la publicación de “%@”. Revisa la carpeta de destino antes de volver a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur n’a pas confirmé la publication de « %@ ». Vérifiez le dossier de destination avant de réessayer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server non ha confermato la pubblicazione di “%@”. Controlla la cartella di destinazione prima di riprovare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバは「%@」の公開を確認しませんでした。再試行する前に保存先フォルダを確認してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버가 “%@” 게시를 확인하지 않았습니다. 다시 시도하기 전에 대상 폴더를 확인하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor não confirmou a publicação de “%@”. Verifique a pasta de destino antes de tentar novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер не подтвердил публикацию «%@». Проверьте папку назначения, прежде чем повторять."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ chưa xác nhận việc phát hành “%@”. Hãy kiểm tra thư mục đích trước khi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器未确认已发布“%@”。重试前请查看目标文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器未確認已發佈「%@」。重試前請查看目標資料夾。"
+          }
+        }
+      }
+    },
+    "There is nothing to transfer." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يوجد ما يمكن نقله."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt nichts zu übertragen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay nada que transferir."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il n’y a rien à transférer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non c’è nulla da trasferire."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "転送するものがありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전송할 항목이 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não há nada para transferir."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нечего переносить."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không có gì để chuyển."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可传输的内容。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有可傳輸的內容。"
+          }
+        }
+      }
+    },
+    "Transferring between servers needs %@ of free space on this device to hold a file on the way, and only %@ is free." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتطلب النقل بين الخوادم %@ من المساحة الحرة على هذا الجهاز لحفظ الملف أثناء النقل، والمتاح %@ فقط."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Übertragung zwischen Servern braucht %@ freien Speicher auf diesem Gerät, um eine Datei zwischenzuspeichern; frei sind nur %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferir entre servidores necesita %@ de espacio libre en este dispositivo para retener un archivo en tránsito, y solo hay %@ libre."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le transfert entre serveurs nécessite %@ d’espace libre sur cet appareil pour conserver un fichier en transit, et seulement %@ est disponible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il trasferimento tra server richiede %@ di spazio libero su questo dispositivo per conservare un file in transito, e solo %@ è disponibile."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバ間の転送では、転送中のファイルを一時保存するためにこのデバイスに %@ の空き容量が必要ですが、空きは %@ しかありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버 간 전송에는 전송 중인 파일을 임시 보관할 %@의 여유 공간이 이 기기에 필요하지만 %@만 비어 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferir entre servidores precisa de %@ de espaço livre neste dispositivo para guardar um arquivo em trânsito, e só há %@ livre."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для переноса между серверами на этом устройстве нужно %@ свободного места под промежуточный файл, а свободно только %@."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chuyển giữa các máy chủ cần %@ dung lượng trống trên thiết bị này để giữ tệp trên đường đi, nhưng chỉ còn %@ trống."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在服务器之间传输需要此设备上有 %@ 的可用空间来暂存文件，但仅剩 %@ 可用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在伺服器之間傳輸需要此裝置上有 %@ 的可用空間來暫存檔案，但僅剩 %@ 可用。"
+          }
+        }
+      }
+    },
+    "Two selected items are both named “%@” and would use the same destination. Rename one or transfer them separately." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عنصران محددان يحملان الاسم ”%@“ نفسه وسيستخدمان الوجهة نفسها. أعد تسمية أحدهما أو انقلهما بشكل منفصل."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwei ausgewählte Objekte heißen beide „%@“ und würden dasselbe Ziel verwenden. Benenne eines um oder übertrage sie getrennt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dos elementos seleccionados se llaman “%@” y usarían el mismo destino. Cambia el nombre de uno o transfiérelos por separado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deux éléments sélectionnés portent le nom « %@ » et utiliseraient la même destination. Renommez-en un ou transférez-les séparément."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due elementi selezionati si chiamano entrambi “%@” e userebbero la stessa destinazione. Rinominane uno o trasferiscili separatamente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択した項目のうち 2 つが「%@」という同じ名前で、同じ保存先になります。一方の名前を変更するか、別々に転送してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 항목 두 개의 이름이 모두 “%@”이어서 같은 대상을 사용하게 됩니다. 하나의 이름을 바꾸거나 따로 전송하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dois itens selecionados se chamam “%@” e usariam o mesmo destino. Renomeie um ou transfira-os separadamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Два выбранных объекта называются «%@» и попали бы в одно место. Переименуйте один или перенесите их по отдельности."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hai mục đã chọn đều có tên “%@” và sẽ dùng cùng một đích. Hãy đổi tên một mục hoặc chuyển riêng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有两个所选项目都名为“%@”，会使用同一目标。请重命名其中一个或分别传输。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有兩個所選項目都名為「%@」，會使用同一目標。請重新命名其中一個或分別傳輸。"
+          }
+        }
+      }
+    },
+    "and %lld more" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "و%lld أخرى"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "und %lld weitere"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "y %lld más"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "et %lld autres"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e altri %lld"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "他 %lld 件"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "외 %lld개"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "e mais %lld"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "и ещё %lld"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "và %lld mục khác"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "及另外 %lld 项"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "及另外 %lld 項"
+          }
+        }
+      }
+    },
+    "“%@” already exists at the destination." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "”%@“ موجود بالفعل في الوجهة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ existiert am Ziel bereits."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ya existe en el destino."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » existe déjà dans la destination."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” esiste già nella destinazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」は保存先にすでに存在します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”이(가) 대상에 이미 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” já existe no destino."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» уже есть в месте назначения."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” đã tồn tại ở đích."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”在目标位置已存在。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」在目標位置已存在。"
+          }
+        }
+      }
+    },
+    "“%@” arrived with a different length than was sent (%@ instead of %@). The original was kept." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وصل ”%@“ بطول مختلف عمّا أُرسل (%@ بدلًا من %@). تم الاحتفاظ بالأصل."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ kam mit einer anderen Länge an als gesendet (%@ statt %@). Das Original blieb erhalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” llegó con una longitud distinta de la enviada (%@ en lugar de %@). El original se conservó."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » est arrivé avec une longueur différente de celle envoyée (%@ au lieu de %@). L’original a été conservé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” è arrivato con una lunghezza diversa da quella inviata (%@ invece di %@). L’originale è stato mantenuto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」は送信した長さと異なる長さで届きました（%@ ではなく %@）。元のファイルは残されています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”이(가) 보낸 길이와 다르게 도착했습니다(%@ 대신 %@). 원본은 유지되었습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” chegou com um tamanho diferente do enviado (%@ em vez de %@). O original foi mantido."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» пришёл с длиной, отличной от отправленной (%@ вместо %@). Оригинал сохранён."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” đến với độ dài khác với đã gửi (%@ thay vì %@). Bản gốc đã được giữ lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”到达时的长度与发送时不同（%@ 而非 %@）。原件已保留。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」到達時的長度與傳送時不同（%@ 而非 %@）。原件已保留。"
+          }
+        }
+      }
+    },
+    "“%@” no longer exists." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "”%@“ لم يعد موجودًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ existiert nicht mehr."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ya no existe."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » n’existe plus."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” non esiste più."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」はもう存在しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”이(가) 더 이상 존재하지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” não existe mais."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» больше не существует."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” không còn tồn tại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”已不存在。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」已不存在。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

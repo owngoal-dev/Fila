@@ -278,9 +278,20 @@ extension FileBrowserViewController {
         // sit there with no origin to put it back to.
         guard !isTrash, let paste = FileClipboard.shared.beginPaste() else { return }
         recordDirectoryUse()
+        // Local items take the native job — copyfile, clonefile, one rename
+        // for a same-volume move. Anything from a share is a transfer.
+        guard paste.isLocalOnly else {
+            guard let path = session.local.servicePath(forAbsolute: directory) else {
+                FileClipboard.shared.finishPaste(paste, succeeded: false)
+                return
+            }
+            let destination = FileLocation(backend: session.local.id, path: path)
+            Task { await ClipboardPaste.transfer(paste, into: destination, from: self) }
+            return
+        }
         let request = JobRequest(
             kind: paste.isCut ? .move : .copy,
-            sources: paste.paths,
+            sources: paste.localPaths,
             destination: directory
         )
         transfer(request, paste: paste)

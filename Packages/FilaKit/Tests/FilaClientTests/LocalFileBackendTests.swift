@@ -236,6 +236,9 @@ private final class RecordingAccess: LocalFileAccess, @unchecked Sendable {
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws {
         try await inner.rename(source, to: destination, exclusive: exclusive, overrideGuard: overrideGuard)
     }
+    func remove(_ path: String, directory: Bool, overrideGuard: Bool) async throws {
+        try await inner.remove(path, directory: directory, overrideGuard: overrideGuard)
+    }
     func setAttributes(_ change: AttributeChange, at path: String) async throws { try await inner.setAttributes(change, at: path) }
     func replaceItem(at target: String, withTemporary temporary: String) async throws { try await inner.replaceItem(at: target, withTemporary: temporary) }
     func mountPoints() async throws -> [MountPoint] { try await inner.mountPoints() }

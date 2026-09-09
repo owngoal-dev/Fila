@@ -28,6 +28,18 @@ directory handle the caller opened with `create` and closes with `close`;
 returns the entries of that response and whether the server has more. Marked
 `// Fila:` in the source. Nothing existing was modified.
 
+`Sources/SMBClient/Session.swift`: added `rename(from:to:replaceIfExists:)`
+after `move(from:to:)` — the same compound with the rename's replace flag
+exposed, so a publication can be exclusive (an occupied name fails and
+nothing moves) or a replacement, as the caller decided. `setInfo(path:_:)`
+opens without DELETE access and cannot rename.
+
+`Sources/SMBClient/Session.swift`: added `deleteNode(path:directory:)`
+after it — delete-on-close of exactly one node, with the create options
+pinning the kind and opening a reparse point as itself. Upstream's
+`deleteDirectory(path:)` lists and deletes a directory's contents first,
+which a move's source cleanup must never do. Both marked `// Fila:`.
+
 ## Updating
 
 Check out the new upstream revision, copy `Sources/SMBClient` and `LICENSE`

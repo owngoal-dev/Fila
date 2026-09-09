@@ -24,6 +24,8 @@ public enum SMBError: Error, Sendable, Equatable {
     case notFound(path: String)
     /// Another name is already at `path`.
     case alreadyExists(path: String)
+    /// The directory at `path` still has entries and was not removed.
+    case directoryNotEmpty(path: String)
     /// The server answered with a status this module has no better name
     /// for; `status` is its NTSTATUS wording.
     case server(status: String, path: String?)
@@ -36,6 +38,8 @@ public enum SMBError: Error, Sendable, Equatable {
     case invalidName(String)
     /// The staging descriptor refused a write; `code` is its errno.
     case descriptorWrite(code: Int32)
+    /// The source descriptor of an upload refused a read; `code` is its errno.
+    case descriptorRead(code: Int32)
 
     /// The `SMBError` for what the vendor threw while touching `path`.
     static func map(_ error: Error, path: String?, operation: String) -> SMBError {
@@ -56,6 +60,8 @@ public enum SMBError: Error, Sendable, Equatable {
                 return .notFound(path: path ?? "")
             case .objectNameCollision:
                 return .alreadyExists(path: path ?? "")
+            case .directoryNotEmpty:
+                return .directoryNotEmpty(path: path ?? "")
             default:
                 return .server(status: status.description, path: path)
             }
@@ -103,6 +109,8 @@ extension SMBError: LocalizedError {
             return String(localized: "There is nothing at that path on the server.", bundle: bundle)
         case .alreadyExists:
             return String(localized: "Something with that name is already there.", bundle: bundle)
+        case .directoryNotEmpty:
+            return String(localized: "The folder on the server is not empty.", bundle: bundle)
         case let .server(status, _):
             return String(localized: "The server refused: \(status).", bundle: bundle)
         case .disconnected:
@@ -111,6 +119,8 @@ extension SMBError: LocalizedError {
             return String(localized: "“\(name)” is not a name an SMB server accepts.", bundle: bundle)
         case let .descriptorWrite(code):
             return String(localized: "The downloaded data could not be written locally (error \(code)).", bundle: bundle)
+        case let .descriptorRead(code):
+            return String(localized: "The file to upload could not be read locally (error \(code)).", bundle: bundle)
         }
     }
 }

@@ -66,7 +66,7 @@ final class ClipboardBarView: UIView {
 
     func configure(_ clipboard: FileClipboard) {
         let operation = clipboard.isCut ? String(localized: "Move") : String(localized: "Copy")
-        summary.setTitle(operation + " · " + String(localized: "\(clipboard.paths.count) items"), for: .normal)
+        summary.setTitle(operation + " · " + String(localized: "\(clipboard.items.count) items"), for: .normal)
         summary.accessibilityHint = String(localized: "Shows the clipboard.")
         paste.setTitle(clipboard.isCut ? String(localized: "Move Here") : String(localized: "Copy Here"), for: .normal)
         paste.isEnabled = !clipboard.isPasting

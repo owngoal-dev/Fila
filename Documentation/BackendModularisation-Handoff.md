@@ -253,9 +253,84 @@ done: tapping through the setup and browser screens (synthetic clicks are
 refused on this Mac), Windows signing-required, Samba and NAS servers,
 multi-GB files, anything on a device.
 
-## Resume here: Phase 7
+## Phase 7 — done
 
-Cross-backend copy and move per `PLAN.md`. Build with an isolated
+| Phase | Commit | Summary |
+| --- | --- | --- |
+| 7 | see `git log` | Cross-backend copy and move: `WritableFileService` and `DescriptorFileService` in FilaBackendKit, the `FileTransfer` executor, the local adapter's guarded writes over a new single-node `removeNode` wire operation, `SMBFileService+Writing` over two vendored `Session` additions, `OperationCenter.transfer`, a location-based `FileClipboard`, `ClipboardPaste`, Copy/Move/Paste in the remote browser, and the transfer wording in `FailureMessage`. |
+
+What Phase 7 settled:
+
+- **The contract is four writes, not a command bag.** `WritableFileService`
+  is `createDirectory`, `writeFile(from descriptor…)`, `removeFile`,
+  `removeEmptyDirectory` and `move`, each with a stated publication promise:
+  bytes go to a private temporary beside the destination and are published
+  in one step, exclusively by default (`PublishPolicy.failIfExists`) and by
+  the backend's one replace where asked. The refusals a transfer acts on are
+  `WriteFailure` (`alreadyExists`, `notFound`, `notEmpty`,
+  `publicationUnknown`); every other error stays the backend's own.
+  `DescriptorFileService` is the local adapter alone: a local source is read
+  straight into the destination's write, everything else is staged one file
+  at a time under the process workspace.
+- **Publish first, verify, then clean.** `FileTransfer` plans the whole
+  tree first (one entry per file and directory, links and special files
+  recorded as skipped and never entered), carries it, checks each published
+  file's length through `details`, and only for a move revalidates each
+  copied file against the size and modification time it was read with and
+  removes it one at a time — then each directory only while empty, deepest
+  first. Nothing re-lists the source to delete it. Anything retained,
+  skipped or left uncertain is a `TransferShortfall`, which is a failure:
+  a cut is consumed only when the shortfall is empty.
+- **One node, never a tree, on both sides.** `FilaOperation.removeNode`
+  (21) is `unlink(2)` or `rmdir(2)` with the caller's verified kind pinned
+  and the kernel refusing the other; it never follows a link and goes
+  through the guard like `rename`. On SMB the vendored `Session` gained
+  `deleteNode(path:directory:)` (delete-on-close of exactly one node,
+  reparse points opened as themselves) and `rename(from:to:replaceIfExists:)`
+  — upstream's `deleteDirectory` recurses and its `move` cannot replace.
+  Recorded in `FILA-VENDOR.md`.
+- **A lost reply is uncertain, not failed.** An SMB publication whose
+  session was retired mid-request is `publicationUnknown`; the transfer
+  stops, names the path, keeps every source, and both ends list again.
+- **Same backend, native rename.** A move within one share is the server's
+  rename root by root; a copy within one share still relays, since the
+  contract has no server-side copy. Local-to-local never enters the
+  executor: the browser keeps the native job for an all-local clipboard.
+- **The clipboard holds `FileLocation`s.** `FileClipboard.paths` remains
+  as a derived view of the local entries for the screens that still speak
+  in paths; the inspector checks each entry against its own backend and
+  names the share an entry came from. `BackendShell` gained `clipboard`,
+  `takeToClipboard` and `paste(into:from:)`; the remote browser offers
+  Copy/Move per file or folder (not per link) and *Copy Here*/*Move Here*
+  in its actions menu. `OperationCenter.run` takes `feedback` and
+  `whenFinished` so a transfer can be awaited silently and announced by
+  the paste flow with the executor's own sentence.
+- **Progress counts legs.** A staged file counts its download and its
+  upload in the total, so the bar does not reach the end while an upload
+  is pending; the row shows an indeterminate bar while the plan is built.
+- Not carried across backends, and said so rather than faked: ownership,
+  modes, extended attributes, flags, links. Not offered: a directory
+  replaced by a file (refused as not empty), Keep Both (the app's local job
+  has no such policy either), a clipboard bar on the remote browser, and
+  New Folder/Delete on a share (Phase 7 needed neither).
+
+Verified: `make check`; `make harness` (489 tests: 5 for `removeNode`, 7
+for the local writable adapter, 14 for `FileTransfer` between two local
+roots with fault-injecting wrappers — changed source, refused removal, lost
+publication, staged source, cancellation, links, refusals); the live suite
+`SMBLiveWritingTests` (5 tests) against impacket: chunked upload with
+exclusive and replacing publication, cancelled upload leaving neither name
+nor temporary, single-node removals refusing a full directory, exclusive
+rename, and a tree moved local → share → local through `FileTransfer` with
+both ends read from disk; Release device builds of both compositions with
+`CI=1` and clean extractor diffs (21 keys added in twelve languages);
+simulator Debug build. Not done: any paste through the screens (synthetic
+input is refused on this Mac), Windows, Samba, NAS, a full-disk staging
+volume, anything on a device.
+
+## Resume here: Phase 8
+
+Cleanup and acceptance per `PLAN.md`. Build with an isolated
 DerivedData (`DERIVED_DATA=/private/tmp/fila-dd-<name>`); the sandboxed
 composition lands beside it in `<name>-sandboxed`. A new module framework
 joins the sandbox by adding it to `FilaSandboxed`'s Frameworks, Embed
@@ -263,7 +338,9 @@ Frameworks and `-needed_framework` lists; the verifier's `shared` list in
 `verify-composition.sh` names what both compositions must carry. To run the
 SMB live suite, start an SMB2 server (impacket's `smbserver.py -smb2support`
 works unprivileged on a high port) and set `FILA_SMB_SERVER=host:port`,
-`FILA_SMB_SHARE`, `FILA_SMB_USER`, `FILA_SMB_PASSWORD`, `FILA_SMB_FIXTURES`.
+`FILA_SMB_SHARE`, `FILA_SMB_USER`, `FILA_SMB_PASSWORD`, `FILA_SMB_FIXTURES`;
+`SMBLiveWritingTests` writes into the fixtures directory through the share
+and reads the result back from disk, so the share must be writable.
 
 ## Decisions worth keeping
 

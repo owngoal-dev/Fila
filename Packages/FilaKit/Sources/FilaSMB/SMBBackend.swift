@@ -92,6 +92,12 @@ public final class SMBBackend: FileBackend {
         service?.observation.setPaused(paused)
     }
 
+    /// Nothing to tell when no session was ever opened: no screen is
+    /// subscribed to a share that was never connected.
+    public func invalidate(_ directories: [ServicePath]) {
+        service?.invalidate(directories)
+    }
+
     // MARK: - Sidebar
 
     public func sidebarUpdates() -> AsyncStream<BackendSidebar> {

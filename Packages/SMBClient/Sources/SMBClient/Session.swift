@@ -610,6 +610,85 @@ public class Session {
     _ = try await send(createRequest, setInfoRequest, closeRequest)
   }
 
+  // Fila: `move(from:to:)` with the rename's replace flag under the
+  // caller's control. `replaceIfExists: false` is the exclusive publish —
+  // an occupied `to` fails with STATUS_OBJECT_NAME_COLLISION and nothing
+  // moves; `true` replaces a file at `to` in the server's one rename.
+  // `setInfo(path:_:)` cannot do this: a rename needs DELETE access on the
+  // handle and that method opens without it.
+  public func rename(from: String, to: String, replaceIfExists: Bool) async throws {
+    let createRequest = Create.Request(
+      messageId: messageId.next(),
+      treeId: treeId,
+      sessionId: sessionId,
+      desiredAccess: [.readAttributes, .delete, .synchronize],
+      fileAttributes: [.normal],
+      shareAccess: [],
+      createDisposition: .open,
+      createOptions: [],
+      name: from
+    )
+    let setInfoRequest = SetInfo.Request(
+      headerFlags: [.relatedOperations],
+      messageId: messageId.next(),
+      treeId: treeId,
+      sessionId: sessionId,
+      fileId: temporaryUUID,
+      infoType: .file,
+      fileInformation: FileRenameInformation(replaceIfExists: replaceIfExists, fileName: to.precomposedStringWithCanonicalMapping)
+    )
+    let closeRequest = Close.Request(
+      headerFlags: [.relatedOperations],
+      messageId: messageId.next(),
+      treeId: treeId,
+      sessionId: sessionId,
+      fileId: temporaryUUID
+    )
+
+    _ = try await send(createRequest, setInfoRequest, closeRequest)
+  }
+
+  // Fila: one node and never a tree. `deleteDirectory(path:)` above lists
+  // a directory and deletes everything it finds first; a transfer that
+  // cleans up a source it copied must not do that, because whatever
+  // appeared since the copy is not its to delete. This marks one node
+  // delete-on-close and closes it: a directory that still has entries is
+  // refused by the server with STATUS_DIRECTORY_NOT_EMPTY, the create
+  // option pins the kind the caller verified (`directory`) so a name that
+  // changed kind is refused rather than deleted, and a reparse point is
+  // opened as itself so a link goes and its target stays.
+  public func deleteNode(path: String, directory: Bool) async throws {
+    let createRequest = Create.Request(
+      messageId: messageId.next(),
+      treeId: treeId,
+      sessionId: sessionId,
+      desiredAccess: [.readAttributes, .delete, .synchronize],
+      fileAttributes: directory ? [.directory] : [.normal],
+      shareAccess: [.read, .write, .delete],
+      createDisposition: .open,
+      createOptions: directory ? [.directoryFile, .openReparsePoint] : [.nonDirectoryFile, .openReparsePoint],
+      name: path
+    )
+    let setInfoRequest = SetInfo.Request(
+      headerFlags: [.relatedOperations],
+      messageId: messageId.next(),
+      treeId: treeId,
+      sessionId: sessionId,
+      fileId: temporaryUUID,
+      infoType: .file,
+      fileInformation: FileDispositionInformation(deletePending: true)
+    )
+    let closeRequest = Close.Request(
+      headerFlags: [.relatedOperations],
+      messageId: messageId.next(),
+      treeId: treeId,
+      sessionId: sessionId,
+      fileId: temporaryUUID
+    )
+
+    _ = try await send(createRequest, setInfoRequest, closeRequest)
+  }
+
   @discardableResult
   public func setInfo(path: String, _ info: FileInformationClass) async throws -> SetInfo.Response {
     let createRequest = Create.Request(

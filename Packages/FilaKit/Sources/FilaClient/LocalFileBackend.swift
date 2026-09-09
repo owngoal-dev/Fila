@@ -158,6 +158,10 @@ public class LocalFileBackend: FileBackend {
         observation.invalidate(absolutePaths)
     }
 
+    public func invalidate(_ directories: [ServicePath]) {
+        observation.invalidate(directories.map(absolutePath))
+    }
+
     /// Stops the directory polling while the app is not on screen, and
     /// restarts it — with a fresh listing for every subscriber — when it is.
     public func setObservationPaused(_ paused: Bool) {

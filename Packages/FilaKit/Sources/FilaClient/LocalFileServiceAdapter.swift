@@ -184,7 +184,133 @@ final class LocalFileServiceAdapter: FileService, @unchecked Sendable {
     }
 }
 
-extension FileEntry {
+// MARK: - Writing
+
+/// The destination side of the neutral contract, over the same local
+/// access. Every write is the guarded one: a temporary beside the target,
+/// published by an exclusive rename or the atomic replace, and a node
+/// removed only one at a time.
+extension LocalFileServiceAdapter: WritableFileService, DescriptorFileService {
+    func openForReading(_ path: ServicePath) async throws -> Int32 {
+        let source = absolutePath(path)
+        let descriptor = try await access.open(source, flags: O_RDONLY)
+        // As in `copyContents`: only a regular file has contents to carry.
+        var status = stat()
+        guard fstat(descriptor, &status) == 0 else {
+            let code = errno
+            close(descriptor)
+            throw FilaFailure(errno: code, path: source)
+        }
+        guard status.st_mode & S_IFMT == S_IFREG else {
+            close(descriptor)
+            throw FilaFailure(errno: status.st_mode & S_IFMT == S_IFDIR ? EISDIR : EINVAL, path: source)
+        }
+        return descriptor
+    }
+
+    func createDirectory(_ directory: ServicePath) async throws {
+        let path = absolutePath(directory)
+        do {
+            try await access.create(.directory, at: path)
+        } catch let failure as FilaFailure {
+            throw Self.classify(failure, at: directory)
+        }
+    }
+
+    func writeFile(
+        from descriptor: Int32,
+        size: Int64,
+        to destination: ServicePath,
+        policy: PublishPolicy,
+        progress: @escaping @Sendable (TransferProgress) -> Void
+    ) async throws {
+        let target = absolutePath(destination)
+        let temporary = (target as NSString).deletingLastPathComponent + "/.fila-transfer-" + UUID().uuidString
+        let output = try await access.open(temporary, flags: O_CREAT | O_EXCL | O_WRONLY, mode: 0o600)
+        // Every failure after the temporary exists removes it — the write,
+        // the attributes, the publication — so a folder the user is looking
+        // at never keeps a `.fila-transfer-…` holding half the bytes.
+        do {
+            let cancelled = CancelFlag()
+            do {
+                try await withTaskCancellationHandler {
+                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                        Self.copyQueue.async {
+                            continuation.resume(with: Result {
+                                try Self.pump(
+                                    from: descriptor, to: output, expected: size,
+                                    isCancelled: { cancelled.isSet }, progress: progress
+                                )
+                            })
+                        }
+                    }
+                } onCancel: {
+                    cancelled.set()
+                }
+            } catch {
+                close(output)
+                throw error
+            }
+            close(output)
+            try Task.checkCancellation()
+            switch policy {
+            case .failIfExists:
+                try await access.setAttributes(.newItemDefaults, at: temporary)
+                try await access.rename(temporary, to: target, exclusive: true)
+            case .replace:
+                // The atomic replace: the original's metadata is carried
+                // onto the new content, a missing original gets the
+                // defaults, and a directory at the name is refused.
+                try await access.replaceItem(at: target, withTemporary: temporary)
+            }
+        } catch let failure as FilaFailure {
+            try? await access.remove(temporary, directory: false)
+            throw Self.classify(failure, at: destination)
+        } catch {
+            try? await access.remove(temporary, directory: false)
+            throw error
+        }
+    }
+
+    func removeFile(_ path: ServicePath) async throws {
+        do {
+            try await access.remove(absolutePath(path), directory: false)
+        } catch let failure as FilaFailure {
+            throw Self.classify(failure, at: path)
+        }
+    }
+
+    func removeEmptyDirectory(_ path: ServicePath) async throws {
+        do {
+            try await access.remove(absolutePath(path), directory: true)
+        } catch let failure as FilaFailure {
+            throw Self.classify(failure, at: path)
+        }
+    }
+
+    func move(_ source: ServicePath, to destination: ServicePath, policy: PublishPolicy) async throws {
+        do {
+            try await access.rename(absolutePath(source), to: absolutePath(destination), exclusive: policy == .failIfExists)
+        } catch let failure as FilaFailure {
+            // The syscall reports against the source name; what was missing
+            // is the source, what was in the way is the destination.
+            throw Self.classify(failure, at: failure.systemError == ENOENT ? source : destination)
+        }
+    }
+
+    /// The refusals a transfer acts on, by errno; anything else stays the
+    /// local failure it was, with its path and reason intact.
+    private static func classify(_ failure: FilaFailure, at path: ServicePath) -> Error {
+        switch failure.systemError {
+        case EEXIST: return WriteFailure.alreadyExists(path)
+        case ENOENT: return WriteFailure.notFound(path)
+        case ENOTEMPTY, EISDIR: return WriteFailure.notEmpty(path)
+        default: return failure
+        }
+    }
+}
+
+public extension FileEntry {
     /// A local node, with only what the neutral contract can promise about
     /// it. The full node stays available to local consumers.
     init(node: FileNode) {

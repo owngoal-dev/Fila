@@ -199,6 +199,12 @@ public final class LocalFileService: LocalFileAccess, @unchecked Sendable {
         }
     }
 
+    public func remove(_ path: String, directory: Bool, overrideGuard: Bool) async throws {
+        try await run("remove \(path)") {
+            try self.operations.removeNode(at: path, directory: directory, overrideGuard: overrideGuard)
+        }
+    }
+
     public func setAttributes(_ change: AttributeChange, at path: String) async throws {
         try await run("setAttributes \(path)") { try self.operations.setAttributes(change, at: path) }
     }

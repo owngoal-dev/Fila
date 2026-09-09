@@ -982,7 +982,16 @@ final class FileBrowserViewController: BackendListViewController<FileNode> {
 
     func presentClipboard() {
         let controller = ClipboardViewController(clipboard: .shared)
-        controller.onReveal = { [weak self] path in self?.shell?.follow(.reveal(path)) }
+        controller.onReveal = { [weak self] item in
+            guard let self else { return }
+            if item.backend == session.local.id {
+                shell?.follow(.reveal(session.local.absolutePath(item.path)))
+            } else if let parent = item.path.parent {
+                // A share's browser has no selection to land on; its folder
+                // is the nearest thing to revealing the entry.
+                BackendScreens.shell?.open(BackendLocation(backend: item.backend, item: parent.description))
+            }
+        }
         presentAsSheet(UINavigationController(rootViewController: controller))
     }
 

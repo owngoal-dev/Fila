@@ -250,6 +250,12 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
         try await service().rename(source, to: destination, exclusive: exclusive, overrideGuard: overrideGuard)
     }
 
+    /// Remove one node — a link as the link, a directory only when empty —
+    /// and never a tree.
+    public func remove(_ path: String, directory: Bool, overrideGuard: Bool) async throws {
+        try await service().remove(path, directory: directory, overrideGuard: overrideGuard)
+    }
+
     /// Change mode, owner, group, times, BSD flags or one extended attribute.
     public func setAttributes(_ change: AttributeChange, at path: String) async throws {
         try await service().setAttributes(change, at: path)

@@ -115,6 +115,14 @@ final class DaemonFileService: LocalFileAccess, @unchecked Sendable {
         }
     }
 
+    func remove(_ path: String, directory: Bool, overrideGuard: Bool) async throws {
+        _ = try await send(.removeNode) { request in
+            xpc_dictionary_set_string(request, FilaWireKey.path, path)
+            xpc_dictionary_set_bool(request, FilaWireKey.removeDirectory, directory)
+            xpc_dictionary_set_bool(request, FilaWireKey.overrideGuard, overrideGuard)
+        }
+    }
+
     func setAttributes(_ change: AttributeChange, at path: String) async throws {
         _ = try await send(.setAttributes) { request in
             xpc_dictionary_set_string(request, FilaWireKey.path, path)

@@ -182,9 +182,11 @@ let package = Package(
             ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // FilaClient as well: the live suite carries files between a local
+        // root and the share through `FileTransfer`, both ends real.
         .testTarget(
             name: "FilaSMBTests",
-            dependencies: ["FilaSMB", "FilaBackendKit"],
+            dependencies: ["FilaSMB", "FilaBackendKit", "FilaClient"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

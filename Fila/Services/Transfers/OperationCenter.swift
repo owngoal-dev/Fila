@@ -315,18 +315,24 @@ final class OperationCenter: ObservableObject {
         kind: Kind,
         title: String,
         subtitle: String,
+        logSubject: String? = nil,
         affected: [String],
         undo: Undo? = nil,
+        feedback: Feedback = .automatic,
+        whenFinished: ((FilaFailure) -> Void)? = nil,
         _ body: @escaping (@escaping (JobProgress) -> Void) async throws -> Void
     ) -> UUID {
         let operation = Operation(
             kind: kind,
             title: title,
             subtitle: subtitle,
+            logSubject: logSubject,
             state: .running(nil),
             affected: affected,
             control: nil,
-            undo: undo
+            undo: undo,
+            feedback: feedback,
+            whenFinished: whenFinished
         )
         let identity = operation.id
         append(operation)

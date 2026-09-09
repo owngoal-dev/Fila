@@ -78,6 +78,28 @@ public protocol BackendShell: AnyObject {
     /// Shows the screen a module routes for `location` in the current
     /// tab, the way the sidebar's rows do.
     func open(_ location: BackendLocation)
+
+    /// The app's clipboard as a module screen sees it: nil while empty.
+    var clipboard: BackendClipboardSummary? { get }
+    /// Puts `items` on the app's clipboard, replacing what was there.
+    func takeToClipboard(_ items: [FileLocation], cut: Bool)
+    /// Pastes the clipboard into `destination` through the app's operation
+    /// centre, asking `presenter` about replacements and reporting to it.
+    func paste(into destination: FileLocation, from presenter: UIViewController)
+}
+
+/// What a module screen needs to offer Paste: how many items wait, whether
+/// they move or copy, and whether a paste is already under way.
+public struct BackendClipboardSummary: Equatable, Sendable {
+    public let count: Int
+    public let isCut: Bool
+    public let isPasting: Bool
+
+    public init(count: Int, isCut: Bool, isPasting: Bool) {
+        self.count = count
+        self.isCut = isCut
+        self.isPasting = isPasting
+    }
 }
 
 /// A progress card the shell lent: what the caller can do with it.

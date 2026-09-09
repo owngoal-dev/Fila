@@ -1,3 +1,4 @@
+import FilaBackendKit
 import FilaFormats
 import FilaProtocol
 import Foundation
@@ -20,8 +21,70 @@ enum FailureMessage {
         switch error {
         case let failure as FilaFailure: message(for: failure, whileWriting: whileWriting)
         case let failure as FormatFailure: message(for: failure)
+        case let refusal as TransferRefusal: message(for: refusal)
+        case let shortfall as TransferShortfall: message(for: shortfall)
+        case let write as WriteFailure: message(for: write)
         default: error.localizedDescription
         }
+    }
+
+    // MARK: - Transfers between backends
+
+    private static func message(for refusal: TransferRefusal) -> String {
+        switch refusal {
+        case .nothingToTransfer:
+            return String(localized: "There is nothing to transfer.")
+        case let .conflictingNames(name):
+            return String(localized: "Two selected items are both named “\(name)” and would use the same destination. Rename one or transfer them separately.")
+        case .sameLocation:
+            return String(localized: "This item is already in the destination folder. Choose another folder.")
+        case .insideSource:
+            return String(localized: "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder.")
+        case .sourceNotWritable:
+            return String(localized: "Items on this server can be copied but not moved: Fila cannot remove them from it.")
+        case .destinationNotWritable:
+            return String(localized: "Nothing can be pasted here: this location does not accept files.")
+        case let .insufficientStagingSpace(needed, available):
+            return String(localized: "Transferring between servers needs \(FilePresentation.byteLabel(needed)) of free space on this device to hold a file on the way, and only \(FilePresentation.byteLabel(available)) is free.")
+        case let .sizeMismatch(path, expected, found):
+            return String(localized: "“\(path.name ?? path.description)” arrived with a different length than was sent (\(FilePresentation.byteLabel(found)) instead of \(FilePresentation.byteLabel(expected))). The original was kept.")
+        }
+    }
+
+    /// A transfer that ran to its end with something left over: every
+    /// list is named, capped at a few names, so the sentence stays a
+    /// sentence for a thousand-file move.
+    private static func message(for shortfall: TransferShortfall) -> String {
+        var lines: [String] = []
+        if !shortfall.uncertain.isEmpty {
+            lines.append(String(localized: "The server did not confirm publishing \(names(shortfall.uncertain)). Look in the destination folder before trying again; the originals were kept."))
+        }
+        if !shortfall.retained.isEmpty {
+            lines.append(String(localized: "Copied, but \(shortfall.retained.count) items could not be removed from the source and were kept there: \(names(shortfall.retained)). Folders are kept when something was added to them since the copy."))
+        }
+        if !shortfall.skipped.isEmpty {
+            lines.append(String(localized: "\(shortfall.skipped.count) links or special files are not carried between backends and were skipped: \(names(shortfall.skipped))."))
+        }
+        return lines.joined(separator: "\n\n")
+    }
+
+    private static func message(for write: WriteFailure) -> String {
+        switch write {
+        case let .alreadyExists(path):
+            return String(localized: "“\(path.name ?? path.description)” already exists at the destination.")
+        case let .notFound(path):
+            return String(localized: "“\(path.name ?? path.description)” no longer exists.")
+        case let .notEmpty(path):
+            return String(localized: "The folder “\(path.name ?? path.description)” is not empty and cannot be replaced.")
+        case let .publicationUnknown(path):
+            return String(localized: "The server did not confirm publishing “\(path.name ?? path.description)”. Look in the destination folder before trying again.")
+        }
+    }
+
+    private static func names(_ paths: [ServicePath]) -> String {
+        let shown = paths.prefix(3).map { "“\($0.name ?? $0.description)”" }
+        guard paths.count > 3 else { return shown.joined(separator: ", ") }
+        return shown.joined(separator: ", ") + " " + String(localized: "and \(paths.count - 3) more")
     }
 
     private static func message(for failure: FilaFailure, whileWriting: Bool) -> String {

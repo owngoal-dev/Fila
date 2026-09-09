@@ -122,6 +122,20 @@ final class AppBackendShell: BackendShell {
         (UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive } as? UIWindowScene)?
             .windows.first { $0.isKeyWindow }?.rootViewController?.shell?.replace(screen)
     }
+
+    var clipboard: BackendClipboardSummary? {
+        let clipboard = FileClipboard.shared
+        guard !clipboard.isEmpty else { return nil }
+        return BackendClipboardSummary(count: clipboard.items.count, isCut: clipboard.isCut, isPasting: clipboard.isPasting)
+    }
+
+    func takeToClipboard(_ items: [FileLocation], cut: Bool) {
+        FileClipboard.shared.take(items, cut: cut)
+    }
+
+    func paste(into destination: FileLocation, from presenter: UIViewController) {
+        ClipboardPaste.paste(into: destination, from: presenter)
+    }
 }
 
 /// A snapshot's workspace lives as long as the screen showing it; this

@@ -86,10 +86,26 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         ) { [weak self] _ in
             self?.reload()
         }
-        return [
-            UIMenu(options: .displayInline, children: [toggle]),
-            UIMenu(options: .displayInline, children: [refresh]),
-        ]
+        var groups: [UIMenuElement] = [UIMenu(options: .displayInline, children: [toggle])]
+        // Paste lands here, through the app's operation centre: the items on
+        // the clipboard may be local files or another share's, and the
+        // transfer decides how they travel. Offered only while something is
+        // held, and disabled while a paste is already under way.
+        if let clipboard = BackendScreens.shell?.clipboard {
+            let paste = UIAction(
+                title: clipboard.isCut
+                    ? String(localized: "Move Here (\(clipboard.count) items)", bundle: bundle)
+                    : String(localized: "Copy Here (\(clipboard.count) items)", bundle: bundle),
+                image: UIImage(systemName: "doc.on.clipboard"),
+                attributes: clipboard.isPasting ? .disabled : []
+            ) { [weak self] _ in
+                guard let self else { return }
+                BackendScreens.shell?.paste(into: FileLocation(backend: backend.id, path: path), from: self)
+            }
+            groups.append(UIMenu(options: .displayInline, children: [paste]))
+        }
+        groups.append(UIMenu(options: .displayInline, children: [refresh]))
+        return groups
     }
 
     /// The backend's sidebar contribution is its authority on favourites;
@@ -368,7 +384,25 @@ extension FileServiceBrowserViewController: UICollectionViewDelegate {
                     image: UIImage(systemName: "square.and.arrow.down")
                 ) { [weak self] _ in self?.save(entry) })
             }
-            return UIMenu(title: entry.name, children: children)
+            // Copy and Move put the entry's location on the app's clipboard,
+            // to be pasted into any file backend; a link is not carried
+            // across backends and is not offered.
+            var transfer: [UIMenuElement] = []
+            if let child = try? path.appending(entry.name), entry.kind == .file || entry.kind == .directory {
+                let location = FileLocation(backend: backend.id, path: child)
+                transfer.append(UIAction(
+                    title: String(localized: "Copy", bundle: bundle),
+                    image: UIImage(systemName: "doc.on.doc")
+                ) { _ in BackendScreens.shell?.takeToClipboard([location], cut: false) })
+                transfer.append(UIAction(
+                    title: String(localized: "Move", bundle: bundle),
+                    image: UIImage(systemName: "scissors")
+                ) { _ in BackendScreens.shell?.takeToClipboard([location], cut: true) })
+            }
+            return UIMenu(title: entry.name, children: [
+                UIMenu(options: .displayInline, children: children),
+                UIMenu(options: .displayInline, children: transfer),
+            ])
         }
     }
 

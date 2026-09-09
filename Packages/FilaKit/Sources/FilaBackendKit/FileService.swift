@@ -321,4 +321,9 @@ public protocol FileBackend: Backend {
     /// hints every open browser once, because anything may have happened.
     /// The shell calls this on every file backend when it backgrounds.
     func setObservationPaused(_ paused: Bool)
+
+    /// This process changed `directories`: every subscriber to one of them
+    /// lists again. What a finished transfer says to both of its ends,
+    /// whatever the outcome was.
+    func invalidate(_ directories: [ServicePath])
 }

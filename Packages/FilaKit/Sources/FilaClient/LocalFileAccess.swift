@@ -212,6 +212,13 @@ public protocol LocalFileAccess: AnyObject, Sendable {
     /// comes back as `EEXIST` for the caller to try the next name.
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws
 
+    /// Remove one node and never a tree: `rmdir(2)` for a directory the
+    /// caller verified is empty, `unlink(2)` for anything else. The kernel
+    /// refuses the other kind, and neither follows a symlink. This is the
+    /// source cleanup of a move across backends, one verified entry at a
+    /// time; a whole tree goes through a `.delete` job.
+    func remove(_ path: String, directory: Bool, overrideGuard: Bool) async throws
+
     /// Change mode, owner, group, times, BSD flags or one extended attribute.
     func setAttributes(_ change: AttributeChange, at path: String) async throws
 
@@ -267,5 +274,9 @@ public extension LocalFileAccess {
 
     func rename(_ source: String, to destination: String, exclusive: Bool = false) async throws {
         try await rename(source, to: destination, exclusive: exclusive, overrideGuard: false)
+    }
+
+    func remove(_ path: String, directory: Bool) async throws {
+        try await remove(path, directory: directory, overrideGuard: false)
     }
 }
