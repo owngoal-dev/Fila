@@ -257,6 +257,17 @@ final class SidebarViewController: UIViewController {
     private func buildDataSource() {
         let row = UICollectionView.CellRegistration<IconRowCell, Item> { [weak self] cell, _, item in
             self?.configure(cell, for: item)
+            // One look for a pressed row and a selected one: the light tint,
+            // not the system's solid fill for a selection. The grouped-cell
+            // base keeps the card's corners on iOS 18 as on 26.
+            cell.configurationUpdateHandler = { cell, state in
+                var background = UIBackgroundConfiguration.listGroupedCell().updated(for: state)
+                if state.isSelected || state.isHighlighted {
+                    background.backgroundColorTransformer = nil
+                    background.backgroundColor = UIColor.tintColor.withAlphaComponent(FilaUI.selectionTintAlpha)
+                }
+                cell.backgroundConfiguration = background
+            }
         }
         let header = UICollectionView.CellRegistration<UICollectionViewListCell, Section> { cell, _, section in
             var content = UIListContentConfiguration.sidebarHeader()
@@ -562,7 +573,9 @@ extension SidebarViewController: UICollectionViewDelegate {
         case let .recent(path):
             openRecent(path)
         case let .catalog(id), let .connection(id):
-            collectionView.deselectItem(at: indexPath, animated: true)
+            // Stays selected, like a place: the row is where the content
+            // column now is. A deselect here was a second fade right after
+            // the press — one blink for the tap, one for letting go.
             guard let screen = SidebarLocation.screen(for: .root(of: id)) else { return }
             shell?.replace(screen)
         }
