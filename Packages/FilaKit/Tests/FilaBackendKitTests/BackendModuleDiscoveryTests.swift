@@ -234,4 +234,56 @@ struct BackendModuleDiscoveryTests {
     func embeddedOnHost() {
         #expect(BackendModuleDiscovery.embeddedCandidates(in: .main).isEmpty)
     }
+
+    @Test("A module routes screens for its backend; a second route for the same backend is refused whole")
+    func routes() {
+        final class Screen {}
+        FilaFixtureModule.onRegister = { registration in
+            try registration.route(BackendID(registration.module.bundleIdentifier)) { location in
+                location.isRoot ? Screen() : nil
+            }
+            // Every module also claims "shared": the second one is refused.
+            try registration.route(BackendID("shared")) { _ in Screen() }
+        }
+        let host = RecordingHost()
+        let registry = BackendModuleDiscovery.bootstrap(
+            [candidate("wiki.qaq.fila.a"), candidate("wiki.qaq.fila.b")],
+            hostVersion: hostVersion,
+            host: host
+        )
+        #expect(registry.modules.map(\.bundleIdentifier) == ["wiki.qaq.fila.a"])
+        #expect(registry.screen(for: .root(of: BackendID("wiki.qaq.fila.a"))) is Screen)
+        #expect(registry.screen(for: BackendLocation(backend: BackendID("wiki.qaq.fila.a"), item: "x")) == nil)
+        #expect(registry.screen(for: .root(of: BackendID("wiki.qaq.fila.b"))) == nil)
+        #expect(host.failures.first?.contains("screen route for shared") == true)
+    }
+
+    @Test("A factory may ask for a backend a later module produces; asking for one's own is nil, not a loop")
+    func onDemandResolution() {
+        var seen: [String] = []
+        FilaFixtureModule.onRegister = { registration in
+            let name = registration.module.bundleIdentifier
+            registration.backends { resolver in
+                if name.hasSuffix("consumer") {
+                    // The provider module registered later, so its factory
+                    // has not run; asking runs it now.
+                    let provided = resolver.backend(BackendID("provided"))
+                    seen.append(provided == nil ? "missing" : "found")
+                    // Asking for what this very factory is producing is nil.
+                    #expect(resolver.backend(BackendID("consumed")) == nil)
+                    return [Fixture("consumed")]
+                }
+                return [Fixture("provided")]
+            }
+        }
+        let host = RecordingHost()
+        let registry = BackendModuleDiscovery.bootstrap(
+            [candidate("wiki.qaq.fila.a.consumer"), candidate("wiki.qaq.fila.z.provider")],
+            hostVersion: hostVersion,
+            host: host
+        )
+        #expect(seen == ["found"])
+        #expect(registry.backends.map(\.id.rawValue) == ["provided", "consumed"])
+        #expect(host.failures.isEmpty)
+    }
 }

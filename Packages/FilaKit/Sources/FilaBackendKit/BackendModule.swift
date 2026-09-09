@@ -50,6 +50,7 @@ public final class BackendRegistration {
 
     var providers: [ObjectIdentifier: (name: String, value: Any)] = [:]
     var backendFactories: [BackendFactory] = []
+    var routes: [BackendID: ScreenRoute] = [:]
 
     init(module: BackendModuleIdentity, host: any BackendHost) {
         self.module = module
@@ -75,6 +76,23 @@ public final class BackendRegistration {
     public func backends(_ make: @escaping @MainActor (BackendResolver) throws -> [any Backend]) {
         backendFactories.append(BackendFactory(module: module, make: make))
     }
+
+    /// Register the screen for locations in `backend`. The shell routes by
+    /// location and never names a screen type: `make` returns the screen
+    /// object — a view controller, typed as `AnyObject` so this contract
+    /// needs no UI framework — or nil for a location it does not show. One
+    /// route per backend; a second registration is refused.
+    public func route(_ backend: BackendID, _ make: @escaping @MainActor (BackendLocation) -> AnyObject?) throws {
+        guard routes[backend] == nil else {
+            throw BackendModuleError.duplicateRoute(backend.rawValue)
+        }
+        routes[backend] = ScreenRoute(module: module, make: make)
+    }
+}
+
+struct ScreenRoute {
+    let module: BackendModuleIdentity
+    let make: @MainActor (BackendLocation) -> AnyObject?
 }
 
 /// Read access to the committed registry, handed to backend factories.
@@ -89,9 +107,19 @@ public struct BackendResolver {
     public func provider<Provider>(_ type: Provider.Type) -> Provider? {
         registry.provider(type)
     }
+
+    /// The backend `id`, resolving other modules' factories first if theirs
+    /// has not run yet. Module order decides who runs first only when
+    /// nothing asks otherwise; a backend built on another backend asks
+    /// here and gets it whichever framework dyld mapped first. Nil when no
+    /// factory produces it, or when asking would loop.
+    public func backend(_ id: BackendID) -> (any Backend)? {
+        registry.resolve(id)
+    }
 }
 
 struct BackendFactory {
+    let id = UUID()
     let module: BackendModuleIdentity
     let make: @MainActor (BackendResolver) throws -> [any Backend]
 }
@@ -126,6 +154,7 @@ public enum BackendModuleError: Error, Equatable, CustomStringConvertible {
     case entryClassForeign(String)
     case entryClassNotConforming(String)
     case duplicateProvider(String)
+    case duplicateRoute(String)
     case duplicateModule(String)
     case registration(String)
 
@@ -147,6 +176,8 @@ public enum BackendModuleError: Error, Equatable, CustomStringConvertible {
             return "entry class \(name) does not conform to BackendModule"
         case let .duplicateProvider(name):
             return "provider \(name) already registered"
+        case let .duplicateRoute(backend):
+            return "screen route for \(backend) already registered"
         case let .duplicateModule(identifier):
             return "module \(identifier) already registered"
         case let .registration(reason):

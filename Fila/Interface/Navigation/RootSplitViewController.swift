@@ -1,3 +1,5 @@
+import FilaBackendKit
+import FilaBackendUI
 import Then
 import UIKit
 
@@ -201,12 +203,12 @@ final class RootSplitViewController: UISplitViewController {
                 })
                 buttons.insert(back, at: 0)
             } else if ancestors.isEmpty, buttons.isEmpty,
-                      let browser = controller as? BrowserViewController, browser.directory != "/"
+                      let browser = controller as? FileBrowserViewController, browser.directory != "/"
             {
                 back.menu = nil
                 buttons.insert(back, at: 0)
             }
-            if controller is AppListViewController || controller is MusicLibraryViewController {
+            if controller is any BackendRootScreen {
                 buttons.insert(tabs, at: 0)
             }
             // Custom leading items suppress UIKit's default Back control.
@@ -234,9 +236,9 @@ final class RootSplitViewController: UISplitViewController {
               let navigation = source.navigationController,
               navigation.transitionCoordinator == nil else { return }
         if navigation.viewControllers.count == 1 {
-            guard requested == nil, let browser = source as? BrowserViewController,
+            guard requested == nil, let browser = source as? FileBrowserViewController,
                   browser.directory != "/" else { return }
-            let parent = BrowserViewController(directory: (browser.directory as NSString).deletingLastPathComponent)
+            let parent = FileBrowserViewController(directory: (browser.directory as NSString).deletingLastPathComponent)
             navigation.setViewControllers([parent, source], animated: false)
             navigation.popViewController(animated: true)
             return
@@ -309,7 +311,7 @@ final class RootSplitViewController: UISplitViewController {
     /// being broken. Saying so is the toast's job. It goes through the browser
     /// that is on screen rather than pushing directly, so the folder arrives by
     /// the same rule as every other way of naming one: a child descends,
-    /// anything else jumps. See `BrowserViewController.open(directory:)`.
+    /// anything else jumps. See `FileBrowserViewController.open(directory:)`.
     func openInNewTab(_ path: String) {
         content.captureCurrentTab()
         guard let tab = BrowserTabStore.shared.open(path) else {
@@ -319,7 +321,7 @@ final class RootSplitViewController: UISplitViewController {
             )
             confirmLeavingContent { [weak self] in
                 guard let self else { return }
-                if let browser = content.navigation?.topViewController as? BrowserViewController {
+                if let browser = content.navigation?.topViewController as? FileBrowserViewController {
                     browser.open(directory: path)
                 } else {
                     content.showRoot(path, select: nil)
@@ -342,8 +344,12 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
-    func openMusicInNewTab() {
-        openInNewTab(MusicLibraryViewController(), directory: "/var/mobile/Media/iTunes_Control")
+    /// A module's root screen in a new tab. The tab store records a
+    /// directory per tab, so the catalogue tab restores to the current
+    /// directory if the screen itself cannot be restored.
+    func openInNewTab(location: BackendLocation) {
+        guard let screen = SidebarLocation.screen(for: location) else { return }
+        openInNewTab(screen, directory: FileSession.shared.lastDirectoryPath)
     }
 
     func openInNewTab(_ controller: UIViewController, directory: String) {

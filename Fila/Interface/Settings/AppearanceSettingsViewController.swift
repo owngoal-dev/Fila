@@ -1,3 +1,5 @@
+import FilaBackendKit
+import FilaBackendUI
 import FilaClient
 import FilaLog
 import Then
@@ -80,9 +82,9 @@ final class AppearanceSettingsViewController: UITableViewController {
             cell.showsReorderControl = true
         case .systemFeatures:
             title = String(localized: "Show Applications")
-            enabled = preferences.showsApplications
-            update = { [preferences] in
-                preferences.showsApplications = $0
+            enabled = SystemCapabilities.applications?.showsApplications ?? false
+            update = {
+                SystemCapabilities.applications?.showsApplications = $0
                 NotificationCenter.default.post(name: .filaPreferencesChanged, object: nil)
             }
         default:

@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendUI
 import FilaLog
 import FilaTerminal
 import UIKit
@@ -17,6 +18,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .systemBlue
         // The app icon, light and dark, rendered by Scripts/make-app-mark.swift.
         AlertControllerConfiguration.alertImage = UIImage(named: "AppIconMark")
+        // Module screens borrow the app's browsers, pickers and feedback from
+        // here; assigned before any scene can make one.
+        BackendScreens.shell = AppBackendShell()
         let info = Bundle.main.infoDictionary
         FilaLog.info(
             "Fila \(info?["CFBundleShortVersionString"] as? String ?? "?")"

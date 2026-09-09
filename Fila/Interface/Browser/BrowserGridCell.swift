@@ -1,3 +1,5 @@
+import FilaBackendKit
+import FilaBackendUI
 import FilaProtocol
 import SnapKit
 import Then
@@ -71,9 +73,9 @@ final class BrowserGridCell: UICollectionViewCell {
         didSet { contentView.backgroundColor = isSelected ? .systemFill : nil }
     }
 
-    func configure(node: FileNode, path: String, session: FileSession, presentation: AppFolderPresentation? = nil) {
+    func configure(node: FileNode, path: String, session: FileSession, decoration: FolderDecoration? = nil) {
         thumbnailTask?.cancel()
-        let presentation = node.kind == .directory ? presentation : nil
+        let presentation = node.kind == .directory ? decoration : nil
         label.text = presentation.map { [$0.name, $0.detail].compactMap(\.self).joined(separator: "\n") } ?? node.name
         label.textColor = presentation == nil ? .label : .systemBrown
         let isApplication = presentation != nil && URL(fileURLWithPath: node.name).pathExtension.lowercased() == "app"
@@ -89,20 +91,20 @@ final class BrowserGridCell: UICollectionViewCell {
 
         let token = UUID()
         self.token = token
-        if let presentation {
+        if let presentation, let artwork = SystemCapabilities.applicationArtwork {
             // Same seam as the thumbnail: cached artwork now, the rest later,
             // and only onto the cell that is still showing this node.
             let target = isApplication ? image : appBadge
-            if let cached = AppFolderDisplay.cachedIcon(for: presentation.applicationIdentifier) {
+            if let cached = artwork.cachedIcon(for: presentation.applicationIdentifier) {
                 target.image = cached
             } else {
                 if !isApplication {
-                    appBadge.image = AppFolderDisplay.placeholderIcon
+                    appBadge.image = artwork.placeholder
                 }
                 Task { [weak self] in
-                    let artwork = await AppFolderDisplay.icon(for: presentation.applicationIdentifier)
+                    let icon = await artwork.icon(for: presentation.applicationIdentifier)
                     guard let self, self.token == token else { return }
-                    target.image = artwork
+                    target.image = icon
                 }
             }
         }

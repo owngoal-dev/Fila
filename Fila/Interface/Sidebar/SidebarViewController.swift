@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaBackendKit
 import FilaProtocol
 import SnapKit
@@ -26,8 +27,7 @@ final class SidebarViewController: UIViewController {
         case header(Section)
         case place(SidebarPlace)
         case favorite(String)
-        case apps
-        case music
+        case catalog(BackendID)
         case recent(String)
         case mount(String)
     }
@@ -300,12 +300,10 @@ final class SidebarViewController: UIViewController {
             name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
             detail = mount.isReadOnly ? [path, String(localized: "Read Only")].joined(separator: " · ") : path
             image = UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal)
-        case .apps:
-            name = String(localized: "Applications")
-            image = UIImage(named: "FileIcons/application")?.withRenderingMode(.alwaysOriginal)
-        case .music:
-            name = String(localized: "Music")
-            image = UIImage(named: "FileIcons/music")?.withRenderingMode(.alwaysOriginal)
+        case let .catalog(id):
+            guard let root = BackendComposition.registry.backend(id)?.root else { return }
+            name = root.displayName
+            image = SidebarLocation.image(for: root)
         }
         cell.configure(name: name, detail: detail, image: image, nameColor: color, tintColor: .tintColor)
         if case .favorite = item {
@@ -319,8 +317,7 @@ final class SidebarViewController: UIViewController {
         SidebarLocation.orderedDestinations.map {
             switch $0 {
             case let .directory(place): .place(place)
-            case .applications: .apps
-            case .music: .music
+            case let .catalog(root): .catalog(root.location.backend)
             }
         }
     }
@@ -442,7 +439,7 @@ final class SidebarViewController: UIViewController {
             .filter { refresh || recentItems[$0] == nil }
         guard !paths.isEmpty else { return }
         recentImageTask = Task { [weak self, session] in
-            let apps = await InstalledAppCatalog.load(session: session)
+            let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
             // One bounded sequence, never one task per cell or per scroll event.
             var loaded = Set<String>()
             var didLoad = false
@@ -454,10 +451,12 @@ final class SidebarViewController: UIViewController {
                 ) else { continue }
                 guard !Task.isCancelled else { return }
                 let node = details.node
-                let presentation = AppFolderDisplay.presentation(for: path, apps: apps)
+                let presentation = decoration(path)
                 var image = FilePresentation.image(for: node)
-                if let identifier = presentation?.applicationIdentifier {
-                    image = await AppFolderDisplay.icon(for: identifier)
+                if let identifier = presentation?.applicationIdentifier,
+                   let artwork = SystemCapabilities.applicationArtwork
+                {
+                    image = await artwork.icon(for: identifier)
                 }
                 guard let self, !Task.isCancelled else { return }
                 self.recentItems[path] = (image, presentation?.name, node.isNavigable)
@@ -545,12 +544,10 @@ extension SidebarViewController: UICollectionViewDelegate {
             open(path)
         case let .recent(path):
             openRecent(path)
-        case .apps:
+        case let .catalog(id):
             collectionView.deselectItem(at: indexPath, animated: true)
-            shell?.replace(AppListViewController())
-        case .music:
-            collectionView.deselectItem(at: indexPath, animated: true)
-            shell?.replace(MusicLibraryViewController())
+            guard let screen = SidebarLocation.screen(for: .root(of: id)) else { return }
+            shell?.replace(screen)
         }
     }
 

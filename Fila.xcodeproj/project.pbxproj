@@ -44,6 +44,14 @@
 		FB3000000000000000000041 /* FilaPrivileged.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB3000000000000000000001 /* FilaPrivileged.framework */; };
 		FB3000000000000000000042 /* FilaPrivileged.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB3000000000000000000001 /* FilaPrivileged.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FB3000000000000000000043 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
+		FB4000000000000000000041 /* FilaApplications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB4000000000000000000001 /* FilaApplications.framework */; };
+		FB4000000000000000000042 /* FilaApplications.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB4000000000000000000001 /* FilaApplications.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FB4000000000000000000043 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
+		FB5000000000000000000041 /* FilaMusicLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB5000000000000000000001 /* FilaMusicLibrary.framework */; };
+		FB5000000000000000000042 /* FilaMusicLibrary.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB5000000000000000000001 /* FilaMusicLibrary.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FB5000000000000000000043 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
+		FB5000000000000000000050 /* CFilaMusicLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = FB5000000000000000000060 /* CFilaMusicLibrary */; };
+		FB10000000000000000000A3 /* FilaBackendUI in Frameworks */ = {isa = PBXBuildFile; productRef = FB10000000000000000000B3 /* FilaBackendUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +118,34 @@
 			remoteGlobalIDString = FB1000000000000000000010;
 			remoteInfo = FilaCore;
 		};
+		FB4000000000000000000020 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB4000000000000000000010;
+			remoteInfo = FilaApplications;
+		};
+		FB4000000000000000000022 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB1000000000000000000010;
+			remoteInfo = FilaCore;
+		};
+		FB5000000000000000000020 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB5000000000000000000010;
+			remoteInfo = FilaMusicLibrary;
+		};
+		FB5000000000000000000022 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB1000000000000000000010;
+			remoteInfo = FilaCore;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -131,6 +167,8 @@
 				FB1000000000000000000042 /* FilaCore.framework in Embed Frameworks */,
 				FB2000000000000000000042 /* FilaLocal.framework in Embed Frameworks */,
 				FB3000000000000000000042 /* FilaPrivileged.framework in Embed Frameworks */,
+				FB5000000000000000000042 /* FilaMusicLibrary.framework in Embed Frameworks */,
+				FB4000000000000000000042 /* FilaApplications.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 		};
@@ -145,6 +183,8 @@
 		FB1000000000000000000001 /* FilaCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB2000000000000000000001 /* FilaLocal.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaLocal.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB3000000000000000000001 /* FilaPrivileged.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaPrivileged.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB4000000000000000000001 /* FilaApplications.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaApplications.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB5000000000000000000001 /* FilaMusicLibrary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaMusicLibrary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -199,6 +239,28 @@
 			path = Packages/FilaKit/Sources/FilaPrivileged;
 			sourceTree = "<group>";
 		};
+		FB4000000000000000000003 /* FilaApplications */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Frameworks/FilaApplications;
+			sourceTree = "<group>";
+		};
+		FB4000000000000000000004 /* FilaApplications (package sources) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "FilaApplications (package sources)";
+			path = Packages/FilaKit/Sources/FilaApplications;
+			sourceTree = "<group>";
+		};
+		FB5000000000000000000003 /* FilaMusicLibrary */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Frameworks/FilaMusicLibrary;
+			sourceTree = "<group>";
+		};
+		FB5000000000000000000004 /* FilaMusicLibrary (package sources) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "FilaMusicLibrary (package sources)";
+			path = Packages/FilaKit/Sources/FilaMusicLibrary;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -208,7 +270,8 @@
 				FB1000000000000000000041 /* FilaCore.framework in Frameworks */,
 				FB2000000000000000000041 /* FilaLocal.framework in Frameworks */,
 				FB3000000000000000000041 /* FilaPrivileged.framework in Frameworks */,
-				507CA7A9304C276800EC22A7 /* AlertController in Frameworks */,
+				FB5000000000000000000041 /* FilaMusicLibrary.framework in Frameworks */,
+				FB4000000000000000000041 /* FilaApplications.framework in Frameworks */,
 				FA2000000000000000000026 /* RunestoneEditor in Frameworks */,
 				FA2000000000000000000027 /* RunestoneLanguageSupport in Frameworks */,
 				FA2000000000000000000028 /* RunestoneThemeSupport in Frameworks */,
@@ -260,6 +323,8 @@
 				507CA7A6304C275A00EC22A7 /* SnapKit in Frameworks */,
 				FB10000000000000000000A1 /* FilaBackendKit in Frameworks */,
 				FB10000000000000000000A2 /* FilaFileOps in Frameworks */,
+				FB10000000000000000000A3 /* FilaBackendUI in Frameworks */,
+				507CA7A9304C276800EC22A7 /* AlertController in Frameworks */,
 			);
 		};
 		FB2000000000000000000012 /* Frameworks */ = {
@@ -272,6 +337,19 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				FB3000000000000000000043 /* FilaCore.framework in Frameworks */,
+			);
+		};
+		FB4000000000000000000012 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				FB4000000000000000000043 /* FilaCore.framework in Frameworks */,
+			);
+		};
+		FB5000000000000000000012 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				FB5000000000000000000043 /* FilaCore.framework in Frameworks */,
+				FB5000000000000000000050 /* CFilaMusicLibrary in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -290,6 +368,10 @@
 				FB2000000000000000000003 /* FilaLocal */,
 				FB3000000000000000000003 /* FilaPrivileged */,
 				FB3000000000000000000004 /* FilaPrivileged (package sources) */,
+				FB4000000000000000000003 /* FilaApplications */,
+				FB4000000000000000000004 /* FilaApplications (package sources) */,
+				FB5000000000000000000003 /* FilaMusicLibrary */,
+				FB5000000000000000000004 /* FilaMusicLibrary (package sources) */,
 				FA0000000000000000000045 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -305,6 +387,8 @@
 				FB1000000000000000000001 /* FilaCore.framework */,
 				FB2000000000000000000001 /* FilaLocal.framework */,
 				FB3000000000000000000001 /* FilaPrivileged.framework */,
+				FB4000000000000000000001 /* FilaApplications.framework */,
+				FB5000000000000000000001 /* FilaMusicLibrary.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -330,6 +414,8 @@
 				FB1000000000000000000021 /* PBXTargetDependency */,
 				FB2000000000000000000021 /* PBXTargetDependency */,
 				FB3000000000000000000021 /* PBXTargetDependency */,
+				FB4000000000000000000021 /* PBXTargetDependency */,
+				FB5000000000000000000021 /* PBXTargetDependency */,
 				FA1000000000000000000021 /* PBXTargetDependency */,
 				FA7000000000000000000021 /* PBXTargetDependency */,
 				FA400000000000000000000A /* PBXTargetDependency */,
@@ -344,7 +430,6 @@
 				FA2000000000000000000017 /* RunestoneLanguageSupport */,
 				FA2000000000000000000018 /* RunestoneThemeSupport */,
 				FA5000000000000000000002 /* SPIndicator */,
-				507CA7A8304C276800EC22A7 /* AlertController */,
 			);
 			productName = Fila;
 			productReference = FA0000000000000000000044 /* Fila.app */;
@@ -467,6 +552,8 @@
 				507CA7A5304C275A00EC22A7 /* SnapKit */,
 				FB10000000000000000000B1 /* FilaBackendKit */,
 				FB10000000000000000000B2 /* FilaFileOps */,
+				FB10000000000000000000B3 /* FilaBackendUI */,
+				507CA7A8304C276800EC22A7 /* AlertController */,
 			);
 			productName = FilaCore;
 			productReference = FB1000000000000000000001 /* FilaCore.framework */;
@@ -517,6 +604,55 @@
 			);
 			productName = FilaPrivileged;
 			productReference = FB3000000000000000000001 /* FilaPrivileged.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FB4000000000000000000010 /* FilaApplications */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB4000000000000000000030 /* Build configuration list for PBXNativeTarget "FilaApplications" */;
+			buildPhases = (
+				FB4000000000000000000011 /* Sources */,
+				FB4000000000000000000012 /* Frameworks */,
+				FB4000000000000000000013 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FB4000000000000000000023 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FB4000000000000000000003 /* FilaApplications */,
+				FB4000000000000000000004 /* FilaApplications (package sources) */,
+			);
+			name = FilaApplications;
+			packageProductDependencies = (
+			);
+			productName = FilaApplications;
+			productReference = FB4000000000000000000001 /* FilaApplications.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FB5000000000000000000010 /* FilaMusicLibrary */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB5000000000000000000030 /* Build configuration list for PBXNativeTarget "FilaMusicLibrary" */;
+			buildPhases = (
+				FB5000000000000000000011 /* Sources */,
+				FB5000000000000000000012 /* Frameworks */,
+				FB5000000000000000000013 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FB5000000000000000000023 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FB5000000000000000000003 /* FilaMusicLibrary */,
+				FB5000000000000000000004 /* FilaMusicLibrary (package sources) */,
+			);
+			name = FilaMusicLibrary;
+			packageProductDependencies = (
+				FB5000000000000000000060 /* CFilaMusicLibrary */,
+			);
+			productName = FilaMusicLibrary;
+			productReference = FB5000000000000000000001 /* FilaMusicLibrary.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -582,6 +718,8 @@
 				FB1000000000000000000010 /* FilaCore */,
 				FB2000000000000000000010 /* FilaLocal */,
 				FB3000000000000000000010 /* FilaPrivileged */,
+				FB4000000000000000000010 /* FilaApplications */,
+				FB5000000000000000000010 /* FilaMusicLibrary */,
 			);
 		};
 /* End PBXProject section */
@@ -613,6 +751,16 @@
 			);
 		};
 		FB3000000000000000000013 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FB4000000000000000000013 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FB5000000000000000000013 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -684,6 +832,16 @@
 			files = (
 			);
 		};
+		FB4000000000000000000011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		FB5000000000000000000011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -731,6 +889,26 @@
 			isa = PBXTargetDependency;
 			target = FB1000000000000000000010 /* FilaCore */;
 			targetProxy = FB3000000000000000000022 /* PBXContainerItemProxy */;
+		};
+		FB4000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB4000000000000000000010 /* FilaApplications */;
+			targetProxy = FB4000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		FB4000000000000000000023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB1000000000000000000010 /* FilaCore */;
+			targetProxy = FB4000000000000000000022 /* PBXContainerItemProxy */;
+		};
+		FB5000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB5000000000000000000010 /* FilaMusicLibrary */;
+			targetProxy = FB5000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		FB5000000000000000000023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB1000000000000000000010 /* FilaCore */;
+			targetProxy = FB5000000000000000000022 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -886,6 +1064,8 @@
 					AppIntents,
 					"-Wl,-needed_framework,FilaLocal",
 					"-Wl,-needed_framework,FilaPrivileged",
+					"-Wl,-needed_framework,FilaMusicLibrary",
+					"-Wl,-needed_framework,FilaApplications",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -893,7 +1073,6 @@
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Fila/Application/Fila-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -929,6 +1108,8 @@
 					AppIntents,
 					"-Wl,-needed_framework,FilaLocal",
 					"-Wl,-needed_framework,FilaPrivileged",
+					"-Wl,-needed_framework,FilaMusicLibrary",
+					"-Wl,-needed_framework,FilaApplications",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -936,7 +1117,6 @@
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Fila/Application/Fila-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1260,6 +1440,118 @@
 			};
 			name = Release;
 		};
+		FB4000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaApplications" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.applications;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FB4000000000000000000032 /* Release configuration for PBXNativeTarget "FilaApplications" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.applications;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FB5000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaMusicLibrary" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.musiclibrary;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FB5000000000000000000032 /* Release configuration for PBXNativeTarget "FilaMusicLibrary" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.musiclibrary;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1332,6 +1624,22 @@
 			buildConfigurations = (
 				FB3000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaPrivileged" */,
 				FB3000000000000000000032 /* Release configuration for PBXNativeTarget "FilaPrivileged" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		FB4000000000000000000030 /* Build configuration list for PBXNativeTarget "FilaApplications" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FB4000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaApplications" */,
+				FB4000000000000000000032 /* Release configuration for PBXNativeTarget "FilaApplications" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		FB5000000000000000000030 /* Build configuration list for PBXNativeTarget "FilaMusicLibrary" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FB5000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaMusicLibrary" */,
+				FB5000000000000000000032 /* Release configuration for PBXNativeTarget "FilaMusicLibrary" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -1506,6 +1814,14 @@
 		FB10000000000000000000B2 /* FilaFileOps */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FilaFileOps;
+		};
+		FB5000000000000000000060 /* CFilaMusicLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CFilaMusicLibrary;
+		};
+		FB10000000000000000000B3 /* FilaBackendUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FilaBackendUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

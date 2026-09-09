@@ -11,7 +11,9 @@
 // This file is the whole target. Nothing else belongs in it: the framework
 // has no code of its own, only load commands.
 
+@_exported import AlertController
 @_exported import FilaBackendKit
+@_exported import FilaBackendUI
 @_exported import FilaClient
 @_exported import FilaFileOps
 @_exported import FilaFormats

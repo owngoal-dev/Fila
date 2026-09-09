@@ -1,3 +1,5 @@
+import FilaBackendUI
+import FilaBackendKit
 import UIKit
 
 @MainActor
@@ -38,15 +40,17 @@ enum FilaMenu {
             UIDeferredMenuElement.uncached { completion in
                 Task { @MainActor in
                     let session = FileSession.shared
-                    let apps = await InstalledAppCatalog.load(session: session)
+                    let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
                     var actions: [UIMenuElement] = []
                     for path in paths {
                         guard let details = try? await session.perform({ try await $0.details(of: path) }),
                               details.node.isNavigable else { continue }
-                        let presentation = AppFolderDisplay.presentation(for: path, apps: apps)
+                        let presentation = decoration(path)
                         var image = FilePresentation.image(for: details.node)
-                        if let identifier = presentation?.applicationIdentifier {
-                            image = await AppFolderDisplay.icon(for: identifier) ?? image
+                        if let identifier = presentation?.applicationIdentifier,
+                           let artwork = SystemCapabilities.applicationArtwork
+                        {
+                            image = await artwork.icon(for: identifier) ?? image
                         }
                         let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
                         actions.append(UIAction(

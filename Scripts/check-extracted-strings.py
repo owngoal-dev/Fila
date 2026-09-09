@@ -32,6 +32,10 @@ import sys
 TARGETS = [
     ("Fila", "Fila.build", "Fila/Resources/Localizable.xcstrings"),
     ("FilaSaveAction", "Fila.build", "FilaSaveAction/Localizable.xcstrings"),
+    # Module frameworks compile their package sources themselves, so their
+    # strings land in the framework's own .stringsdata, not FilaKit's.
+    ("FilaApplications", "Fila.build", "Frameworks/FilaApplications/Resources/Localizable.xcstrings"),
+    ("FilaMusicLibrary", "Fila.build", "Frameworks/FilaMusicLibrary/Resources/Localizable.xcstrings"),
     (
         "FilaFormats",
         "FilaKit.build",

@@ -1,4 +1,6 @@
+import FilaBackendKit
 import AlertController
+import FilaBackendUI
 import FilaClient
 import FilaFormats
 import FilaMedia
@@ -202,9 +204,11 @@ final class PropertiesViewController: UIViewController {
                 image = rendered.map { UIImage(cgImage: $0) }
                 maximumSide = 512
             } else if node.isNavigable {
-                let apps = await InstalledAppCatalog.load(session: .shared)
-                if let identifier = AppFolderDisplay.presentation(for: path, apps: apps)?.applicationIdentifier {
-                    image = await AppFolderDisplay.icon(for: identifier)
+                let decoration = await SystemCapabilities.applications?.decorationLookup()
+                if let identifier = decoration?(path)?.applicationIdentifier,
+                   let artwork = SystemCapabilities.applicationArtwork
+                {
+                    image = await artwork.icon(for: identifier)
                 } else {
                     image = nil
                 }

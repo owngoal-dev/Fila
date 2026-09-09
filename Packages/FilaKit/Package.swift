@@ -26,6 +26,8 @@ let package = Package(
         .library(name: "FilaRemote", targets: ["FilaRemote"]),
         .library(name: "FilaProvider", type: .static, targets: ["FilaProvider"]),
         .library(name: "FilaBackendKit", targets: ["FilaBackendKit"]),
+        .library(name: "FilaBackendUI", targets: ["FilaBackendUI"]),
+        .library(name: "CFilaMusicLibrary", type: .static, targets: ["CFilaMusicLibrary"]),
     ],
     // Dependencies are app-side only. None may reach FilaFileOps or
     // FilaProtocol: those are what the daemon links, and launchd caps the
@@ -122,6 +124,41 @@ let package = Package(
         .testTarget(
             name: "FilaPrivilegedTests",
             dependencies: ["FilaPrivileged", "FilaClient", "CRemoveFile"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // The installed-applications catalogue: LaunchServices behind a
+        // runtime lookup, the bundle-container scan through the local file
+        // contract, the app-folder decorations and the IPA installer. Like
+        // FilaPrivileged, **not a product**: `FilaApplications.framework`
+        // compiles this directory itself, the sandboxed composition never
+        // links that framework, and the target here is for `swift test`.
+        .target(
+            name: "FilaApplications",
+            dependencies: ["FilaBackendKit", "FilaClient", "FilaFormats", "FilaLog", "FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaApplicationsTests",
+            dependencies: ["FilaApplications", "FilaClient", "CRemoveFile"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // The music library: the Objective-C bridge that owns every private
+        // MediaLibrary call so its exceptions never unwind Swift, and the
+        // Swift editor over it. The bridge is a product because it has no
+        // dependency of its own to duplicate; the Swift target is not, for
+        // the same reason as FilaApplications, and its iOS-only parts are
+        // behind `os(iOS)` so the host still builds and tests the rest.
+        .target(name: "CFilaMusicLibrary", cSettings: [.unsafeFlags(["-fobjc-arc"])]),
+        .target(
+            name: "FilaMusicLibrary",
+            dependencies: ["CFilaMusicLibrary", "FilaBackendKit", "FilaClient", "FilaLog", "FilaMedia", "FilaProtocol"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaMusicLibraryTests",
+            dependencies: ["FilaMusicLibrary"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
@@ -230,6 +267,19 @@ let package = Package(
         .testTarget(
             name: "FilaBackendKitTests",
             dependencies: ["FilaBackendKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The shared list screen every backend's root is shown with, the
+        // status panel and the layout tokens. UIKit, behind `canImport`, so
+        // the package still builds on the Mac; linked once, through FilaCore,
+        // and used by the app and every module framework alike.
+        .target(
+            name: "FilaBackendUI",
+            dependencies: [
+                "FilaBackendKit",
+                .product(name: "SnapKit", package: "SnapKit"),
+                .product(name: "Then", package: "Then"),
+            ],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendKit
 import FilaProtocol
 import FilaTerminal
 import UIKit
@@ -10,8 +11,9 @@ extension FileActions {
     /// Run menu does. A `.tipa` is TrollStore's format and goes to TrollStore
     /// through the share sheet: installd refuses a fake-signed bundle every
     /// time, so there is nothing to try first (Roadmap → IPA installation).
-    /// An `.ipa` goes to installd through `IPAInstaller`, which is the route
-    /// AppSync Unified opens; without it the refusal is reported as such.
+    /// An `.ipa` goes to installd through the applications module, which is
+    /// the route AppSync Unified opens; without it the refusal is reported as
+    /// such, and a build without the module offers no entry at all.
     func installAction(_ path: String, node: FileNode, confirm: @escaping (@escaping () -> Void) -> Void) -> UIAction? {
         guard node.kind == .regular else { return nil }
         let name = (path as NSString).lastPathComponent
@@ -32,8 +34,9 @@ extension FileActions {
             // A sandboxed build has no InstallCoordination entitlement and
             // would copy the whole package only to be refused; the handshake
             // says which build this is, so the entry waits for it.
-            guard let backend = session.hello?.backend, backend != .local(reach: .container) else { return nil }
-            install = { [self] in promptInstallApp(path) }
+            guard let backend = session.hello?.backend, backend != .local(reach: .container),
+                  let applications = SystemCapabilities.applications else { return nil }
+            install = { [self] in promptInstallApp(path, applications: applications) }
         default:
             return nil
         }
@@ -94,7 +97,7 @@ extension FileActions {
     /// reads the manifest from that copy, so the card, the install and any
     /// cleanup all describe the same bytes even if the original is replaced
     /// while the card is up.
-    private func promptInstallApp(_ path: String) {
+    private func promptInstallApp(_ path: String, applications: any ApplicationCapability) {
         guard !Self.appInstallInFlight else {
             FeedbackAlert.show(
                 String(localized: "Installation in Progress"),
@@ -106,10 +109,10 @@ extension FileActions {
         Task {
             let progress = await presentProgress(title: String.LocalizationValue("Reading App…"))
             let staged: URL
-            let manifest: IPAInstaller.Manifest
+            let manifest: PackageManifest
             do {
                 staged = try await session.stage(path)
-                do { manifest = try await IPAInstaller.manifest(ofIPAAt: staged) } catch {
+                do { manifest = try await applications.manifest(ofPackageAt: staged) } catch {
                     try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
                     throw error
                 }
@@ -127,7 +130,7 @@ extension FileActions {
             }
             let alert = AlertViewController(
                 title: String(localized: "Install App?"),
-                message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleID)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified.")
+                message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleIdentifier)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified.")
             ) { context in
                 context.addAction(title: String.LocalizationValue("Cancel")) {
                     context.dispose {
@@ -136,7 +139,9 @@ extension FileActions {
                     }
                 }
                 context.addAction(title: String.LocalizationValue("Install"), attribute: .accent) {
-                    context.dispose { Task { await self.installApp(path, staged: staged, manifest: manifest) } }
+                    context.dispose {
+                        Task { await self.installApp(path, staged: staged, manifest: manifest, applications: applications) }
+                    }
                 }
             }
             presenter.present(alert, animated: true)
@@ -146,9 +151,11 @@ extension FileActions {
     /// A failure does not establish ownership of anything now registered under
     /// the identifier. The system or another installer may have changed it, so
     /// uninstall remains an explicit user action in Applications.
-    private func installApp(_ path: String, staged: URL, manifest: IPAInstaller.Manifest) async {
+    private func installApp(
+        _ path: String, staged: URL, manifest: PackageManifest, applications: any ApplicationCapability
+    ) async {
         let progress = await presentProgress(title: String.LocalizationValue("Installing App…"))
-        let outcome = await IPAInstaller.install(ipaAt: staged, packageType: "Developer")
+        let outcome = await applications.install(packageAt: staged)
         // An unanswered request may still be reading its source. Preserve the
         // workspace and keep further requests disabled for this session.
         switch outcome {
@@ -168,7 +175,7 @@ extension FileActions {
             )
         case .timedOut:
             report(NSError(
-                domain: "IPAInstaller",
+                domain: "ApplicationInstaller",
                 code: -1,
                 userInfo: [
                     NSLocalizedDescriptionKey: String(

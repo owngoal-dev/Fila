@@ -1,6 +1,7 @@
 import FilaBackendKit
 import FilaClient
 import Foundation
+import UIKit
 
 /// A destination in the sidebar's jump list, as the app draws it: the
 /// backend said what kind of place it is; the wording and the artwork are
@@ -53,9 +54,15 @@ struct SidebarPlace: Hashable {
 
 /// The ordered Places section, with the catalogue destinations slotted in
 /// by the same preset order the local backend keeps.
+///
+/// A catalogue backend — applications, music — contributes its root row
+/// only while it has something to show; the row's artwork and wording are
+/// the backend's own, and the shell opens it through the module's screen
+/// route rather than any concrete type.
 enum SidebarLocation {
     enum Destination {
-        case directory(SidebarPlace), applications, music
+        case directory(SidebarPlace)
+        case catalog(BackendRoot)
     }
 
     @MainActor static var orderedDestinations: [Destination] {
@@ -64,16 +71,38 @@ enum SidebarLocation {
         let rows = Dictionary(
             uniqueKeysWithValues: BackendComposition.sidebar.contribution(of: local.id).places.map { ($0.id, $0) }
         )
-        let showsMusic = FileManager.default.fileExists(atPath: "/var/mobile/Media/iTunes_Control")
         return local.orderedPresets.filter(local.isPresetEnabled).compactMap { preset in
             switch preset {
             case .applications:
-                return SystemCapabilities.showsApplications ? .applications : nil
+                return catalog(.applications)
             case .music:
-                return showsMusic ? .music : nil
+                return catalog(.musicLibrary)
             default:
                 return rows[LocalFileBackend.placeID(preset)].map { .directory(SidebarPlace($0, in: local)) }
             }
         }
+    }
+
+    /// The root of a catalogue backend, when it is registered and currently
+    /// offers its root row.
+    @MainActor private static func catalog(_ id: BackendID) -> Destination? {
+        guard let backend = BackendComposition.registry.backend(id),
+              BackendComposition.sidebar.contribution(of: id).places.contains(where: { $0.kind == .root })
+        else { return nil }
+        return .catalog(backend.root)
+    }
+
+    /// The screen a module routes for `location`, or nil when no module
+    /// claims that backend.
+    @MainActor static func screen(for location: BackendLocation) -> UIViewController? {
+        BackendComposition.registry.screen(for: location) as? UIViewController
+    }
+
+    /// The artwork the catalogue names, from the app's icon set.
+    static func image(for root: BackendRoot) -> UIImage? {
+        if let artwork = root.artworkName, let image = UIImage(named: "FileIcons/\(artwork)") {
+            return image.withRenderingMode(.alwaysOriginal)
+        }
+        return UIImage(systemName: root.symbolName)
     }
 }

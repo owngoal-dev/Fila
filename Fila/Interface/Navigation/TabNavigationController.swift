@@ -1,3 +1,4 @@
+import FilaBackendUI
 import UIKit
 
 /// Every destination owns complete chrome before UIKit snapshots either bar.
@@ -7,10 +8,10 @@ final class TabNavigationController: UINavigationController {
     weak var owner: RootSplitViewController?
 
     func prepareToolbar(for controller: UIViewController) {
-        // Song details stay within their library's navigation stack.
-        guard !(controller is MusicTrackViewController) else { return }
-        // These library screens expose Tabs in the leading navigation bar.
-        guard !(controller is AppListViewController || controller is MusicLibraryViewController) else { return }
+        // A module's detail screen stays within its root screen's stack.
+        guard !(controller is any BackendDetailScreen) else { return }
+        // A module's root screen exposes Tabs in the leading navigation bar.
+        guard !(controller is any BackendRootScreen) else { return }
         var items = controller.toolbarItems ?? []
         guard !items.contains(where: { $0.accessibilityIdentifier == "fila.tabs" }) else { return }
         if #available(iOS 26.0, *), items.isEmpty, controller.navigationItem.searchController != nil {

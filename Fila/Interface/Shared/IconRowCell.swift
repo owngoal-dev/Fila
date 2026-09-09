@@ -1,3 +1,5 @@
+import FilaBackendKit
+import FilaBackendUI
 import FilaProtocol
 import SnapKit
 import Then
@@ -228,24 +230,25 @@ final class IconRowCell: UICollectionViewListCell {
     }
 
     /// Application artwork: the row's icon for a bundle, the corner badge for
-    /// a container. Cached artwork paints now; the rest arrives from
-    /// `AppFolderDisplay.icon` and lands only if the cell still shows this row.
+    /// a container. Cached artwork paints now; the rest arrives from the
+    /// applications module and lands only if the cell still shows this row.
     func showApplicationIcon(_ identifier: String?, asBadge: Bool) {
+        guard let artwork = SystemCapabilities.applicationArtwork else { return }
         let target = asBadge ? appBadge : iconView
         target.isHidden = false
         let token = UUID()
         iconToken = token
-        if let cached = AppFolderDisplay.cachedIcon(for: identifier) {
+        if let cached = artwork.cachedIcon(for: identifier) {
             target.image = cached
             return
         }
         // A bundle keeps its type artwork until the real icon lands; a badge
         // has nothing else to show.
         if asBadge {
-            target.image = AppFolderDisplay.placeholderIcon
+            target.image = artwork.placeholder
         }
         Task { [weak self] in
-            let image = await AppFolderDisplay.icon(for: identifier)
+            let image = await artwork.icon(for: identifier)
             guard let self, iconToken == token else { return }
             target.image = image
         }
@@ -274,8 +277,8 @@ final class IconRowCell: UICollectionViewListCell {
         }
     }
 
-    func configure(_ node: FileNode, presentation: AppFolderPresentation? = nil) {
-        let presentation = node.kind == .directory ? presentation : nil
+    func configure(_ node: FileNode, decoration: FolderDecoration? = nil) {
+        let presentation = node.kind == .directory ? decoration : nil
         let image = FilePresentation.image(for: node)
         configure(
             name: presentation?.name ?? node.name,

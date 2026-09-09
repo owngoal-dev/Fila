@@ -29,7 +29,7 @@ struct DirectoryObservationTests {
                 do {
                     for try await _ in stream {
                         guard let self else { return }
-                        lock.lock(); value += 1; lock.unlock()
+                        lock.withLock { value += 1 }
                     }
                 } catch {}
             }
@@ -126,6 +126,10 @@ struct DirectoryObservationTests {
         #expect(await hints.quiet(for: 0.15))
 
         observation.setPaused(true)
+        // A stat already in flight when the pause landed still completes —
+        // the read happens off the main actor and cancellation cannot recall
+        // it — so the count starts once that moment has passed.
+        try await Task.sleep(nanoseconds: 50_000_000)
         let reads = clock.reads
         try await Task.sleep(nanoseconds: 100_000_000)
         #expect(clock.reads == reads, "no polling in the background")

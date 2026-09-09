@@ -36,18 +36,6 @@ final class AppPreferences {
 
     // MARK: - Browsing
 
-    /// The Applications page's own order and scope, separate from the file
-    /// list's: an app list sorted by size or date has no meaning.
-    var appSort: AppSort {
-        get { defaults.string(forKey: "appSort").flatMap(AppSort.init) ?? .name }
-        set { defaults.set(newValue.rawValue, forKey: "appSort") }
-    }
-
-    var appScope: AppScope {
-        get { defaults.string(forKey: "appScope").flatMap(AppScope.init) ?? .all }
-        set { defaults.set(newValue.rawValue, forKey: "appScope") }
-    }
-
     var launchLocation: LaunchLocation {
         get { defaults.string(forKey: "launchLocation").flatMap(LaunchLocation.init) ?? .lastVisited }
         set { defaults.set(newValue.rawValue, forKey: "launchLocation") }
@@ -110,16 +98,12 @@ final class AppPreferences {
 
     // MARK: - System features
 
-    /// The user's half of `SystemCapabilities`: on by default, and turning one off
-    /// is for a jailbreak whose system-protection bypass is partial or absent,
-    /// where a private-framework call may hang or crash the app. Off means the
-    /// feature is not offered at all — no LaunchServices query, no Run menu —
-    /// not that it is offered and fails.
-    var showsApplications: Bool {
-        get { defaults.object(forKey: "showsApplications") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "showsApplications") }
-    }
-
+    /// The user's half of `SystemCapabilities.runsPrograms`: on by default,
+    /// and turning it off is for a jailbreak whose system-protection bypass
+    /// is partial or absent, where a spawn may hang or crash the app. Off
+    /// means the feature is not offered at all — no Run menu — not that it
+    /// is offered and fails. The Applications switch is the applications
+    /// module's own, under the same reasoning.
     var runsPrograms: Bool {
         get { defaults.object(forKey: "runsPrograms") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "runsPrograms") }

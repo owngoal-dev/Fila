@@ -31,10 +31,10 @@ final class DirectoryObservation {
         self.interval = interval
     }
 
-    /// A new subscription to `directory`, with its initial hint already
-    /// buffered. `stat` is what the poll compares; it runs off the main
-    /// actor and reports the directory's modification time, which moves
-    /// when an entry is added, removed or renamed.
+    /// A new subscription to `directory`, with its initial hint on the way.
+    /// `stat` is what the poll compares; it runs off the main actor and
+    /// reports the directory's modification time, which moves when an entry
+    /// is added, removed or renamed.
     func subscribe(
         _ directory: String,
         stat: @escaping @Sendable () async throws -> Double
@@ -45,25 +45,50 @@ final class DirectoryObservation {
         continuation.onTermination = { [weak self] _ in
             Task { @MainActor in self?.remove(token) }
         }
-        retain(directory, stat: stat)
-        continuation.yield(())
+        if let state = states[directory] {
+            states[directory]?.count += 1
+            // A watch still taking its baseline hints the whole directory
+            // once it has one, and that covers this subscriber too; hinting
+            // it now as well would list the same folder twice.
+            if paused || !state.baselinePending {
+                continuation.yield(())
+            }
+        } else if paused {
+            states[directory] = WatchState(task: Task {}, count: 1, stat: stat)
+            continuation.yield(())
+        } else {
+            states[directory] = WatchState(task: Task {}, count: 1, stat: stat)
+            let task = watch(directory)
+            states[directory]?.task = task
+        }
         return stream
     }
 
     /// Hints every subscriber whose directory is one of `absolutePaths` or
     /// lies under one. What was touched is a directory an operation changed
-    /// the contents of; a screen inside it is stale too. The poll's baseline
-    /// for a hinted directory is dropped, so the next tick re-baselines
-    /// rather than reporting the same change a second time.
+    /// the contents of; a screen inside it is stale too. Each affected
+    /// directory's watch starts over, so the hint follows a fresh baseline
+    /// rather than the next tick reporting the same change a second time.
     func invalidate(_ absolutePaths: [String]) {
         let changed = absolutePaths.map(Self.canonical)
+        var affected: Set<String> = []
         for subscriber in subscribers.values {
             let current = Self.canonical(subscriber.directory)
             guard changed.contains(where: { current == $0 || current.hasPrefix($0 == "/" ? "/" : $0 + "/") }) else {
                 continue
             }
-            states[subscriber.directory]?.baseline = nil
-            subscriber.continuation.yield(())
+            affected.insert(subscriber.directory)
+        }
+        for directory in affected {
+            if paused {
+                // Nothing polls while paused, and resuming re-baselines every
+                // watch anyway; the hint itself must not wait for that.
+                hint(directory)
+            } else {
+                states[directory]?.task.cancel()
+                let task = watch(directory)
+                states[directory]?.task = task
+            }
         }
     }
 
@@ -75,11 +100,9 @@ final class DirectoryObservation {
         if paused {
             for state in states.values { state.task.cancel() }
         } else {
-            for (directory, state) in states {
-                states[directory]?.task = poll(directory, stat: state.stat)
-            }
-            for subscriber in subscribers.values {
-                subscriber.continuation.yield(())
+            for directory in states.keys {
+                let task = watch(directory)
+                states[directory]?.task = task
             }
         }
     }
@@ -93,20 +116,17 @@ final class DirectoryObservation {
         var task: Task<Void, Never>
         var count: Int
         let stat: @Sendable () async throws -> Double
-        /// The modification time the next tick compares against. Nil until
-        /// the first `stat` after subscribing, resuming or a hint.
+        /// The modification time the next tick compares against. Always
+        /// written by the running watch: a watch is cancelled before any
+        /// hint that would make its baseline describe what that hint
+        /// already reported, and a cancelled `stat` installs nothing.
         var baseline: Double?
+        /// The watch has not taken its baseline yet, so the hint that follows
+        /// it is still to come.
+        var baselinePending = false
     }
 
     private var states: [String: WatchState] = [:]
-
-    private func retain(_ directory: String, stat: @escaping @Sendable () async throws -> Double) {
-        if states[directory] != nil {
-            states[directory]?.count += 1
-            return
-        }
-        states[directory] = WatchState(task: paused ? Task {} : poll(directory, stat: stat), count: 1, stat: stat)
-    }
 
     private func remove(_ token: UUID) {
         guard let subscriber = subscribers.removeValue(forKey: token) else { return }
@@ -120,27 +140,46 @@ final class DirectoryObservation {
         }
     }
 
-    private func poll(
-        _ directory: String,
-        stat: @escaping @Sendable () async throws -> Double
-    ) -> Task<Void, Never> {
+    /// The one way into polling: a baseline `stat`, one hint to every
+    /// subscriber of `directory`, then the ticks. The first subscriber, an
+    /// operation's hint and resuming all start here, so the listing a hint
+    /// starts is never older than the baseline the next tick compares it
+    /// against — a change landing between the two is a difference, not the
+    /// baseline. The hint follows a failed `stat` too; the listing is what
+    /// shows the failure.
+    private func watch(_ directory: String) -> Task<Void, Never> {
         let interval = interval
+        states[directory]?.baselinePending = true
         return Task { [weak self] in
-            // Baseline now, not after the first sleep: a change during the
-            // first interval must be seen against what the listing showed.
-            if let now = try? await stat() {
-                self?.states[directory]?.baseline = now
-            }
+            guard await self?.rebaseline(directory) == true else { return }
+            self?.states[directory]?.baselinePending = false
+            self?.hint(directory)
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
-                guard !Task.isCancelled else { return }
-                guard let now = try? await stat(), let self, !Task.isCancelled else { continue }
-                let previous = states[directory]?.baseline
-                states[directory]?.baseline = now
-                guard let previous, previous != now else { continue }
-                hint(directory)
+                guard !Task.isCancelled, let self else { return }
+                await tick(directory)
             }
         }
+    }
+
+    /// False when the watch was cancelled meanwhile: whatever replaces it
+    /// hints on its own, and a `stat` that outlived its watch installs
+    /// nothing.
+    private func rebaseline(_ directory: String) async -> Bool {
+        guard let stat = states[directory]?.stat else { return false }
+        let now = try? await stat()
+        guard !Task.isCancelled else { return false }
+        states[directory]?.baseline = now
+        return true
+    }
+
+    private func tick(_ directory: String) async {
+        guard let stat = states[directory]?.stat else { return }
+        guard let now = try? await stat(), !Task.isCancelled else { return }
+        let previous = states[directory]?.baseline
+        states[directory]?.baseline = now
+        guard let previous, previous != now else { return }
+        hint(directory)
     }
 
     private func hint(_ directory: String) {

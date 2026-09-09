@@ -195,7 +195,7 @@ final class TabContainerViewController: UIViewController {
 
     private static func browsers(for tab: BrowserTab) -> [UIViewController] {
         tab.stack.enumerated().map { index, path in
-            let browser = BrowserViewController(
+            let browser = FileBrowserViewController(
                 directory: path,
                 select: index == tab.stack.count - 1 ? tab.selection : nil
             )
@@ -236,7 +236,7 @@ final class TabContainerViewController: UIViewController {
 
     func captureCurrentTab() {
         guard installedTabID == BrowserTabStore.shared.currentID, let navigation else { return }
-        let browsers = navigation.viewControllers.compactMap { $0 as? BrowserViewController }
+        let browsers = navigation.viewControllers.compactMap { $0 as? FileBrowserViewController }
         guard !browsers.isEmpty else { return }
         var offsets: [String: Double] = [:]
         for browser in browsers {

@@ -53,13 +53,25 @@ public struct BackendRoot: Equatable, Sendable {
     public let displayName: String
     /// The SF Symbol the sidebar shows beside `displayName`.
     public let symbolName: String
+    /// A piece of the app's own artwork to prefer over the symbol, by the
+    /// name the app files it under; nil draws the symbol.
+    public let artworkName: String?
 
-    public init(location: BackendLocation, kind: Kind, displayName: String, symbolName: String) {
+    public init(location: BackendLocation, kind: Kind, displayName: String, symbolName: String, artworkName: String? = nil) {
         self.location = location
         self.kind = kind
         self.displayName = displayName
         self.symbolName = symbolName
+        self.artworkName = artworkName
     }
+}
+
+public extension BackendID {
+    /// The catalogue backends the app's links may name. A link to one of
+    /// these is routed through the registry like any other location; with
+    /// the module absent the link reports the feature unavailable.
+    static let applications = BackendID("applications")
+    static let musicLibrary = BackendID("music")
 }
 
 /// A long-lived storage source. It outlives any connection: disconnecting an

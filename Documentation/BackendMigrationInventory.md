@@ -43,7 +43,7 @@ invalidation channel and has three posters and four observers:
 - Posters: `OperationCenter.finish` (sets `userInfo["kind"]`),
   `FileActions.rename` (bypasses `OperationCenter.rename` entirely) and
   `IntentSupport.announceChange`.
-- Observers: `BrowserViewController.jobFinished`, `SidebarViewController`
+- Observers: `FileBrowserViewController.jobFinished`, `SidebarViewController`
   (trash probe), `SaveDestinationViewController.filesChanged`,
   `FileProviderDomain` (signals the provider).
 

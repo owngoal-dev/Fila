@@ -57,7 +57,7 @@ extension BrowserTab {
     /// **The stack is the path.** A tab opened at `/var/mobile/Documents` holds
     /// `/`, `/var`, `/var/mobile`, `/var/mobile/Documents` — so Back is always
     /// one component shallower and the breadcrumb and Back can never disagree
-    /// about which way is out. See `BrowserViewController.open(directory:)` for
+    /// about which way is out. See `FileBrowserViewController.open(directory:)` for
     /// the rule in full and for the bug that came of not having one.
     @MainActor init(path: String) {
         self.init(stack: Self.chain(to: path))

@@ -1,3 +1,4 @@
+import FilaBackendUI
 import Foundation
 import RunestoneLanguageSupport
 import RunestoneThemeSupport

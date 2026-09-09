@@ -15,6 +15,11 @@ public final class BackendRegistry {
     private var entries: [any BackendModule] = []
     private var providers: [ObjectIdentifier: (module: BackendModuleIdentity, value: Any)] = [:]
     private var factories: [BackendFactory] = []
+    private var routes: [BackendID: ScreenRoute] = [:]
+    /// Factories whose run is in progress, so a factory asking for a
+    /// backend its own module is still producing gets nil, not recursion.
+    private var running: Set<BackendModuleIdentity> = []
+    private weak var resolvingHost: (any BackendHost)?
 
     public init() {}
 
@@ -24,6 +29,12 @@ public final class BackendRegistry {
 
     public func backend(_ id: BackendID) -> (any Backend)? {
         backends.first { $0.id == id }
+    }
+
+    /// The screen a module registered for `location`, or nil when no module
+    /// routes that backend or its route declines the location.
+    public func screen(for location: BackendLocation) -> AnyObject? {
+        routes[location.backend]?.make(location)
     }
 
     /// Apply one module's registrations, or none of them.
@@ -39,37 +50,69 @@ public final class BackendRegistry {
                 )
             }
         }
+        for (backend, _) in registration.routes {
+            if let existing = routes[backend] {
+                throw BackendModuleError.duplicateRoute("\(backend) (already from \(existing.module.bundleIdentifier))")
+            }
+        }
         modules.append(module)
         entries.append(entry)
         for (key, provider) in registration.providers {
             providers[key] = (module, provider.value)
         }
+        for (backend, route) in registration.routes {
+            routes[backend] = route
+        }
         factories.append(contentsOf: registration.backendFactories)
     }
 
     /// Run every committed factory against the completed provider set.
-    /// Factories run in module order, so the resulting backend order is
-    /// deterministic and independent of which framework dyld mapped first.
+    /// Factories run in module order unless one asks the resolver for a
+    /// backend another module has not produced yet, which runs that
+    /// module's factories first; either way the order is deterministic and
+    /// independent of which framework dyld mapped first.
     func resolveBackends(host: any BackendHost) {
-        let resolver = BackendResolver(host: host, registry: self)
-        for factory in factories {
-            let produced: [any Backend]
-            do {
-                produced = try factory.make(resolver)
-            } catch {
-                host.warn("backend failed to bootstrap: \(factory.module): \(error)")
-                continue
-            }
-            for backend in produced {
-                if let existing = backends.first(where: { $0.id == backend.id }) {
-                    host.warn(
-                        "backend failed to bootstrap: \(factory.module): backend \(backend.id) duplicates one already registered as \(type(of: existing))"
-                    )
-                    continue
-                }
-                backends.append(backend)
+        resolvingHost = host
+        while let next = factories.first {
+            run(next, host: host)
+        }
+        resolvingHost = nil
+    }
+
+    /// A backend by id, running pending factories until one produces it.
+    func resolve(_ id: BackendID) -> (any Backend)? {
+        if let found = backend(id) {
+            return found
+        }
+        guard let host = resolvingHost else { return nil }
+        while let next = factories.first(where: { !running.contains($0.module) }) {
+            run(next, host: host)
+            if let found = backend(id) {
+                return found
             }
         }
-        factories.removeAll()
+        return nil
+    }
+
+    private func run(_ factory: BackendFactory, host: any BackendHost) {
+        factories.removeAll { $0.id == factory.id }
+        running.insert(factory.module)
+        defer { running.remove(factory.module) }
+        let produced: [any Backend]
+        do {
+            produced = try factory.make(BackendResolver(host: host, registry: self))
+        } catch {
+            host.warn("backend failed to bootstrap: \(factory.module): \(error)")
+            return
+        }
+        for backend in produced {
+            if let existing = backends.first(where: { $0.id == backend.id }) {
+                host.warn(
+                    "backend failed to bootstrap: \(factory.module): backend \(backend.id) duplicates one already registered as \(type(of: existing))"
+                )
+                continue
+            }
+            backends.append(backend)
+        }
     }
 }
