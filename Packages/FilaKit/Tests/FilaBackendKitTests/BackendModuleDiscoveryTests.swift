@@ -8,9 +8,12 @@ import Testing
 private final class RecordingHost: BackendHost {
     let defaults = UserDefaults(suiteName: "wiki.qaq.fila.tests.discovery")!
     let inboxDirectory: String? = nil
+    let credentials: any CredentialStore = MemoryCredentialStore()
     var lines: [String] = []
     func log(_ message: String) { lines.append(message) }
     func warn(_ message: String) { lines.append(message) }
+    func addBackend(_ backend: any Backend, screen: @escaping @MainActor (BackendLocation) -> AnyObject?) throws {}
+    func removeBackend(_ id: BackendID) {}
     var failures: [String] { lines.filter { $0.hasPrefix("backend failed to bootstrap") } }
     var bootstrapped: [String] { lines.filter { $0.hasPrefix("backend module bootstrapped") } }
 }
@@ -48,7 +51,11 @@ private final class FilaPlainModule: NSObject {
 
 private let hostVersion = BackendHostVersion(shortVersion: "1.2.3", buildVersion: "45")
 
-private func manifest(schema: Int = 1, contract: Int = 1, name: String = "Fixture") -> [String: Any] {
+private func manifest(
+    schema: Int = FilaBackendKit.manifestSchemaVersion,
+    contract: Int = FilaBackendKit.contractVersion,
+    name: String = "Fixture"
+) -> [String: Any] {
     [
         BackendModuleManifest.schemaKey: schema,
         BackendModuleManifest.contractKey: contract,
@@ -129,7 +136,7 @@ struct BackendModuleDiscoveryTests {
         _ = BackendModuleDiscovery.bootstrap([candidate(manifest: manifest(schema: 2))], hostVersion: hostVersion, host: host)
         _ = BackendModuleDiscovery.bootstrap([candidate(manifest: manifest(contract: 9))], hostVersion: hostVersion, host: host)
         #expect(host.failures[0].contains("manifest schema 2, host reads 1"))
-        #expect(host.failures[1].contains("contract 9, host is 1"))
+        #expect(host.failures[1].contains("contract 9, host is \(FilaBackendKit.contractVersion)"))
     }
 
     @Test("A module built from another version than the host is refused")

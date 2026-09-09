@@ -203,7 +203,7 @@ check:
 		[[ "$$objver" == "$(PROJECT_OBJECT_VERSION)" ]] || { echo "error: project.pbxproj objectVersion must stay $(PROJECT_OBJECT_VERSION) so Xcode 16+ can read it, got '$$objver' (newer Xcode rewrites it on save)" >&2; exit 65; }
 	@plutil -lint "$(ENTITLEMENTS)" "$(DAEMON_ENTITLEMENTS)" "$(LAUNCH_DAEMON)" "$(INFO_PLIST_SUPPLEMENT)"
 	@targets="$$(xcodebuild -project "$(PROJECT)" -list)" || exit $$?; \
-	for target in Filad FilaArchive Fila FilaSandboxed FilaCore FilaLocal FilaPrivileged FilaApplications FilaMusicLibrary; do \
+	for target in Filad FilaArchive Fila FilaSandboxed FilaCore FilaLocal FilaPrivileged FilaApplications FilaMusicLibrary FilaSMB; do \
 		grep -Eq "^[[:space:]]*$$target[[:space:]]*$$" <<<"$$targets" \
 			|| { echo "error: missing Xcode target $$target" >&2; exit 65; }; \
 	done

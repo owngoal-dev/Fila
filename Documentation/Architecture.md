@@ -323,11 +323,15 @@ The existing internal `FilaClient.FileService` becomes `LocalFileAccess`;
 `DaemonLink` continues choosing the daemon or in-process local backend.
 `FilaLocal` owns reusable local backend classes and public in-process access;
 `FilaPrivileged` extracts full-build XPC/local selection from FilaClient, while
-`FilaSMB` and `FilaFTP` implement it using SMBClient and libcurl respectively. Implementations depend
+`FilaSMB` implements it over the vendored SMBClient (`Packages/SMBClient`):
+one saved share is one `SMBBackend`, its session serialises every request and
+retires itself on a timeout or cancellation, directories are pulled one server
+response at a time and files are read in bounded chunks into a staging
+descriptor. FTP and SFTP are not implemented and not planned. Implementations depend
 on the shared contract. New module frameworks are not linked into filad.
 
 Backend implementations ship as separate bundled dynamic frameworks: FilaLocal,
-FilaPrivileged, FilaSMB, FilaFTP, FilaApplications and FilaMusicLibrary. Included frameworks are
+FilaPrivileged, FilaSMB, FilaApplications and FilaMusicLibrary. Included frameworks are
 retained as startup Mach-O dependencies and loaded by dyld before main. In main,
 BackendModuleDiscovery reads each embedded module's static manifest, resolves
 the `<framework basename>Module` entry class and registers factories/capabilities
@@ -404,7 +408,7 @@ compile, link and embed time, including their native bridges, controllers and
 indirect dependencies. `FilaApplications` and `FilaMusicLibrary` appear only
 in the full composition. The app target `FilaSandboxed` excludes
 `FilaPrivileged` as well: it is a second application target over the same
-`Fila/` sources that links and embeds `FilaCore` and `FilaLocal` alone, built
+`Fila/` sources that links and embeds `FilaCore`, `FilaLocal` and `FilaSMB` alone, built
 into its own DerivedData by `make build-sandboxed`, and `make ipa` packages
 it. The existing `Fila` target serves the deb and tipa with runtime backend
 selection. This revises the former shared-app-binary assumption for the

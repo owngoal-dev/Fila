@@ -480,10 +480,12 @@ sentence. The same script fails on a missing or `""` message.
   two app targets over the same `Fila/` sources and the same shared
   frameworks; what differs is the link line. `Fila` links and embeds every
   module framework (`FilaLocal`, `FilaPrivileged`, `FilaApplications`,
-  `FilaMusicLibrary`) as `-needed_framework` startup dependencies and serves
-  the `.deb` and the `.tipa`; `FilaSandboxed` links `FilaLocal` alone and
-  serves the `.ipa`, so the archive a free developer account re-signs
-  contains no private API. Never add a build flag, a compilation condition
+  `FilaMusicLibrary`, `FilaSMB`) as `-needed_framework` startup dependencies
+  and serves the `.deb` and the `.tipa`; `FilaSandboxed` links `FilaLocal`
+  and `FilaSMB` alone and serves the `.ipa`, so the archive a free developer
+  account re-signs contains no private API. `FilaSMB` is public API
+  throughout — Network.framework, CommonCrypto and the vendored
+  `Packages/SMBClient` — which is why it ships in both. Never add a build flag, a compilation condition
   or a per-packaging source variant to tell wrappers apart: a module that is
   not linked is not registered, and a screen that is not registered is not
   offered. The one platform condition is the simulator's container pin in

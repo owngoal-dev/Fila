@@ -146,15 +146,95 @@ a build-number bump (`CI=1`), the extractor diff for both, `make tipa` and
 both product directories, `Scripts/Tests`, and the sandboxed simulator
 Debug build launched and browsing. Nothing on a device.
 
-## Resume here: Phase 6
+## Phase 6 — done (SMB only)
 
-Phases 6–8 per `PLAN.md`. `Packages/FilaKit/Binaries/libcurl.xcframework`
-(libcurl 8.14.1, untracked) is prepared for Phase 6. Build with an isolated
+| Phase | Commit | Summary |
+| --- | --- | --- |
+| 6 | see `git log` | `FilaSMB` package target and `FilaSMB.framework` (in both compositions): `SMBBackend` per saved share, `SMBConnection`/`SMBFileService` over the vendored SMBClient, `SMBProfileStore` with passwords in the keychain, the `FilaSMBModule` entry with a connection setup, the setup screen, and `FileServiceBrowserViewController` in FilaBackendUI as the browser over the neutral file contract. Kit contract 2: `CredentialStore` on the host, runtime `addBackend`/`removeBackend`, `connectionSetup` registrations, `RemoteDirectoryObservation`. |
+
+FTP and SFTP are **not implemented and not planned** (the user's decision
+during this phase); `Scripts/build-libcurl.sh` stays as a record but nothing
+uses it. Delete it in Phase 8 unless FTP is revived.
+
+What Phase 6 settled:
+
+- **SMBClient is vendored** at `Packages/SMBClient` (upstream revision
+  `66eafaa6`, 2026-04-27, MIT) with one added method,
+  `Session.queryDirectoryPage(fileId:pattern:restart:)`, because upstream's
+  public listing collects a whole directory before returning and its request
+  primitive is private; `FILA-VENDOR.md` records why, what changed and how
+  to update. The revision on `main` was preferred over tag 0.3.1 for four
+  transport fixes. The user asked whether a fork could replace the copy:
+  yes, by pointing the package reference at a fork carrying that method;
+  the swap is the package reference in `Package.swift` and the pbxproj.
+- **One request at a time per session**, through `SMBConnection`'s turn
+  gate; a directory handle stays open on the server between pages so a
+  details call lands mid-listing. **A timeout or a cancellation retires the
+  session**: the vendor has no cancel, so closing the TCP connection is the
+  only way to bring a pending request back, and every handle on that
+  session then fails as `disconnected` and its consumer starts over on a
+  fresh one. Connect budget 20 s, request budget 30 s.
+- Listing is one QUERY_DIRECTORY response per batch (≤ 1 MiB), `.` and
+  `..` dropped, reparse points reported as links; `copyContents` reads 1 MiB
+  chunks straight into the descriptor with a short-write loop. A component
+  containing `\ : * ? " < > |` is refused before it reaches the wire.
+- Polling is `RemoteDirectoryObservation` (FilaBackendKit): five-second
+  stamp of the directory's write time, hints only on change, paused with the
+  app, ended with an error when the session is lost.
+- Identity: `smb:<profile UUID>`; a rename or credential change keeps it, a
+  changed host, port or share is a new profile and a new backend (the setup
+  screen mints the UUID). Removing a share removes its record, its
+  preference key and its keychain item.
+- The remote browser is `FileServiceBrowserViewController` on the shared
+  list base, not `FileBrowserViewController`: the local browser is bound to
+  `FileNode`, descriptors and jobs, and making it neutral is a phase of its
+  own. This is a recorded deviation from PLAN.md's "one file controller";
+  Phase 7's cross-backend clipboard is where the two must meet. A file opens
+  as a snapshot (≤ 512 MiB) downloaded into the app workspace and shown by
+  the app's own viewer through `BackendShell.preview`; *Save to Fila…*
+  copies it through the operation centre. The download has no Cancel: the
+  app's progress card has none, and Phase 7 moves transfers into
+  `OperationCenter`, which has.
+- The shell gained a **Servers** sidebar section (remote file roots plus one
+  *Add …* row per registered setup, swipe to edit or remove), a keychain
+  `CredentialStore`, and `SidebarModel` now follows registry additions and
+  removals. `BackendShell` gained `makeWorkspace`, `fileIcon`,
+  `progressCard`, `preview` and `open(location)`.
+- Tabs still record local paths: a remote screen in a tab restores to the
+  last local directory, like a catalogue screen.
+- `FilaBackendUI` now owns a string catalogue (`bundle: .module`) and is in
+  the extractor table; `check-localization.sh` walks `Frameworks/` too.
+
+Reviewed with `/code-review` on Opus (the forked skill runs on the session's
+model, so the review was run as an Opus agent by hand). `/code-clarity` is
+not installed on this machine.
+
+Verified: `make check`; `make harness` (458 tests, including 14 unit tests
+for the SMB package and 5 for the observer); the live suite
+`SMBLiveServerTests` (9 tests, opt-in through `FILA_SMB_SERVER`) against an
+impacket SMB2 server on the Mac: 2,502-entry paged listing with Unicode
+names, an abandoned listing, details of root/file/empty/missing, a 48 MiB
+chunked copy with monotonic progress and an empty file, cancellation that
+leaves the descriptor alone and reconnects, connect and request timeouts,
+wrong password and unknown share, change hints that end on disconnect; both
+Release device builds with `CI=1` and clean extractor diffs; all four
+wrappers with composition verification; the simulator Debug build launched
+on the iPad with a seeded guest profile showing the Servers section. Not
+done: tapping through the setup and browser screens (synthetic clicks are
+refused on this Mac), Windows signing-required, Samba and NAS servers,
+multi-GB files, anything on a device.
+
+## Resume here: Phase 7
+
+Cross-backend copy and move per `PLAN.md`. Build with an isolated
 DerivedData (`DERIVED_DATA=/private/tmp/fila-dd-<name>`); the sandboxed
 composition lands beside it in `<name>-sandboxed`. A new module framework
 joins the sandbox by adding it to `FilaSandboxed`'s Frameworks, Embed
 Frameworks and `-needed_framework` lists; the verifier's `shared` list in
-`verify-composition.sh` names what both compositions must carry.
+`verify-composition.sh` names what both compositions must carry. To run the
+SMB live suite, start an SMB2 server (impacket's `smbserver.py -smb2support`
+works unprivileged on a high port) and set `FILA_SMB_SERVER=host:port`,
+`FILA_SMB_SHARE`, `FILA_SMB_USER`, `FILA_SMB_PASSWORD`, `FILA_SMB_FIXTURES`.
 
 ## Decisions worth keeping
 

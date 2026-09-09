@@ -51,11 +51,17 @@
 		FB5000000000000000000042 /* FilaMusicLibrary.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB5000000000000000000001 /* FilaMusicLibrary.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FB5000000000000000000043 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
 		FB5000000000000000000050 /* CFilaMusicLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = FB5000000000000000000060 /* CFilaMusicLibrary */; };
+		FB6000000000000000000041 /* FilaSMB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB6000000000000000000001 /* FilaSMB.framework */; };
+		FB6000000000000000000042 /* FilaSMB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB6000000000000000000001 /* FilaSMB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FB6000000000000000000043 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
+		FB6000000000000000000050 /* SMBClient in Frameworks */ = {isa = PBXBuildFile; productRef = FB6000000000000000000060 /* SMBClient */; };
 		FB10000000000000000000A3 /* FilaBackendUI in Frameworks */ = {isa = PBXBuildFile; productRef = FB10000000000000000000B3 /* FilaBackendUI */; };
 		FC1000000000000000000041 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
 		FC1000000000000000000042 /* FilaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FC2000000000000000000041 /* FilaLocal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB2000000000000000000001 /* FilaLocal.framework */; };
 		FC2000000000000000000042 /* FilaLocal.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB2000000000000000000001 /* FilaLocal.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FC3000000000000000000041 /* FilaSMB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB6000000000000000000001 /* FilaSMB.framework */; };
+		FC3000000000000000000042 /* FilaSMB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB6000000000000000000001 /* FilaSMB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		FC2000000000000000000026 /* RunestoneEditor in Frameworks */ = {isa = PBXBuildFile; productRef = FC2000000000000000000016 /* RunestoneEditor */; };
 		FC2000000000000000000027 /* RunestoneLanguageSupport in Frameworks */ = {isa = PBXBuildFile; productRef = FC2000000000000000000017 /* RunestoneLanguageSupport */; };
 		FC2000000000000000000028 /* RunestoneThemeSupport in Frameworks */ = {isa = PBXBuildFile; productRef = FC2000000000000000000018 /* RunestoneThemeSupport */; };
@@ -156,6 +162,20 @@
 			remoteGlobalIDString = FB1000000000000000000010;
 			remoteInfo = FilaCore;
 		};
+		FB6000000000000000000020 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB6000000000000000000010;
+			remoteInfo = FilaSMB;
+		};
+		FB6000000000000000000022 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB1000000000000000000010;
+			remoteInfo = FilaCore;
+		};
 		FC1000000000000000000020 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FA0000000000000000000001 /* Project object */;
@@ -169,6 +189,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = FB2000000000000000000010;
 			remoteInfo = FilaLocal;
+		};
+		FC3000000000000000000020 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB6000000000000000000010;
+			remoteInfo = FilaSMB;
 		};
 		FC4000000000000000000009 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -206,6 +233,7 @@
 				FB2000000000000000000042 /* FilaLocal.framework in Embed Frameworks */,
 				FB3000000000000000000042 /* FilaPrivileged.framework in Embed Frameworks */,
 				FB5000000000000000000042 /* FilaMusicLibrary.framework in Embed Frameworks */,
+				FB6000000000000000000042 /* FilaSMB.framework in Embed Frameworks */,
 				FB4000000000000000000042 /* FilaApplications.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -227,6 +255,7 @@
 			files = (
 				FC1000000000000000000042 /* FilaCore.framework in Embed Frameworks */,
 				FC2000000000000000000042 /* FilaLocal.framework in Embed Frameworks */,
+				FC3000000000000000000042 /* FilaSMB.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 		};
@@ -243,6 +272,7 @@
 		FB3000000000000000000001 /* FilaPrivileged.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaPrivileged.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB4000000000000000000001 /* FilaApplications.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaApplications.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB5000000000000000000001 /* FilaMusicLibrary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaMusicLibrary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB6000000000000000000001 /* FilaSMB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaSMB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC0000000000000000000044 /* Fila.app (sandboxed) */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fila.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -320,6 +350,17 @@
 			path = Packages/FilaKit/Sources/FilaMusicLibrary;
 			sourceTree = "<group>";
 		};
+		FB6000000000000000000003 /* FilaSMB */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Frameworks/FilaSMB;
+			sourceTree = "<group>";
+		};
+		FB6000000000000000000004 /* FilaSMB (package sources) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = "FilaSMB (package sources)";
+			path = Packages/FilaKit/Sources/FilaSMB;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -330,6 +371,7 @@
 				FB2000000000000000000041 /* FilaLocal.framework in Frameworks */,
 				FB3000000000000000000041 /* FilaPrivileged.framework in Frameworks */,
 				FB5000000000000000000041 /* FilaMusicLibrary.framework in Frameworks */,
+				FB6000000000000000000041 /* FilaSMB.framework in Frameworks */,
 				FB4000000000000000000041 /* FilaApplications.framework in Frameworks */,
 				FA2000000000000000000026 /* RunestoneEditor in Frameworks */,
 				FA2000000000000000000027 /* RunestoneLanguageSupport in Frameworks */,
@@ -411,11 +453,19 @@
 				FB5000000000000000000050 /* CFilaMusicLibrary in Frameworks */,
 			);
 		};
+		FB6000000000000000000012 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				FB6000000000000000000043 /* FilaCore.framework in Frameworks */,
+				FB6000000000000000000050 /* SMBClient in Frameworks */,
+			);
+		};
 		FC0000000000000000000041 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				FC1000000000000000000041 /* FilaCore.framework in Frameworks */,
 				FC2000000000000000000041 /* FilaLocal.framework in Frameworks */,
+				FC3000000000000000000041 /* FilaSMB.framework in Frameworks */,
 				FC2000000000000000000026 /* RunestoneEditor in Frameworks */,
 				FC2000000000000000000027 /* RunestoneLanguageSupport in Frameworks */,
 				FC2000000000000000000028 /* RunestoneThemeSupport in Frameworks */,
@@ -442,6 +492,8 @@
 				FB4000000000000000000004 /* FilaApplications (package sources) */,
 				FB5000000000000000000003 /* FilaMusicLibrary */,
 				FB5000000000000000000004 /* FilaMusicLibrary (package sources) */,
+				FB6000000000000000000003 /* FilaSMB */,
+				FB6000000000000000000004 /* FilaSMB (package sources) */,
 				FA0000000000000000000045 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -459,6 +511,7 @@
 				FB3000000000000000000001 /* FilaPrivileged.framework */,
 				FB4000000000000000000001 /* FilaApplications.framework */,
 				FB5000000000000000000001 /* FilaMusicLibrary.framework */,
+				FB6000000000000000000001 /* FilaSMB.framework */,
 				FC0000000000000000000044 /* Fila.app (sandboxed) */,
 			);
 			name = Products;
@@ -487,6 +540,7 @@
 				FB3000000000000000000021 /* PBXTargetDependency */,
 				FB4000000000000000000021 /* PBXTargetDependency */,
 				FB5000000000000000000021 /* PBXTargetDependency */,
+				FB6000000000000000000021 /* PBXTargetDependency */,
 				FA1000000000000000000021 /* PBXTargetDependency */,
 				FA7000000000000000000021 /* PBXTargetDependency */,
 				FA400000000000000000000A /* PBXTargetDependency */,
@@ -726,6 +780,31 @@
 			productReference = FB5000000000000000000001 /* FilaMusicLibrary.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		FB6000000000000000000010 /* FilaSMB */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB6000000000000000000030 /* Build configuration list for PBXNativeTarget "FilaSMB" */;
+			buildPhases = (
+				FB6000000000000000000011 /* Sources */,
+				FB6000000000000000000012 /* Frameworks */,
+				FB6000000000000000000013 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FB6000000000000000000023 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FB6000000000000000000003 /* FilaSMB */,
+				FB6000000000000000000004 /* FilaSMB (package sources) */,
+			);
+			name = FilaSMB;
+			packageProductDependencies = (
+				FB6000000000000000000060 /* SMBClient */,
+			);
+			productName = FilaSMB;
+			productReference = FB6000000000000000000001 /* FilaSMB.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		FC0000000000000000000043 /* FilaSandboxed */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FC000000000000000000004F /* Build configuration list for PBXNativeTarget "FilaSandboxed" */;
@@ -743,6 +822,7 @@
 			dependencies = (
 				FC1000000000000000000021 /* PBXTargetDependency */,
 				FC2000000000000000000021 /* PBXTargetDependency */,
+				FC3000000000000000000021 /* PBXTargetDependency */,
 				FC400000000000000000000A /* PBXTargetDependency */,
 				FC800000000000000000000A /* PBXTargetDependency */,
 			);
@@ -807,6 +887,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				FA2000000000000000000001 /* XCLocalSwiftPackageReference "Packages/FilaKit" */,
+				FB6000000000000000000070 /* XCLocalSwiftPackageReference "Packages/SMBClient" */,
 				FA2000000000000000000002 /* XCRemoteSwiftPackageReference "Runestone.xcframework" */,
 				FA5000000000000000000001 /* XCRemoteSwiftPackageReference "SPIndicator" */,
 				507CA7A4304C275A00EC22A7 /* XCRemoteSwiftPackageReference "SnapKit" */,
@@ -828,6 +909,7 @@
 				FB3000000000000000000010 /* FilaPrivileged */,
 				FB4000000000000000000010 /* FilaApplications */,
 				FB5000000000000000000010 /* FilaMusicLibrary */,
+				FB6000000000000000000010 /* FilaSMB */,
 				FC0000000000000000000043 /* FilaSandboxed */,
 			);
 		};
@@ -870,6 +952,11 @@
 			);
 		};
 		FB5000000000000000000013 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		FB6000000000000000000013 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -977,6 +1064,11 @@
 			files = (
 			);
 		};
+		FB6000000000000000000011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 		FC0000000000000000000040 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
@@ -1050,6 +1142,16 @@
 			target = FB1000000000000000000010 /* FilaCore */;
 			targetProxy = FB5000000000000000000022 /* PBXContainerItemProxy */;
 		};
+		FB6000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB6000000000000000000010 /* FilaSMB */;
+			targetProxy = FB6000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		FB6000000000000000000023 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB1000000000000000000010 /* FilaCore */;
+			targetProxy = FB6000000000000000000022 /* PBXContainerItemProxy */;
+		};
 		FC1000000000000000000021 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = FB1000000000000000000010 /* FilaCore */;
@@ -1059,6 +1161,11 @@
 			isa = PBXTargetDependency;
 			target = FB2000000000000000000010 /* FilaLocal */;
 			targetProxy = FC2000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		FC3000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB6000000000000000000010 /* FilaSMB */;
+			targetProxy = FC3000000000000000000020 /* PBXContainerItemProxy */;
 		};
 		FC400000000000000000000A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1226,6 +1333,7 @@
 					"-Wl,-needed_framework,FilaPrivileged",
 					"-Wl,-needed_framework,FilaMusicLibrary",
 					"-Wl,-needed_framework,FilaApplications",
+					"-Wl,-needed_framework,FilaSMB",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1270,6 +1378,7 @@
 					"-Wl,-needed_framework,FilaPrivileged",
 					"-Wl,-needed_framework,FilaMusicLibrary",
 					"-Wl,-needed_framework,FilaApplications",
+					"-Wl,-needed_framework,FilaSMB",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1712,6 +1821,62 @@
 			};
 			name = Release;
 		};
+		FB6000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaSMB" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.smb;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FB6000000000000000000032 /* Release configuration for PBXNativeTarget "FilaSMB" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila.smb;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		FC0000000000000000000050 /* Debug configuration for PBXNativeTarget "FilaSandboxed" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1740,6 +1905,7 @@
 					"-weak_framework",
 					AppIntents,
 					"-Wl,-needed_framework,FilaLocal",
+					"-Wl,-needed_framework,FilaSMB",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
 				PRODUCT_NAME = Fila;
@@ -1780,6 +1946,7 @@
 					"-weak_framework",
 					AppIntents,
 					"-Wl,-needed_framework,FilaLocal",
+					"-Wl,-needed_framework,FilaSMB",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
 				PRODUCT_NAME = Fila;
@@ -1883,6 +2050,14 @@
 			);
 			defaultConfigurationName = Release;
 		};
+		FB6000000000000000000030 /* Build configuration list for PBXNativeTarget "FilaSMB" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FB6000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaSMB" */,
+				FB6000000000000000000032 /* Release configuration for PBXNativeTarget "FilaSMB" */,
+			);
+			defaultConfigurationName = Release;
+		};
 		FC000000000000000000004F /* Build configuration list for PBXNativeTarget "FilaSandboxed" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1897,6 +2072,10 @@
 		FA2000000000000000000001 /* XCLocalSwiftPackageReference "Packages/FilaKit" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/FilaKit;
+		};
+		FB6000000000000000000070 /* XCLocalSwiftPackageReference "Packages/SMBClient" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SMBClient;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -2066,6 +2245,11 @@
 		FB5000000000000000000060 /* CFilaMusicLibrary */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CFilaMusicLibrary;
+		};
+		FB6000000000000000000060 /* SMBClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FB6000000000000000000070 /* XCLocalSwiftPackageReference "Packages/SMBClient" */;
+			productName = SMBClient;
 		};
 		FB10000000000000000000B3 /* FilaBackendUI */ = {
 			isa = XCSwiftPackageProductDependency;

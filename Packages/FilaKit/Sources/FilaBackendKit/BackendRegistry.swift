@@ -10,12 +10,15 @@ import Foundation
 public final class BackendRegistry {
     public private(set) var modules: [BackendModuleIdentity] = []
     public private(set) var backends: [any Backend] = []
+    /// Every way the user can add a connection, in module order.
+    public private(set) var connectionSetups: [BackendConnectionSetup] = []
 
     /// Retained so a module's registrations keep their owner alive.
     private var entries: [any BackendModule] = []
     private var providers: [ObjectIdentifier: (module: BackendModuleIdentity, value: Any)] = [:]
     private var factories: [BackendFactory] = []
     private var routes: [BackendID: ScreenRoute] = [:]
+    private var listeners: [UUID: AsyncStream<BackendRegistryChange>.Continuation] = [:]
     /// Factories whose run is in progress, so a factory asking for a
     /// backend its own module is still producing gets nil, not recursion.
     private var running: Set<BackendModuleIdentity> = []
@@ -37,6 +40,48 @@ public final class BackendRegistry {
         routes[location.backend]?.make(location)
     }
 
+    /// A backend a module produced after bootstrap — the share the user
+    /// just saved — with the screen its locations open in. Refused when the
+    /// identity is taken, so a saved profile can never shadow another
+    /// backend's bookmarks.
+    public func add(_ backend: any Backend, screen: @escaping @MainActor (BackendLocation) -> AnyObject?) throws {
+        guard self.backend(backend.id) == nil, routes[backend.id] == nil else {
+            throw BackendModuleError.registration("backend \(backend.id) is already registered")
+        }
+        backends.append(backend)
+        routes[backend.id] = ScreenRoute(module: nil, make: screen)
+        publish(.added(backend.id))
+    }
+
+    /// Retires the backend `id` and its route. Its object stays alive for
+    /// whoever still holds it — a screen mid-listing — and gets no new
+    /// callers from here.
+    public func remove(_ id: BackendID) {
+        guard let index = backends.firstIndex(where: { $0.id == id }) else { return }
+        backends.remove(at: index)
+        routes[id] = nil
+        publish(.removed(id))
+    }
+
+    /// Additions and removals after bootstrap, for whoever merges the
+    /// backends' contributions. The startup set is read from `backends`;
+    /// this stream carries only what changed since.
+    public func changes() -> AsyncStream<BackendRegistryChange> {
+        let token = UUID()
+        return AsyncStream(bufferingPolicy: .unbounded) { continuation in
+            listeners[token] = continuation
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor in self?.listeners[token] = nil }
+            }
+        }
+    }
+
+    private func publish(_ change: BackendRegistryChange) {
+        for continuation in listeners.values {
+            continuation.yield(change)
+        }
+    }
+
     /// Apply one module's registrations, or none of them.
     func commit(_ registration: BackendRegistration, entry: any BackendModule) throws {
         let module = registration.module
@@ -52,7 +97,8 @@ public final class BackendRegistry {
         }
         for (backend, _) in registration.routes {
             if let existing = routes[backend] {
-                throw BackendModuleError.duplicateRoute("\(backend) (already from \(existing.module.bundleIdentifier))")
+                let owner = existing.module?.bundleIdentifier ?? "a backend added at runtime"
+                throw BackendModuleError.duplicateRoute("\(backend) (already from \(owner))")
             }
         }
         modules.append(module)
@@ -64,6 +110,7 @@ public final class BackendRegistry {
             routes[backend] = route
         }
         factories.append(contentsOf: registration.backendFactories)
+        connectionSetups.append(contentsOf: registration.connectionSetups)
     }
 
     /// Run every committed factory against the completed provider set.
@@ -115,4 +162,10 @@ public final class BackendRegistry {
             backends.append(backend)
         }
     }
+}
+
+/// What changed in the registry after bootstrap.
+public enum BackendRegistryChange: Sendable, Equatable {
+    case added(BackendID)
+    case removed(BackendID)
 }

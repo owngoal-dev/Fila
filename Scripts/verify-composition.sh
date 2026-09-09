@@ -21,7 +21,7 @@ composition="$2"
 fail() { echo "error: $*" >&2; exit 65; }
 [[ -d "$app" && -x "$app/Fila" ]] || fail "not an app bundle: $app"
 
-shared=(FilaCore FilaLocal)
+shared=(FilaCore FilaLocal FilaSMB)
 excluded=(FilaPrivileged FilaApplications FilaMusicLibrary)
 # One string per excluded module that only that module's code contains:
 # the XPC link's class, the LaunchServices private class the catalogue

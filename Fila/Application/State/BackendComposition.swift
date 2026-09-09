@@ -27,7 +27,7 @@ enum BackendComposition {
 
     /// The merged sidebar over every backend. Built on first use, which is
     /// after bootstrap: nothing asks for a sidebar before a window exists.
-    static let sidebar = SidebarModel(backends: backends)
+    static let sidebar = SidebarModel(backends: backends, registry: registry)
 
     /// What modules get from the app; also what the fallback backend gets.
     static let host = AppBackendHost()
@@ -55,6 +55,7 @@ enum BackendComposition {
 @MainActor
 final class AppBackendHost: BackendHost {
     let defaults = UserDefaults.standard
+    let credentials: any CredentialStore = KeychainCredentialStore()
 
     func log(_ message: String) {
         FilaLog.info(message)
@@ -62,6 +63,18 @@ final class AppBackendHost: BackendHost {
 
     func warn(_ message: String) {
         FilaLog.warning(message)
+    }
+
+    /// A backend saved after bootstrap. The registry publishes the change
+    /// and the sidebar model subscribes to the newcomer from there.
+    func addBackend(_ backend: any Backend, screen: @escaping @MainActor (BackendLocation) -> AnyObject?) throws {
+        try BackendComposition.registry.add(backend, screen: screen)
+        FilaLog.info("backend added: \(backend.id)")
+    }
+
+    func removeBackend(_ id: BackendID) {
+        BackendComposition.registry.remove(id)
+        FilaLog.info("backend removed: \(id)")
     }
 
     /// Save to Fila's shared Inbox. Open In imports retain the system's

@@ -37,6 +37,21 @@ public protocol BackendHost: AnyObject {
     /// backend that offers it as a place gets the path from here rather
     /// than knowing about App Groups.
     var inboxDirectory: String? { get }
+
+    /// Where a backend keeps its secrets. The keychain in the app; a
+    /// backend never sees which.
+    var credentials: any CredentialStore { get }
+
+    /// A backend that exists from now on: what a module calls when the user
+    /// saved a new share, with the screen its locations open in. The
+    /// registry takes it, the sidebar picks it up, and it stays until
+    /// `removeBackend` — a launch registers saved backends through the
+    /// factory instead. Refused when the identity is already registered.
+    func addBackend(_ backend: any Backend, screen: @escaping @MainActor (BackendLocation) -> AnyObject?) throws
+
+    /// The backend `id` is gone, with its route; whatever was showing it
+    /// closes on its own. Nothing happens for an id that is not registered.
+    func removeBackend(_ id: BackendID)
 }
 
 /// A module's registrations, collected while `register(with:)` runs and
@@ -51,6 +66,7 @@ public final class BackendRegistration {
     var providers: [ObjectIdentifier: (name: String, value: Any)] = [:]
     var backendFactories: [BackendFactory] = []
     var routes: [BackendID: ScreenRoute] = [:]
+    var connectionSetups: [BackendConnectionSetup] = []
 
     init(module: BackendModuleIdentity, host: any BackendHost) {
         self.module = module
@@ -88,11 +104,48 @@ public final class BackendRegistration {
         }
         routes[backend] = ScreenRoute(module: module, make: make)
     }
+
+    /// Register a way to add a backend of this module's kind: an SMB
+    /// share, an FTP root. The shell lists every setup where it offers new
+    /// connections and opens `makeScreen` for a new one, or for an existing
+    /// backend the setup `owns`; `remove` retires that backend and its
+    /// saved record. A module without saved connections registers none.
+    public func connectionSetup(
+        title: String,
+        symbolName: String,
+        owns: @escaping @MainActor (BackendID) -> Bool,
+        makeScreen: @escaping @MainActor (BackendID?) -> AnyObject?,
+        remove: @escaping @MainActor (BackendID) throws -> Void
+    ) {
+        connectionSetups.append(BackendConnectionSetup(
+            module: module, title: title, symbolName: symbolName, owns: owns, makeScreen: makeScreen, remove: remove
+        ))
+    }
 }
 
 struct ScreenRoute {
-    let module: BackendModuleIdentity
+    /// The module that registered it at bootstrap; nil for a route added
+    /// with a backend later, whose owner the host does not name.
+    let module: BackendModuleIdentity?
     let make: @MainActor (BackendLocation) -> AnyObject?
+}
+
+/// One kind of connection the user can add, as a module describes it. The
+/// shell draws the title and symbol and never knows what the screen asks.
+public struct BackendConnectionSetup {
+    public let module: BackendModuleIdentity
+    /// Already localized by the module: "SMB Share".
+    public let title: String
+    public let symbolName: String
+    /// Whether `id` is a backend this setup edits and removes.
+    public let owns: @MainActor (BackendID) -> Bool
+    /// The setup screen — a view controller, typed as `AnyObject` so this
+    /// contract needs no UI framework — for a new connection (nil) or for
+    /// editing the backend `id`. Nil when there is nothing to show.
+    public let makeScreen: @MainActor (BackendID?) -> AnyObject?
+    /// Forgets the backend `id`: its saved record, its secret and its
+    /// registration. Bookmarks go with it; files on the server do not.
+    public let remove: @MainActor (BackendID) throws -> Void
 }
 
 /// Read access to the committed registry, handed to backend factories.

@@ -5,7 +5,7 @@ archive and the ordinary IPA. Versions remain in `Configuration/Version.xcconfig
 
 Two compositions come out of one source tree. The `Fila` target links every
 backend module and is what the `.deb` and `.tipa` carry; the `FilaSandboxed`
-target links `FilaCore` and `FilaLocal` alone and is what the `.ipa` carries.
+target links `FilaCore`, `FilaLocal` and `FilaSMB` alone and is what the `.ipa` carries.
 `make packages` builds the full app, then the sandboxed app at the same build
 number into a sibling DerivedData (`$(DERIVED_DATA)-sandboxed`), then every
 wrapper; `make ipa` alone runs `make build-sandboxed`. Only the full build

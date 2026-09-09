@@ -12,7 +12,11 @@ public enum FilaBackendKit {
     /// was compiled against; discovery refuses a module whose number differs
     /// before its entry class is ever touched. Bump it when `BackendModule`,
     /// `BackendHost` or `BackendRegistration` change shape.
-    public static let contractVersion = 1
+    ///
+    /// 2: the host supplies a credential store and takes backends added
+    /// and removed after bootstrap; a registration may name a connection
+    /// setup.
+    public static let contractVersion = 2
 
     /// The manifest format itself. Independent of the host contract so a
     /// manifest key can be added without pretending the module ABI changed.

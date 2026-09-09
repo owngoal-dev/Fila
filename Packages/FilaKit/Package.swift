@@ -51,6 +51,10 @@ let package = Package(
         // must never take either: SnapKit and Then are layout and view setup.
         .package(url: "https://github.com/SnapKit/SnapKit.git", from: "6.0.0"),
         .package(url: "https://github.com/devxoul/Then.git", from: "3.0.0"),
+        // The SMB2 client, vendored at a pinned revision with one paging
+        // method added; see Packages/SMBClient/FILA-VENDOR.md. Linked by
+        // FilaSMB alone, which is app-side in both compositions.
+        .package(path: "../SMBClient"),
     ],
     targets: [
         // The wire vocabulary and the destruction guard. Compiled into both
@@ -159,6 +163,28 @@ let package = Package(
         .testTarget(
             name: "FilaMusicLibraryTests",
             dependencies: ["FilaMusicLibrary"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // One saved SMB share as a file backend: the profile, the session
+        // that serialises every request and retires itself on a timeout,
+        // the paged listing and the bounded read into a descriptor. Like
+        // FilaApplications, **not a product**: `FilaSMB.framework` compiles
+        // this directory itself and is embedded by both compositions; the
+        // target here is for `swift test`, which can run it against a real
+        // server named by `FILA_SMB_SERVER`.
+        .target(
+            name: "FilaSMB",
+            dependencies: [
+                "FilaBackendKit",
+                "FilaLog",
+                .product(name: "SMBClient", package: "SMBClient"),
+            ],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "FilaSMBTests",
+            dependencies: ["FilaSMB", "FilaBackendKit"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
@@ -280,6 +306,7 @@ let package = Package(
                 .product(name: "SnapKit", package: "SnapKit"),
                 .product(name: "Then", package: "Then"),
             ],
+            resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

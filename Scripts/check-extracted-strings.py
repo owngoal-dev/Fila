@@ -40,6 +40,7 @@ TARGETS = [
     # strings land in the framework's own .stringsdata, not FilaKit's.
     ("FilaApplications", "Fila.build", "Frameworks/FilaApplications/Resources/Localizable.xcstrings"),
     ("FilaMusicLibrary", "Fila.build", "Frameworks/FilaMusicLibrary/Resources/Localizable.xcstrings"),
+    ("FilaSMB", "Fila.build", "Frameworks/FilaSMB/Resources/Localizable.xcstrings"),
     (
         "FilaFormats",
         "FilaKit.build",
@@ -54,6 +55,11 @@ TARGETS = [
         "FilaTerminal",
         "FilaKit.build",
         "Packages/FilaKit/Sources/FilaTerminal/Resources/Localizable.xcstrings",
+    ),
+    (
+        "FilaBackendUI",
+        "FilaKit.build",
+        "Packages/FilaKit/Sources/FilaBackendUI/Resources/Localizable.xcstrings",
     ),
 ]
 

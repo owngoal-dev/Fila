@@ -62,6 +62,29 @@ public protocol BackendShell: AnyObject {
     )
     /// The wording for an error, as the app phrases failures.
     func failureText(for error: Error) -> String
+    /// A fresh, app-owned directory in the process workspace, for a
+    /// snapshot downloaded from a remote backend. The caller removes it
+    /// when the viewer lets go; startup sweeps what a crash left.
+    func makeWorkspace() async throws -> URL
+    /// The app's icon for a file of that name, or a folder.
+    func fileIcon(named name: String, isDirectory: Bool) -> UIImage?
+    /// The delayed progress card for work that may take a while: shown
+    /// only once it has, updated through the handle, dismissed by it.
+    func progressCard(title: String, message: String, from presenter: UIViewController) -> any BackendProgressCard
+    /// The app's viewer for a local file, pushed into `presenter`'s stack:
+    /// a snapshot of a remote file gets the same reader a local one does.
+    /// `released` runs once the viewer is gone, so its workspace can go.
+    func preview(_ file: URL, title: String, from presenter: UIViewController, released: @escaping () -> Void)
+    /// Shows the screen a module routes for `location` in the current
+    /// tab, the way the sidebar's rows do.
+    func open(_ location: BackendLocation)
+}
+
+/// A progress card the shell lent: what the caller can do with it.
+@MainActor
+public protocol BackendProgressCard: AnyObject {
+    func update(message: String)
+    func dismiss()
 }
 
 public extension UITableView {
