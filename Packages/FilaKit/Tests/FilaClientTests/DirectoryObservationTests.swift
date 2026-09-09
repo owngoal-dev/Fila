@@ -13,6 +13,19 @@ struct DirectoryObservationTests {
         func tick() { lock.lock(); value += 1; lock.unlock() }
         func read() -> Double { lock.lock(); defer { lock.unlock() }; calls += 1; return value }
         var reads: Int { lock.lock(); defer { lock.unlock() }; return calls }
+
+        /// True once the poller has read this many times. A fixed sleep
+        /// followed by a count asserts the scheduler's speed as well as the
+        /// polling; this waits for the polling alone, on the same slack
+        /// `Hints.hinted` takes and for the same reason.
+        func reached(_ count: Int, within seconds: Double) async -> Bool {
+            let deadline = Date().addingTimeInterval(seconds)
+            while Date() < deadline {
+                if reads >= count { return true }
+                try? await Task.sleep(nanoseconds: 5_000_000)
+            }
+            return reads >= count
+        }
     }
 
     /// Counts a stream's hints from a task that is never cancelled —
@@ -36,6 +49,12 @@ struct DirectoryObservationTests {
         }
 
         /// True once the count exceeds `after` within `seconds`.
+        ///
+        /// The bound is slack against a starved scheduler, not a latency
+        /// assertion: six `@MainActor` suites in this target run in parallel
+        /// on the one main actor, and a second of wall clock buys no actor
+        /// hops while another suite is copying files on it. A passing wait
+        /// returns as soon as the hint lands and never spends the bound.
         func hinted(after: Int, within seconds: Double) async -> Bool {
             let deadline = Date().addingTimeInterval(seconds)
             while Date() < deadline {
@@ -60,7 +79,7 @@ struct DirectoryObservationTests {
         let observation = DirectoryObservation(interval: 3600)
         let clock = Clock()
         let hints = Hints(observation.subscribe("/tmp/a") { clock.read() })
-        #expect(await hints.hinted(after: 0, within: 1))
+        #expect(await hints.hinted(after: 0, within: 10))
         #expect(observation.subscriberCount == 1)
 
         // Neither a sibling nor a child hints the parent's screen...
@@ -73,7 +92,7 @@ struct DirectoryObservationTests {
         observation.invalidate(["/tmp/a"])
         observation.invalidate(["/tmp"])
         observation.invalidate(["/"])
-        #expect(await hints.hinted(after: before, within: 1))
+        #expect(await hints.hinted(after: before, within: 10))
         #expect(await hints.quiet(for: 0.1))
         #expect(hints.count <= before + 3)
     }
@@ -106,14 +125,13 @@ struct DirectoryObservationTests {
         let observation = DirectoryObservation(interval: 0.02)
         let clock = Clock()
         let hints = Hints(observation.subscribe("/tmp/a") { clock.read() })
-        #expect(await hints.hinted(after: 0, within: 1))
+        #expect(await hints.hinted(after: 0, within: 10))
         // Unchanged time: polls happen, hints do not.
-        try await Task.sleep(nanoseconds: 120_000_000)
-        #expect(clock.reads >= 2)
+        #expect(await clock.reached(2, within: 10))
         #expect(await hints.quiet(for: 0.1))
         var count = hints.count
         clock.tick()
-        #expect(await hints.hinted(after: count, within: 1))
+        #expect(await hints.hinted(after: count, within: 10))
         // The change was reported once; the new time is the baseline now.
         #expect(await hints.quiet(for: 0.1))
 
@@ -122,7 +140,7 @@ struct DirectoryObservationTests {
         count = hints.count
         clock.tick()
         observation.invalidate(["/tmp/a"])
-        #expect(await hints.hinted(after: count, within: 1))
+        #expect(await hints.hinted(after: count, within: 10))
         #expect(await hints.quiet(for: 0.15))
 
         observation.setPaused(true)
@@ -136,9 +154,8 @@ struct DirectoryObservationTests {
         // Resuming hints once regardless, and polling restarts.
         count = hints.count
         observation.setPaused(false)
-        #expect(await hints.hinted(after: count, within: 1))
-        try await Task.sleep(nanoseconds: 100_000_000)
-        #expect(clock.reads > reads)
+        #expect(await hints.hinted(after: count, within: 10))
+        #expect(await clock.reached(reads + 1, within: 10))
     }
 
     @Test("The adapter's changes(in:) resolves the directory and reports a real modification")
@@ -148,12 +165,12 @@ struct DirectoryObservationTests {
         let observation = DirectoryObservation(interval: 0.02)
         let adapter = LocalFileServiceAdapter(access: LocalFileService(), rootPath: scratch.root, observation: observation)
         let hints = Hints(try await adapter.changes(in: try ServicePath("watched")))
-        #expect(await hints.hinted(after: 0, within: 1))
+        #expect(await hints.hinted(after: 0, within: 10))
         // The baseline is taken at subscription, so a change during the first
         // interval is seen. mtime resolution is a second on some filesystems:
         // set one that cannot equal the current time.
         var times = timeval(tv_sec: 1_600_000_000, tv_usec: 0)
         utimes(scratch.path("watched"), &times)
-        #expect(await hints.hinted(after: 1, within: 2))
+        #expect(await hints.hinted(after: 1, within: 12))
     }
 }
