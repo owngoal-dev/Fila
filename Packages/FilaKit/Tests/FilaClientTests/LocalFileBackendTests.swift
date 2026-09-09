@@ -20,8 +20,8 @@ struct LocalFileBackendTests {
 
     private func backends() -> [(String, LocalFileBackend)] {
         [
-            ("full", LocalFileBackend(access: LocalFileService(), rootPath: scratch.root, displayName: "Scratch", symbolName: "folder")),
-            ("sandboxed", SandboxedLocalFileBackend(documents: URL(fileURLWithPath: scratch.root, isDirectory: true))),
+            ("full", LocalFileBackend(access: LocalFileService(), rootPath: scratch.root, displayName: "Scratch", symbolName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])),
+            ("sandboxed", SandboxedLocalFileBackend(documents: URL(fileURLWithPath: scratch.root, isDirectory: true), storage: MemoryStorage())),
         ]
     }
 
@@ -34,17 +34,17 @@ struct LocalFileBackendTests {
             #expect(backend.absolutePath(.root) == scratch.root)
             #expect(backend.absolutePath(try ServicePath("a/b")) == scratch.root + "/a/b")
         }
-        #expect(LocalFileBackend(access: LocalFileService()).absolutePath(try ServicePath("var")) == "/var")
+        #expect(LocalFileBackend(access: LocalFileService(), storage: MemoryStorage()).absolutePath(try ServicePath("var")) == "/var")
     }
 
     @Test("The sandboxed backend starts at Documents and holds in-process access")
     func sandboxedAuthority() {
-        let backend = SandboxedLocalFileBackend(documents: URL(fileURLWithPath: scratch.root, isDirectory: true))
+        let backend = SandboxedLocalFileBackend(documents: URL(fileURLWithPath: scratch.root, isDirectory: true), storage: MemoryStorage())
         #expect(backend.rootPath == scratch.root)
         #expect(backend.access is LocalFileService)
         // Resolved at construction, not stored: the default is this process's
         // own Documents directory, wherever the container is today.
-        #expect(SandboxedLocalFileBackend().rootPath.hasSuffix("/Documents"))
+        #expect(SandboxedLocalFileBackend(storage: MemoryStorage()).rootPath.hasSuffix("/Documents"))
     }
 
     @Test("Lists a directory in pages and releases the cursor when abandoned")
@@ -67,7 +67,7 @@ struct LocalFileBackendTests {
     func cursorRelease() async throws {
         for index in 0 ... FilaProtocol.directoryPageEntryCount { scratch.file("entry-\(index)") }
         let spy = RecordingAccess(LocalFileService())
-        let backend = LocalFileBackend(access: spy, rootPath: scratch.root, displayName: "Scratch", symbolName: "folder")
+        let backend = LocalFileBackend(access: spy, rootPath: scratch.root, displayName: "Scratch", symbolName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])
         let service = try await backend.fileService()
 
         // Stopped after the first page: the release must close exactly the

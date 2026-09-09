@@ -6,6 +6,8 @@ import Testing
 
 @MainActor
 private final class RecordingHost: BackendHost {
+    let defaults = UserDefaults(suiteName: "wiki.qaq.fila.tests.discovery")!
+    let inboxDirectory: String? = nil
     var lines: [String] = []
     func log(_ message: String) { lines.append(message) }
     func warn(_ message: String) { lines.append(message) }
@@ -23,6 +25,10 @@ private final class Fixture: Backend {
     init(_ raw: String) {
         id = BackendID(raw)
         root = BackendRoot(location: .root(of: id), kind: .filesystem, displayName: raw, symbolName: "folder")
+    }
+
+    func sidebarUpdates() -> AsyncStream<BackendSidebar> {
+        AsyncStream { $0.yield(.empty); $0.finish() }
     }
 }
 

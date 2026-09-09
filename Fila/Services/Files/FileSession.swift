@@ -52,10 +52,16 @@ final class FileSession {
             // fallback with the failure on record; discovery already logged
             // why the module was refused.
             FilaLog.error("no local backend registered; file operations run in this process")
-            local = LocalFileBackend(access: LocalFileService())
+            local = LocalFileBackend(
+                access: LocalFileService(),
+                storage: LocalPreferencesDefaults(),
+                environment: .init(inboxDirectory: BackendComposition.host.inboxDirectory)
+            )
         }
         link = local.access
         terminalAccess = registry.provider(PrivilegedFileAccess.self)
+        do { try local.setRecordsVisits(AppPreferences.shared.recordsRecents) }
+        catch { FilaLog.error("history policy not applied: \(error)") }
     }
 
     /// Waits for a backend, retrying forever. It cannot throw on purpose:
@@ -135,6 +141,7 @@ final class FileSession {
         // several may be waiting on one handshake and the order they wake in is
         // unspecified.
         hello = answer
+        local.handshakeLanded(answer)
         // A bounded wait that got there first spares the forever wait a second
         // round trip — and answers `ready()` immediately for everything after.
         if handshake == nil {

@@ -25,7 +25,7 @@ enum FilaMenu {
         return groups(locations, [path])
     }
 
-    static func preview(for place: SidebarLocation) -> UIImage? {
+    static func preview(for place: SidebarPlace) -> UIImage? {
         switch place.icon {
         case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
         case .symbol: FilePresentation.image(kind: .directory, name: place.title)
@@ -33,7 +33,7 @@ enum FilaMenu {
     }
 
     static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
-        let preferences = AppPreferences.shared
+        let session = FileSession.shared
         func folders(_ paths: [String], limit: Int? = nil) -> UIDeferredMenuElement {
             UIDeferredMenuElement.uncached { completion in
                 Task { @MainActor in
@@ -81,7 +81,7 @@ enum FilaMenu {
             UIMenu(
                 title: String(localized: "Favorites"),
                 image: UIImage(named: "FileIcons/folder"),
-                children: [folders(preferences.favorites)]
+                children: [folders(session.favoritePaths)]
             ),
             UIMenu(
                 title: String(localized: "Mount Points"),
@@ -91,7 +91,7 @@ enum FilaMenu {
             UIMenu(
                 title: String(localized: "Recents"),
                 image: UIImage(named: "FileIcons/folder"),
-                children: [folders(preferences.recents, limit: 8)]
+                children: [folders(session.recentPaths(limit: 8))]
             ),
         ]
     }

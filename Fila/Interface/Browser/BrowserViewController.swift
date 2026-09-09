@@ -1,3 +1,4 @@
+import FilaBackendKit
 import FilaClient
 import FilaLog
 import FilaProtocol
@@ -28,6 +29,7 @@ final class BrowserViewController: UIViewController {
     private(set) var entries: [FileNode] = []
     private var visible: [FileNode] = []
     private var loadTask: Task<Void, Never>?
+    private var changesTask: Task<Void, Never>?
     var appFolders: [String: AppFolderPresentation] = [:]
     private var volume: VolumeInfo?
     /// The directory listing has not finished yet. Only the first load replaces
@@ -112,7 +114,10 @@ final class BrowserViewController: UIViewController {
         fatalError("not supported")
     }
 
-    deinit { loadTask?.cancel() }
+    deinit {
+        loadTask?.cancel()
+        changesTask?.cancel()
+    }
 
     // MARK: - Lifecycle
 
@@ -125,12 +130,6 @@ final class BrowserViewController: UIViewController {
 
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(jobFinished(_:)),
-            name: .filaJobFinished,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
             selector: #selector(preferencesChanged(_:)),
             name: .filaPreferencesChanged,
             object: nil
@@ -139,7 +138,7 @@ final class BrowserViewController: UIViewController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(refreshTaskIcon),
-            name: .filaSidebarChanged,
+            name: .filaOperationsChanged,
             object: nil
         )
 
@@ -180,13 +179,46 @@ final class BrowserViewController: UIViewController {
         super.viewDidAppear(animated)
         pathBar.revealCurrentComponent()
         restoreScrollOffsetIfArrived()
-        AppPreferences.shared.lastDirectory = directory
-        reload()
+        session.setLastDirectory(directory)
+        observeChanges()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        changesTask?.cancel()
+        changesTask = nil
         loadTask?.cancel()
+    }
+
+    /// One subscription to this directory for as long as the screen is up.
+    /// The first hint lands at once and is the initial listing; every later
+    /// one — an operation that touched this folder or an ancestor, a poll
+    /// that saw the directory change — is a reload under the usual rules.
+    private func observeChanges() {
+        changesTask?.cancel()
+        changesTask = Task { [weak self, session, directory] in
+            do {
+                let service = try await session.local.fileService()
+                guard let location = session.local.servicePath(forAbsolute: directory) else {
+                    self?.reload()
+                    return
+                }
+                for try await _ in try await service.changes(in: location) {
+                    guard let self, !Task.isCancelled else { return }
+                    reload()
+                    // One listing at a time: a hint that lands mid-listing
+                    // waits in the stream's one-slot buffer and starts the
+                    // next reload only after this one has settled, so a
+                    // directory being written to can still finish listing.
+                    await loadTask?.value
+                }
+            } catch {
+                // A subscription that ended keeps the rows it had; the next
+                // appearance subscribes again.
+                guard !Task.isCancelled else { return }
+                self?.reload()
+            }
+        }
     }
 
     /// Only explicit use records a directory; appearing or dwelling never does.
@@ -194,7 +226,7 @@ final class BrowserViewController: UIViewController {
     func recordDirectoryUse() {
         guard viewIfLoaded?.window != nil, navigationController?.topViewController === self,
               listingFailure == nil, !isListing || !entries.isEmpty else { return }
-        AppPreferences.shared.noteVisit(directory, isDirectory: true)
+        session.noteVisit(directory: directory)
     }
 
     @objc private func sceneDidEnterBackground(_ note: Notification) {
@@ -359,7 +391,7 @@ final class BrowserViewController: UIViewController {
     }
 
     private func makeLayout() -> UICollectionViewLayout {
-        switch AppPreferences.shared.layout(for: directory) {
+        switch session.layout(for: directory) {
         case .list:
             let configuration = UICollectionLayoutListConfiguration(appearance: .plain).with {
                 // A list section draws a background decoration *over* the
@@ -447,8 +479,8 @@ final class BrowserViewController: UIViewController {
 
         dataSource = UICollectionViewDiffableDataSource(
             collectionView: collectionView
-        ) { [directory] collection, indexPath, node in
-            switch AppPreferences.shared.layout(for: directory) {
+        ) { [directory, session] collection, indexPath, node in
+            switch session.layout(for: directory) {
             case .list:
                 collection.dequeueConfiguredReusableCell(using: listCell, for: indexPath, item: node)
             case .grid:
@@ -683,20 +715,6 @@ final class BrowserViewController: UIViewController {
         updateFooter()
     }
 
-    @objc private func jobFinished(_ note: Notification) {
-        if note.userInfo?["kind"] as? String == OperationCenter.Kind.extract.rawValue {
-            reload()
-            return
-        }
-        guard let paths = note.object as? [String] else { return }
-        let current = URL(fileURLWithPath: directory).resolvingSymlinksInPath().path
-        guard paths.contains(where: {
-            let changed = URL(fileURLWithPath: $0).resolvingSymlinksInPath().path
-            return current == changed || current.hasPrefix(changed == "/" ? "/" : changed + "/")
-        }) else { return }
-        reload()
-    }
-
     // MARK: - Snapshot
 
     /// Scroll a revealed entry into view and select it, once the page carrying
@@ -706,8 +724,8 @@ final class BrowserViewController: UIViewController {
     private func revealPendingSelectionIfArrived() {
         guard let name = pendingSelection else { return }
         guard let index = visible.firstIndex(where: { $0.name == name }) else {
-            if !AppPreferences.shared.showsHidden, entries.contains(where: { $0.name == name }) {
-                AppPreferences.shared.showsHidden = true
+            if !session.showsHidden, entries.contains(where: { $0.name == name }) {
+                session.setShowsHidden(true)
                 applySnapshot(animated: false)
             }
             return
@@ -755,13 +773,12 @@ final class BrowserViewController: UIViewController {
     }
 
     private func arrange(_ nodes: [FileNode]) -> [FileNode] {
-        let preferences = AppPreferences.shared
         // Deduplicated by name: pages are read from a directory that is live,
         // and one name arriving twice would put two rows with the same identity
         // into the snapshot, which is a crash rather than a glitch.
         var seen = Set<String>()
         var items = nodes.filter { seen.insert($0.name).inserted }
-        if !preferences.showsHidden {
+        if !session.showsHidden {
             items.removeAll(where: \.isHidden)
         }
         return items.sorted(by: precedes)
@@ -773,8 +790,7 @@ final class BrowserViewController: UIViewController {
         if lhs.isNavigable != rhs.isNavigable {
             return lhs.isNavigable
         }
-        let preferences = AppPreferences.shared
-        let order: ComparisonResult = switch preferences.sortKey {
+        let order: ComparisonResult = switch session.sortKey {
         case .name: lhs.name.localizedStandardCompare(rhs.name)
         case .date: compare(lhs.modified, rhs.modified)
         case .size: compare(lhs.size, rhs.size)
@@ -783,7 +799,7 @@ final class BrowserViewController: UIViewController {
         guard order != .orderedSame else {
             return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
         }
-        return preferences.isAscending ? order == .orderedAscending : order == .orderedDescending
+        return session.sortAscending ? order == .orderedAscending : order == .orderedDescending
     }
 
     private func compare<T: Comparable>(_ lhs: T, _ rhs: T) -> ComparisonResult {
@@ -1203,7 +1219,7 @@ final class BrowserViewController: UIViewController {
 
     @objc private func commandToggleHidden() {
         recordDirectoryUse()
-        AppPreferences.shared.showsHidden.toggle()
+        session.setShowsHidden(!session.showsHidden)
         applySnapshot(animated: true)
     }
 }

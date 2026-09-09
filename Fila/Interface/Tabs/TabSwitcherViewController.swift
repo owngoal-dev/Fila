@@ -189,7 +189,7 @@ final class TabSwitcherViewController: UIViewController {
                     image: UIImage(named: "FileIcons/application"),
                     attributes: full ? .disabled : []
                 ) { [weak self] _ in
-                    self?.shell?.openInNewTab(AppListViewController(), directory: AppPreferences.shared.lastDirectory)
+                    self?.shell?.openInNewTab(AppListViewController(), directory: FileSession.shared.lastDirectoryPath)
                 }
             case .music:
                 return UIAction(

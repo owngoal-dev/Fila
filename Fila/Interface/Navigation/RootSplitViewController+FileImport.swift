@@ -20,7 +20,7 @@ extension RootSplitViewController {
             let listed = ListFormatter.localizedString(byJoining: names.map { "“\($0)”" })
             // Offer the shared Inbox as the initial destination.
             let picker = SaveDestinationViewController(
-                directory: URL(fileURLWithPath: SidebarLocation.inboxDirectory, isDirectory: true),
+                directory: URL(fileURLWithPath: FileSession.shared.local.environment.inboxDirectory ?? FileSession.shared.local.rootPath, isDirectory: true),
                 message: String(localized: "\(listed) will be moved into the folder you choose."),
                 link: session.link
             ) { destination in

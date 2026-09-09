@@ -104,7 +104,7 @@ final class SaveDestinationViewController: UIViewController {
         confirm: @escaping (URL) -> Void
     ) {
         self.init(
-            directory: directory ?? URL(fileURLWithPath: AppPreferences.shared.lastDirectory, isDirectory: true),
+            directory: directory ?? URL(fileURLWithPath: FileSession.shared.lastDirectoryPath, isDirectory: true),
             link: link,
             selection: Selection(
                 folderName: folderName,
@@ -244,7 +244,7 @@ final class SaveDestinationViewController: UIViewController {
     private func rememberDirectory() {
         guard availability == .ready, viewIfLoaded?.window != nil,
               navigationController?.topViewController === self else { return }
-        AppPreferences.shared.lastDirectory = directory.path
+        FileSession.shared.setLastDirectory(directory.path)
     }
 
     private func refreshActions() {

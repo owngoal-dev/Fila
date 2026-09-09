@@ -1,4 +1,5 @@
 import FilaClient
+import FilaLog
 import Then
 import UIKit
 
@@ -6,7 +7,8 @@ import UIKit
 final class AppearanceSettingsViewController: UITableViewController {
     private enum Section: Int, CaseIterable { case browsing, systemFeatures, presets }
     private let preferences = AppPreferences.shared
-    private var presets = AppPreferences.shared.presetOrder
+    private let session = FileSession.shared
+    private var presets = FileSession.shared.local.orderedPresets
 
     init() {
         super.init(style: .insetGrouped)
@@ -70,8 +72,11 @@ final class AppearanceSettingsViewController: UITableViewController {
         case .presets:
             let preset = presets[indexPath.row]
             title = name(of: preset)
-            enabled = preferences.isPresetEnabled(preset)
-            update = { [preferences] in preferences.setPreset(preset, enabled: $0) }
+            enabled = session.local.isPresetEnabled(preset)
+            update = { [session] enabled in
+                do { try session.local.setPreset(preset, enabled: enabled) }
+                catch { FilaLog.error("preset not saved: \(error)") }
+            }
             cell.showsReorderControl = true
         case .systemFeatures:
             title = String(localized: "Show Applications")
@@ -82,9 +87,9 @@ final class AppearanceSettingsViewController: UITableViewController {
             }
         default:
             title = String(localized: "Show Hidden Files")
-            enabled = preferences.showsHidden
-            update = { [preferences] in
-                preferences.showsHidden = $0
+            enabled = session.showsHidden
+            update = { [session] in
+                session.setShowsHidden($0)
                 NotificationCenter.default.post(name: .filaPreferencesChanged, object: nil)
             }
         }
@@ -137,10 +142,11 @@ final class AppearanceSettingsViewController: UITableViewController {
     override func tableView(_: UITableView, moveRowAt source: IndexPath, to destination: IndexPath) {
         let preset = presets.remove(at: source.row)
         presets.insert(preset, at: destination.row)
-        preferences.presetOrder = presets
+        do { try session.local.setPresetOrder(presets) }
+        catch { FilaLog.error("preset order not saved: \(error)") }
     }
 
-    private func name(of preset: SidebarLocation.Position) -> String {
+    private func name(of preset: LocalPreset) -> String {
         switch preset {
         case .root:
             if case .local(.container) = FileSession.shared.hello?.backend {

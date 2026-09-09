@@ -28,6 +28,15 @@ public protocol BackendHost: AnyObject {
     /// the user can see them; `log` is for the ordinary startup record.
     func log(_ message: String)
     func warn(_ message: String)
+
+    /// This process's preference domain. A backend scopes its own record
+    /// inside it; processes never share one, and nothing here syncs.
+    var defaults: UserDefaults { get }
+
+    /// The shared Inbox other apps save into, when the app has one. A
+    /// backend that offers it as a place gets the path from here rather
+    /// than knowing about App Groups.
+    var inboxDirectory: String? { get }
 }
 
 /// A module's registrations, collected while `register(with:)` runs and

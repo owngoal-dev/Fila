@@ -19,15 +19,23 @@ public final class FilaLocalModule: NSObject, BackendModule {
 
     public func register(with registration: BackendRegistration) throws {
         registration.backends { resolver in
+            let host = resolver.host
+            let environment = LocalFileBackend.Environment(inboxDirectory: host.inboxDirectory)
+            // The full root keeps the keys the app always wrote; the
+            // container root is a different namespace with its own record.
+            let fullRoot = LocalPreferencesDefaults(defaults: host.defaults)
             if let privileged = resolver.provider(PrivilegedFileAccess.self) {
-                return [LocalFileBackend(access: privileged)]
+                return [LocalFileBackend(access: privileged, storage: fullRoot, environment: environment)]
             }
             let local = LocalFileService()
             switch local.reach {
             case .user:
-                return [LocalFileBackend(access: local)]
+                return [LocalFileBackend(access: local, storage: fullRoot, environment: environment)]
             case .container:
-                return [SandboxedLocalFileBackend(access: local)]
+                let container = UserDefaultsStorage<LocalFilePreferences>(
+                    defaults: host.defaults, key: "wiki.qaq.fila.local.container"
+                )
+                return [SandboxedLocalFileBackend(access: local, storage: container, environment: environment)]
             }
         }
     }

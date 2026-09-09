@@ -1,3 +1,5 @@
+import FilaBackendKit
+import FilaLog
 import Foundation
 
 extension Notification.Name {
@@ -9,50 +11,30 @@ extension Notification.Name {
     static let filaPreferencesChanged = Notification.Name("wiki.qaq.fila.preferences")
 }
 
-enum FileSortKey: String, CaseIterable {
-    case name
-    case date
-    case size
-    case kind
-}
-
-enum BrowserLayout: String, CaseIterable {
-    case list
-    case grid
-}
-
-/// Where the browser opens on launch. `AppPreferences.launchDirectory` resolves it
-/// — the value is a choice, and only `AppPreferences` knows what was last visited.
+/// Where the browser opens on launch. `AppPreferences.launchDirectory` resolves
+/// it — the value is a choice; what was last visited is the local backend's.
 enum LaunchLocation: String, CaseIterable {
     case root
     case home
     case lastVisited
 }
 
-/// Everything the app remembers between launches.
+/// What the app itself remembers between launches: switches that are the
+/// app's policy rather than any one backend's. Bookmarks, history and listing
+/// options belong to the backend they describe — see `LocalFileBackend`.
 ///
 /// `UserDefaults` rather than a store of our own: it is a handful of switches
 /// and a few strings, it has to survive a respring, and nothing here is worth a
-/// file format. Lists are capped so a long session cannot grow the plist
-/// without bound.
+/// file format.
 @MainActor
 final class AppPreferences {
     static let shared = AppPreferences()
-
-    private static let recentLimit = 40
-    /// How many folders may remember their own view. See `layout(for:)`.
-    private static let folderLayoutLimit = 200
 
     private let defaults = UserDefaults.standard
 
     private init() {}
 
     // MARK: - Browsing
-
-    var sortKey: FileSortKey {
-        get { defaults.string(forKey: "sortKey").flatMap(FileSortKey.init) ?? .name }
-        set { defaults.set(newValue.rawValue, forKey: "sortKey") }
-    }
 
     /// The Applications page's own order and scope, separate from the file
     /// list's: an app list sorted by size or date has no meaning.
@@ -66,31 +48,9 @@ final class AppPreferences {
         set { defaults.set(newValue.rawValue, forKey: "appScope") }
     }
 
-    var isAscending: Bool {
-        get { defaults.object(forKey: "sortAscending") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "sortAscending") }
-    }
-
-    /// The view a folder gets when it has no opinion of its own.
-    private var layout: BrowserLayout {
-        get { defaults.string(forKey: "layout").flatMap(BrowserLayout.init) ?? .list }
-        set { defaults.set(newValue.rawValue, forKey: "layout") }
-    }
-
-    var showsHidden: Bool {
-        get { defaults.object(forKey: "showsHidden") as? Bool ?? false }
-        set { defaults.set(newValue, forKey: "showsHidden") }
-    }
-
     var launchLocation: LaunchLocation {
         get { defaults.string(forKey: "launchLocation").flatMap(LaunchLocation.init) ?? .lastVisited }
         set { defaults.set(newValue.rawValue, forKey: "launchLocation") }
-    }
-
-    /// The last visited directory, including when recent history is disabled.
-    var lastDirectory: String {
-        get { defaults.string(forKey: "lastDirectory") ?? "/" }
-        set { defaults.set(newValue, forKey: "lastDirectory") }
     }
 
     /// Where the browser opens.
@@ -101,79 +61,19 @@ final class AppPreferences {
     /// such directory and launching into one the daemon cannot list would look
     /// like the daemon being broken.
     var launchDirectory: String {
-        if case .local(.container) = FileSession.shared.hello?.backend {
+        let session = FileSession.shared
+        if case .local(.container) = session.hello?.backend {
             // A restored external path may have lost its temporary grant.
-            // Start in the app container; explicit navigation can still ask
-            // the backend for other paths and receive the real permission error.
-            return NSHomeDirectory()
+            // Start at the sandboxed backend's own root; explicit navigation
+            // can still ask for other paths and receive the real permission
+            // error.
+            return session.local.rootPath
         }
         switch launchLocation {
-        case .root: return "/"
-        case .home: return FileManager.default.fileExists(atPath: "/var/mobile") ? "/var/mobile" : "/"
-        case .lastVisited: return lastDirectory
+        case .root: return session.local.rootPath
+        case .home: return FileManager.default.fileExists(atPath: "/var/mobile") ? "/var/mobile" : session.local.rootPath
+        case .lastVisited: return session.lastDirectoryPath
         }
-    }
-
-    /// The view for one folder: its own if it has one, the last-used default
-    /// otherwise.
-    ///
-    /// Always per-folder, with no switch. Whether to remember is not a question
-    /// a person has an opinion about — remembering is what every file manager
-    /// does and what the eye expects — and a preference for it was a setting
-    /// about a setting, which is the shape that makes a settings screen long
-    /// without making the app more capable.
-    func layout(for path: String) -> BrowserLayout {
-        folderLayouts[path].flatMap(BrowserLayout.init) ?? layout
-    }
-
-    func setLayout(_ value: BrowserLayout, for path: String) {
-        // The global default follows the most recent choice, so a folder with
-        // no opinion of its own looks like the last one that did.
-        layout = value
-        var map = folderLayouts
-        // ponytail: the map is dropped wholesale when it overflows rather than
-        // evicting least-recently-used, which would need a second structure to
-        // hold the order. The cost of being wrong is that some folders forget
-        // their view; make it an LRU the day anyone notices.
-        if map.count >= Self.folderLayoutLimit {
-            map = [:]
-        }
-        map[path] = value.rawValue
-        defaults.set(map, forKey: "folderLayouts")
-    }
-
-    private var folderLayouts: [String: String] {
-        defaults.dictionary(forKey: "folderLayouts") as? [String: String] ?? [:]
-    }
-
-    // MARK: - Sidebar presets
-
-    var presetOrder: [SidebarLocation.Position] {
-        get {
-            let saved = (defaults.array(forKey: "presetOrder") as? [Int] ?? [])
-                .compactMap(SidebarLocation.Position.init(rawValue:))
-            var seen = Set<SidebarLocation.Position>()
-            return (saved + SidebarLocation.Position.allCases).filter { seen.insert($0).inserted }
-        }
-        set {
-            defaults.set(newValue.map(\.rawValue), forKey: "presetOrder")
-            NotificationCenter.default.post(name: .filaPreferencesChanged, object: nil)
-        }
-    }
-
-    func isPresetEnabled(_ preset: SidebarLocation.Position) -> Bool {
-        !(defaults.array(forKey: "hiddenPresets") as? [Int] ?? []).contains(preset.rawValue)
-    }
-
-    func setPreset(_ preset: SidebarLocation.Position, enabled: Bool) {
-        var hidden = Set(defaults.array(forKey: "hiddenPresets") as? [Int] ?? [])
-        if enabled {
-            hidden.remove(preset.rawValue)
-        } else {
-            hidden.insert(preset.rawValue)
-        }
-        defaults.set(hidden.sorted(), forKey: "hiddenPresets")
-        NotificationCenter.default.post(name: .filaPreferencesChanged, object: nil)
     }
 
     // MARK: - File operations
@@ -310,80 +210,26 @@ final class AppPreferences {
         set { defaults.set(newValue, forKey: "serverBackground") }
     }
 
-    // MARK: - Lists
-
-    var favorites: [String] {
-        get { defaults.stringArray(forKey: "favorites") ?? Self.defaultFavorites }
-        set { store(newValue, forKey: "favorites") }
-    }
-
-    var recents: [String] {
-        get {
-            let files = Set(defaults.stringArray(forKey: "recentFiles") ?? [])
-            return (defaults.stringArray(forKey: "recents") ?? []).filter { !files.contains($0) }
-        }
-        set {
-            defaults.removeObject(forKey: "recentFiles")
-            store(newValue, forKey: "recents")
-        }
-    }
-
-    // Tabs were a `[String]` of paths here. They are `BrowserTabStore` now: a tab has
-    // a history, a scroll position and a selection, none of which fit in a path.
-
-    func toggleFavorite(_ path: String) {
-        var list = favorites
-        if let index = list.firstIndex(of: path) {
-            list.remove(at: index)
-        } else {
-            list.append(path)
-        }
-        favorites = list
-    }
-
-    func isFavorite(_ path: String) -> Bool {
-        favorites.contains(path)
-    }
+    // MARK: - History policy
 
     /// Whether visits are recorded at all. On by default — the list is the
     /// point of having one — but this is a root file manager, so the trail it
     /// leaves is a list of every sensitive directory its user opened, sitting
     /// in a plist any other root process can read. That is a reason to be able
     /// to say no.
+    ///
+    /// One policy for every backend: each records its own history and this
+    /// switch reaches all of them, offline ones included. Turning it off
+    /// clears what is already there — a switch that stops adding but leaves
+    /// the history behind has not done what its label says.
     var recordsRecents: Bool {
         get { defaults.object(forKey: "recordsRecents") as? Bool ?? true }
         set {
             defaults.set(newValue, forKey: "recordsRecents")
-            // Turning it off clears what is already there. A switch that stops
-            // adding but leaves the history behind has not done what its label
-            // says, and here the history is the thing being objected to.
-            if !newValue {
-                recents = []
+            for backend in BackendComposition.fileBackends {
+                do { try backend.setRecordsVisits(newValue) }
+                catch { FilaLog.error("history policy not applied to \(backend.id): \(error)") }
             }
         }
     }
-
-    /// A recent that is gone from disk is dropped, not left to fail again.
-    func forgetRecent(_ path: String) {
-        recents.removeAll { $0 == path }
-    }
-
-    func noteVisit(_ path: String, isDirectory: Bool) {
-        guard recordsRecents, isDirectory else { return }
-        var list = recents
-        list.removeAll { $0 == path }
-        list.insert(path, at: 0)
-        recents = Array(list.prefix(Self.recentLimit))
-    }
-
-    private func store(_ value: [String], forKey key: String) {
-        defaults.set(value, forKey: key)
-        NotificationCenter.default.post(name: .filaSidebarChanged, object: nil)
-    }
-
-    private static let defaultFavorites = [
-        "/var/mobile/Documents",
-        "/var/mobile/Library/Preferences",
-        "/etc",
-    ]
 }

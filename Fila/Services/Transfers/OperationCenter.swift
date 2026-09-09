@@ -7,7 +7,7 @@ extension Notification.Name {
     /// Something the sidebar renders changed: favorites, recents, tabs, or the
     /// operation list. One notification for all of them because the sidebar
     /// rebuilds its whole snapshot anyway.
-    static let filaSidebarChanged = Notification.Name("wiki.qaq.fila.sidebar")
+    static let filaOperationsChanged = Notification.Name("wiki.qaq.fila.sidebar")
 
     /// An operation finished. The notification's object is the `[String]` of
     /// directories it touched; a browser showing one of them reloads.
@@ -471,6 +471,10 @@ final class OperationCenter: ObservableObject {
         operations.remove(at: index)
         place(finished)
         trimFinished()
+        // The browsers learn through their directory subscriptions; the
+        // notification stays for the screens that are not browsers — the
+        // save panel, the File Provider signal, the sidebar's trash probe.
+        session.local.invalidate(finished.affected)
         NotificationCenter.default.post(
             name: .filaJobFinished,
             object: finished.affected,
@@ -542,7 +546,7 @@ final class OperationCenter: ObservableObject {
     }
 
     private func changed() {
-        NotificationCenter.default.post(name: .filaSidebarChanged, object: nil)
+        NotificationCenter.default.post(name: .filaOperationsChanged, object: nil)
     }
 
     // MARK: - Announcing

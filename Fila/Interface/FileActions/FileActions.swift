@@ -30,8 +30,8 @@ final class FileActions {
     /// `/private` prefix, so `/var/jb/.fila-trash` and its realpath agree even
     /// though the app cannot stat the directory itself (root-owned 0700).
     static func isTrash(_ directory: String) -> Bool {
-        guard let backend = FileSession.shared.hello?.backend else { return false }
-        return normalized(directory) == normalized(SidebarLocation.trashDirectory(backend: backend))
+        guard let trash = FileSession.shared.trashDirectory else { return false }
+        return normalized(directory) == normalized(trash)
     }
 
     /// A trashed item: a direct child of the trash, wherever it was reached
@@ -334,6 +334,7 @@ final class FileActions {
                         try await $0.rename(source, to: destination, exclusive: !replacingExisting)
                     }
                 }
+                session.local.invalidate([directory])
                 NotificationCenter.default.post(name: .filaJobFinished, object: [directory])
                 didRemove()
             } catch let failure as FilaFailure where failure.systemError == EEXIST && !replacingExisting {

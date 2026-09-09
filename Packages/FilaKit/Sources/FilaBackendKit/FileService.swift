@@ -284,6 +284,16 @@ public protocol FileService: AnyObject, Sendable {
         to descriptor: Int32,
         progress: @escaping @Sendable (TransferProgress) -> Void
     ) async throws
+
+    /// Invalidation hints for one directory: each element means "list it
+    /// again", nothing more. Observation is installed before this returns
+    /// and the first element arrives at once, so a consumer that awaits an
+    /// element before every listing never has a list-then-subscribe gap.
+    /// Every call is an independent subscription buffering the newest hint;
+    /// bursts coalesce. Cancelling the consuming task removes the
+    /// subscriber, and the last subscriber releases whatever watched the
+    /// directory. A lost connection ends the stream with an error.
+    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error>
 }
 
 /// A backend whose root is a filesystem: what the file browser, bookmarks
@@ -293,4 +303,17 @@ public protocol FileBackend: Backend {
     /// The I/O session for this root. Owns lazy connection and reconnection;
     /// a backend's sidebar data does not require it.
     func fileService() async throws -> any FileService
+
+    /// Bookmarks and history are the backend's, persisted through its own
+    /// storage and reflected in its next sidebar snapshot. `recordVisit` is
+    /// called after a directory was opened for the user, never by
+    /// background enumeration; it does nothing while visits are not being
+    /// recorded.
+    func setFavorite(_ path: ServicePath, included: Bool) throws
+    func recordVisit(_ path: ServicePath) throws
+    func forgetVisit(_ path: ServicePath) throws
+
+    /// The app's one history policy, applied to every backend. Turning it
+    /// off clears what this backend already recorded.
+    func setRecordsVisits(_ enabled: Bool) throws
 }

@@ -259,7 +259,7 @@ final class SearchViewController: UIViewController {
         var names = Set<String>()
         hits = entries.filter {
             names.insert($0.name).inserted
-                && (AppPreferences.shared.showsHidden || !$0.isHidden)
+                && (FileSession.shared.showsHidden || !$0.isHidden)
                 && !query.isEmpty && $0.name.localizedStandardContains(query)
         }.map { FileSearchResult(directory: root, node: $0) }
         apply()

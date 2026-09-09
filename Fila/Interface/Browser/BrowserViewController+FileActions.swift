@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendKit
 import FilaClient
 import FilaProtocol
 import UIKit
@@ -105,15 +106,14 @@ extension BrowserViewController {
     }
 
     func browserMenuElements(folderAction: UIMenuElement, selectAction: UIAction) -> [UIMenuElement] {
-        let preferences = AppPreferences.shared
         let layouts = BrowserLayout.allCases.map { layout in
             UIAction(
                 title: layout == .grid ? String(localized: "Grid") : String(localized: "List"),
                 image: UIImage(systemName: layout == .grid ? "square.grid.2x2" : "list.bullet"),
-                state: preferences.layout(for: directory) == layout ? .on : .off
+                state: session.layout(for: directory) == layout ? .on : .off
             ) { [weak self] _ in
                 guard let self else { return }
-                AppPreferences.shared.setLayout(layout, for: directory)
+                session.setLayout(layout, for: directory)
                 viewPreferenceChanged(relayout: true)
             }
         }
@@ -122,10 +122,10 @@ extension BrowserViewController {
         let hidden = [true, false].map { showsHidden in
             UIAction(
                 title: showsHidden ? String(localized: "Show") : String(localized: "Hide"),
-                state: preferences.showsHidden == showsHidden ? .on : .off
+                state: session.showsHidden == showsHidden ? .on : .off
             ) { [weak self] _ in
                 guard let self else { return }
-                AppPreferences.shared.showsHidden = showsHidden
+                session.setShowsHidden(showsHidden)
                 viewPreferenceChanged(relayout: false)
             }
         }
@@ -151,13 +151,13 @@ extension BrowserViewController {
         let more: [UIMenuElement] = [
             selectAction,
             UIAction(
-                title: preferences.isFavorite(directory)
+                title: session.isFavorite(directory)
                     ? String(localized: "Remove from Favorites")
                     : String(localized: "Add to Favorites"),
-                image: UIImage(systemName: preferences.isFavorite(directory) ? "star.slash" : "star")
+                image: UIImage(systemName: session.isFavorite(directory) ? "star.slash" : "star")
             ) { [weak self] _ in
                 guard let self else { return }
-                AppPreferences.shared.toggleFavorite(directory)
+                session.toggleFavorite(directory)
             },
             UIAction(
                 title: String(localized: "Open in New Tab"),
@@ -189,7 +189,6 @@ extension BrowserViewController {
     }
 
     func sortMenuElements() -> [UIMenuElement] {
-        let preferences = AppPreferences.shared
         let titles: [FileSortKey: String] = [
             .name: String(localized: "Name"),
             .date: String(localized: "Date"),
@@ -199,20 +198,21 @@ extension BrowserViewController {
         let keys = FileSortKey.allCases.map { key in
             UIAction(
                 title: titles[key] ?? key.rawValue,
-                state: preferences.sortKey == key ? .on : .off
+                state: session.sortKey == key ? .on : .off
             ) { [weak self] _ in
-                let preferences = AppPreferences.shared
-                preferences.sortKey = key
-                self?.viewPreferenceChanged(relayout: false)
+                guard let self else { return }
+                session.setSort(key: key, ascending: session.sortAscending)
+                viewPreferenceChanged(relayout: false)
             }
         }
         let directions = [true, false].map { ascending in
             UIAction(
                 title: ascending ? String(localized: "Ascending") : String(localized: "Descending"),
-                state: preferences.isAscending == ascending ? .on : .off
+                state: session.sortAscending == ascending ? .on : .off
             ) { [weak self] _ in
-                AppPreferences.shared.isAscending = ascending
-                self?.viewPreferenceChanged(relayout: false)
+                guard let self else { return }
+                session.setSort(key: session.sortKey, ascending: ascending)
+                viewPreferenceChanged(relayout: false)
             }
         }
         return [

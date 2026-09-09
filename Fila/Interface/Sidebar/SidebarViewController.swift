@@ -1,3 +1,4 @@
+import FilaBackendKit
 import FilaProtocol
 import SnapKit
 import Then
@@ -23,7 +24,7 @@ final class SidebarViewController: UIViewController {
 
     private enum Item: Hashable {
         case header(Section)
-        case place(SidebarLocation)
+        case place(SidebarPlace)
         case favorite(String)
         case apps
         case music
@@ -42,6 +43,7 @@ final class SidebarViewController: UIViewController {
     private var rebuildGeneration = UUID()
     private var isApplyingSnapshot = false
     private var openTask: Task<Void, Never>?
+    private var sidebarTask: Task<Void, Never>?
     private var mounts: [MountPoint] = []
     private var mountTask: Task<Void, Never>?
     /// Whether the trash holds anything, so its row can show a full or empty
@@ -112,6 +114,7 @@ final class SidebarViewController: UIViewController {
         recentImageTask?.cancel()
         openTask?.cancel()
         mountTask?.cancel()
+        sidebarTask?.cancel()
     }
 
     override func viewDidLoad() {
@@ -151,9 +154,18 @@ final class SidebarViewController: UIViewController {
         }
 
         buildDataSource()
-        for name in [Notification.Name.filaSidebarChanged, .filaPreferencesChanged] {
-            NotificationCenter.default.addObserver(self, selector: #selector(rebuild), name: name, object: nil)
+        // The backends say when their contributions change; the
+        // notifications left are the shell's own: operations (the Tasks
+        // button), the Applications setting (a preset row) and finished
+        // jobs (the trash probe).
+        sidebarTask = Task { [weak self] in
+            for await _ in BackendComposition.sidebar.updates() {
+                guard let self, !Task.isCancelled else { return }
+                rebuild()
+            }
         }
+        NotificationCenter.default.addObserver(self, selector: #selector(operationsChanged), name: .filaOperationsChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(rebuild), name: .filaPreferencesChanged, object: nil)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(probeTrash),
@@ -207,10 +219,13 @@ final class SidebarViewController: UIViewController {
         }
     }
 
+    @objc private func operationsChanged() {
+        updateBarButtons()
+    }
+
     /// One page is enough: the question is whether there is anything at all.
     @objc private func probeTrash() {
-        guard let backend = session.hello?.backend else { return }
-        let path = SidebarLocation.trashDirectory(backend: backend)
+        guard let path = session.trashDirectory else { return }
         trashProbe?.cancel()
         trashProbe = Task { [weak self, session] in
             let page = try? await session.perform(retryOnDisconnect: true) {
@@ -318,11 +333,11 @@ final class SidebarViewController: UIViewController {
         // Its completion will restart from the newest preferences.
         guard !isApplyingSnapshot else { return }
         isApplyingSnapshot = true
-        let preferences = AppPreferences.shared
         updateBarButtons()
         // Capped: the sidebar is a shortcut list, not a history browser, and a
         // hundred rows of recents pushes everything else off the screen.
-        let recents = Array(preferences.recents.prefix(8))
+        let recents = session.recentPaths(limit: 8)
+        let favorites = session.favoritePaths
         // Cached names and icons were looked up under the old Applications
         // setting; a container decorated as "Safari" must not stay that way
         // after the setting that allowed it is off.
@@ -330,10 +345,10 @@ final class SidebarViewController: UIViewController {
             recentsDecoratedWithApplications = SystemCapabilities.showsApplications
             recentItems = [:]
         }
-        recentItems = recentItems.filter { recents.contains($0.key) || preferences.favorites.contains($0.key) }
+        recentItems = recentItems.filter { recents.contains($0.key) || favorites.contains($0.key) }
         let sections: [(Section, [Item])] = [
             (.places, presets),
-            (.favorites, preferences.favorites.filter { recentItems[$0]?.isDirectory == true }.map(Item.favorite)),
+            (.favorites, favorites.filter { recentItems[$0]?.isDirectory == true }.map(Item.favorite)),
             (.mounts, mounts.map { Item.mount($0.path) }),
             (.recents, recents.filter { recentItems[$0]?.isDirectory == true }.map(Item.recent)),
         ].filter { !$0.1.isEmpty }
@@ -423,8 +438,7 @@ final class SidebarViewController: UIViewController {
     private func loadRecentImages(refresh: Bool = false) {
         recentImageTask?.cancel()
         guard !isApplyingSnapshot, viewIfLoaded?.window != nil else { return }
-        let preferences = AppPreferences.shared
-        let paths = (preferences.favorites + Array(preferences.recents.prefix(8)))
+        let paths = (session.favoritePaths + session.recentPaths(limit: 8))
             .filter { refresh || recentItems[$0] == nil }
         guard !paths.isEmpty else { return }
         recentImageTask = Task { [weak self, session] in
@@ -463,7 +477,7 @@ final class SidebarViewController: UIViewController {
                 if details.node.isNavigable {
                     shell.open(path)
                 } else {
-                    AppPreferences.shared.forgetRecent(path)
+                    session.forgetVisit(path)
                 }
             } catch let failure as FilaFailure {
                 guard let self, !Task.isCancelled, self.viewIfLoaded?.window != nil,
@@ -471,7 +485,7 @@ final class SidebarViewController: UIViewController {
                 // A recent that no longer exists is not worth an alert, and
                 // not worth keeping: the entry goes, the sidebar rebuilds.
                 if failure.code == .notFound || failure.systemError == ENOENT {
-                    AppPreferences.shared.forgetRecent(path)
+                    session.forgetVisit(path)
                     Toast.show(String(localized: "Removed from Recents"))
                     return
                 }
@@ -501,8 +515,8 @@ final class SidebarViewController: UIViewController {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return nil }
         switch item {
         case let .favorite(path):
-            let remove = UIContextualAction(style: .destructive, title: String(localized: "Remove")) { _, _, done in
-                AppPreferences.shared.toggleFavorite(path)
+            let remove = UIContextualAction(style: .destructive, title: String(localized: "Remove")) { [session] _, _, done in
+                session.toggleFavorite(path)
                 done(true)
             }
             return UISwipeActionsConfiguration(actions: [remove])

@@ -70,4 +70,13 @@ public struct BackendRoot: Equatable, Sendable {
 public protocol Backend: AnyObject {
     var id: BackendID { get }
     var root: BackendRoot { get }
+
+    /// This backend's sidebar contribution, as a stream of complete
+    /// snapshots: the current one immediately, then a replacement whenever
+    /// its preferences or its derived locations change. Every call is an
+    /// independent subscription buffering only the newest snapshot, so a
+    /// slow reader skips intermediate states and never a final one. The
+    /// stream survives a lost connection; only removal of the backend ends
+    /// it.
+    func sidebarUpdates() -> AsyncStream<BackendSidebar>
 }

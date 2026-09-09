@@ -12,21 +12,41 @@ import Foundation
 final class LocalFileServiceAdapter: FileService, @unchecked Sendable {
     private let access: any LocalFileAccess
     private let rootPath: String
+    private let observation: DirectoryObservation
 
     /// Bytes per `read(2)`/`write(2)` in `copyContents`. Large enough that a
     /// multi-gigabyte copy is not a syscall storm, small enough that
     /// cancellation is answered promptly and the buffer is not worth noticing.
     static let chunkSize = 1 << 20
 
-    init(access: any LocalFileAccess, rootPath: String) {
+    init(access: any LocalFileAccess, rootPath: String, observation: DirectoryObservation) {
         self.access = access
         self.rootPath = rootPath
+        self.observation = observation
     }
 
     func absolutePath(_ path: ServicePath) -> String {
         guard !path.isRoot else { return rootPath }
         let base = rootPath == "/" ? "" : rootPath
         return base + "/" + path.components.joined(separator: "/")
+    }
+
+    /// The inverse, lexically: nil for a path outside the root, or one that
+    /// is not a path.
+    func servicePath(forAbsolute absolute: String) -> ServicePath? {
+        if rootPath == "/" {
+            return try? ServicePath(absolute)
+        }
+        guard absolute == rootPath || absolute.hasPrefix(rootPath + "/") else { return nil }
+        return try? ServicePath(String(absolute.dropFirst(rootPath.count)))
+    }
+
+    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> {
+        let access = access
+        let path = absolutePath(directory)
+        return await observation.subscribe(path) {
+            try await access.details(of: path).node.modified
+        }
     }
 
     func list(_ directory: ServicePath) async throws -> FileListing {
