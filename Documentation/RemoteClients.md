@@ -1,6 +1,6 @@
 # Extensible backends, UI and SMB/FTP clients
 
-2026-09-09 — agreed architecture with implementation details to verify. The executable phase plan is [PLAN.md](../PLAN.md). No runtime interface, dependency or XPC operation has been implemented. Library observations describe inspected upstream sources, not a pinned or tested build.
+2026-09-09 — agreed architecture with implementation details to verify. The executable phase plan is [BackendModularisation-Plan.md](BackendModularisation-Plan.md). No runtime interface, dependency or XPC operation has been implemented. Library observations describe inspected upstream sources, not a pinned or tested build.
 
 ## Decisions
 

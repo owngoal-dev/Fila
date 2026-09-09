@@ -307,7 +307,7 @@ verification, a sandboxed Applications row — live in `Roadmap.md`.
 
 **Design under review, not implemented.** The full contract, migration and
 proof plan lives in [RemoteClients.md](RemoteClients.md); the agreed execution
-sequence and acceptance gates are in [PLAN.md](../PLAN.md). The selected remote
+sequence and acceptance gates are in [BackendModularisation-Plan.md](BackendModularisation-Plan.md). The selected remote
 libraries are the MIT-licensed `kishikawakatsumi/SMBClient` and permissively
 licensed libcurl; remote networking stays in the app.
 

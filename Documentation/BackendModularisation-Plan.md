@@ -2,7 +2,7 @@
 
 状态：设计已对齐，待实施。2026-09-09。
 
-本文件是执行顺序与验收清单；[RemoteClients.md](Documentation/RemoteClients.md) 是接口与行为设计，[Architecture.md](Documentation/Architecture.md) 记录架构边界。此轮不实现运行时代码，也不创建 target、添加依赖或发布构建。
+本文件是执行顺序与验收清单；[RemoteClients.md](RemoteClients.md) 是接口与行为设计，[Architecture.md](Architecture.md) 记录架构边界。此轮不实现运行时代码，也不创建 target、添加依赖或发布构建。
 
 ## 已确认范围
 
