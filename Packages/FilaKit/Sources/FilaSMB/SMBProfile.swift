@@ -40,7 +40,10 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
         self.username = username
     }
 
-    public var isGuest: Bool { username?.isEmpty != false }
+    /// No account at all. An empty `username` is an account whose name
+    /// has not been typed yet — the setup screen's account mode — and is
+    /// refused by `validationFailure` rather than silently sent as guest.
+    public var isGuest: Bool { username == nil }
 
     /// The name the sidebar shows: the user's, or `share on host`.
     public var displayName: String {
@@ -74,6 +77,7 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
         guard (1 ... 65535).contains(port) else { return .portInvalid }
         if share.trimmingCharacters(in: .whitespaces).isEmpty { return .shareMissing }
         if share.contains(where: { $0 == "/" || $0 == "\\" }) { return .shareInvalid }
+        if let username, username.trimmingCharacters(in: .whitespaces).isEmpty { return .usernameMissing }
         return nil
     }
 
@@ -83,6 +87,7 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
         case portInvalid
         case shareMissing
         case shareInvalid
+        case usernameMissing
     }
 }
 

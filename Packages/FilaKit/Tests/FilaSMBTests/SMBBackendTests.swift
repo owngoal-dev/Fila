@@ -31,7 +31,10 @@ struct SMBProfileTests {
         #expect(SMBProfile(name: "", host: "h", port: 0, share: "x").validationFailure == .portInvalid)
         #expect(SMBProfile(name: "", host: "h", share: " ").validationFailure == .shareMissing)
         #expect(SMBProfile(name: "", host: "h", share: "a\\b").validationFailure == .shareInvalid)
+        #expect(SMBProfile(name: "", host: "h", share: "x", username: " ").validationFailure == .usernameMissing)
         #expect(SMBProfile(name: "", host: "h", share: "x").validationFailure == nil)
+        #expect(SMBProfile(name: "", host: "h", share: "x").isGuest)
+        #expect(!SMBProfile(name: "", host: "h", share: "x", username: "").isGuest)
     }
 
     @Test("Display name falls back to share and host")

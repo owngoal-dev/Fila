@@ -36,9 +36,12 @@ public final class SMBProfileStore {
 
     /// Adds or replaces `profile` by id, then stores `password` when one
     /// was given. `.some(nil)` clears the stored password — a share turned
-    /// into a guest one — and `nil` leaves it alone.
+    /// into a guest one — and `nil` leaves it alone. A keychain that
+    /// refuses the password puts the record back as it was, so a share is
+    /// never saved without the password it was given.
     public func save(_ profile: SMBProfile, password: String?? = nil) throws {
         if let loadFailure { throw loadFailure }
+        let previous = profiles
         var next = profiles
         if let index = next.firstIndex(where: { $0.id == profile.id }) {
             next[index] = profile
@@ -48,7 +51,14 @@ public final class SMBProfileStore {
         try storage.save(SMBProfileList(profiles: next))
         profiles = next
         if let password {
-            try credentials.setSecret(password, for: profile.credentialKey)
+            do {
+                try credentials.setSecret(password, for: profile.credentialKey)
+            } catch {
+                if (try? storage.save(SMBProfileList(profiles: previous))) != nil {
+                    profiles = previous
+                }
+                throw error
+            }
         }
     }
 

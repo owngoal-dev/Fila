@@ -316,4 +316,9 @@ public protocol FileBackend: Backend {
     /// The app's one history policy, applied to every backend. Turning it
     /// off clears what this backend already recorded.
     func setRecordsVisits(_ enabled: Bool) throws
+
+    /// No directory polling while the app is not on screen; resuming
+    /// hints every open browser once, because anything may have happened.
+    /// The shell calls this on every file backend when it backgrounds.
+    func setObservationPaused(_ paused: Bool)
 }

@@ -73,7 +73,8 @@ class ExtractedStringsTests(unittest.TestCase):
         (directory / "Source.stringsdata").rename(directory / "GeneratedStringSymbols_Localizable.stringsdata")
         result = self.run_check()
         self.assertEqual(result.returncode, 65)
-        self.assertIn("no FilaTerminal source extracts", result.stderr)
+        # populate() returns the last target's directory, whichever it is.
+        self.assertIn(f"no {checker.TARGETS[-1][0]} source extracts", result.stderr)
 
     def test_missing_catalogue_key_fails(self):
         directory = self.populate()

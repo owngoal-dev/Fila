@@ -26,7 +26,6 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
 
     public let backend: any FileBackend
     public let path: ServicePath
-    private var service: (any FileService)?
     private var visitRecorded = false
     private var truncationReported = false
     private var snapshotTask: Task<Void, Never>?
@@ -121,11 +120,12 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
     override public func load() -> AsyncThrowingStream<[FileEntry], Error> {
         let backend = backend
         let path = path
+        // Nothing of the screen is captured: a listing in flight after a
+        // pop must not keep it alive while its cursor is torn down.
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     let service = try await backend.fileService()
-                    await MainActor.run { self.service = service }
                     for try await batch in try await service.list(path) {
                         try Task.checkCancellation()
                         continuation.yield(batch)

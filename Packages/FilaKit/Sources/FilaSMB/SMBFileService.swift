@@ -22,7 +22,9 @@ public final class SMBFileService: FileService, @unchecked Sendable {
     /// What `changes(in:)` polls through. Main-actor, as every observation
     /// owner is: the subscriptions are UI state.
     public let observation: RemoteDirectoryObservation
-    private var lostHandler: UUID?
+    /// The session-loss handler's token; the connection owns the
+    /// installed-once state, so this class carries no mutable state.
+    private let lostHandlerToken = UUID()
 
     init(connection: SMBConnection, observation: RemoteDirectoryObservation) {
         self.connection = connection
@@ -56,9 +58,8 @@ public final class SMBFileService: FileService, @unchecked Sendable {
     /// Starts watching the session: a lost session ends every change
     /// stream so its subscribers list again on a fresh one. Idempotent.
     func installObservation() async {
-        guard lostHandler == nil else { return }
         let observation = observation
-        lostHandler = await connection.onSessionLost { reason in
+        await connection.installLostHandler(lostHandlerToken) { reason in
             Task { @MainActor in observation.finishAll(throwing: reason) }
         }
     }
@@ -169,13 +170,7 @@ public final class SMBFileService: FileService, @unchecked Sendable {
     }
 
     private func close(_ handle: SMBConnection.Handle) async {
-        do {
-            _ = try await connection.perform("close", on: handle) { client in
-                try await client.session.close(fileId: handle.fileId)
-            }
-        } catch {
-            // A handle on a retired session is already closed.
-        }
+        await connection.closeHandle(handle)
     }
 
     /// The wire form of `path`: components joined with `\`, empty at the
@@ -275,13 +270,7 @@ actor ListingCursor {
         finished = true
         guard let handle else { return }
         self.handle = nil
-        do {
-            _ = try await connection.perform("close", on: handle) { client in
-                try await client.session.close(fileId: handle.fileId)
-            }
-        } catch {
-            // A handle on a retired session is already closed.
-        }
+        await connection.closeHandle(handle)
     }
 
     private func open() async throws -> SMBConnection.Handle {

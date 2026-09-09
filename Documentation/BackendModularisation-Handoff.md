@@ -207,7 +207,36 @@ What Phase 6 settled:
 
 Reviewed with `/code-review` on Opus (the forked skill runs on the session's
 model, so the review was run as an Opus agent by hand). `/code-clarity` is
-not installed on this machine.
+not installed on this machine. The review's findings and what was done:
+
+- The guest switch could not be turned off: `SMBProfile.isGuest` counted an
+  empty user name as guest, so account mode snapped back. Now only a nil
+  user name is guest, an empty one is `ValidationFailure.usernameMissing`,
+  and the wire rule (`SMBConnection.Configuration.isGuest`) is unchanged.
+- Every AlertController card in the setup screen resolved its
+  `String.LocalizationValue` against the app bundle and would have shown
+  English. The cards now take strings resolved with `bundle:` first, the
+  way `MusicTrackViewController` does. No check can catch this class of
+  bug: the keys extract and match, they only resolve against the wrong
+  bundle at runtime.
+- A cancelled transfer or listing skipped its CLOSE, since `perform`
+  checks cancellation first. `SMBConnection.closeHandle` runs the close in
+  a detached task so cleanup happens whatever the caller's state.
+- The disconnect handler captured its own client strongly through the
+  client's stored closure; every retired session leaked. Weak now.
+- SMB polling was never paused on background: `setObservationPaused` is a
+  `FileBackend` requirement and the app delegate walks every file backend.
+- `FileServiceBrowserViewController.service` was dead and kept the screen
+  alive through the listing task. Removed.
+- A re-identified share was removed before the new one was written; the
+  order is now write, register, then remove. `SMBProfileStore.save` puts
+  the record back when the keychain refuses the password.
+- `SMBFileService`'s handler-installed flag moved into the actor
+  (`installLostHandler(token:)`), so the `@unchecked Sendable` class holds
+  no mutable state.
+- Left as is: a share name in the *Choose Share* card is looked up as a
+  localization key by the package's `String` overload. Cosmetic, and the
+  package offers no non-localizing path.
 
 Verified: `make check`; `make harness` (458 tests, including 14 unit tests
 for the SMB package and 5 for the observer); the live suite

@@ -96,13 +96,16 @@ public final class FilaSMBModule: NSObject, BackendModule {
             await previous.update(profile: profile)
             return previous
         }
-        if let previous {
-            try remove(previous.id)
-        }
+        // The new identity is written and live before the old one goes:
+        // a store that refuses the write leaves the user with the share
+        // they had, never with neither.
         try store.save(profile, password: password)
         let backend = makeBackend(profile, host: host)
         try host.addBackend(backend) { [weak self] location in self?.screen(for: location) }
         backends[backend.id] = backend
+        if let previous {
+            try remove(previous.id)
+        }
         return backend
     }
 

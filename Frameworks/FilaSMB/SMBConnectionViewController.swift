@@ -205,38 +205,48 @@ final class SMBConnectionViewController: UITableViewController {
 
     // MARK: - Editing
 
+    /// AlertController resolves a `String.LocalizationValue` against the
+    /// app's bundle, where none of this module's strings live, so every
+    /// card here is given text already resolved from the module's own
+    /// catalogue.
     private func edit(_ row: Row) {
-        let title: String.LocalizationValue
-        let message: String.LocalizationValue
+        let title: String
+        let message: String
         let value: String
         switch row {
         case .host:
-            title = "Address"
-            message = "The server's host name or IP address."
+            title = String(localized: "Address", bundle: bundle)
+            message = String(localized: "The server's host name or IP address.", bundle: bundle)
             value = profile.host
         case .port:
-            title = "Port"
-            message = "445 unless the server says otherwise."
+            title = String(localized: "Port", bundle: bundle)
+            message = String(localized: "445 unless the server says otherwise.", bundle: bundle)
             value = String(profile.port)
         case .share:
-            title = "Share"
-            message = "The name of the shared folder on the server."
+            title = String(localized: "Share", bundle: bundle)
+            message = String(localized: "The name of the shared folder on the server.", bundle: bundle)
             value = profile.share
         case .domain:
-            title = "Domain"
-            message = "The account's domain or workgroup. Leave it empty unless the server needs one."
+            title = String(localized: "Domain", bundle: bundle)
+            message = String(
+                localized: "The account's domain or workgroup. Leave it empty unless the server needs one.",
+                bundle: bundle
+            )
             value = profile.domain ?? ""
         case .username:
-            title = "User Name"
-            message = "The account the server knows."
+            title = String(localized: "User Name", bundle: bundle)
+            message = String(localized: "The account the server knows.", bundle: bundle)
             value = profile.username ?? ""
         case .password:
-            title = "Password"
-            message = "The account's password. It is kept in the keychain."
+            title = String(localized: "Password", bundle: bundle)
+            message = String(localized: "The account's password. It is kept in the keychain.", bundle: bundle)
             value = ""
         case .name:
-            title = "Name"
-            message = "How the sidebar lists this share. Leave it empty to use the share and server."
+            title = String(localized: "Name", bundle: bundle)
+            message = String(
+                localized: "How the sidebar lists this share. Leave it empty to use the share and server.",
+                bundle: bundle
+            )
             value = profile.name
         case .chooseShare, .guest:
             return
@@ -244,9 +254,10 @@ final class SMBConnectionViewController: UITableViewController {
         let alert = AlertInputViewController(
             title: title,
             message: message,
-            placeholder: .noPlaceholder,
+            placeholder: "",
             text: value,
-            doneButtonText: String.LocalizationValue("Done")
+            cancelButtonText: String(localized: "Cancel", bundle: bundle),
+            doneButtonText: String(localized: "Done", bundle: bundle)
         ) { [weak self] text in
             guard let self else { return }
             let trimmed = text.trimmingCharacters(in: .whitespaces)
@@ -296,12 +307,19 @@ final class SMBConnectionViewController: UITableViewController {
 
     private func shareChoice(_ shares: [String]) -> UIViewController {
         AlertViewController(
-            title: String.LocalizationValue("Choose Share"),
+            title: String(localized: "Choose Share", bundle: bundle),
             message: shares.isEmpty
-                ? String.LocalizationValue("The server lists no disk shares for this account. Type the share's name instead.")
-                : String.LocalizationValue("The disk shares the server offers this account.")
+                ? String(
+                    localized: "The server lists no disk shares for this account. Type the share's name instead.",
+                    bundle: bundle
+                )
+                : String(localized: "The disk shares the server offers this account.", bundle: bundle)
         ) { [weak self] context in
             for share in shares.prefix(24) {
+                // The card looks a plain string up as a key; a share the
+                // server happened to call "Cancel" would be rendered as the
+                // app's word for it. Cosmetic, and the package offers no
+                // way around it.
                 context.addAction(title: share) {
                     context.dispose {
                         self?.profile.share = share
@@ -310,7 +328,7 @@ final class SMBConnectionViewController: UITableViewController {
                     }
                 }
             }
-            context.addAction(title: String.LocalizationValue("Cancel")) {
+            context.addAction(title: String(localized: "Cancel", bundle: SMBBackend.bundle)) {
                 context.dispose()
             }
         }
@@ -362,14 +380,18 @@ final class SMBConnectionViewController: UITableViewController {
 
     private func offerSavingUnreached(_ saving: SMBProfile, error: Error) {
         let reason = BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
+        let bundle = bundle
         let alert = AlertViewController(
-            title: String.LocalizationValue("Could Not Connect"),
-            message: String.LocalizationValue("\(reason)\n\nSave the share anyway? It can be opened later once the server answers.")
+            title: String(localized: "Could Not Connect", bundle: bundle),
+            message: String(
+                localized: "\(reason)\n\nSave the share anyway? It can be opened later once the server answers.",
+                bundle: bundle
+            )
         ) { [weak self] context in
-            context.addAction(title: String.LocalizationValue("Cancel")) {
+            context.addAction(title: String(localized: "Cancel", bundle: bundle)) {
                 context.dispose()
             }
-            context.addAction(title: String.LocalizationValue("Save Anyway"), attribute: .accent) {
+            context.addAction(title: String(localized: "Save Anyway", bundle: bundle), attribute: .accent) {
                 context.dispose {
                     Task { @MainActor in await self?.commit(saving) }
                 }

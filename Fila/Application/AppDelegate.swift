@@ -1,4 +1,5 @@
 import AlertController
+import FilaBackendKit
 import FilaBackendUI
 import FilaLog
 import FilaTerminal
@@ -58,11 +59,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     /// No directory polling while nothing is on screen; coming back hints
     /// every open browser once, because anything may have happened.
     func applicationDidEnterBackground(_: UIApplication) {
-        FileSession.shared.local.setObservationPaused(true)
+        for backend in BackendComposition.fileBackends {
+            backend.setObservationPaused(true)
+        }
     }
 
     func applicationWillEnterForeground(_: UIApplication) {
-        FileSession.shared.local.setObservationPaused(false)
+        for backend in BackendComposition.fileBackends {
+            backend.setObservationPaused(false)
+        }
     }
 
     func applicationWillTerminate(_: UIApplication) {

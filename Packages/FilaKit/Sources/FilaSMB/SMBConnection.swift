@@ -69,8 +69,31 @@ actor SMBConnection {
         return token
     }
 
+    /// `onSessionLost` under a caller-owned token, installed once: a
+    /// second call with the same token keeps the first handler, so an
+    /// owner needs no state of its own to make the installation idempotent.
+    func installLostHandler(_ token: UUID, _ handler: @escaping @Sendable (SMBError) -> Void) {
+        guard lostHandlers[token] == nil else { return }
+        lostHandlers[token] = handler
+    }
+
     func removeLostHandler(_ token: UUID) {
         lostHandlers[token] = nil
+    }
+
+    /// Closes `handle` on the server whatever the caller's cancellation
+    /// state. A close is cleanup: the transfer or listing that was
+    /// cancelled must not leave its handle open for the life of the
+    /// session, so the request runs in a task of its own that inherits no
+    /// cancellation, and the caller waits for it. A handle on a retired
+    /// session is already closed and fails silently.
+    nonisolated func closeHandle(_ handle: Handle) async {
+        let close = Task.detached { [self] in
+            _ = try await self.perform("close", on: handle) { client in
+                try await client.session.close(fileId: handle.fileId)
+            }
+        }
+        _ = try? await close.value
     }
 
     /// Closes the session, if any, and tells nobody: what the owner does
@@ -141,7 +164,10 @@ actor SMBConnection {
                 throw error
             }
         }
-        client.onDisconnected = { [weak self] error in
+        // The handler is stored on the client itself, so a strong capture
+        // of `client` would keep every retired session alive for good.
+        client.onDisconnected = { [weak self, weak client] error in
+            guard let client else { return }
             Task { await self?.sessionDropped(client, error: error) }
         }
         self.client = client
