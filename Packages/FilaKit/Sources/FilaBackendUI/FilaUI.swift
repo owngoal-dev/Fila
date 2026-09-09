@@ -10,6 +10,11 @@ public enum FilaUI {
         public static let small: CGFloat = 8
         public static let medium: CGFloat = 12
         public static let large: CGFloat = 16
+        /// The room after a settings list's last card, and on both sides
+        /// of the branding line under the main page: the same above as
+        /// below, so the line sits in its own space rather than hanging
+        /// off the last card.
+        public static let settingsTail: CGFloat = 128
     }
 
     public static let minimumTapTarget: CGFloat = 44

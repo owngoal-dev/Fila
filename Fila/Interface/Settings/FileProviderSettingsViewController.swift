@@ -26,7 +26,7 @@ final class FileProviderSettingsViewController: UITableViewController {
         super.viewDidLoad()
         title = String(localized: "Files App Folder")
         navigationItem.backButtonDisplayMode = .minimal
-        tableView.contentInset.bottom = SettingsFooter.spacing
+        tableView.contentInset.bottom = FilaUI.Spacing.settingsTail
         tableView.do {
             $0.estimatedRowHeight = FilaUI.minimumTapTarget
             $0.rowHeight = UITableView.automaticDimension

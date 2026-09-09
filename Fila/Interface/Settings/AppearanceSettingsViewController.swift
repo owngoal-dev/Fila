@@ -51,7 +51,7 @@ final class AppearanceSettingsViewController: UITableViewController {
             $0.rowHeight = UITableView.automaticDimension
             $0.estimatedRowHeight = FilaUI.minimumTapTarget
             $0.allowsSelection = false
-            $0.contentInset.bottom = SettingsFooter.spacing
+            $0.contentInset.bottom = FilaUI.Spacing.settingsTail
         }
         setEditing(true, animated: false)
     }

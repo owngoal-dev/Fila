@@ -662,7 +662,11 @@ older systems, use five ordinary buttons separated by equal flexible spaces.
 `presentAsSheet` or `presentAsFormSheet` in `UIViewController+Sheet.swift`
 and never set a `preferredContentSize` on a sheet of your own: settings, a
 server's setup, the compress form and the pickers are one size, so a sheet
-replacing another does not step. Popovers keep their own size.
+replacing another does not step. The size is applied once, to the presented
+navigation controller, at the moment of presentation — never in a screen's
+initializer and never on a pushed subpage, because a child that changes its
+content size mid-push makes the sheet resize under the transition. Popovers
+keep their own size.
 
 ### The sidebar: pictures, never symbols, and no forms
 

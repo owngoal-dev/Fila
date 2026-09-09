@@ -134,9 +134,12 @@ final class SidebarViewController: UIViewController {
             guard let self, let sections = dataSource?.snapshot().sectionIdentifiers,
                   sections.indices.contains(section) else { return nil }
             let identifier = sections[section]
-            let configuration = UICollectionLayoutListConfiguration(
-                appearance: environment.traitCollection.horizontalSizeClass == .regular ? .sidebar : .insetGrouped
-            ).with {
+            // Inset grouped at every width: the same cards in the iPad
+            // column as in the phone's sheet, and UIKit's own grouped-cell
+            // background — which follows the card's corners when a row is
+            // highlighted, on iOS 18 as on 26 — rather than a hand-painted
+            // one that does not.
+            let configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped).with {
                 $0.headerMode = identifier.title == nil ? .none : .firstItemInSection
                 $0.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
                     self?.swipeActions(at: indexPath)
@@ -254,13 +257,6 @@ final class SidebarViewController: UIViewController {
     private func buildDataSource() {
         let row = UICollectionView.CellRegistration<IconRowCell, Item> { [weak self] cell, _, item in
             self?.configure(cell, for: item)
-            cell.configurationUpdateHandler = { cell, state in
-                var background = UIBackgroundConfiguration.listSidebarCell().updated(for: state)
-                background.backgroundColorTransformer = nil
-                background.backgroundColor = state.isSelected || state.isHighlighted
-                    ? UIColor.systemGray.withAlphaComponent(0.1) : .secondarySystemGroupedBackground
-                cell.backgroundConfiguration = background
-            }
         }
         let header = UICollectionView.CellRegistration<UICollectionViewListCell, Section> { cell, _, section in
             var content = UIListContentConfiguration.sidebarHeader()
@@ -277,9 +273,11 @@ final class SidebarViewController: UIViewController {
         }
     }
 
+    /// Every row is one line — a name beside its picture — so the list
+    /// reads at one rhythm. A recent's path is in its context menu and on
+    /// the screen it opens; the sidebar is not where it is read.
     private func configure(_ cell: IconRowCell, for item: Item) {
         var name: String
-        var detail: String?
         var image: UIImage?
         var color: UIColor = .label
         switch item {
@@ -294,7 +292,6 @@ final class SidebarViewController: UIViewController {
             }
         case let .favorite(path), let .recent(path):
             name = path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
-            detail = path
             image = recentItems[path]?.image ?? FilePresentation.image(kind: .directory, name: name)
             if let displayName = recentItems[path]?.name {
                 name = displayName
@@ -303,7 +300,7 @@ final class SidebarViewController: UIViewController {
         case let .mount(path):
             guard let mount = mounts.first(where: { $0.path == path }) else { return }
             name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
-            detail = mount.isReadOnly ? [path, String(localized: "Read Only")].joined(separator: " · ") : path
+            if mount.isReadOnly { name += " · " + String(localized: "Read Only") }
             image = UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal)
         case let .catalog(id):
             guard let root = BackendComposition.registry.backend(id)?.root else { return }
@@ -314,7 +311,7 @@ final class SidebarViewController: UIViewController {
             name = root.displayName
             image = SidebarLocation.image(for: root)
         }
-        cell.configure(name: name, detail: detail, image: image, nameColor: color, tintColor: .tintColor)
+        cell.configure(name: name, image: image, nameColor: color, tintColor: .tintColor)
         if case .favorite = item {
             cell.showFavoriteBadge()
         }

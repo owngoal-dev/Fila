@@ -1,3 +1,4 @@
+import FilaBackendUI
 import FilaClient
 import FilaProtocol
 import SnapKit
@@ -80,7 +81,9 @@ final class SettingsViewController: UIViewController {
             collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
         )
         collectionView.delegate = self
-        collectionView.contentInset.bottom = SettingsFooter.spacing
+        if page != .main {
+            collectionView.contentInset.bottom = FilaUI.Spacing.settingsTail
+        }
         view.addSubview(collectionView)
         collectionView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -124,7 +127,11 @@ final class SettingsViewController: UIViewController {
                 content.text = "OwnGoal Studio × AI"
                 content.textProperties.alignment = .center
                 content.textProperties.color = .tertiaryLabel
-                content.directionalLayoutMargins.top = SettingsFooter.spacing
+                // The same room above and below: the line is the end of
+                // the page, and the page's own bottom inset is left off
+                // so the two do not add up under it.
+                content.directionalLayoutMargins.top = FilaUI.Spacing.settingsTail
+                content.directionalLayoutMargins.bottom = FilaUI.Spacing.settingsTail
             }
             view.contentConfiguration = content
         }
