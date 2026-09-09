@@ -436,12 +436,17 @@ sentence. The same script fails on a missing or `""` message.
   with the runtime root, which is a sealed read-only volume, so no launchd job
   can ever point at our binary and the Mach service is never registered.
 
-  The simulator is nevertheless a real test surface, because the app falls back
-  to the in-process backend after the grace period and then browses the Mac's
-  own filesystem — listing, viewers, properties, search, the whole shell. What
-  it does **not** exercise is anything privileged: the XPC hop, the
-  authenticator, the daemon's guard, a descriptor opened as root. Use it for
-  everything visual and then prove the privileged half on the vphone.
+  The simulator is nevertheless a real test surface, and what it stands in for
+  is the sandboxed `.ipa`: `LocalFileService.processReach` is pinned to
+  `.container` under `targetEnvironment(simulator)`, so **both compositions
+  run the sandboxed local backend there** and browse the simulated app's own
+  Documents directory — listing, viewers, properties, search, the whole shell,
+  over the same root a sideloaded copy has. The simulator process itself is
+  not sandboxed and could read the Mac's filesystem, but no wrapper of this
+  app ever runs in that shape, so it is not offered. What the simulator does
+  **not** exercise is anything privileged: the XPC hop, the authenticator, the
+  daemon's guard, a descriptor opened as root, the full filesystem root. Use
+  it for everything visual and then prove the privileged half on the vphone.
 
   There used to be a Mac Catalyst build here — `make mac` — and it was the one
   place the real daemon ran off-device. It is gone, deliberately: this is not
@@ -455,18 +460,38 @@ sentence. The same script fails on a missing or `""` message.
   Path helper: `make print-deb-path [FLAVOR=rootless]`.
 - `make tipa` / `make ipa` — the app alone, no `filad`, packaged as
   `Payload/Fila.app` by `Scripts/package-ipa.sh` and checked by
-  `Scripts/verify-ipa.sh`. The `.tipa` is ad-hoc signed with the same
-  `Packaging/Fila.entitlements` as the deb (TrollStore applies what it finds
-  embedded); the `.ipa` carries **only the configured standard App Group**
-  entitlement. The user approved this shared-container workflow: the sideloading
-  tool must provision the same `APP_GROUP_IDENTIFIER` for the app and embedded
-  File Provider when re-signing. Jailbreak/private entitlements stay excluded
+  `Scripts/verify-ipa.sh`. The `.tipa` is the full `Fila` target, ad-hoc
+  signed with the same `Packaging/Fila.entitlements` as the deb (TrollStore
+  applies what it finds embedded). The `.ipa` is the **`FilaSandboxed`**
+  target — `make build-sandboxed`, its own DerivedData beside the full one,
+  and **no build-number bump of its own**, so it carries the number the last
+  full build took and never moves `Configuration/` out from under that
+  build's receipt — and carries **only the configured standard App Group**
+  entitlement. The
+  user approved this shared-container workflow: the sideloading tool must
+  provision the same `APP_GROUP_IDENTIFIER` for the app and embedded File
+  Provider when re-signing. Jailbreak/private entitlements stay excluded
   from the ordinary IPA and from the File Provider extension.
   Path helpers: `make print-tipa-path`, `make print-ipa-path`.
-- `make packages` (`make all`) — all four in one go.
-- **One app, four wrappers — and the backend is resolved at runtime, never at
-  build time.** Never add a build flag, a compilation condition, or a
-  per-packaging source variant to tell the four apart.
+- `make packages` (`make all`) — all four in one go: the full build, then the
+  sandboxed build at the same build number, then every wrapper.
+- **One shell, two compositions — and within a composition the backend is
+  resolved at runtime, never at build time.** `Fila` and `FilaSandboxed` are
+  two app targets over the same `Fila/` sources and the same shared
+  frameworks; what differs is the link line. `Fila` links and embeds every
+  module framework (`FilaLocal`, `FilaPrivileged`, `FilaApplications`,
+  `FilaMusicLibrary`) as `-needed_framework` startup dependencies and serves
+  the `.deb` and the `.tipa`; `FilaSandboxed` links `FilaLocal` alone and
+  serves the `.ipa`, so the archive a free developer account re-signs
+  contains no private API. Never add a build flag, a compilation condition
+  or a per-packaging source variant to tell wrappers apart: a module that is
+  not linked is not registered, and a screen that is not registered is not
+  offered. The one platform condition is the simulator's container pin in
+  `LocalFileService.processReach`, which is about where the process runs,
+  not which wrapper it is. `Scripts/verify-composition.sh` reads the
+  composition back out of every packaged bundle — frameworks, load
+  commands, and the class and private-framework strings of the excluded
+  modules — and both packagers fail on the wrong one.
 
   `DaemonLink` holds two services — `DaemonFileService` over XPC and
   `LocalFileService` calling `FilaFileOps` in this process — and chooses once,

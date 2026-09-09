@@ -234,7 +234,12 @@ private API and no hardcoded path. `sandbox_check` would answer the same
 question through a private symbol; `access("/var/mobile", R_OK)` would not,
 because a sandboxed process can often stat a directory it cannot list. The
 result is `Reach.container` (sandboxed: the `.ipa`, a LiveContainer host) or
-`Reach.user` (unsandboxed: the `.tipa`).
+`Reach.user` (unsandboxed: the `.tipa`). The simulator is pinned to
+`Reach.container` by `LocalFileService.processReach`: its process is not
+sandboxed, but no wrapper of this app runs in that shape, and the `.ipa` is
+what it stands in for. `FilaLocalModule` builds the sandboxed backend on
+container reach before it looks for a privileged provider, so both
+compositions behave alike there.
 
 The main content waits for that handshake before constructing its first
 `BrowserTabStore`. A container backend defaults to `NSHomeDirectory()` and
@@ -394,17 +399,22 @@ Additional user-created local roots are out of scope. Existing import/export
 and shared-container workflows remain intact. The normal root daemon is not
 confined to Documents or its bootstrap by this design.
 
-The requested sandboxed IPA must exclude ApplicationBackend and
-MusicLibraryBackend at compile/link/embed time, including their native bridges,
-controllers and indirect dependencies. The proposed `FilaApplications` and
-`FilaMusicLibrary` modules appear only in full composition. Proposed app target
-`FilaSandboxed` excludes FilaPrivileged as well and uses FilaBackendUI, public
-local access and networking; `make ipa`
-will select it. Existing Fila composition serves deb/tipa with runtime backend
-selection. This explicitly revises the former shared-app-binary assumption for
-the ordinary IPA; it does not fork shared implementation or introduce protocol
-selection flags in feature code. No target is implemented by this document.
-App Store suitability still requires a separate full binary/API audit.
+The sandboxed IPA excludes ApplicationBackend and MusicLibraryBackend at
+compile, link and embed time, including their native bridges, controllers and
+indirect dependencies. `FilaApplications` and `FilaMusicLibrary` appear only
+in the full composition. The app target `FilaSandboxed` excludes
+`FilaPrivileged` as well: it is a second application target over the same
+`Fila/` sources that links and embeds `FilaCore` and `FilaLocal` alone, built
+into its own DerivedData by `make build-sandboxed`, and `make ipa` packages
+it. The existing `Fila` target serves the deb and tipa with runtime backend
+selection. This revises the former shared-app-binary assumption for the
+ordinary IPA without forking shared implementation or adding protocol
+selection flags in feature code: nothing in `Fila/` knows which target it is
+in. `Scripts/verify-composition.sh` reads the composition back out of every
+packaged bundle — the embedded frameworks, the executable's load commands,
+and the class and private-framework strings of the excluded modules in
+every Mach-O — and packaging fails on the wrong one. App Store suitability
+still requires a separate full binary/API audit.
 
 The common contract covers bounded pull-based directory listing, item details, content
 copying into a caller-owned private staging descriptor, and independent

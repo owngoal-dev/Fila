@@ -52,6 +52,16 @@
 		FB5000000000000000000043 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
 		FB5000000000000000000050 /* CFilaMusicLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = FB5000000000000000000060 /* CFilaMusicLibrary */; };
 		FB10000000000000000000A3 /* FilaBackendUI in Frameworks */ = {isa = PBXBuildFile; productRef = FB10000000000000000000B3 /* FilaBackendUI */; };
+		FC1000000000000000000041 /* FilaCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; };
+		FC1000000000000000000042 /* FilaCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB1000000000000000000001 /* FilaCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FC2000000000000000000041 /* FilaLocal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB2000000000000000000001 /* FilaLocal.framework */; };
+		FC2000000000000000000042 /* FilaLocal.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FB2000000000000000000001 /* FilaLocal.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FC2000000000000000000026 /* RunestoneEditor in Frameworks */ = {isa = PBXBuildFile; productRef = FC2000000000000000000016 /* RunestoneEditor */; };
+		FC2000000000000000000027 /* RunestoneLanguageSupport in Frameworks */ = {isa = PBXBuildFile; productRef = FC2000000000000000000017 /* RunestoneLanguageSupport */; };
+		FC2000000000000000000028 /* RunestoneThemeSupport in Frameworks */ = {isa = PBXBuildFile; productRef = FC2000000000000000000018 /* RunestoneThemeSupport */; };
+		FC400000000000000000000B /* FilaFileProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FA4000000000000000000001 /* FilaFileProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FC5000000000000000000003 /* SPIndicator in Frameworks */ = {isa = PBXBuildFile; productRef = FC5000000000000000000002 /* SPIndicator */; };
+		FC800000000000000000000B /* FilaSaveAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FA8000000000000000000001 /* FilaSaveAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,6 +156,34 @@
 			remoteGlobalIDString = FB1000000000000000000010;
 			remoteInfo = FilaCore;
 		};
+		FC1000000000000000000020 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB1000000000000000000010;
+			remoteInfo = FilaCore;
+		};
+		FC2000000000000000000020 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB2000000000000000000010;
+			remoteInfo = FilaLocal;
+		};
+		FC4000000000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA4000000000000000000005;
+			remoteInfo = FilaFileProvider;
+		};
+		FC8000000000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FA8000000000000000000005;
+			remoteInfo = FilaSaveAction;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -172,6 +210,26 @@
 			);
 			name = "Embed Frameworks";
 		};
+		FC400000000000000000000C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				FC400000000000000000000B /* FilaFileProvider.appex in Embed Foundation Extensions */,
+				FC800000000000000000000B /* FilaSaveAction.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+		FC0000000000000000000001 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				FC1000000000000000000042 /* FilaCore.framework in Embed Frameworks */,
+				FC2000000000000000000042 /* FilaLocal.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -185,6 +243,7 @@
 		FB3000000000000000000001 /* FilaPrivileged.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaPrivileged.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB4000000000000000000001 /* FilaApplications.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaApplications.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FB5000000000000000000001 /* FilaMusicLibrary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FilaMusicLibrary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC0000000000000000000044 /* Fila.app (sandboxed) */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fila.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -352,6 +411,17 @@
 				FB5000000000000000000050 /* CFilaMusicLibrary in Frameworks */,
 			);
 		};
+		FC0000000000000000000041 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				FC1000000000000000000041 /* FilaCore.framework in Frameworks */,
+				FC2000000000000000000041 /* FilaLocal.framework in Frameworks */,
+				FC2000000000000000000026 /* RunestoneEditor in Frameworks */,
+				FC2000000000000000000027 /* RunestoneLanguageSupport in Frameworks */,
+				FC2000000000000000000028 /* RunestoneThemeSupport in Frameworks */,
+				FC5000000000000000000003 /* SPIndicator in Frameworks */,
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -389,6 +459,7 @@
 				FB3000000000000000000001 /* FilaPrivileged.framework */,
 				FB4000000000000000000001 /* FilaApplications.framework */,
 				FB5000000000000000000001 /* FilaMusicLibrary.framework */,
+				FC0000000000000000000044 /* Fila.app (sandboxed) */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -655,6 +726,40 @@
 			productReference = FB5000000000000000000001 /* FilaMusicLibrary.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		FC0000000000000000000043 /* FilaSandboxed */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FC000000000000000000004F /* Build configuration list for PBXNativeTarget "FilaSandboxed" */;
+			buildPhases = (
+				FC0000000000000000000040 /* Sources */,
+				FC0000000000000000000041 /* Frameworks */,
+				FC0000000000000000000042 /* Resources */,
+				FC6000000000000000000001 /* Build Web UI */,
+				FC6000000000000000000002 /* Collect Licenses */,
+				FC400000000000000000000C /* Embed Foundation Extensions */,
+				FC0000000000000000000001 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FC1000000000000000000021 /* PBXTargetDependency */,
+				FC2000000000000000000021 /* PBXTargetDependency */,
+				FC400000000000000000000A /* PBXTargetDependency */,
+				FC800000000000000000000A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FA0000000000000000000046 /* Fila */,
+			);
+			name = FilaSandboxed;
+			packageProductDependencies = (
+				FC2000000000000000000016 /* RunestoneEditor */,
+				FC2000000000000000000017 /* RunestoneLanguageSupport */,
+				FC2000000000000000000018 /* RunestoneThemeSupport */,
+				FC5000000000000000000002 /* SPIndicator */,
+			);
+			productName = Fila;
+			productReference = FC0000000000000000000044 /* Fila.app (sandboxed) */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -672,6 +777,9 @@
 						CreatedOnToolsVersion = 27.0;
 					};
 					FA7000000000000000000010 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					FC0000000000000000000043 = {
 						CreatedOnToolsVersion = 27.0;
 					};
 				};
@@ -720,6 +828,7 @@
 				FB3000000000000000000010 /* FilaPrivileged */,
 				FB4000000000000000000010 /* FilaApplications */,
 				FB5000000000000000000010 /* FilaMusicLibrary */,
+				FC0000000000000000000043 /* FilaSandboxed */,
 			);
 		};
 /* End PBXProject section */
@@ -765,6 +874,11 @@
 			files = (
 			);
 		};
+		FC0000000000000000000042 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -780,6 +894,27 @@
 			showEnvVarsInLog = 0;
 		};
 		FA6000000000000000000002 /* Collect Licenses */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			name = "Collect Licenses";
+			shellPath = /bin/sh;
+			shellScript = (
+				"python3 \"$SRCROOT/Scripts/collect-licenses.py\" --project \"$SRCROOT\" --build-dir \"$BUILD_DIR\" --output \"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/Licenses.json\"",
+			);
+			showEnvVarsInLog = 0;
+		};
+		FC6000000000000000000001 /* Build Web UI */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			name = "Build Web UI";
+			shellPath = /bin/sh;
+			shellScript = (
+				"\"$SRCROOT/Scripts/build-webui.sh\"",
+				"",
+			);
+			showEnvVarsInLog = 0;
+		};
+		FC6000000000000000000002 /* Collect Licenses */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			name = "Collect Licenses";
@@ -838,6 +973,11 @@
 			);
 		};
 		FB5000000000000000000011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		FC0000000000000000000040 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
 			);
@@ -909,6 +1049,26 @@
 			isa = PBXTargetDependency;
 			target = FB1000000000000000000010 /* FilaCore */;
 			targetProxy = FB5000000000000000000022 /* PBXContainerItemProxy */;
+		};
+		FC1000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB1000000000000000000010 /* FilaCore */;
+			targetProxy = FC1000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		FC2000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB2000000000000000000010 /* FilaLocal */;
+			targetProxy = FC2000000000000000000020 /* PBXContainerItemProxy */;
+		};
+		FC400000000000000000000A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA4000000000000000000005 /* FilaFileProvider */;
+			targetProxy = FC4000000000000000000009 /* PBXContainerItemProxy */;
+		};
+		FC800000000000000000000A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FA8000000000000000000005 /* FilaSaveAction */;
+			targetProxy = FC8000000000000000000009 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1552,6 +1712,86 @@
 			};
 			name = Release;
 		};
+		FC0000000000000000000050 /* Debug configuration for PBXNativeTarget "FilaSandboxed" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Packaging/AppGroup.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Packaging/Fila-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Fila;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Authenticate before running a terminal session as root.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Fila needs the local network to share this device's files with your Mac over WebDAV. Sharing is off until you turn it on in Settings.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					AppIntents,
+					"-Wl,-needed_framework,FilaLocal",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
+				PRODUCT_NAME = Fila;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FC0000000000000000000051 /* Release configuration for PBXNativeTarget "FilaSandboxed" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Packaging/AppGroup.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Packaging/Fila-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Fila;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Authenticate before running a terminal session as root.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Fila needs the local network to share this device's files with your Mac over WebDAV. Sharing is off until you turn it on in Settings.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					AppIntents,
+					"-Wl,-needed_framework,FilaLocal",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.fila;
+				PRODUCT_NAME = Fila;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1640,6 +1880,14 @@
 			buildConfigurations = (
 				FB5000000000000000000031 /* Debug configuration for PBXNativeTarget "FilaMusicLibrary" */,
 				FB5000000000000000000032 /* Release configuration for PBXNativeTarget "FilaMusicLibrary" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		FC000000000000000000004F /* Build configuration list for PBXNativeTarget "FilaSandboxed" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC0000000000000000000050 /* Debug configuration for PBXNativeTarget "FilaSandboxed" */,
+				FC0000000000000000000051 /* Release configuration for PBXNativeTarget "FilaSandboxed" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -1822,6 +2070,26 @@
 		FB10000000000000000000B3 /* FilaBackendUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FilaBackendUI;
+		};
+		FC2000000000000000000016 /* RunestoneEditor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FA2000000000000000000002 /* XCRemoteSwiftPackageReference "Runestone.xcframework" */;
+			productName = RunestoneEditor;
+		};
+		FC2000000000000000000017 /* RunestoneLanguageSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FA2000000000000000000002 /* XCRemoteSwiftPackageReference "Runestone.xcframework" */;
+			productName = RunestoneLanguageSupport;
+		};
+		FC2000000000000000000018 /* RunestoneThemeSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FA2000000000000000000002 /* XCRemoteSwiftPackageReference "Runestone.xcframework" */;
+			productName = RunestoneThemeSupport;
+		};
+		FC5000000000000000000002 /* SPIndicator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FA5000000000000000000001 /* XCRemoteSwiftPackageReference "SPIndicator" */;
+			productName = SPIndicator;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

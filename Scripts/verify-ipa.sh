@@ -101,5 +101,13 @@ fi
 
 python3 "$(dirname "$0")/verify-payload.py" "$app" "$kind" "$version"
 bash "$(dirname "$0")/verify-file-provider.sh" "$app" "$kind"
+# The tipa is the full composition with every module; the ipa is the
+# sandboxed one, and a module that slipped into it is private API that the
+# entitlement check above cannot see.
+if [[ "$kind" == tipa ]]; then
+    bash "$(dirname "$0")/verify-composition.sh" "$app" full
+else
+    bash "$(dirname "$0")/verify-composition.sh" "$app" sandboxed
+fi
 
 echo "Verified $(basename "$archive") ($kind, $(du -h "$archive" | awk '{print $1}'))"

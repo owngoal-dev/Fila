@@ -49,6 +49,8 @@ jobs:
         run: make set-version VERSION="$GITHUB_REF_NAME" BUILD="$GITHUB_RUN_NUMBER"
       - name: Compile and check localization
         run: make compile DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      - name: Compile the sandboxed composition
+        run: make compile-sandboxed DERIVED_DATA="$RUNNER_TEMP/fila-derived"
       - name: Package and verify the compiled products
         run: make _packages DERIVED_DATA="$RUNNER_TEMP/fila-derived"
       - name: Write exact release checksums

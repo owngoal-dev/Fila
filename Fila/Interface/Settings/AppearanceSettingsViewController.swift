@@ -10,7 +10,24 @@ final class AppearanceSettingsViewController: UITableViewController {
     private enum Section: Int, CaseIterable { case browsing, systemFeatures, presets }
     private let preferences = AppPreferences.shared
     private let session = FileSession.shared
-    private var presets = FileSession.shared.local.orderedPresets
+    private var presets = AppearanceSettingsViewController.offeredPresets()
+
+    /// The presets this launch can show at all, in the user's order. A
+    /// catalogue preset needs its module — a copy without Applications has
+    /// no row to hide — and a local preset needs a place this root offers:
+    /// a sandboxed container has no bootstrap and no trash of this kind.
+    /// Hidden presets stay so they can be turned back on; absent ones are
+    /// not listed, and their saved order is kept for a launch that has them.
+    private static func offeredPresets() -> [LocalPreset] {
+        let local = FileSession.shared.local
+        return local.orderedPresets.filter { preset in
+            switch preset {
+            case .applications: BackendComposition.registry.backend(.applications) != nil
+            case .music: BackendComposition.registry.backend(.musicLibrary) != nil
+            default: local.offersPreset(preset)
+            }
+        }
+    }
 
     init() {
         super.init(style: .insetGrouped)
@@ -144,7 +161,17 @@ final class AppearanceSettingsViewController: UITableViewController {
     override func tableView(_: UITableView, moveRowAt source: IndexPath, to destination: IndexPath) {
         let preset = presets.remove(at: source.row)
         presets.insert(preset, at: destination.row)
-        do { try session.local.setPresetOrder(presets) }
+        // The list shows only what this launch offers; the saved order
+        // covers every preset. The shown ones take their new order in the
+        // slots they already occupy, and an absent preset keeps its place
+        // for the launch that has it.
+        var order = session.local.orderedPresets
+        var moved = presets.makeIterator()
+        for index in order.indices where presets.contains(order[index]) {
+            guard let next = moved.next() else { break }
+            order[index] = next
+        }
+        do { try session.local.setPresetOrder(order) }
         catch { FilaLog.error("preset order not saved: \(error)") }
     }
 

@@ -16,7 +16,7 @@ import Foundation
 final class DirectoryObservation {
     /// How often an observed directory is stat'ed. A policy, not a latency
     /// promise: an operation the app ran itself invalidates at once.
-    static let pollInterval: TimeInterval = 5
+    nonisolated static let pollInterval: TimeInterval = 5
 
     private struct Subscriber {
         let directory: String

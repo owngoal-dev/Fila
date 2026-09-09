@@ -64,11 +64,97 @@ product checks (`otool -L` lists both module frameworks non-weak;
 Still nothing on a device: daemon XPC, entitlements and root mutation are
 untested on this branch.
 
-## Resume here: Phase 5
+## Phase 5 — done
 
-Phases 5–8 per `PLAN.md`. `Packages/FilaKit/Binaries/libcurl.xcframework`
+| Phase | Commit | Summary |
+| --- | --- | --- |
+| 5 | see `git log` | `FilaSandboxed` app target and scheme over the same `Fila/` sources, linking and embedding `FilaCore` and `FilaLocal` only; `make build-sandboxed` / `make compile-sandboxed` into `$(DERIVED_DATA)-sandboxed`; `make ipa` packages it and `make packages` builds both compositions at one build number; `Scripts/verify-composition.sh` in every archive verification; composition-aware build receipts and extractor diff. |
+
+What Phase 5 settled:
+
+- The two compositions differ in the link line only. `FilaSandboxed` has
+  `-needed_framework FilaLocal` alone, no dependency on `Filad`,
+  `FilaArchive` or the three excluded frameworks, and no
+  `NSAppleMusicUsageDescription`. Its product is also `Fila.app`, so it
+  builds into a sibling DerivedData; `XCODEBUILD_DERIVED_DATA` is a
+  target-specific make variable for that recipe.
+- `build-package-inputs.py --products Fila.app` records which composition
+  a products directory holds; `package-ipa.sh` asks for the sandboxed
+  receipt and refuses the full build's directory.
+- `verify-composition.sh full|sandboxed` checks the embedded frameworks,
+  the executable's required load commands, a version match on every
+  first-party framework, and — for the sandbox — the absence of the
+  excluded modules' class names, private-framework paths and selector
+  strings from every Mach-O in the bundle. It runs from `verify-ipa.sh`
+  (tipa → full, ipa → sandboxed) and `verify-deb.sh` (full).
+- Shell residue removed: a `fila://` link into Applications in a copy
+  without the module says so instead of pointing at a switch that does
+  not exist; the Appearance settings list only the presets this launch can
+  show (`LocalFileBackend.offersPreset`, and the two catalogue presets only
+  with their module registered).
+- The simulator is pinned to the container: `LocalFileService.processReach`
+  is `.container` under `targetEnvironment(simulator)`, and
+  `FilaLocalModule` builds `SandboxedLocalFileBackend` whenever the reach is
+  the container, before it looks for a privileged provider. So both
+  compositions browse the simulated app's Documents directory there, as the
+  `.ipa` does on a device; the full filesystem root is a device-only test.
+- Under container reach a tab's ancestor chain starts at the local
+  backend's `rootPath` (Documents), not at the process Home, and the path
+  bar's first crumb is that root under its own name rather than the device
+  followed by every component: the simulator showed the container UUID
+  directory as a crumb above Documents, with Back leading there.
+
+- Only the full build bumps the build number. The sandboxed build takes
+  the number as it stands, so `make compile` then `make compile-sandboxed`
+  leaves the full build's receipt valid (`Configuration/` is a receipt
+  input) and both wrappers at one number. The sandboxed recipe refuses a
+  DerivedData equal to the full one: both compositions are `Fila.app`, and
+  a copy-files phase never removes the frameworks an earlier build left.
+- Under container reach the tab store reopens any remembered directory
+  the container does not hold at the root, not just `/` and `/var/mobile`:
+  a sideloading tool's reinstall retires the container UUID, and the
+  previous build started tabs at Home rather than Documents.
+- Reordering presets in Appearance merges the shown order back into the
+  full saved order, so a preset this launch does not offer keeps its place
+  for the launch that has it.
+- A privileged module registered beside a sandboxed process is logged as
+  bypassed. The bypass itself is deliberate — the daemon is out of a
+  sandbox's reach — but a copy demoted to Documents should say so.
+- `package-ipa.sh` expands the empty receipt-option array with
+  `${receipt[@]+"${receipt[@]}"}`: `/bin/bash` is 3.2, where an empty
+  array under `set -u` is fatal, and the `.tipa` is that case.
+  `verify-composition.sh` finds the first offending file with `-quit`
+  rather than `| head -1`, which SIGPIPEs under `pipefail` and loses the
+  message.
+
+Reviewed with `/code-review`: its finder pass ran to completion and its
+verification pass was cut off by a rate limit, so the candidates above
+were verified by hand. Candidates left as they are: the composition
+roster is written in four places (the two `-needed_framework` lists, the
+verifier's `shared`/`excluded` arrays, the extractor's `COMPOSITIONS`
+table) and could be owned by the module manifests; the preset-to-catalogue
+mapping is written in `SidebarLocation` and `offeredPresets()`; the
+sandboxed DerivedData compiles every shared target a second time, the cost
+of two targets that both produce `Fila.app`. The simulator pin is a
+platform condition in the file layer by the user's decision, and
+`AGENTS.md` names it as the one such condition. `/code-clarity` is not
+installed on this machine.
+
+Verified: `make check`, `make harness`, both Release device builds without
+a build-number bump (`CI=1`), the extractor diff for both, `make tipa` and
+`make ipa` with their verifications, `Tests/test-packaging.py` against
+both product directories, `Scripts/Tests`, and the sandboxed simulator
+Debug build launched and browsing. Nothing on a device.
+
+## Resume here: Phase 6
+
+Phases 6–8 per `PLAN.md`. `Packages/FilaKit/Binaries/libcurl.xcframework`
 (libcurl 8.14.1, untracked) is prepared for Phase 6. Build with an isolated
-DerivedData (`DERIVED_DATA=/private/tmp/fila-dd-<name>`).
+DerivedData (`DERIVED_DATA=/private/tmp/fila-dd-<name>`); the sandboxed
+composition lands beside it in `<name>-sandboxed`. A new module framework
+joins the sandbox by adding it to `FilaSandboxed`'s Frameworks, Embed
+Frameworks and `-needed_framework` lists; the verifier's `shared` list in
+`verify-composition.sh` names what both compositions must carry.
 
 ## Decisions worth keeping
 

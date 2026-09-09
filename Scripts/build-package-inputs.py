@@ -9,6 +9,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 INPUTS = ["Fila", "Frameworks", "Filad", "FilaArchive", "FilaFileProvider", "FilaSaveAction", "Fila.xcodeproj", "Configuration", "Packaging", "Licenses", "Scripts", "WebUI", "Packages/FilaKit", "Makefile"]
+# The full composition's products. The sandboxed composition builds Fila.app
+# alone into its own directory and names that with `--products Fila.app`.
 PRODUCTS = ["Fila.app", "filad", "fila-archive"]
 
 
@@ -43,9 +45,9 @@ def source_digest():
     return digest(expanded, ROOT)
 
 
-def product_digest(directory):
+def product_digest(directory, products):
     paths = []
-    for name in PRODUCTS:
+    for name in products:
         path = directory / name
         if not path.exists():
             raise ValueError(f"missing build product: {path}")
@@ -57,19 +59,26 @@ def product_digest(directory):
 
 
 def main():
-    if len(sys.argv) < 3 or sys.argv[1] not in ("build", "verify"):
-        raise ValueError("usage: build-package-inputs.py build <products> <build command...> | verify <products>")
-    mode, directory = sys.argv[1], Path(sys.argv[2]).resolve()
+    arguments = sys.argv[1:]
+    products = PRODUCTS
+    if arguments[:1] == ["--products"]:
+        if len(arguments) < 2 or not arguments[1]:
+            raise ValueError("--products needs a comma-separated list")
+        products = arguments[1].split(",")
+        arguments = arguments[2:]
+    if len(arguments) < 2 or arguments[0] not in ("build", "verify"):
+        raise ValueError("usage: build-package-inputs.py [--products a,b] build <products> <build command...> | verify <products>")
+    mode, directory = arguments[0], Path(arguments[1]).resolve()
     receipt = directory / "FilaBuild.json"
     if mode == "build":
-        if len(sys.argv) < 4:
+        if len(arguments) < 3:
             raise ValueError("missing build command")
         receipt.unlink(missing_ok=True)
         source = source_digest()
-        subprocess.run(sys.argv[3:], check=True, cwd=ROOT)
+        subprocess.run(arguments[2:], check=True, cwd=ROOT)
         if source_digest() != source:
             raise ValueError("build inputs changed during compilation; rebuild before packaging")
-        value = {"source": source, "products": product_digest(directory)}
+        value = {"source": source, "products": product_digest(directory, products), "names": products}
         temporary = receipt.with_suffix(f".tmp.{os.getpid()}")
         try:
             temporary.write_text(json.dumps(value, indent=2) + "\n")
@@ -78,7 +87,7 @@ def main():
             temporary.unlink(missing_ok=True)
         print("Recorded verified build inputs and product hashes.")
     else:
-        if len(sys.argv) != 3:
+        if len(arguments) != 2:
             raise ValueError("unexpected verification arguments")
         if not receipt.is_file():
             raise ValueError("no successful build receipt; run make build before packaging")
@@ -86,7 +95,9 @@ def main():
         value = json.loads(receipt_bytes)
         if value.get("source") != source_digest():
             raise ValueError("source differs from the last successful build; rebuild before packaging")
-        if value.get("products") != product_digest(directory):
+        if value.get("names", PRODUCTS) != products:
+            raise ValueError(f"the receipt covers {value.get('names', PRODUCTS)}, not {products}; this directory holds the other composition")
+        if value.get("products") != product_digest(directory, products):
             raise ValueError("build products changed after compilation; rebuild before packaging")
         print(hashlib.sha256(receipt_bytes).hexdigest())
 

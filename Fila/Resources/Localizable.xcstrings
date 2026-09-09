@@ -4407,6 +4407,83 @@
         }
       }
     },
+    "Applications are not included in this copy of Fila." : {
+      "comment" : "Alert message when a fila:// link opens Applications in a copy that does not bundle the applications module, such as the sandboxed IPA.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التطبيقات غير مضمّنة في هذه النسخة من Fila."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps sind in dieser Ausgabe von Fila nicht enthalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta copia de Fila no incluye Aplicaciones."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les applications ne sont pas incluses dans cette copie de Fila."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le applicazioni non sono incluse in questa copia di Fila."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このFilaにはアプリケーション機能は含まれていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 Fila에는 응용 프로그램 기능이 포함되어 있지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cópia do Fila não inclui Aplicativos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения не входят в эту сборку Fila."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bản Fila này không bao gồm Ứng dụng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本的 Fila 不包含应用程序功能。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本的 Fila 不包含應用程式功能。"
+          }
+        }
+      }
+    },
     "Apply" : {
       "comment" : "Verb on the bar button that commits the edited permission bits.",
       "localizations" : {

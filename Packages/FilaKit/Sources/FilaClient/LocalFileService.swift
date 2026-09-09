@@ -95,7 +95,24 @@ public final class LocalFileService: LocalFileAccess, @unchecked Sendable {
     /// is a syscall and a log line, the answer cannot change while the process
     /// lives, and `hello()` is asked again by every screen that wants to know
     /// what it is talking to.
-    public let reach = LocalFileService.probeReach()
+    public let reach = LocalFileService.processReach
+
+    /// How far this process can see, before any service is built — what a
+    /// module asks to choose its backend.
+    ///
+    /// The simulator is pinned to the container. Its process is not
+    /// sandboxed and could open the Mac's whole filesystem, but no wrapper
+    /// of this app ever runs there, and the sandboxed `.ipa` — the one
+    /// composition with no other test surface — is what the simulator
+    /// stands in for. Everything else asks the filesystem, once: the answer
+    /// cannot change while the process lives.
+    public static let processReach: LocalReach = {
+        #if targetEnvironment(simulator)
+            .container
+        #else
+            probeReach()
+        #endif
+    }()
 
     /// A service that owns its streams — what a build with no privileged
     /// module runs on.

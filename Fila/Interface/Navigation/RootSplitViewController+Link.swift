@@ -89,16 +89,23 @@ extension RootSplitViewController {
             openApp(bundle: bundle, container: container)
         case .installedApps:
             guard let screen = SidebarLocation.screen(for: .root(of: .applications)) else {
-                alert(
-                    title: String(localized: "Applications Unavailable"),
-                    message: String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
-                )
+                alert(title: String(localized: "Applications Unavailable"), message: applicationsUnavailableMessage)
                 return
             }
             push(screen)
         case .settings:
             presentSettings()
         }
+    }
+
+    /// Why a link into Applications went nowhere. A copy without the
+    /// backend — the sandboxed composition, a module that failed to
+    /// bootstrap, or one that found no local backend to read through — has
+    /// no Show Applications switch that would help, so it is not pointed at.
+    private var applicationsUnavailableMessage: String {
+        BackendComposition.registry.backend(.applications) == nil
+            ? String(localized: "Applications are not included in this copy of Fila.")
+            : String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
     }
 
     /// A path's directory. `deletingLastPathComponent` on `/etc` gives `/`,
@@ -137,10 +144,7 @@ extension RootSplitViewController {
             // handshake lands would answer "not installed" for an app that is.
             await FileSession.shared.ready()
             guard let applications = SystemCapabilities.applications, applications.isEnabled else {
-                self.alert(
-                    title: String(localized: "Applications Unavailable"),
-                    message: String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
-                )
+                self.alert(title: String(localized: "Applications Unavailable"), message: self.applicationsUnavailableMessage)
                 return
             }
             guard let app = await applications.locate(bundleIdentifier: bundle) else {

@@ -314,6 +314,14 @@ public class LocalFileBackend: FileBackend {
         return orderedPresets.filter(isPresetEnabled).compactMap { available[$0] }
     }
 
+    /// Whether this root has a place for `preset`, hidden or not: what a
+    /// settings screen lists as switchable. Before the handshake every
+    /// preset is possible; after it, exactly the places this root offers,
+    /// which never include a catalogue preset.
+    public func offersPreset(_ preset: LocalPreset) -> Bool {
+        hello.map { availablePlaces(backend: $0.backend)[preset] != nil } ?? true
+    }
+
     func availablePlaces(backend: LocalBackend) -> [LocalPreset: SidebarRow] {
         var rows: [LocalPreset: SidebarRow] = [:]
         func offer(_ preset: LocalPreset, _ absolute: String, _ kind: SidebarRow.Kind, checked: Bool = true) {

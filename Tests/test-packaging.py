@@ -13,7 +13,12 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "Scripts"
+if len(sys.argv) != 3:
+    sys.exit("usage: test-packaging.py <full products> <sandboxed products>")
+# The .deb and .tipa come out of the full build, the .ipa out of the
+# sandboxed one; each packager refuses the other's directory.
 products = Path(sys.argv[1]).resolve()
+sandboxed = Path(sys.argv[2]).resolve()
 version = subprocess.check_output(["make", "--no-print-directory", "print-version"], cwd=ROOT, text=True).strip()
 
 
@@ -52,7 +57,11 @@ with tempfile.TemporaryDirectory(prefix="fila-package-test-") as workspace:
     print("PASS stale source receipt rejected")
 
     good = work / "good.ipa"
-    run(["bash", SCRIPTS / "package-ipa.sh", products / "Fila.app", "ipa", good, version])
+    run(["bash", SCRIPTS / "package-ipa.sh", sandboxed / "Fila.app", "ipa", good, version])
+    # The full build is not the sandboxed archive, and its directory says so.
+    output = run(["bash", SCRIPTS / "package-ipa.sh", products / "Fila.app", "ipa", work / "wrong.ipa", version], success=False)
+    assert "other composition" in output, output
+    print("PASS full build refused as the sandboxed ipa")
     payload = work / "payload"
     with zipfile.ZipFile(good) as archive:
         archive.extractall(payload)
@@ -105,7 +114,7 @@ with tempfile.TemporaryDirectory(prefix="fila-package-test-") as workspace:
         output.write_bytes(b"previous verified artifact")
         previous = hashlib.sha256(output.read_bytes()).digest()
         if kind == "ipa":
-            command = ["bash", SCRIPTS / "package-ipa.sh", products / "Fila.app", kind, output, version]
+            command = ["bash", SCRIPTS / "package-ipa.sh", sandboxed / "Fila.app", kind, output, version]
         else:
             command = ["bash", SCRIPTS / "package-deb.sh", products / "Fila.app", products / "filad", products / "fila-archive",
                        ROOT / "Packaging/DEBIAN/control", ROOT / "Packaging/Fila.entitlements", ROOT / "Packaging/Filad.entitlements",

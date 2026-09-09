@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import plistlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -33,8 +34,23 @@ class ExtractedStringsTests(unittest.TestCase):
             (directory / "Source.stringsdata").write_bytes(content)
         return directory
 
-    def run_check(self):
-        return subprocess.run([sys.executable, str(SCRIPT), str(self.derived), "Release-iphoneos"], capture_output=True, text=True)
+    def run_check(self, composition=None):
+        options = ["--composition", composition] if composition else []
+        return subprocess.run([sys.executable, str(SCRIPT), *options, str(self.derived), "Release-iphoneos"], capture_output=True, text=True)
+
+    def test_sandboxed_composition_reads_its_own_target(self):
+        # The sandboxed app is the FilaSandboxed target over the Fila
+        # catalogue, and never compiles the two catalogue modules.
+        self.populate()
+        intermediates = self.derived / "Build/Intermediates.noindex/Fila.build/Release-iphoneos"
+        (intermediates / "Fila.build").rename(intermediates / "FilaSandboxed.build")
+        for excluded in ("FilaApplications", "FilaMusicLibrary"):
+            shutil.rmtree(intermediates / f"{excluded}.build")
+        result = self.run_check("sandboxed")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 65)
+        self.assertIn("no build directory for Fila ", result.stderr)
 
     def test_xcode26_layout(self):
         self.populate()

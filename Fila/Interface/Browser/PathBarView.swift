@@ -83,11 +83,21 @@ final class PathBarView: UIScrollView {
         let shouldReveal = shown?.path != path || revealsCurrentComponent
             || abs(contentOffset.x - max(0, contentSize.width - bounds.width)) < 1
         shown = (path, icon)
-        // The root is the device, not a slash: the name when the entitlement
-        // lets us read it, the model otherwise.
+        // The first crumb is the backend's root. For `/` that is the device,
+        // not a slash: the name when the entitlement lets us read it, the
+        // model otherwise. Inside a container it is the root's own name —
+        // nothing above Documents is offered, so nothing above it is drawn.
+        let local = FileSession.shared.local
         var crumbs = [(title: "@" + UIDevice.current.name, path: "/")]
         var prefix = ""
-        for component in path.split(separator: "/").map(String.init) {
+        if local.rootPath != "/" {
+            let roots = [local.rootPath, URL(fileURLWithPath: local.rootPath).resolvingSymlinksInPath().path]
+            if let root = roots.first(where: { path == $0 || path.hasPrefix($0 + "/") }) {
+                crumbs = [(local.root.displayName, root)]
+                prefix = root
+            }
+        }
+        for component in path.dropFirst(prefix.count).split(separator: "/").map(String.init) {
             prefix += "/" + component
             crumbs.append((component, prefix))
         }
