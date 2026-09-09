@@ -1,6 +1,6 @@
 # Backend modularisation — handoff (branch `fila-backends`)
 
-Status as of 2026-09-09. Plan: `PLAN.md` (phases 0–8). This file records
+Status as of 2026-09-09. Plan: `BackendModularisation-Plan.md` (phases 0–8). This file records
 what is done and exactly where to resume. It is a
 working note and is deleted in Phase 8.
 
@@ -188,7 +188,7 @@ What Phase 6 settled:
 - The remote browser is `FileServiceBrowserViewController` on the shared
   list base, not `FileBrowserViewController`: the local browser is bound to
   `FileNode`, descriptors and jobs, and making it neutral is a phase of its
-  own. This is a recorded deviation from PLAN.md's "one file controller";
+  own. This is a recorded deviation from BackendModularisation-Plan.md's "one file controller";
   Phase 7's cross-backend clipboard is where the two must meet. A file opens
   as a snapshot (≤ 512 MiB) downloaded into the app workspace and shown by
   the app's own viewer through `BackendShell.preview`; *Save to Fila…*
@@ -385,7 +385,7 @@ not tell the user.
 
 ## Resume here: Phase 8
 
-Cleanup and acceptance per `PLAN.md`. Build with an isolated
+Cleanup and acceptance per `BackendModularisation-Plan.md`. Build with an isolated
 DerivedData (`DERIVED_DATA=/private/tmp/fila-dd-<name>`); the sandboxed
 composition lands beside it in `<name>-sandboxed`. A new module framework
 joins the sandbox by adding it to `FilaSandboxed`'s Frameworks, Embed

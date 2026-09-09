@@ -1,7 +1,7 @@
 # Backend migration inventory (Phase 0)
 
 Recorded 2026-09-09 on branch `fila-backends` at the start of the
-[PLAN.md](../PLAN.md) implementation. This is the owner inventory Phase 0
+[BackendModularisation-Plan.md](BackendModularisation-Plan.md) implementation. This is the owner inventory Phase 0
 asks for: what owns which state today, where the private surface lives, and
 the baseline every later phase is measured against. It describes the tree
 *before* the migration; the phases that follow rewrite the code and then this
