@@ -2320,83 +2320,6 @@
         }
       }
     },
-    "%lld items will be extracted here without replacing existing items. A folder is created only when needed." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "سيتم استخراج %lld من العناصر هنا دون استبدال العناصر الموجودة. يُنشأ مجلد عند الحاجة فقط."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld Objekte werden hier extrahiert, ohne vorhandene Objekte zu ersetzen. Ein Ordner wird nur bei Bedarf erstellt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se extraerán %lld elementos aquí sin sustituir los existentes. Solo se crea una carpeta si es necesario."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld éléments seront extraits ici sans remplacer les éléments existants. Un dossier n’est créé que si nécessaire."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld elementi verranno estratti qui senza sostituire quelli esistenti. Una cartella viene creata solo se necessario."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld項目を、既存の項目を置き換えずにここに展開します。フォルダは必要な場合のみ作成されます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "항목 %lld개를 기존 항목을 대치하지 않고 여기에 추출합니다. 폴더는 필요할 때만 생성됩니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld itens serão extraídos aqui sem substituir os itens existentes. Uma pasta é criada somente quando necessário."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Здесь будет извлечено %lld объектов без замены существующих. Папка создаётся только при необходимости."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld mục sẽ được giải nén tại đây mà không thay thế các mục hiện có. Thư mục chỉ được tạo khi cần."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "将在此处解压 %lld 个项目，且不替换现有项目。仅在需要时创建文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "將在此解壓縮 %lld 個項目，且不會取代現有項目。僅在需要時建立檔案夾。"
-          }
-        }
-      }
-    },
     "%lld keys" : {
       "comment" : "How many top-level keys an entitlements dictionary holds.",
       "localizations" : {
@@ -11152,6 +11075,82 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Copied, but %1$lld items could not be removed from the source and were kept there: %2$@."
+          }
+        }
+      }
+    },
+    "Copied, but %lld items could not be removed from the source and were kept there: %@. A folder is kept if something was added to it after it was copied." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم النسخ، لكن تعذّرت إزالة %1$lld من العناصر من المصدر وبقيت هناك: %2$@. يُبقى المجلد إذا أُضيف إليه شيء بعد نسخه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiert, aber %1$lld Objekte konnten an der Quelle nicht entfernt werden und blieben dort: %2$@. Ein Ordner bleibt erhalten, wenn nach dem Kopieren etwas hinzugefügt wurde."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se copió, pero %1$lld elementos no se han podido eliminar del origen y se han conservado allí: %2$@. Se conserva una carpeta si se le añadió algo después de copiarla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie effectuée, mais %1$lld éléments n’ont pas pu être retirés de la source et y ont été conservés : %2$@. Un dossier est conservé si quelque chose y a été ajouté après la copie."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiati, ma %1$lld elementi non sono stati rimossi dall’origine e sono rimasti lì: %2$@. Una cartella viene conservata se è stato aggiunto qualcosa dopo la copia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コピーしましたが、%1$lld 個の項目をコピー元から削除できず、そのまま残しました: %2$@。コピー後に何かが追加されたフォルダは残されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "복사했지만 항목 %1$lld개를 원본에서 제거하지 못해 그대로 두었습니다: %2$@. 복사 후에 무언가가 추가된 폴더는 유지됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiado, mas %1$lld itens não puderam ser removidos da origem e foram mantidos lá: %2$@. Uma pasta é mantida se algo foi adicionado a ela depois da cópia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скопировано, но %1$lld объектов не удалось удалить из источника, и они оставлены там: %2$@. Папка сохраняется, если после копирования в неё что-то добавили."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã sao chép, nhưng %1$lld mục không thể xóa khỏi nguồn và được giữ lại ở đó: %2$@. Thư mục được giữ lại nếu có gì đó được thêm vào sau khi sao chép."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制，但有 %1$lld 个项目无法从来源移除并保留在原处：%2$@。若文件夹在复制后被添加了内容，则会保留。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已拷貝，但有 %1$lld 個項目無法從來源移除，已保留在原處：%2$@。若檔案夾在拷貝後被加入了內容，則會保留。"
           }
         }
       }
@@ -50044,83 +50043,6 @@
         }
       }
     },
-    "This file is not valid UTF-8. It is shown and saved in its original encoding." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هذا الملف ليس UTF-8 صالحًا. يُعرض ويُحفظ بترميزه الأصلي."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Datei ist kein gültiges UTF-8. Sie wird in der ursprünglichen Kodierung angezeigt und gesichert."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este archivo no es UTF-8 válido. Se muestra y se guarda en su codificación original."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce fichier n’est pas de l’UTF-8 valide. Il est affiché et enregistré dans son encodage d’origine."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questo file non è UTF-8 valido. Viene mostrato e salvato nella codifica originale."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このファイルは有効なUTF-8ではありません。元のエンコーディングのまま表示・保存します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 파일은 올바른 UTF-8이 아닙니다. 원래 인코딩으로 표시하고 저장합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este arquivo não é UTF-8 válido. Ele é exibido e salvo na codificação original."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Этот файл не является корректным UTF-8. Он отображается и сохраняется в исходной кодировке."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tệp này không phải UTF-8 hợp lệ. Nó được hiển thị và lưu theo mã hóa gốc."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此文件不是有效的 UTF-8。将按原始编码显示和保存。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此檔案不是有效的 UTF-8。將以原始編碼顯示和儲存。"
-          }
-        }
-      }
-    },
     "This file is not valid UTF-8. It is shown and saved without converting it to UTF-8." : {
       "localizations" : {
         "en" : {
@@ -50291,83 +50213,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此檔案夾"
-          }
-        }
-      }
-    },
-    "This folder is empty. Choose a different folder." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هذا المجلد فارغ. اختر مجلدًا آخر."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieser Ordner ist leer. Wähle einen anderen Ordner."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta carpeta está vacía. Elige otra carpeta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce dossier est vide. Choisissez un autre dossier."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questa cartella è vuota. Scegli un’altra cartella."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このフォルダは空です。別のフォルダを選択してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 폴더는 비어 있습니다. 다른 폴더를 선택하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta pasta está vazia. Escolha outra pasta."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Эта папка пуста. Выберите другую папку."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư mục này trống. Hãy chọn thư mục khác."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此文件夹为空。选择其他文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此檔案夾是空的。請選擇其他檔案夾。"
           }
         }
       }
