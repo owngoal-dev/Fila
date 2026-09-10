@@ -30,7 +30,52 @@ jobs:
       - name: Run host tests
         run: make harness
 
+  # The two compositions are two cold builds of the same sources into two
+  # DerivedData directories — neither reuses anything of the other's — so
+  # running them one after the other on one runner cost the sum of both for
+  # no shared work. They are two jobs, and each packages only the wrappers
+  # made from the bundle it built: the heavy bundles never travel between
+  # runners, and no runner archives a product it did not compile.
   compile:
+    name: compile (full composition)
+    runs-on: macos-26
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+      - name: Install packaging tools
+        run: brew install ldid dpkg
+      # Both jobs derive the build number from the same run, so the two
+      # compositions still ship one number even though nothing is shared.
+      - name: Apply tag version
+        if: github.ref_type == 'tag'
+        run: make set-version VERSION="$GITHUB_REF_NAME" BUILD="$GITHUB_RUN_NUMBER"
+      - name: Compile and check localization
+        run: make compile DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      - name: Package and verify both .deb flavours and the .tipa
+        run: make _packages-full DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      - name: Write exact release checksums
+        run: |
+          version="$(make --no-print-directory print-version)"
+          cd build/Packages
+          shasum -a 256 \
+            "wiki.qaq.fila_${version}_iphoneos-arm64.deb" \
+            "wiki.qaq.fila_${version}_iphoneos-arm64e.deb" \
+            "Fila_${version}.tipa" > SHA256SUMS.full
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fila-packages-full
+          path: build/Packages/
+          if-no-files-found: error
+
+  compile-sandboxed:
+    name: compile (sandboxed composition)
     runs-on: macos-26
     timeout-minutes: 120
     permissions:
@@ -47,28 +92,23 @@ jobs:
       - name: Apply tag version
         if: github.ref_type == 'tag'
         run: make set-version VERSION="$GITHUB_REF_NAME" BUILD="$GITHUB_RUN_NUMBER"
-      - name: Compile and check localization
-        run: make compile DERIVED_DATA="$RUNNER_TEMP/fila-derived"
       - name: Compile the sandboxed composition
         run: make compile-sandboxed DERIVED_DATA="$RUNNER_TEMP/fila-derived"
-      - name: Package and verify the compiled products
-        run: make _packages DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      - name: Package and verify the .ipa
+        run: make _packages-sandboxed DERIVED_DATA="$RUNNER_TEMP/fila-derived"
       - name: Write exact release checksums
         run: |
           version="$(make --no-print-directory print-version)"
           cd build/Packages
-          shasum -a 256 \
-            "wiki.qaq.fila_${version}_iphoneos-arm64.deb" \
-            "wiki.qaq.fila_${version}_iphoneos-arm64e.deb" \
-            "Fila_${version}.ipa" "Fila_${version}.tipa" > SHA256SUMS
+          shasum -a 256 "Fila_${version}.ipa" > SHA256SUMS.sandboxed
       - uses: actions/upload-artifact@v4
         with:
-          name: fila-packages
+          name: fila-packages-sandboxed
           path: build/Packages/
           if-no-files-found: error
 
   publish:
-    needs: [test, compile]
+    needs: [test, compile, compile-sandboxed]
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -76,11 +116,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: fila-packages
+          pattern: fila-packages-*
+          merge-multiple: true
           path: build/Packages/
+      # Each compilation job hashed its own wrappers where it built them;
+      # together the two lists must account for every asset the release
+      # carries, and the check is what proves the transfer.
       - name: Verify downloaded checksums
         working-directory: build/Packages
-        run: sha256sum --check SHA256SUMS
+        run: |
+          cat SHA256SUMS.full SHA256SUMS.sandboxed > SHA256SUMS
+          rm SHA256SUMS.full SHA256SUMS.sandboxed
+          sha256sum --check SHA256SUMS
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}

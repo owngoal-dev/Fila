@@ -121,7 +121,7 @@ endif
 .PHONY: all help print-version print-build-number print-deb-path print-tipa-path \
 	print-ipa-path print-flavor \
 	set-version bump-build check remove-stale harness build compile build-sandboxed compile-sandboxed sim vphone \
-	_build-ios _build-ios-sandboxed _package-deb _packages \
+	_build-ios _build-ios-sandboxed _package-deb _packages _packages-full _packages-sandboxed \
 	deb deb-roothide deb-rootless deb-all tipa ipa packages install clean
 
 all: packages
@@ -230,7 +230,8 @@ harness:
 
 build: harness compile
 
-# CI runs harness on its own runner; publication waits for both jobs.
+# CI runs harness, this compilation and the sandboxed one as three jobs in
+# parallel; publication waits for all of them.
 compile: check
 	@$(MAKE) --no-print-directory _build-ios
 
@@ -245,7 +246,10 @@ compile: check
 # No bump here: the sandboxed app is built at the build number the full
 # app has, so `make ipa` after `make build` ships the same number in both
 # wrappers, and a bump between the two would not only split them but move
-# `Configuration/` out from under the full build's receipt.
+# `Configuration/` out from under the full build's receipt. In CI the two
+# compile on separate runners and share nothing, so what keeps the number
+# one number there is that both jobs pin it to the same run: `bump-build`
+# does nothing under CI for exactly this reason.
 build-sandboxed: harness compile-sandboxed
 
 compile-sandboxed: check
@@ -339,10 +343,23 @@ packages: build
 	@$(MAKE) --no-print-directory _build-ios-sandboxed
 	@$(MAKE) --no-print-directory _packages
 
+# Packaging is split the way the two compositions are, because each wrapper
+# is made from the app bundle and the receipt of the build that produced it:
+# every product of a composition comes out of one place, and nothing here
+# touches the other composition's DerivedData. That is what lets CI compile
+# the two in parallel and have each job package only what it built, instead
+# of shipping a heavy bundle between runners to be packaged a second time.
 _packages:
+	@$(MAKE) --no-print-directory _packages-full
+	@$(MAKE) --no-print-directory _packages-sandboxed
+
+# Both .deb layouts and the .tipa: one Fila.app, three archives.
+_packages-full:
 	@$(MAKE) --no-print-directory _package-deb FLAVOR=roothide
 	@$(MAKE) --no-print-directory _package-deb FLAVOR=rootless
 	"$(IPA_PACKAGER)" "$(APP_BUNDLE)" tipa "$(TIPA_OUTPUT)" "$(APP_VERSION)" "$(ENTITLEMENTS)"
+
+_packages-sandboxed:
 	"$(IPA_PACKAGER)" "$(SANDBOX_APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
 
 # Build for FLAVOR and install it on the device behind `iproxy $(DEVICE_PORT) 22`.

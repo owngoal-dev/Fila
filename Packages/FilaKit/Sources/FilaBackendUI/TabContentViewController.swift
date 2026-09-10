@@ -287,8 +287,23 @@ open class TabContentViewController: UIViewController {
         // Reserve native control widths, outer margins and inter-group gaps.
         // Measure this content column, never the screen or the split sidebar.
         let available = view.safeAreaLayoutGuide.layoutFrame.width
-        let slot = FilaUI.minimumTapTarget + FilaUI.Spacing.large + FilaUI.Spacing.small
-        var reserved = 2 * FilaUI.Spacing.large
+        //
+        // Under-reserving is not a cosmetic error: a bottom bar whose items do
+        // not fit collapses its trailing ones into the system's overflow
+        // control, and Search, the breadcrumb and Tabs carry images without
+        // titles, so what opens is a menu of blank rows. Over-reserving costs
+        // the breadcrumb a few points of a scroller that already scrolls. On
+        // iOS 26 each item sits in its own capsule, with wider outer margins
+        // and gaps than the flat bar, and the breadcrumb gets a capsule too.
+        let slot: CGFloat
+        var reserved: CGFloat
+        if #available(iOS 26.0, *) {
+            slot = FilaUI.minimumTapTarget + 2 * FilaUI.Spacing.large
+            reserved = 2 * (FilaUI.Spacing.large + FilaUI.Spacing.medium) + 2 * FilaUI.Spacing.small
+        } else {
+            slot = FilaUI.minimumTapTarget + FilaUI.Spacing.large + FilaUI.Spacing.small
+            reserved = 2 * FilaUI.Spacing.large
+        }
         if searchPlacementItem != nil || wantsSearchButton {
             reserved += slot
         }
