@@ -37,8 +37,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Saved %1$lld of %2$lld files to Fila’s Inbox."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存 %1$lld / %2$lld 个文件到 Fila 收件箱。"
           }
         }
       }
@@ -75,8 +81,38 @@
         }
       }
     },
+    "Unable to save all files." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to save all files."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存所有文件。"
+          }
+        }
+      }
+    },
     "Unable to save all files. Open Fila to view any that were saved." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to save all files. Open Fila to view any that were saved."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存所有文件。打开 Fila 即可查看已保存的文件。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

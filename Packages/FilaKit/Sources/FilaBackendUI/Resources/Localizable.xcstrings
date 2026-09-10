@@ -84,6 +84,12 @@
             "state" : "translated",
             "value" : "%1$@ / %2$@"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ of %@"
+          }
         }
       }
     },
@@ -159,6 +165,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "動作"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actions"
           }
         }
       }
@@ -236,6 +248,12 @@
             "state" : "translated",
             "value" : "加入喜好項目"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Favorites"
+          }
         }
       }
     },
@@ -311,6 +329,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在連線…"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting…"
           }
         }
       }
@@ -388,11 +412,24 @@
             "state" : "translated",
             "value" : "拷貝"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
         }
       }
     },
     "Copy Here" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Here"
+          }
+        }
+      }
     },
     "Could Not Download" : {
       "localizations" : {
@@ -466,6 +503,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法下載"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Download"
           }
         }
       }
@@ -543,6 +586,12 @@
             "state" : "translated",
             "value" : "無法重新整理"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Refresh"
+          }
         }
       }
     },
@@ -618,6 +667,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法儲存"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Save"
           }
         }
       }
@@ -695,6 +750,12 @@
             "state" : "translated",
             "value" : "無法儲存喜好項目"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Save Favorite"
+          }
         }
       }
     },
@@ -770,6 +831,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在從伺服器下載「%@」。"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading “%@” from the server."
           }
         }
       }
@@ -847,6 +914,12 @@
             "state" : "translated",
             "value" : "正在下載…"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading…"
+          }
         }
       }
     },
@@ -922,6 +995,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "空資料夾"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty Folder"
           }
         }
       }
@@ -999,6 +1078,12 @@
             "state" : "translated",
             "value" : "檔案過大，無法預覽"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File Too Large to Preview"
+          }
         }
       }
     },
@@ -1074,6 +1159,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更多"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
           }
         }
       }
@@ -1151,11 +1242,24 @@
             "state" : "translated",
             "value" : "移動"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move"
+          }
         }
       }
     },
     "Move Here" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Here"
+          }
+        }
+      }
     },
     "Preview" : {
       "localizations" : {
@@ -1229,6 +1333,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預覽"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
           }
         }
       }
@@ -1306,6 +1416,12 @@
             "state" : "translated",
             "value" : "重新整理"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh"
+          }
         }
       }
     },
@@ -1381,6 +1497,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從喜好項目移除"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from Favorites"
           }
         }
       }
@@ -1458,6 +1580,12 @@
             "state" : "translated",
             "value" : "儲存到 Fila…"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save to Fila…"
+          }
         }
       }
     },
@@ -1533,6 +1661,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存「%@」"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved “%@”"
           }
         }
       }
@@ -1610,6 +1744,12 @@
             "state" : "translated",
             "value" : "僅顯示前 %lld 項"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Showing the first %lld items"
+          }
         }
       }
     },
@@ -1685,6 +1825,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "標籤頁"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tabs"
           }
         }
       }
@@ -1762,11 +1908,24 @@
             "state" : "translated",
             "value" : "無法在此裝置上儲存檔案。請再試一次。"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file could not be saved on this device. Try again."
+          }
         }
       }
     },
     "This folder is empty. Open another folder, or go back." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This folder is empty. Open another folder, or go back."
+          }
+        }
+      }
     },
     "Try Again" : {
       "localizations" : {
@@ -1840,6 +1999,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重試"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Again"
           }
         }
       }
@@ -1916,6 +2081,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法列出資料夾"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to List Folder"
           }
         }
       }
