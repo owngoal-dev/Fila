@@ -17,9 +17,10 @@ extension UIViewController {
     /// came out a page sheet twice the size of Settings.
     func presentAsSheet(_ viewController: UIViewController) {
         viewController.modalPresentationStyle = .formSheet
-        viewController.preferredContentSize = FilaUI.formSheetSize
         let window = viewIfLoaded?.window?.traitCollection ?? traitCollection
         if window.horizontalSizeClass == .compact {
+            // No content size here: a phone's sheet is the full width in
+            // both orientations, and an edge-attached sheet would follow one.
             viewController.sheetPresentationController?.do {
                 $0.detents = [.large()]
                 $0.prefersGrabberVisible = true
@@ -27,6 +28,8 @@ extension UIViewController {
                 $0.prefersEdgeAttachedInCompactHeight = true
                 $0.widthFollowsPreferredContentSizeWhenEdgeAttached = true
             }
+        } else {
+            viewController.preferredContentSize = FilaUI.formSheetSize
         }
         present(viewController, animated: true)
     }

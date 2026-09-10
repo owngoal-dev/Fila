@@ -56,10 +56,29 @@ final class TabContainerViewController: UIViewController {
     /// window doing the closing is in its overview, where its own closes are
     /// handled by the shell, and is left alone here.
     @objc private func tabsChanged() {
+        let store = BrowserTabStore.shared
         guard !isShowingOverview, let id = installedTabID,
-              !BrowserTabStore.shared.tabs.contains(where: { $0.id == id }) else { return }
+              !store.tabs.contains(where: { $0.id == id }) else { return }
         removeClosedTabs()
-        showCurrentTab()
+        // A close never grows the list: a tab no other window shows, else
+        // the current one shared.
+        let tab = store.freeTab(for: self) ?? store.current
+        showTab(tab.id) { makeNavigation(Self.browsers(for: tab)) }
+    }
+
+    /// Re-installs this window's own tab — the page the user is looking at
+    /// — for the callers that need a live navigation and must not switch
+    /// tabs: closing the overview without choosing, and a push or replace
+    /// on this window. `showCurrentTab` is for the callers that have just
+    /// made a tab current on purpose; here another window may have moved
+    /// `currentID` since this page was installed.
+    func showInstalledTab() {
+        guard let id = installedTabID, tabs[id] != nil,
+              BrowserTabStore.shared.tabs.contains(where: { $0.id == id }) else {
+            showCurrentTab()
+            return
+        }
+        showTab(id) { preconditionFailure("the installed tab has a navigation") }
     }
 
     /// The screen whose navigation item the visible bar reads: a tab's top, or
@@ -176,6 +195,10 @@ final class TabContainerViewController: UIViewController {
             closed.removeFromParent()
             if installedTabID == id {
                 installedTabID = nil
+            }
+            // A tab closed from another window can be the one on screen.
+            if displayed === closed {
+                displayed = nil
             }
         }
     }
@@ -539,7 +562,7 @@ extension TabContainerViewController: UINavigationControllerDelegate {
         willShow viewController: UIViewController,
         animated: Bool
     ) {
-        shell?.configureSidebarButton(for: viewController)
+        owner?.configureSidebarButton(for: viewController)
         navigation.setNavigationBarHidden(false, animated: animated)
         navigation.setToolbarHidden(viewController.toolbarItems?.isEmpty != false, animated: animated)
     }
@@ -552,7 +575,7 @@ extension TabContainerViewController: UINavigationControllerDelegate {
         guard navigation === self.navigation else { return }
         // A cancelled interactive pop never reaches willShow for the controller
         // that stays; give it the sidebar toggle back here.
-        shell?.configureSidebarButton(for: viewController)
+        owner?.configureSidebarButton(for: viewController)
         captureCurrentTab()
     }
 }

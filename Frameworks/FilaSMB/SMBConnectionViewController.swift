@@ -115,6 +115,17 @@ final class SMBConnectionViewController: UITableViewController {
         tableView.reloadRows(at: [indexPath], with: .none)
     }
 
+    private func fieldCell(for row: Row) -> FieldCell? {
+        indexPath(of: row).flatMap { tableView.cellForRow(at: $0) as? FieldCell }
+    }
+
+    /// The Name row's placeholder is the share and server while no name is
+    /// typed; it changes in place as they are typed, without a reload per key.
+    private func reloadNamePlaceholder() {
+        guard profile.name.isEmpty else { return }
+        fieldCell(for: .name)?.setPlaceholder(field(for: .name).placeholder)
+    }
+
     override func numberOfSections(in _: UITableView) -> Int {
         Section.allCases.count
     }
@@ -191,14 +202,20 @@ final class SMBConnectionViewController: UITableViewController {
         }
     }
 
+    /// The account put aside while Guest is on, so a switch flipped twice
+    /// gives it back. The password is not touched by the switch at all:
+    /// `passwordToStore` drops it only when the share is saved as guest.
+    private var accountBeforeGuest: (username: String, domain: String?)?
+
     private func setGuest(_ guest: Bool) {
         view.endEditing(true)
         if guest {
+            accountBeforeGuest = (profile.username ?? "", profile.domain)
             profile.username = nil
             profile.domain = nil
-            password = .some(nil)
         } else {
-            profile.username = ""
+            profile.username = accountBeforeGuest?.username ?? ""
+            profile.domain = accountBeforeGuest?.domain
         }
         tableView.reloadSections([Section.account.rawValue], with: .automatic)
         refreshSaveButton()
@@ -219,7 +236,7 @@ final class SMBConnectionViewController: UITableViewController {
             return .init(
                 title: String(localized: "Port", bundle: bundle),
                 placeholder: String(SMBProfile.defaultPort),
-                text: profile.port == SMBProfile.defaultPort ? "" : String(profile.port),
+                text: String(profile.port),
                 keyboard: .numberPad
             )
         case .share:
@@ -278,19 +295,24 @@ final class SMBConnectionViewController: UITableViewController {
             let wasEmpty = profile.host.isEmpty
             profile.host = trimmed
             if wasEmpty != trimmed.isEmpty { reload(.chooseShare) }
-            reload(.name)
+            reloadNamePlaceholder()
         case .port:
             // Empty is the default; anything else must parse, or Save waits.
             profile.port = trimmed.isEmpty ? SMBProfile.defaultPort : (Int(trimmed) ?? 0)
         case .share:
             profile.share = trimmed
-            reload(.name)
+            reloadNamePlaceholder()
         case .domain:
             profile.domain = trimmed.isEmpty ? nil : trimmed
         case .username:
             profile.username = trimmed
         case .password:
             password = .some(text.isEmpty ? nil : text)
+            // A field emptied after typing means "no password": the dots
+            // that stood for the stored one must go, or the field says a
+            // password is kept when Save is about to remove it. The cell is
+            // being edited, so its placeholder is changed in place.
+            fieldCell(for: .password)?.setPlaceholder(field(for: .password).placeholder)
         case .name:
             profile.name = trimmed
         case .chooseShare, .guest:
@@ -522,6 +544,12 @@ private final class FieldCell: UITableViewCell {
 
     func beginEditing() {
         field.becomeFirstResponder()
+    }
+
+    /// A placeholder that changes under a live field, without a reload that
+    /// would take the keyboard away.
+    func setPlaceholder(_ placeholder: String) {
+        field.placeholder = placeholder
     }
 
     @objc private func changed() {

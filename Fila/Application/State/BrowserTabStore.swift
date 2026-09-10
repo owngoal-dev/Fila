@@ -190,19 +190,32 @@ final class BrowserTabStore {
         return false
     }
 
-    /// The tab a window that has shown nothing yet starts on. The current tab
-    /// when no other window has it; otherwise a tab no window shows; otherwise
-    /// a new tab at the current directory, so two windows do not both edit
-    /// one tab's history — and, at the cap, the current tab shared after all.
-    /// A tab this hands out becomes current: the new window is the one acting.
-    func tabForNewWindow(_ container: AnyObject) -> BrowserTab {
+    /// A tab no other window than `container` shows: the current one when it
+    /// is free, else the first free one, made current — the window taking it
+    /// is the one acting. Nil when every tab is on some other window's screen.
+    func freeTab(for container: AnyObject) -> BrowserTab? {
         let current = current
         guard isInstalled(current.id, elsewhereThan: container) else { return current }
-        if let free = tabs.first(where: { !isInstalled($0.id, elsewhereThan: container) }) {
-            select(free.id)
-            return free
+        guard let free = tabs.first(where: { !isInstalled($0.id, elsewhereThan: container) }) else { return nil }
+        select(free.id)
+        return free
+    }
+
+    /// The tab a window that has shown nothing yet starts on: a free tab, or
+    /// a new tab at the current directory, so two windows do not both edit
+    /// one tab's history — and, at the cap, the current tab shared after all.
+    func tabForNewWindow(_ container: AnyObject) -> BrowserTab {
+        freeTab(for: container) ?? open(current.path) ?? current
+    }
+
+    /// Nothing shows a tab that is gone: the closing window's container has
+    /// not removed its navigation yet when the change is posted, and another
+    /// window choosing its next tab must not read the dead one as taken.
+    private func forgetInstalled(_ ids: Set<UUID>) {
+        let owners = installed.keyEnumerator().allObjects as [AnyObject]
+        for owner in owners where (installed.object(forKey: owner) as UUID?).map(ids.contains) == true {
+            installed.removeObject(forKey: owner)
         }
-        return open(current.path) ?? current
     }
 
     // MARK: - Writing
@@ -256,10 +269,12 @@ final class BrowserTabStore {
         if currentID == id {
             currentID = tabs[min(index, tabs.count - 1)].id
         }
+        forgetInstalled([id])
         save()
     }
 
     func closeAll() {
+        forgetInstalled(Set(tabs.map(\.id)))
         tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
         currentID = tabs[0].id
         save()

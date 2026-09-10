@@ -112,7 +112,8 @@ final class TabSwitcherViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
             primaryAction: UIAction { [weak self] _ in
-                self?.content?.showCurrentTab()
+                // Closing without choosing lands back on this window's page.
+                self?.content?.showInstalledTab()
             }
         )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")

@@ -56,14 +56,20 @@ enum FilaMenu {
         let inset: CGFloat = 3
         let gap: CGFloat = 2
         let cell = (side - 2 * inset - CGFloat(columns - 1) * gap) / CGFloat(columns)
+        // A grid whose last row is short is centred in the tile rather than
+        // left hanging from its top.
+        let rows = (pictures.count + columns - 1) / columns
+        let top = (side - CGFloat(rows) * cell - CGFloat(rows - 1) * gap) / 2
         let tile = CGRect(x: 0, y: 0, width: side, height: side)
+        // Rendered on every open of the menu (the callers are deferred
+        // elements), so the fill resolves for the current appearance.
         let image = UIGraphicsImageRenderer(size: tile.size).image { _ in
             UIColor.secondarySystemFill.setFill()
             UIBezierPath(roundedRect: tile, cornerRadius: side * 0.22).fill()
             for (index, picture) in pictures.enumerated() {
                 let box = CGRect(
                     x: inset + CGFloat(index % columns) * (cell + gap),
-                    y: inset + CGFloat(index / columns) * (cell + gap),
+                    y: top + CGFloat(index / columns) * (cell + gap),
                     width: cell,
                     height: cell
                 )

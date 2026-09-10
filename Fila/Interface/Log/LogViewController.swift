@@ -7,13 +7,16 @@ import UIKit
 
 /// The log screen: both processes on one timeline.
 ///
-/// Present it wrapped, from anywhere:
+/// Load it, then show it — pushed onto a stack, or presented wrapped from
+/// anywhere; it brings its own Close button only when it is presented:
 ///
-///     presentAsSheet(UINavigationController(rootViewController: LogViewController()))
+///     let log = LogViewController()
+///     await log.loadEverything()
+///     presentAsSheet(UINavigationController(rootViewController: log))
 ///
-/// or push it onto an existing stack — it brings its own Close button only when
-/// it is presented. It needs nothing passed in; it reads `FilaLog`'s ring for
-/// the app's lines and polls `filad` for its own.
+/// It needs nothing passed in; it reads `FilaLog`'s ring for the app's lines
+/// and polls `filad` for its own. Shown without `loadEverything()` it is
+/// empty until the first poll, a second later.
 ///
 /// The app's lines and the daemon's are merged by timestamp rather than shown
 /// in two tabs, because the interesting sequence is a request and the daemon's
@@ -138,7 +141,10 @@ final class LogViewController: UIViewController {
                 try? await session.perform { try await $0.fetchLog(since: cursor, level: level) }
             }
             group.addTask {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                // Long enough for a daemon that is up to answer, short
+                // enough that a tap on the row never reads as dead: a daemon
+                // still spawning is caught by the first poll instead.
+                try? await Task.sleep(nanoseconds: 300_000_000)
                 return nil
             }
             let first = await group.next() ?? nil

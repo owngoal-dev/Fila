@@ -417,7 +417,9 @@ final class RootSplitViewController: UISplitViewController {
     /// Closing or replacing content consults the editor that owns its work.
     /// Merely switching to another retained tab does not discard anything.
     private func confirmLeavingContent(_ leave: @escaping () -> Void) {
-        content.showCurrentTab()
+        // This window's own page, not whatever tab another window last made
+        // current: a push or replace here acts on the tab on this screen.
+        content.showInstalledTab()
         let navigation = content.navigation
         let source = navigation?.topViewController
         let viewer = navigation?.viewControllers.compactMap { $0 as? ViewerContainerViewController }.last
