@@ -1156,6 +1156,78 @@
             "state" : "translated",
             "value" : "Guest access has no username or password. Servers that require an account will refuse it."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يستخدم وصول الضيف اسم مستخدم أو كلمة سر. سترفضه الخوادم التي تتطلب حسابًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Gastzugriff verwendet weder Benutzernamen noch Passwort. Server, die ein Konto erfordern, weisen ihn ab."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acceso de invitado no usa nombre de usuario ni contraseña. Los servidores que requieren una cuenta lo rechazarán."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’accès invité n’utilise ni nom d’utilisateur ni mot de passe. Les serveurs qui exigent un compte le refuseront."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’accesso ospite non usa nome utente né password. I server che richiedono un account lo rifiuteranno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ゲストアクセスにはユーザ名もパスワードもありません。アカウントが必要なサーバでは拒否されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "게스트 접근에는 사용자 이름과 암호가 없습니다. 계정이 필요한 서버는 이를 거부합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O acesso de convidado não usa nome de usuário nem senha. Servidores que exigem uma conta vão recusá-lo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Гостевой доступ не использует имя пользователя и пароль. Серверы, которым нужна учётная запись, его отклонят."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Truy cập khách không dùng tên người dùng hay mật khẩu. Máy chủ yêu cầu tài khoản sẽ từ chối."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "访客访问不使用用户名和密码。要求账户的服务器会拒绝该访问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訪客存取不使用使用者名稱和密碼。要求帳號的伺服器會拒絕該存取。"
+          }
         }
       }
     },
@@ -2478,6 +2550,78 @@
             "state" : "translated",
             "value" : "That item is not on the server. Refresh the folder, or choose another item."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا العنصر غير موجود على الخادم. حدّث المجلد أو اختر عنصرًا آخر."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Objekt ist nicht auf dem Server. Aktualisiere den Ordner oder wähle ein anderes Objekt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ese elemento no está en el servidor. Actualiza la carpeta o selecciona otro elemento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet élément ne se trouve pas sur le serveur. Actualisez le dossier ou choisissez un autre élément."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo elemento non è sul server. Aggiorna la cartella o scegli un altro elemento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この項目はサーバにありません。フォルダを再読み込みするか、別の項目を選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "해당 항목이 서버에 없습니다. 폴더를 새로 고치거나 다른 항목을 선택하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este item não está no servidor. Atualize a pasta ou escolha outro item."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этого объекта нет на сервере. Обновите папку или выберите другой объект."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mục đó không có trên máy chủ. Hãy làm mới thư mục hoặc chọn mục khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该项目不在服务器上。请刷新文件夹，或选择其他项目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "該項目不在伺服器上。請重新整理檔案夾，或選擇其他項目。"
+          }
         }
       }
     },
@@ -2816,6 +2960,78 @@
             "state" : "translated",
             "value" : "The name “%@” cannot be used on this server. Choose a different name."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن استخدام الاسم ”%@“ على هذا الخادم. اختر اسمًا مختلفًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Name „%@“ kann auf diesem Server nicht verwendet werden. Wähle einen anderen Namen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El nombre “%@” no se puede usar en este servidor. Selecciona otro nombre."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nom « %@ » ne peut pas être utilisé sur ce serveur. Choisissez un autre nom."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il nome “%@” non può essere usato su questo server. Scegli un nome diverso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名前「%@」はこのサーバでは使用できません。別の名前を選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 서버에서는 “%@” 이름을 사용할 수 없습니다. 다른 이름을 선택하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O nome “%@” não pode ser usado neste servidor. Escolha outro nome."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Имя «%@» нельзя использовать на этом сервере. Выберите другое имя."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể dùng tên “%@” trên máy chủ này. Hãy chọn tên khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法在此服务器上使用名称“%@”。请选择其他名称。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法在此伺服器上使用名稱「%@」。請選擇其他名稱。"
+          }
         }
       }
     },
@@ -3072,6 +3288,78 @@
             "state" : "translated",
             "value" : "The server has no share named “%@”. Choose another share."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يحتوي الخادم على مشاركة باسم ”%@“. اختر مشاركة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf dem Server gibt es keine Freigabe namens „%@“. Wähle eine andere Freigabe."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor no tiene ningún recurso llamado “%@”. Selecciona otro recurso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur ne contient aucun partage nommé « %@ ». Choisissez un autre partage."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server non ha una condivisione chiamata “%@”. Scegli un’altra condivisione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバに「%@」という共有はありません。別の共有を選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버에 “%@”(이)라는 공유가 없습니다. 다른 공유를 선택하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor não tem um compartilhamento chamado “%@”. Escolha outro compartilhamento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На сервере нет общего ресурса с именем «%@». Выберите другой ресурс."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ không có chia sẻ nào tên “%@”. Hãy chọn chia sẻ khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器上没有名为“%@”的共享。请选择其他共享。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器上沒有名為「%@」的共享。請選擇其他共享。"
+          }
         }
       }
     },
@@ -3081,6 +3369,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The server refused the account name or password. Check them and try again."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رفض الخادم اسم الحساب أو كلمة السر. تحقق منهما وحاول مرة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server hat den Kontonamen oder das Passwort abgelehnt. Prüfe beides und versuche es erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor ha rechazado el nombre de cuenta o la contraseña. Compruébalos y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur a refusé le nom de compte ou le mot de passe. Vérifiez-les, puis réessayez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server ha rifiutato il nome dell’account o la password. Controllali e riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバがアカウント名またはパスワードを拒否しました。確認してから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버가 계정 이름 또는 암호를 거부했습니다. 확인 후 다시 시도하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor recusou o nome da conta ou a senha. Verifique-os e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер отклонил имя учётной записи или пароль. Проверьте их и повторите попытку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ đã từ chối tên tài khoản hoặc mật khẩu. Hãy kiểm tra rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "服务器拒绝了账户名或密码。请检查后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "伺服器拒絕了帳號名稱或密碼。請檢查後再試一次。"
           }
         }
       }
@@ -3255,6 +3615,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This account is not allowed to do that. Try another account, or choose a different item."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يُسمح لهذا الحساب بذلك. جرّب حسابًا آخر أو اختر عنصرًا مختلفًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Konto darf das nicht. Versuche es mit einem anderen Konto oder wähle ein anderes Objekt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta cuenta no tiene permiso para hacerlo. Prueba con otra cuenta o selecciona otro elemento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce compte n’est pas autorisé à effectuer cette action. Essayez un autre compte ou choisissez un autre élément."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo account non è autorizzato a farlo. Prova con un altro account o scegli un elemento diverso."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアカウントにはその操作が許可されていません。別のアカウントを試すか、別の項目を選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 계정에는 해당 작업 권한이 없습니다. 다른 계정을 사용하거나 다른 항목을 선택하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta conta não tem permissão para fazer isso. Tente outra conta ou escolha outro item."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этой учётной записи это не разрешено. Попробуйте другую учётную запись или выберите другой объект."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tài khoản này không được phép làm điều đó. Hãy thử tài khoản khác hoặc chọn mục khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此账户无权执行该操作。请尝试其他账户，或选择其他项目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此帳號無權執行該操作。請嘗試其他帳號，或選擇其他項目。"
           }
         }
       }

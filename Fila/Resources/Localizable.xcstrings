@@ -255,6 +255,78 @@
             "state" : "new",
             "value" : "“%1$@” is %2$@ at the destination instead of %3$@. The original was kept. Look in the destination folder before trying again."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "”%1$@“ في الوجهة هو %2$@ بدلًا من %3$@. تم الاحتفاظ بالأصل. تحقق من مجلد الوجهة قبل المحاولة مرة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%1$@“ ist am Ziel %2$@ statt %3$@. Das Original wurde behalten. Sieh im Zielordner nach, bevor du es erneut versuchst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” es %2$@ en el destino en lugar de %3$@. Se ha conservado el original. Comprueba la carpeta de destino antes de volver a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %1$@ » est %2$@ dans la destination au lieu de %3$@. L’original a été conservé. Vérifiez le dossier de destination avant de réessayer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” nella destinazione è %2$@ invece di %3$@. L’originale è stato mantenuto. Controlla la cartella di destinazione prima di riprovare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」は移動先では%3$@ではなく%2$@です。元の項目はそのまま残しました。移動先のフォルダを確認してから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대상 위치의 “%1$@”은(는) %3$@이 아니라 %2$@입니다. 원본은 유지되었습니다. 다시 시도하기 전에 대상 폴더를 확인하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” está no destino como %2$@ em vez de %3$@. O original foi mantido. Verifique a pasta de destino antes de tentar novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%1$@» в месте назначения — это %2$@, а не %3$@. Оригинал сохранён. Проверьте папку назначения, прежде чем повторить попытку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” ở đích là %2$@ chứ không phải %3$@. Bản gốc đã được giữ lại. Hãy kiểm tra thư mục đích trước khi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@”在目标位置是%2$@，而不是%3$@。已保留原项目。请先查看目标文件夹，然后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」在目標位置是%2$@，而不是%3$@。已保留原項目。請先查看目標檔案夾，然後再試一次。"
+          }
         }
       }
     },
@@ -2316,6 +2388,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld items will be extracted here without replacing existing items."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيتم استخراج %lld عنصرًا هنا دون استبدال العناصر الموجودة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Objekte werden hier extrahiert, ohne vorhandene Objekte zu ersetzen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se extraerán %lld elementos aquí sin sustituir los elementos existentes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld éléments seront extraits ici sans remplacer les éléments existants."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld elementi verranno estratti qui senza sostituire gli elementi esistenti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個の項目をここに展開します。既存の項目は置き換えません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "항목 %lld개를 여기에 추출합니다. 기존 항목은 대치하지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld itens serão extraídos aqui sem substituir os itens existentes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сюда будет извлечено объектов: %lld. Существующие объекты не будут заменены."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld mục sẽ được giải nén tại đây mà không thay thế các mục hiện có."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将在此处解压 %lld 个项目，不会替换已有项目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將在此處解壓縮 %lld 個項目，不會取代既有項目。"
           }
         }
       }
@@ -8590,6 +8734,78 @@
             "state" : "translated",
             "value" : "Choose a folder both Fila and the Files app can open. The Files app cannot open folders that need root access."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اختر مجلدًا يمكن لكل من Fila وتطبيق الملفات فتحه. لا يستطيع تطبيق الملفات فتح المجلدات التي تتطلب صلاحية الجذر."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle einen Ordner, den sowohl Fila als auch „Dateien“ öffnen können. „Dateien“ kann keine Ordner öffnen, die Root-Rechte erfordern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona una carpeta que puedan abrir tanto Fila como la app Archivos. La app Archivos no puede abrir carpetas que requieren acceso root."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un dossier que Fila et l’app Fichiers peuvent ouvrir. L’app Fichiers ne peut pas ouvrir les dossiers qui nécessitent un accès root."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegli una cartella che possano aprire sia Fila sia l’app File. L’app File non può aprire cartelle che richiedono l’accesso root."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filaと「ファイル」Appの両方で開けるフォルダを選択してください。「ファイル」Appは、root権限が必要なフォルダを開けません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila와 파일 앱 모두에서 열 수 있는 폴더를 선택하십시오. 파일 앱은 루트 권한이 필요한 폴더를 열 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolha uma pasta que o Fila e o app Arquivos possam abrir. O app Arquivos não pode abrir pastas que exigem acesso root."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выберите папку, которую могут открыть и Fila, и приложение «Файлы». Приложение «Файлы» не может открывать папки, требующие доступа root."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy chọn thư mục mà cả Fila và ứng dụng Tệp đều mở được. Ứng dụng Tệp không mở được thư mục cần quyền root."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 Fila 和“文件”App 都能打开的文件夹。“文件”App 无法打开需要 root 权限的文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇 Fila 和「檔案」App 都能開啟的檔案夾。「檔案」App 無法開啟需要 root 權限的檔案夾。"
+          }
         }
       }
     },
@@ -11076,81 +11292,77 @@
             "state" : "new",
             "value" : "Copied, but %1$lld items could not be removed from the source and were kept there: %2$@."
           }
-        }
-      }
-    },
-    "Copied, but %lld items could not be removed from the source and were kept there: %@. A folder is kept if something was added to it after it was copied." : {
-      "localizations" : {
+        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تم النسخ، لكن تعذّرت إزالة %1$lld من العناصر من المصدر وبقيت هناك: %2$@. يُبقى المجلد إذا أُضيف إليه شيء بعد نسخه."
+            "value" : "تم النسخ، لكن تعذّرت إزالة %1$lld من العناصر من المصدر وبقيت هناك: %2$@."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kopiert, aber %1$lld Objekte konnten an der Quelle nicht entfernt werden und blieben dort: %2$@. Ein Ordner bleibt erhalten, wenn nach dem Kopieren etwas hinzugefügt wurde."
+            "value" : "Kopiert, aber %1$lld Objekte konnten an der Quelle nicht entfernt werden und blieben dort: %2$@."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se copió, pero %1$lld elementos no se han podido eliminar del origen y se han conservado allí: %2$@. Se conserva una carpeta si se le añadió algo después de copiarla."
+            "value" : "Se copió, pero %1$lld elementos no se han podido eliminar del origen y se han conservado allí: %2$@."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copie effectuée, mais %1$lld éléments n’ont pas pu être retirés de la source et y ont été conservés : %2$@. Un dossier est conservé si quelque chose y a été ajouté après la copie."
+            "value" : "Copie effectuée, mais %1$lld éléments n’ont pas pu être retirés de la source et y ont été conservés : %2$@."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copiati, ma %1$lld elementi non sono stati rimossi dall’origine e sono rimasti lì: %2$@. Una cartella viene conservata se è stato aggiunto qualcosa dopo la copia."
+            "value" : "Copiati, ma %1$lld elementi non sono stati rimossi dall’origine e sono rimasti lì: %2$@."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "コピーしましたが、%1$lld 個の項目をコピー元から削除できず、そのまま残しました: %2$@。コピー後に何かが追加されたフォルダは残されます。"
+            "value" : "コピーしましたが、%1$lld 個の項目をコピー元から削除できず、そのまま残しました: %2$@。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "복사했지만 항목 %1$lld개를 원본에서 제거하지 못해 그대로 두었습니다: %2$@. 복사 후에 무언가가 추가된 폴더는 유지됩니다."
+            "value" : "복사했지만 항목 %1$lld개를 원본에서 제거하지 못해 그대로 두었습니다: %2$@."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copiado, mas %1$lld itens não puderam ser removidos da origem e foram mantidos lá: %2$@. Uma pasta é mantida se algo foi adicionado a ela depois da cópia."
+            "value" : "Copiado, mas %1$lld itens não puderam ser removidos da origem e foram mantidos lá: %2$@."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скопировано, но %1$lld объектов не удалось удалить из источника, и они оставлены там: %2$@. Папка сохраняется, если после копирования в неё что-то добавили."
+            "value" : "Скопировано, но %1$lld объектов не удалось удалить из источника, и они оставлены там: %2$@."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đã sao chép, nhưng %1$lld mục không thể xóa khỏi nguồn và được giữ lại ở đó: %2$@. Thư mục được giữ lại nếu có gì đó được thêm vào sau khi sao chép."
+            "value" : "Đã sao chép, nhưng %1$lld mục không thể xóa khỏi nguồn và được giữ lại ở đó: %2$@."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已复制，但有 %1$lld 个项目无法从来源移除并保留在原处：%2$@。若文件夹在复制后被添加了内容，则会保留。"
+            "value" : "已复制，但有 %1$lld 个项目无法从来源移除并保留在原处：%2$@。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已拷貝，但有 %1$lld 個項目無法從來源移除，已保留在原處：%2$@。若檔案夾在拷貝後被加入了內容，則會保留。"
+            "value" : "已拷貝，但有 %1$lld 個項目無法從來源移除，已保留在原處：%2$@。"
           }
         }
       }
@@ -19577,6 +19789,78 @@
             "state" : "translated",
             "value" : "Fila finds the program a script needs if it isn't in the usual place. Turn this off to run scripts exactly as written."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يعثر Fila على البرنامج الذي يحتاجه البرنامج النصي إذا لم يكن في مكانه المعتاد. أوقف هذا الخيار لتشغيل البرامج النصية كما هي مكتوبة تمامًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila findet das von einem Skript benötigte Programm, wenn es nicht am üblichen Ort liegt. Deaktiviere dies, um Skripte genau wie geschrieben auszuführen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila busca el programa que necesita un script si no está en el lugar habitual. Desactiva esta opción para ejecutar los scripts exactamente como están escritos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila trouve le programme dont un script a besoin s’il ne se trouve pas à l’emplacement habituel. Désactivez cette option pour exécuter les scripts exactement tels qu’ils sont écrits."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila trova il programma richiesto da uno script se non si trova nella posizione abituale. Disattiva questa opzione per eseguire gli script esattamente come sono scritti."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリプトが必要とするプログラムが通常の場所にない場合、Filaがそれを探します。オフにすると、スクリプトに書かれたとおりに実行します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크립트에 필요한 프로그램이 일반적인 위치에 없으면 Fila가 찾아 줍니다. 이 옵션을 끄면 스크립트에 작성된 그대로 실행합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Fila encontra o programa de que um script precisa se ele não estiver no local habitual. Desative esta opção para executar os scripts exatamente como estão escritos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila находит программу, необходимую скрипту, если её нет в обычном месте. Отключите этот параметр, чтобы выполнять скрипты ровно так, как они написаны."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila sẽ tìm chương trình mà tập lệnh cần nếu nó không nằm ở vị trí thông thường. Hãy tắt tùy chọn này để chạy tập lệnh đúng như đã viết."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "若脚本所需的程序不在常规位置，Fila 会自动查找。关闭后将完全按脚本所写的方式运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "若腳本所需的程式不在常規位置，Fila 會自動尋找。關閉後將完全依腳本所寫的方式執行。"
+          }
         }
       }
     },
@@ -21236,6 +21520,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Find Script Interpreters"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "العثور على مفسّرات البرامج النصية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skript-Interpreter finden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar intérpretes de scripts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechercher les interpréteurs de scripts"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trova interpreti di script"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリプトインタプリタを検索"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크립트 인터프리터 찾기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Localizar interpretadores de scripts"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Искать интерпретаторы скриптов"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm trình thông dịch tập lệnh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查找脚本解释器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尋找腳本直譯器"
           }
         }
       }
@@ -26366,6 +26722,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep Fila open until this finishes."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أبقِ Fila مفتوحًا حتى تنتهي هذه العملية."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lass Fila geöffnet, bis dieser Vorgang abgeschlossen ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén Fila abierto hasta que esto termine."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laissez Fila ouvert jusqu’à la fin de l’opération."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tieni Fila aperto finché l’operazione non è completata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完了するまでFilaを開いたままにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완료될 때까지 Fila를 열어 두십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha o Fila aberto até isto terminar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не закрывайте Fila, пока операция не завершится."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy giữ Fila mở cho đến khi hoàn tất."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请保持 Fila 打开，直到此操作完成。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請保持 Fila 開啟，直到此操作完成。"
           }
         }
       }
@@ -50050,6 +50478,78 @@
             "state" : "translated",
             "value" : "This file is not valid UTF-8. It is shown and saved without converting it to UTF-8."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا الملف ليس UTF-8 صالحًا. يُعرض ويُحفظ دون تحويله إلى UTF-8."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Datei ist kein gültiges UTF-8. Sie wird ohne Umwandlung in UTF-8 angezeigt und gesichert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este archivo no es UTF-8 válido. Se muestra y se guarda sin convertirlo a UTF-8."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce fichier n’est pas de l’UTF-8 valide. Il est affiché et enregistré sans être converti en UTF-8."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo file non è UTF-8 valido. Viene mostrato e salvato senza convertirlo in UTF-8."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このファイルは有効なUTF-8ではありません。UTF-8に変換せずに表示および保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 파일은 유효한 UTF-8이 아닙니다. UTF-8로 변환하지 않고 표시하고 저장합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este arquivo não é UTF-8 válido. Ele é exibido e salvo sem ser convertido para UTF-8."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот файл не является корректным UTF-8. Он отображается и сохраняется без преобразования в UTF-8."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp này không phải UTF-8 hợp lệ. Tệp được hiển thị và lưu mà không chuyển đổi sang UTF-8."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件不是有效的 UTF-8。将按原样显示和保存，不会转换为 UTF-8。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此檔案不是有效的 UTF-8。將按原樣顯示和儲存，不會轉換為 UTF-8。"
+          }
         }
       }
     },
@@ -50223,6 +50723,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This folder is empty. You can still choose it."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذا المجلد فارغ. لا يزال بإمكانك اختياره."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Ordner ist leer. Du kannst ihn trotzdem auswählen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta carpeta está vacía. Aun así puedes seleccionarla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce dossier est vide. Vous pouvez tout de même le choisir."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa cartella è vuota. Puoi comunque sceglierla."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このフォルダは空です。それでも選択できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 폴더는 비어 있습니다. 그래도 선택할 수 있습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta pasta está vazia. Você ainda pode escolhê-la."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта папка пуста. Её всё равно можно выбрать."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thư mục này trống. Bạn vẫn có thể chọn thư mục này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文件夹为空。仍可选择它。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此檔案夾是空的。仍可選擇它。"
           }
         }
       }
@@ -50891,6 +51463,78 @@
             "state" : "translated",
             "value" : "This location does not accept files. Choose another folder."
           }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يقبل هذا الموقع الملفات. اختر مجلدًا آخر."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Ort nimmt keine Dateien an. Wähle einen anderen Ordner."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta ubicación no admite archivos. Selecciona otra carpeta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet emplacement n’accepte pas de fichiers. Choisissez un autre dossier."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa posizione non accetta file. Scegli un’altra cartella."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この場所はファイルを受け付けません。別のフォルダを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 위치는 파일을 받을 수 없습니다. 다른 폴더를 선택하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este local não aceita arquivos. Escolha outra pasta."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это место не принимает файлы. Выберите другую папку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vị trí này không nhận tệp. Hãy chọn thư mục khác."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此位置不接受文件。选择其他文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此位置不接受檔案。請選擇其他檔案夾。"
+          }
         }
       }
     },
@@ -51229,6 +51873,78 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Transferring between servers needs %1$@ of free space on this device for a temporary copy, and only %2$@ is free. Free up space and try again."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتطلب النقل بين الخوادم مساحة خالية قدرها %1$@ على هذا الجهاز لنسخة مؤقتة، ولا يتوفر سوى %2$@. أفرغ بعض المساحة وحاول مرة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für die Übertragung zwischen Servern werden %1$@ freier Speicher auf diesem Gerät für eine temporäre Kopie benötigt, es sind aber nur %2$@ frei. Gib Speicher frei und versuche es erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferir entre servidores necesita %1$@ de espacio libre en este dispositivo para una copia temporal, y solo hay %2$@ libres. Libera espacio y vuelve a intentarlo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un transfert entre serveurs nécessite %1$@ d’espace libre sur cet appareil pour une copie temporaire, or il n’y a que %2$@ de libre. Libérez de l’espace, puis réessayez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il trasferimento tra server richiede %1$@ di spazio libero su questo dispositivo per una copia temporanea, ma sono liberi solo %2$@. Libera spazio e riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サーバ間の転送には、一時コピー用にこのデバイスの空き容量が %1$@ 必要ですが、空きは %2$@ しかありません。空き容量を増やしてから、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "서버 간 전송에는 임시 사본을 위해 이 기기에 %1$@의 여유 공간이 필요하지만 %2$@만 남아 있습니다. 공간을 확보한 후 다시 시도하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transferir entre servidores precisa de %1$@ de espaço livre neste dispositivo para uma cópia temporária, e há apenas %2$@ livres. Libere espaço e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для передачи между серверами на этом устройстве нужно %1$@ свободного места для временной копии, а свободно только %2$@. Освободите место и повторите попытку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Việc truyền giữa các máy chủ cần %1$@ dung lượng trống trên thiết bị này cho bản sao tạm thời, nhưng chỉ còn %2$@. Hãy giải phóng dung lượng rồi thử lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在服务器之间传输需要此设备有 %1$@ 可用空间用于临时副本，但当前仅剩 %2$@。请释放空间后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在伺服器之間傳輸需要此裝置有 %1$@ 可用空間存放暫存副本，但目前僅剩 %2$@。請釋出空間後再試一次。"
           }
         }
       }
