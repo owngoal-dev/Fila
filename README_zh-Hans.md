@@ -7,7 +7,7 @@
 
 在 iPhone 或 iPad 上浏览、整理和编辑文件。在受支持的系统环境中安装 Fila，即可使用 root 权限访问系统文件。
 
-![预览](./Documents/screenshots.png)
+![预览](./Documentation/screenshots.png)
 
 ## 安装
 

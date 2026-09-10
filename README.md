@@ -7,7 +7,7 @@
 
 Browse, organize, and edit files on your iPhone or iPad. Install Fila on a supported system environment to access system files with root privileges.
 
-![Preview](./Documents/screenshots.png)
+![Preview](./Documentation/screenshots.png)
 
 ## Install
 
