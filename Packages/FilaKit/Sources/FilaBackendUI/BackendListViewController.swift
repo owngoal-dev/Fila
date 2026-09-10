@@ -557,7 +557,8 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                 "list \(traceName): apply rows=\(arranged.count) of \(snapshot.count)"
                     + " arrange=\(milliseconds(since: startedAt, until: arrangedAt))ms off main "
                     + (animated ? "diff" : "apply") + "=\(milliseconds(since: arrangedAt, until: appliedAt))ms"
-                    + " hooks=\(milliseconds(since: appliedAt))ms" + (animated ? " animated" : "")
+                    + " hooks=\(milliseconds(since: appliedAt, until: hookedAt))ms" + (animated ? " animated" : "")
+                    + (awaitingCompletion ? " settled=\(milliseconds(since: hookedAt))ms" : "")
                     + (viewIfLoaded?.window == nil ? " off window" : "")
             )
         }
@@ -585,7 +586,7 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                 "list \(traceName): apply rows=\(arranged.count) of \(items.count)"
                     + " arrange=\(milliseconds(since: startedAt, until: arrangedAt))ms "
                     + (animated && !reloadingData ? "diff" : "apply") + "=\(milliseconds(since: arrangedAt, until: appliedAt))ms"
-                    + " hooks=\(milliseconds(since: appliedAt))ms"
+                    + " hooks=\(milliseconds(since: appliedAt, until: hookedAt))ms"
                     + (reloadingData ? " reload" : animated ? " animated" : "")
             )
         }
@@ -605,11 +606,15 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
         appliedAt = .now()
         collectionView.showStatus(statusContent) { [weak self] in self?.statusAction() }
         snapshotDidApply()
+        hookedAt = .now()
     }
 
-    /// When the last apply handed its rows over, before the status panel
-    /// and `snapshotDidApply` ran: the trace splits the two.
+    /// When the last apply handed its rows over, and when the status panel
+    /// and `snapshotDidApply` were done with it: the trace tells the three
+    /// apart, and an animated apply's completion — the animation's length,
+    /// not the main thread's — is reported on its own.
     private var appliedAt = DispatchTime.now()
+    private var hookedAt = DispatchTime.now()
 
     /// Replaces what is shown without a load: what a subclass calls when
     /// its arrangement changed but the content did not.
@@ -635,8 +640,10 @@ enum BackendListPacing {
     /// The least time between two streaming applies after the first:
     /// room for frames between one apply's main-thread cost and the next.
     static let applyInterval: TimeInterval = 0.12
-    /// New rows per apply before anything has been measured.
-    static let initialRowLimit = 5000
+    /// New rows per apply before anything has been measured. The first
+    /// apply on screen also makes its cells, which is most of its cost, so
+    /// this starts under what a later apply can carry.
+    static let initialRowLimit = 4000
     static let minimumRowLimit = 1000
     static let maximumRowLimit = 20000
     /// What one apply should cost the main thread: under the budget a

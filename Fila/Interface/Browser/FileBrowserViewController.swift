@@ -532,13 +532,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
 
     // MARK: - Loading
 
-    /// The directory's pages, pulled: the next backend request starts only
-    /// when the list asks for the next batch, so a slow screen never queues
-    /// pages it has not drawn. The stream owns the iterator, and dropping it
-    /// — a listing cut short at the cap — closes the directory.
+    /// The directory's entries in batches. With the daemon they come from
+    /// `DirectoryBulkReader`, which runs ahead of the list up to the cap
+    /// and stops there; without it, from the daemon's pages, each asked for
+    /// when the list wants the next. Dropping the stream — a listing cut
+    /// short, a screen gone — ends the read and closes the directory.
     override func load() -> AsyncThrowingStream<[FileNode], Error> {
-        let pages = DirectoryReader.pages(in: directory, session: session).makeAsyncIterator()
-        return AsyncThrowingStream { try await pages.next() }
+        DirectoryReader.stream(in: directory, session: session)
     }
 
     override func willStartInitialLoad() {
@@ -701,7 +701,15 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         guard footerText != text else { return }
         footerText = text
         footerView?.label.text = text
-        collectionView.collectionViewLayout.invalidateLayout()
+        // The footer alone: it is self-sizing, so its text needs a
+        // measure, and nothing else moved — invalidating the whole layout
+        // for a count that changed by one re-laid every row.
+        guard footerView != nil else { return }
+        let context = UICollectionViewLayoutInvalidationContext()
+        context.invalidateSupplementaryElements(
+            ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: 0)]
+        )
+        collectionView.collectionViewLayout.invalidateLayout(with: context)
     }
 
     private var selectedCount: Int {
