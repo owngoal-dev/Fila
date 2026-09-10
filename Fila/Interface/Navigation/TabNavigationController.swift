@@ -39,30 +39,56 @@ final class TabNavigationController: UINavigationController {
     /// its first rows — up to `preparationBudget`, about three frames — so
     /// the transition lands on content rather than on a wait that turns
     /// into content a moment later. Past the budget the screen goes up
-    /// with its loading status and the rows animate in. Pushes queue in
-    /// order behind one that is waiting; everything else pushes at once.
+    /// with its loading status and the rows animate in.
+    ///
+    /// While one push is waiting, every push queues behind it in the order
+    /// it was asked for — a file tapped right after a folder must not land
+    /// under the folder. A pop or a stack replacement inside the wait
+    /// calls the queue off, and a queued push lands only on the stack it
+    /// was asked against: the top is still the screen that was on top.
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {
         owner?.prepareNavigationItems(for: viewController, in: self, ancestors: viewControllers + pendingPushes)
         prepareContent(viewController)
-        guard animated, let content = viewController as? PreparableContent else {
+        let content = viewController as? PreparableContent
+        let waits = animated && content?.isPrepared == false
+        guard waits || pendingPush != nil else {
             super.pushViewController(viewController, animated: animated)
             return
         }
+        let expectedTop = pendingPushes.last ?? topViewController
         pendingPushes.append(viewController)
         let previous = pendingPush
         pendingPush = Task { [weak self] in
             await previous?.value
-            await content.prepare(within: FilaUI.preparationBudget)
-            self?.pushPrepared(viewController, animated: animated)
+            if waits, let content {
+                await content.prepare(within: FilaUI.preparationBudget)
+            }
+            self?.pushQueued(viewController, animated: animated, onto: expectedTop)
         }
     }
 
-    private func pushPrepared(_ viewController: UIViewController, animated: Bool) {
+    private func pushQueued(_ viewController: UIViewController, animated: Bool, onto expectedTop: UIViewController?) {
+        guard pendingPushes.contains(where: { $0 === viewController }) else { return }
         pendingPushes.removeAll { $0 === viewController }
+        if pendingPushes.isEmpty {
+            pendingPush = nil
+        }
+        // The stack moved under the wait — a pop, a switch of tab — and a
+        // push onto whatever is there now is not the one that was asked for.
+        guard topViewController === expectedTop else { return }
         super.pushViewController(viewController, animated: animated)
     }
 
+    /// Nothing queued lands after this: the stack it was asked against is
+    /// going away.
+    private func dropPendingPushes() {
+        pendingPushes.removeAll()
+        pendingPush?.cancel()
+        pendingPush = nil
+    }
+
     override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
+        dropPendingPushes()
         for (index, controller) in viewControllers.enumerated() {
             owner?.prepareNavigationItems(for: controller, in: self, ancestors: Array(viewControllers.prefix(index)))
             prepareContent(controller)
@@ -71,16 +97,19 @@ final class TabNavigationController: UINavigationController {
     }
 
     override func popViewController(animated: Bool) -> UIViewController? {
+        dropPendingPushes()
         preparePop(to: viewControllers.dropLast().last)
         return super.popViewController(animated: animated)
     }
 
     override func popToViewController(_ viewController: UIViewController, animated: Bool) -> [UIViewController]? {
+        dropPendingPushes()
         preparePop(to: viewController)
         return super.popToViewController(viewController, animated: animated)
     }
 
     override func popToRootViewController(animated: Bool) -> [UIViewController]? {
+        dropPendingPushes()
         preparePop(to: viewControllers.first)
         return super.popToRootViewController(animated: animated)
     }

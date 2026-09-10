@@ -271,26 +271,37 @@ final class TabContainerViewController: UIViewController {
             // page is an action on its tab, whatever a tab still arriving
             // from a menu has made current meanwhile.
             store.select(id)
-            store.record(id, stack: [path], offsets: [:], selection: select)
-            tabs[id]?.preview = nil
             // A jump replaces the stack with no transition, so it has the
             // same wait a push has: the new root gets the budget to put its
-            // first rows up, and a jump that overtakes this one wins.
+            // first rows up, and a jump that overtakes this one wins. The
+            // store is written when the stack is, so the two never disagree
+            // about a jump that was called off.
             jumpGeneration += 1
             let generation = jumpGeneration
-            let browsers = Self.browsers(for: store.current)
-            if let root = browsers.last as? PreparableContent {
-                Task { [weak self, weak navigation] in
+            // The same stack `record` writes: the top directory's own chain.
+            var tab = BrowserTab(path: path)
+            tab.selection = select
+            let browsers = Self.browsers(for: tab)
+            let install = { [weak self, weak navigation] in
+                guard let self, let navigation else { return }
+                store.record(id, stack: [path], offsets: [:], selection: select)
+                tabs[id]?.preview = nil
+                navigation.setViewControllers(browsers, animated: false)
+            }
+            if let rootController = browsers.last, let root = rootController as? PreparableContent {
+                // Its bar first, as a push would: the view loads under the
+                // wait, and must load into the tab's chrome.
+                (navigation as? TabNavigationController)?.prepareContent(rootController)
+                Task { [weak self] in
                     await root.prepare(within: FilaUI.preparationBudget)
-                    guard let self, let navigation, generation == jumpGeneration, installedTabID == id else {
+                    guard let self, generation == jumpGeneration, installedTabID == id else {
                         FilaLog.verbose("jump to \(path) overtaken")
                         return
                     }
-                    navigation.setViewControllers(browsers, animated: false)
-                    FilaLog.verbose("jump to \(path) installed")
+                    install()
                 }
             } else {
-                navigation.setViewControllers(browsers, animated: false)
+                install()
             }
         } else {
             store.record(store.currentID, stack: [path], offsets: [:], selection: select)

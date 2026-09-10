@@ -141,6 +141,11 @@ final class FileSession {
         // several may be waiting on one handshake and the order they wake in is
         // unspecified.
         hello = answer
+        // The windows' tab lists load only from here on; their restoration
+        // window is measured from this moment, not from launch, because a
+        // daemon still being spawned can hold this up for longer than any
+        // window is given.
+        BrowserTabStore.noteHandshake()
         local.handshakeLanded(answer)
         // A bounded wait that got there first spares the forever wait a second
         // round trip — and answers `ready()` immediately for everything after.

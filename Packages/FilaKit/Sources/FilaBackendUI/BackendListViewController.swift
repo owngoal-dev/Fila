@@ -13,6 +13,8 @@ import UIKit
 @MainActor
 public protocol PreparableContent: AnyObject {
     func prepare(within budget: TimeInterval) async
+    /// `prepare` has run: a push of this screen need not wait again.
+    var isPrepared: Bool { get }
 }
 
 /// The list every backend root is shown with: a collection view of `Item`
@@ -62,10 +64,6 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
 
     public private(set) var loadTask: Task<Void, Never>?
     private var changesTask: Task<Void, Never>?
-
-    /// The least time between two streaming applies after the first:
-    /// room for frames between one apply's main-thread cost and the next.
-    private static var applyInterval: TimeInterval { 0.12 }
 
     /// The most new rows one streaming apply hands over. A diff costs a
     /// fixed price plus a few microseconds per inserted row, and the price
@@ -249,12 +247,17 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     private func observeChanges() {
         changesTask?.cancel()
         changesTask = Task { [weak self] in
+            guard let self else { return }
+            // One appearance spends the prepared load, whatever happens to
+            // the subscription: a flag that outlived this turn would swallow
+            // the first hint of every later appearance — the one that
+            // re-lists the folder — and a screen whose prepared load was
+            // cancelled on the way out would never list again.
+            let prepared = preparedLoadPending && loadTask?.isCancelled == false
+            preparedLoadPending = false
             do {
-                guard let self else { return }
                 guard let stream = try await changes() else {
-                    if preparedLoadPending {
-                        preparedLoadPending = false
-                    } else {
+                    if !prepared {
                         reload()
                     }
                     return
@@ -262,9 +265,8 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                 var first = true
                 for try await _ in stream {
                     guard !Task.isCancelled else { return }
-                    if first, preparedLoadPending {
+                    if first, prepared {
                         first = false
-                        preparedLoadPending = false
                         await loadTask?.value
                         continue
                     }
@@ -279,7 +281,7 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                 // A subscription that ended keeps the rows it had; the next
                 // appearance subscribes again.
                 guard !Task.isCancelled else { return }
-                self?.reload()
+                reload()
             }
         }
     }
@@ -293,18 +295,22 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     /// that arrives a moment after the wait did. The listing runs on
     /// regardless, and the subscription made on appearance spends its
     /// first hint on it rather than starting a second one.
+    public private(set) var isPrepared = false
+
     public func prepare(within budget: TimeInterval) async {
+        guard !isPrepared else { return }
+        isPrepared = true
         loadViewIfNeeded()
         let startedAt = DispatchTime.now()
         if loadTask == nil {
-            preparedLoadPending = true
             // Half the budget: what lands by then goes up together, and
             // the apply itself still fits inside the other half.
             firstApplyHeldUntil = startedAt + budget / 2
             startLoad()
+            preparedLoadPending = true
         }
         guard !hasSettled else { return }
-        let raced = await withTaskGroup(of: Bool.self) { group in
+        _ = await withTaskGroup(of: Bool.self) { group in
             group.addTask { @MainActor [weak self] in
                 await self?.waitUntilSettled()
                 return true
@@ -317,8 +323,9 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             group.cancelAll()
             return first
         }
-        // Both ready at once: the rows are up, whichever child spoke first.
-        let settled = raced || hasSettled
+        // `settle()` sets this before it wakes anyone, so it is the answer
+        // whichever child spoke first — and a cancelled wait is not a yes.
+        let settled = hasSettled
         firstApplyHeldUntil = nil
         // The budget ran out with rows in hand: they go up now, so the push
         // lands on them, and the rest follow at the streaming pace.
@@ -427,7 +434,7 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                     // so a huge folder gets rarer applies rather than more
                     // of them.
                     if let lastApplyAt {
-                        if DispatchTime.now() < lastApplyAt + Self.applyInterval { continue }
+                        if DispatchTime.now() < lastApplyAt + BackendListPacing.applyInterval { continue }
                     } else if let held = firstApplyHeldUntil, DispatchTime.now() < held {
                         continue
                     }
@@ -489,7 +496,7 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
         let cost = await applyArranged(animated: animated)
         // Tuned on screen only: an apply with no cells to make says
         // nothing about the ones that follow the push.
-        if viewIfLoaded?.window != nil {
+        if let cost, viewIfLoaded?.window != nil {
             applyRowLimit = BackendListPacing.rowLimit(after: take, costing: cost)
         }
         if !visible.isEmpty {
@@ -511,9 +518,14 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     /// animated arrival must not hold the next batch back for the length
     /// of its animation — while the final one waits for the collection
     /// view to finish, so what follows it finds the rows in place.
+    /// Returns what the apply cost the main thread, or nil when nothing was
+    /// applied — an arrangement that was overtaken — so the pacing has
+    /// nothing to learn from.
     @discardableResult
-    private func applyArranged(animated: Bool, awaitingCompletion: Bool = false) async -> TimeInterval {
+    private func applyArranged(animated: Bool, awaitingCompletion: Bool = false) async -> TimeInterval? {
         guard let arranger = arranger() else {
+            // On the main thread throughout, so the whole of it is the cost.
+            let startedAt = DispatchTime.now()
             if awaitingCompletion {
                 await withCheckedContinuation { continuation in
                     applySnapshot(animated: animated) { continuation.resume() }
@@ -521,7 +533,7 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             } else {
                 applySnapshot(animated: animated)
             }
-            return 0
+            return max(0, Double(appliedAt.uptimeNanoseconds) - Double(startedAt.uptimeNanoseconds)) / 1_000_000_000
         }
         applyGeneration += 1
         let generation = applyGeneration
@@ -531,7 +543,7 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
         let arranged = await Task.detached(priority: .userInitiated) { arranger(snapshot) }.value
         // Something applied meanwhile — a sort change, say — over items
         // that already included these; this arrangement is the older one.
-        guard !Task.isCancelled, generation == applyGeneration else { return 0 }
+        guard !Task.isCancelled, generation == applyGeneration else { return nil }
         let arrangedAt = DispatchTime.now()
         if awaitingCompletion {
             await withCheckedContinuation { continuation in
@@ -620,6 +632,9 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
 
 /// The numbers behind a load's streaming applies.
 enum BackendListPacing {
+    /// The least time between two streaming applies after the first:
+    /// room for frames between one apply's main-thread cost and the next.
+    static let applyInterval: TimeInterval = 0.12
     /// New rows per apply before anything has been measured.
     static let initialRowLimit = 5000
     static let minimumRowLimit = 1000

@@ -506,6 +506,7 @@ extension RootSplitViewController: UIGestureRecognizerDelegate {
         guard let top = content.visibleTop, let navigation = top.navigationController,
               gestureRecognizer === navigation.interactivePopGestureRecognizer,
               navigation.viewControllers.count > 1, navigation.transitionCoordinator == nil,
+              (navigation as? TabNavigationController)?.pendingPushes.isEmpty != false,
               !top.isEditing, !top.navigationItem.hidesBackButton,
               !top.isModalInPresentation else { return false }
         return true

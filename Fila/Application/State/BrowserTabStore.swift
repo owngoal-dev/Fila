@@ -135,14 +135,23 @@ final class BrowserTabStore {
     /// among these (nor among the sessions iOS still holds open).
     private static var live: Set<String> = []
 
-    /// When the app launched; the app delegate sets it first thing. A
-    /// window connecting with no list in the first moments after launch is
-    /// one iOS restored — after an install's `uicache` dropped every
-    /// session, or on an upgrade from the shared list — and takes a dropped
-    /// list, every such window in turn. A window opened later is a new
-    /// window, and starts with one tab.
+    /// When the windows could first load their lists: the app delegate sets
+    /// it at launch, and the first handshake moves it, because a list loads
+    /// only after the handshake and a daemon still being spawned can hold
+    /// that up for longer than the window below. A window connecting with
+    /// no list in the first moments after this is one iOS restored — after
+    /// an install's `uicache` dropped every session, or on an upgrade from
+    /// the shared list — and takes a dropped list, every such window in
+    /// turn. A window opened later is a new window, and starts with one tab.
     static var launchedAt = Date()
     private static let restorationWindow: TimeInterval = 10
+    private static var handshakeNoted = false
+
+    static func noteHandshake() {
+        guard !handshakeNoted else { return }
+        handshakeNoted = true
+        launchedAt = Date()
+    }
 
     private struct State {
         var tabs: [BrowserTab]

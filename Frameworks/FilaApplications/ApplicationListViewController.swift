@@ -248,11 +248,18 @@ extension ApplicationListViewController: UICollectionViewDelegate {
                           navigation.topViewController === self,
                           let browser = browser(for: location.path) else { return }
                     // Detail first, unanimated, so Back from the browser lands
-                    // where a tap would have: detail, then this list.
-                    navigation.pushViewController(
-                        ApplicationDetailViewController(app: app, backend: backend, root: rootCrumb), animated: false
-                    )
-                    navigation.pushViewController(browser, animated: true)
+                    // where a tap would have: detail, then this list. The
+                    // browser is given its wait before either goes up, so the
+                    // detail page is never drawn on its own in between.
+                    let detail = ApplicationDetailViewController(app: app, backend: backend, root: rootCrumb)
+                    Task { [weak self] in
+                        if let content = browser as? PreparableContent {
+                            await content.prepare(within: FilaUI.preparationBudget)
+                        }
+                        guard let self, navigation.topViewController === self else { return }
+                        navigation.pushViewController(detail, animated: false)
+                        navigation.pushViewController(browser, animated: true)
+                    }
                 }
             }
             let copy = UIAction(
