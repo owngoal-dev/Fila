@@ -85,6 +85,40 @@ struct ApplicationBackendTests {
         #expect(plain.isEmpty)
     }
 
+    @Test("The catalogue is read once and dropped on a change hint or a new handshake")
+    func caching() async {
+        let files = local()
+        let backend = ApplicationBackend(local: files, storage: MemoryStorage())
+        // Off: nothing is read and nothing is kept.
+        #expect(await backend.applications().isEmpty)
+        #expect(backend.catalog == nil)
+        // The handshake's republish arrives through a stream and drops the
+        // cache as it lands; the root row is published only once it has,
+        // so wait for that before counting reads.
+        var sidebar = backend.sidebarUpdates().makeAsyncIterator()
+        files.handshakeLanded(LocalHello(protocolVersion: 1, backend: .local(reach: .user)))
+        while let snapshot = await sidebar.next(), snapshot.places.isEmpty {}
+        _ = await backend.applications()
+        // `Task` is a handle: equal only when it is the same task.
+        let first = backend.catalog
+        #expect(first != nil)
+        _ = await backend.applications()
+        #expect(backend.catalog == first)
+        _ = await backend.applications(refresh: true)
+        #expect(backend.catalog != nil && backend.catalog != first)
+        backend.catalogChanged()
+        #expect(backend.catalog == nil)
+    }
+
+    @Test("Only a container root or a folder holding an app bundle can carry decorations")
+    func decorationPredicate() {
+        #expect(ApplicationFolderDecorations.decorates("/private/var/containers/Bundle/Application", entries: []))
+        #expect(ApplicationFolderDecorations.decorates("/var/mobile/Containers/Shared/AppGroup", entries: []))
+        #expect(ApplicationFolderDecorations.decorates("/Applications", entries: [("Files.app", true)]))
+        #expect(!ApplicationFolderDecorations.decorates("/Applications", entries: [("Files.app", false)]))
+        #expect(!ApplicationFolderDecorations.decorates("/etc", entries: [("hosts", false), ("ssh", true)]))
+    }
+
     @Test("The change stream hints at once and on every catalogue change")
     func changes() async {
         let backend = ApplicationBackend(local: local(), storage: MemoryStorage())

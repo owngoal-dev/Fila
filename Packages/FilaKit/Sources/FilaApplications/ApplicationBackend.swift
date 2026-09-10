@@ -23,6 +23,12 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
     private var subscribers: [UUID: AsyncStream<BackendSidebar>.Continuation] = [:]
     private var changeSubscribers: [UUID: AsyncStream<Void>.Continuation] = [:]
     private var localUpdates: Task<Void, Never>?
+    /// The catalogue as last read, shared by every caller until something
+    /// says it changed. One read, not one per folder: every listing asks
+    /// for decorations, the breadcrumb asks again, and enumerating
+    /// LaunchServices costs tens of milliseconds each time — which was the
+    /// tail of every directory opened.
+    private(set) var catalog: Task<[InstalledApp], Never>?
 
     /// The framework bundle, for localized strings: the entry class is in
     /// the framework's own sources, so any class from this module resolves
@@ -49,6 +55,9 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         localUpdates = Task { [weak self] in
             for await _ in local.sidebarUpdates() {
                 guard let self, !Task.isCancelled else { return }
+                // A new handshake is a new environment; what was read under
+                // the old one is not the catalogue any more.
+                catalog = nil
                 publish()
             }
         }
@@ -82,12 +91,20 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         set { update(publishes: false) { $0.scope = newValue } }
     }
 
-    /// Every installed app, loaded once per request. Off means no
-    /// LaunchServices call and no scan, for every caller — the page, the
-    /// folder names, the recents, the links.
-    public func applications() async -> [InstalledApp] {
+    /// Every installed app. Off means no LaunchServices call and no scan,
+    /// for every caller — the page, the folder names, the recents, the
+    /// links. On, the catalogue is read once and kept until
+    /// `catalogChanged`, an install or a new handshake drops it; `refresh`
+    /// reads again now, for the page whose pull-to-refresh means exactly
+    /// that. Concurrent callers share the one read in flight.
+    public func applications(refresh: Bool = false) async -> [InstalledApp] {
         guard isEnabled, let files = try? await local.fileService() else { return [] }
-        return await ApplicationCatalog.load(files: files)
+        if refresh {
+            catalog = nil
+        }
+        let read = catalog ?? Task { await ApplicationCatalog.load(files: files) }
+        catalog = read
+        return await read.value
     }
 
     public func locate(bundleIdentifier: String) async -> ApplicationLocation? {
@@ -100,7 +117,9 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
     }
 
     public func decorations(in directory: String, entries: [(name: String, isDirectory: Bool)]) async -> [String: FolderDecoration] {
-        guard isEnabled else { return [:] }
+        // The cheap question first: a folder that can carry no decoration
+        // — nearly every folder — never asks for the catalogue.
+        guard isEnabled, ApplicationFolderDecorations.decorates(directory, entries: entries) else { return [:] }
         let apps = await applications()
         guard !Task.isCancelled else { return [:] }
         let access = local.access
@@ -123,7 +142,10 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
 
     public func install(packageAt url: URL) async -> InstallOutcome {
         switch await IPAInstaller.install(ipaAt: url, packageType: "Developer") {
-        case .installed: return .installed
+        case .installed:
+            // The catalogue just grew; an open page lists again.
+            catalogChanged()
+            return .installed
         case let .failed(domain, code, message): return .failed(domain: domain, code: code, message: message)
         case let .unsupported(reason): return .unsupported(reason)
         case .timedOut: return .timedOut
@@ -133,8 +155,10 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
     // MARK: - Changes
 
     /// Hints that the catalogue may have changed: the app came back to the
-    /// foreground, an install finished. The framework feeds these.
+    /// foreground, an install finished. The framework feeds these. The
+    /// cached read goes first, so the reload the hint starts reads afresh.
     public func catalogChanged() {
+        catalog = nil
         for continuation in changeSubscribers.values {
             continuation.yield(())
         }

@@ -560,6 +560,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             )
         }
         decoratedWithApplications = SystemCapabilities.showsApplications
+        // Two independent round trips — the folder's decorations and the
+        // volume behind the footer — side by side rather than in a row.
+        async let volume: Void = loadVolume()
         let appFolders = await SystemCapabilities.applications?.decorations(
             in: directory,
             entries: items.map { (name: $0.name, isDirectory: $0.kind == .directory) }
@@ -570,8 +573,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         if refreshAppFolders {
             await reconfigureVisibleItems()
         }
-        guard !Task.isCancelled else { return }
-        await loadVolume()
+        await volume
     }
 
     private func loadVolume() async {

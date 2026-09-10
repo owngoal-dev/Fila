@@ -10,6 +10,18 @@ public enum ApplicationFolderDecorations {
     static let bundleRoot = ApplicationCatalog.bundleRoot
     static let groupRoot = "/var/mobile/Containers/Shared/AppGroup"
 
+    /// Whether a listing can carry any decoration at all: a container root,
+    /// or a folder with an app bundle in it. A string comparison and a walk
+    /// over the names — cheap enough to ask before the catalogue is loaded,
+    /// which is the point: nearly every folder answers no, and the answer
+    /// needs no LaunchServices call.
+    static func decorates(_ directory: String, entries: [(name: String, isDirectory: Bool)]) -> Bool {
+        [dataRoot, bundleRoot, groupRoot].contains(displayPath(directory))
+            || entries.contains(where: {
+                $0.isDirectory && URL(fileURLWithPath: $0.name).pathExtension.lowercased() == "app"
+            })
+    }
+
     /// Decorations for the directories in `directory`, keyed by entry name.
     /// `read` fetches a small file — a container's metadata plist — as the
     /// local layer opens it, root-owned or not.
@@ -19,11 +31,8 @@ public enum ApplicationFolderDecorations {
         apps: [InstalledApp],
         read: (String) async -> Data?
     ) async -> [String: FolderDecoration] {
+        guard decorates(directory, entries: entries) else { return [:] }
         let root = displayPath(directory)
-        guard [dataRoot, bundleRoot, groupRoot].contains(root)
-            || entries.contains(where: {
-                $0.isDirectory && URL(fileURLWithPath: $0.name).pathExtension.lowercased() == "app"
-            }) else { return [:] }
         var result = presentations(for: apps).reduce(into: [String: FolderDecoration]()) { matches, entry in
             let url = URL(fileURLWithPath: entry.key, isDirectory: true)
             guard url.deletingLastPathComponent().path == root else { return }

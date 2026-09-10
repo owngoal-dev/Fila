@@ -143,7 +143,10 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         let backend = backend
         return AsyncThrowingStream { continuation in
             let task = Task {
-                continuation.yield(await backend.applications())
+                // The page is the one caller that means "read it again":
+                // its pull is the request, and every change hint drops the
+                // cached read before it lands here.
+                continuation.yield(await backend.applications(refresh: true))
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
