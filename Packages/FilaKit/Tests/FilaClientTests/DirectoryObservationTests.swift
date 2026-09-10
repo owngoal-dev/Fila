@@ -42,7 +42,7 @@ struct DirectoryObservationTests {
                 do {
                     for try await _ in stream {
                         guard let self else { return }
-                        lock.withLock { value += 1 }
+                        lock.withLock { self.value += 1 }
                     }
                 } catch {}
             }
@@ -102,10 +102,10 @@ struct DirectoryObservationTests {
         let observation = DirectoryObservation(interval: 3600)
         let clock = Clock()
         let one = Task {
-            for try await _ in observation.subscribe("/tmp/a") { clock.read() } {}
+            for try await _ in observation.subscribe("/tmp/a", stat: { clock.read() }) {}
         }
         let two = Task {
-            for try await _ in observation.subscribe("/tmp/a") { clock.read() } {}
+            for try await _ in observation.subscribe("/tmp/a", stat: { clock.read() }) {}
         }
         try await Task.sleep(nanoseconds: 50_000_000)
         #expect(observation.subscriberCount == 2)

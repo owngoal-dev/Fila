@@ -166,14 +166,14 @@ struct LocalFileBackendPreferencesTests {
         private let lock = NSLock()
         private var received: [BackendSidebar] = []
         private var task: Task<Void, Never>?
-        var all: [BackendSidebar] { lock.lock(); defer { lock.unlock() }; return received }
+        var all: [BackendSidebar] { lock.withLock { received } }
         var latest: BackendSidebar? { all.last }
 
         init(_ stream: AsyncStream<BackendSidebar>) {
             task = Task { [weak self] in
                 for await snapshot in stream {
                     guard let self else { return }
-                    lock.lock(); received.append(snapshot); lock.unlock()
+                    lock.withLock { self.received.append(snapshot) }
                 }
             }
         }

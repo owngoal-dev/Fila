@@ -40,6 +40,12 @@ pinning the kind and opening a reparse point as itself. Upstream's
 `deleteDirectory(path:)` lists and deletes a directory's contents first,
 which a move's source cleanup must never do. Both marked `// Fila:`.
 
+`Sources/SMBClient/Connection.swift`: `Connection` is declared
+`@unchecked Sendable`. Its send completion is a `@Sendable` closure that calls
+back into `receive`, which warns about capturing a non-Sendable `self` — the
+only warning the harness reports in this copy. Nothing else changed; the
+reason the claim holds is in a `// Fila:` comment above the declaration.
+
 ## Updating
 
 Check out the new upstream revision, copy `Sources/SMBClient` and `LICENSE`

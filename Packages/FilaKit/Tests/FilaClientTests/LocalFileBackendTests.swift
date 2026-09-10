@@ -73,7 +73,7 @@ struct LocalFileBackendTests {
         // Stopped after the first page: the release must close exactly the
         // cursor that page handed back.
         do {
-            var iterator = try await service.list(.root).makeAsyncIterator()
+            let iterator = try await service.list(.root).makeAsyncIterator()
             let first = try await iterator.next()
             #expect(first?.count == FilaProtocol.directoryPageEntryCount)
         }
@@ -92,8 +92,8 @@ struct LocalFileBackendTests {
 
         // Two iterators of one listing are two cursors.
         let listing = try await service.list(.root)
-        var a = listing.makeAsyncIterator()
-        var b = listing.makeAsyncIterator()
+        let a = listing.makeAsyncIterator()
+        let b = listing.makeAsyncIterator()
         _ = try await a.next()
         _ = try await b.next()
         #expect(Set(spy.opened.suffix(2)).count == 2)
@@ -197,8 +197,8 @@ private final class RecordingAccess: LocalFileAccess, @unchecked Sendable {
 
     init(_ inner: LocalFileService) { self.inner = inner }
 
-    var opened: [UInt64] { lock.lock(); defer { lock.unlock() }; return openedCursors }
-    var closed: [UInt64] { lock.lock(); defer { lock.unlock() }; return closedCursors }
+    var opened: [UInt64] { lock.withLock { openedCursors } }
+    var closed: [UInt64] { lock.withLock { closedCursors } }
     var lastCursor: UInt64 { opened.last ?? 0 }
 
     /// Releases run on a detached task after an iterator is dropped; give
@@ -220,13 +220,13 @@ private final class RecordingAccess: LocalFileAccess, @unchecked Sendable {
     func list(directory: String, cursor: UInt64) async throws -> DirectoryPage {
         let page = try await inner.list(directory: directory, cursor: cursor)
         if !page.isFinal {
-            lock.lock(); openedCursors.append(page.cursor); lock.unlock()
+            lock.withLock { openedCursors.append(page.cursor) }
         }
         return page
     }
 
     func closeDirectory(cursor: UInt64) async throws {
-        lock.lock(); closedCursors.append(cursor); lock.unlock()
+        lock.withLock { closedCursors.append(cursor) }
         try await inner.closeDirectory(cursor: cursor)
     }
 

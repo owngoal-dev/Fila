@@ -1,7 +1,12 @@
 import Foundation
 import Network
 
-public class Connection {
+// Fila: the send completion is a `@Sendable` closure and it calls back into
+// `receive`, so the capture of `self` is part of the transport's design.
+// Every `NWConnection` callback arrives on the one serial `queue` below and
+// `buffer` is touched nowhere else, which is the synchronisation `@unchecked`
+// stands for here.
+public class Connection: @unchecked Sendable {
   let host: String
   var onDisconnected: (Error) -> Void
 

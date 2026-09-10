@@ -6,18 +6,22 @@ import Testing
 private final class Stamps: @unchecked Sendable {
     private let lock = NSLock()
     private var values: [String: String] = [:]
-    private(set) var reads = 0
+    private var stampReads = 0
+
+    /// Read under the lock like every other field: the poll counts from its
+    /// own task and the test compares from the main actor.
+    var reads: Int { lock.withLock { stampReads } }
 
     func set(_ directory: String, _ value: String) {
-        lock.lock(); defer { lock.unlock() }
-        values[directory] = value
+        lock.withLock { values[directory] = value }
     }
 
     func stamp(_ directory: String) -> @Sendable () async throws -> String {
         { [self] in
-            lock.lock(); defer { lock.unlock() }
-            reads += 1
-            return values[directory] ?? "0"
+            lock.withLock {
+                stampReads += 1
+                return values[directory] ?? "0"
+            }
         }
     }
 }
@@ -25,28 +29,40 @@ private final class Stamps: @unchecked Sendable {
 private final class Collector: @unchecked Sendable {
     private let lock = NSLock()
     private var hints = 0
-    private(set) var ended: Error?
+    private var endError: Error?
 
-    var count: Int { lock.lock(); defer { lock.unlock() }; return hints }
+    var count: Int { lock.withLock { hints } }
+    var ended: Error? { lock.withLock { endError } }
 
     func consume(_ stream: AsyncThrowingStream<Void, Error>) -> Task<Void, Never> {
         Task {
             do {
                 for try await _ in stream {
-                    lock.lock(); hints += 1; lock.unlock()
+                    lock.withLock { hints += 1 }
                 }
             } catch {
-                lock.lock(); ended = error; lock.unlock()
+                lock.withLock { endError = error }
             }
         }
     }
 
-    func wait(for expected: Int, seconds: Double = 3) async throws {
-        let deadline = Date().addingTimeInterval(seconds)
-        while count < expected {
-            guard Date() < deadline else { throw Timeout() }
+    /// Returns as soon as `expected` hints have arrived, and throws after
+    /// `polls` turns of its own.
+    ///
+    /// The bound counts this loop's turns rather than wall clock, because
+    /// wall clock is not a measure of whether the observation had a chance
+    /// to run: this wait is not isolated, and the blocking PTY reads other
+    /// suites perform can hold every thread of the cooperative pool for
+    /// seconds at a time, so a `Date()` deadline expires while the loop it
+    /// guards never ran — which is how all five of these tests failed at
+    /// once in CI and nowhere else. A watch that hints nothing still ends
+    /// the test, after the same number of chances on every machine.
+    func wait(for expected: Int, polls: Int = 300) async throws {
+        for _ in 0 ..< polls {
+            if count >= expected { return }
             try await Task.sleep(nanoseconds: 10_000_000)
         }
+        guard count >= expected else { throw Timeout() }
     }
 
     struct Timeout: Error {}
@@ -55,6 +71,18 @@ private final class Collector: @unchecked Sendable {
 @Suite("Remote directory observation")
 @MainActor
 struct RemoteDirectoryObservationTests {
+    /// True once the observation holds `subscribers`. A cancelled consumer
+    /// ends its stream, and the termination handler hops back to the main
+    /// actor to release the watch: that is a number of turns, not a length
+    /// of time, for the reason `Collector.wait` documents.
+    private func released(_ observation: RemoteDirectoryObservation, to subscribers: Int) async -> Bool {
+        for _ in 0 ..< 300 {
+            if observation.subscriberCount == subscribers { return true }
+            try? await Task.sleep(nanoseconds: 10_000_000)
+        }
+        return observation.subscriberCount == subscribers
+    }
+
     @Test("Every subscriber gets the initial hint, and a moved stamp hints only that directory")
     func hintsPerDirectory() async throws {
         let stamps = Stamps()
@@ -77,8 +105,7 @@ struct RemoteDirectoryObservationTests {
         aTask.cancel()
         bTask.cancel()
         otherTask.cancel()
-        try await Task.sleep(nanoseconds: 50_000_000)
-        #expect(observation.subscriberCount == 0)
+        #expect(await released(observation, to: 0))
         #expect(observation.watchedDirectories.isEmpty, "the last subscriber releases the watch")
     }
 
@@ -92,8 +119,7 @@ struct RemoteDirectoryObservationTests {
         try await a.wait(for: 1)
         try await b.wait(for: 1)
         aTask.cancel()
-        try await Task.sleep(nanoseconds: 50_000_000)
-        #expect(observation.subscriberCount == 1)
+        #expect(await released(observation, to: 1))
         #expect(observation.watchedDirectories == ["d"])
         stamps.set("d", "1")
         try await b.wait(for: 2)

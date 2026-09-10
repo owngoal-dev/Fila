@@ -110,7 +110,7 @@ struct SMBLiveServerTests {
             let service = server.service()
             let path = try ServicePath(name)
             let listing = try await service.list(path)
-            var iterator = listing.makeAsyncIterator()
+            let iterator = listing.makeAsyncIterator()
             let first = try await iterator.next()
             #expect(first?.isEmpty == false)
             let task = Task {

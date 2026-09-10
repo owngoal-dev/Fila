@@ -210,10 +210,13 @@ struct FileTransferTests {
     func changedSourceIsRetained() async throws {
         let big = plantTree()
         let hooked = HookedService(inner: adapter(source))
+        // The hook runs off the main actor: it takes the path it touches,
+        // not the scratch that owns it.
+        let touched = source.path("tree/a.txt")
         hooked.afterOpen = { path in
             guard path.name == "a.txt" else { return }
             var times = [timeval(tv_sec: 1_000_000, tv_usec: 0), timeval(tv_sec: 1_000_000, tv_usec: 0)]
-            _ = utimes(self.source.path("tree/a.txt"), &times)
+            _ = utimes(touched, &times)
         }
         let outcome = await run(try request(["tree"], mode: .move, source: hooked))
         let shortfall = try #require(outcome.failure as? TransferShortfall)
@@ -277,7 +280,7 @@ struct FileTransferTests {
 
     @Test("A lost publication reply stops the transfer with the name marked uncertain and keeps the source")
     func lostPublication() async throws {
-        plantTree()
+        _ = plantTree()
         let flaky = FlakyDestination(inner: adapter(destination))
         flaky.loseReplyFor = try ServicePath("tree/a.txt")
         let outcome = await run(try request(["tree"], mode: .move, destination: flaky))
@@ -356,9 +359,10 @@ struct FileTransferTests {
     func grownSourceIsCopiedWhole() async throws {
         source.file("log.txt", contents: "line one\n")
         let hooked = HookedService(inner: adapter(source))
+        let appended = source.path("log.txt")
         hooked.afterOpen = { path in
             guard path.name == "log.txt" else { return }
-            let handle = FileHandle(forWritingAtPath: self.source.path("log.txt"))
+            let handle = FileHandle(forWritingAtPath: appended)
             handle?.seekToEndOfFile()
             handle?.write(Data("line two\n".utf8))
             try? handle?.close()
