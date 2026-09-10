@@ -615,83 +615,6 @@
         }
       }
     },
-    "Copying…" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "جارٍ النسخ…"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wird kopiert…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copiando…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copie…"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copia in corso…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コピー中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "복사 중…"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copiando…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Копирование…"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang sao chép…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在拷贝…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在拷貝…"
-          }
-        }
-      }
-    },
     "Delete" : {
       "localizations" : {
         "ar" : {
@@ -1220,6 +1143,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Экспортировать"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xuất"
           }
         },
         "zh-Hans" : {
@@ -1776,7 +1705,80 @@
       }
     },
     "Keep Fila open until the library update finishes." : {
-
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أبقِ Fila مفتوحًا حتى ينتهي تحديث المكتبة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lass Fila geöffnet, bis die Aktualisierung der Musikmediathek abgeschlossen ist."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén Fila abierto hasta que termine la actualización de la biblioteca."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gardez Fila ouvert jusqu’à la fin de la mise à jour de la bibliothèque."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tieni Fila aperto fino al termine dell’aggiornamento della libreria."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリの更新が完了するまで、Filaを開いたままにしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "보관함 업데이트가 끝날 때까지 Fila를 열어 두세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantenha o Fila aberto até a atualização da biblioteca terminar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не закрывайте Fila, пока не завершится обновление медиатеки."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy để Fila mở cho đến khi cập nhật thư viện xong."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持 Fila 打开，直到资料库更新完成。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請保持 Fila 開啟，直到資料庫更新完成。"
+          }
+        }
+      }
     },
     "Loading Music…" : {
       "localizations" : {
@@ -1932,10 +1934,6 @@
       }
     },
     "Music imported" : {
-
-    },
-    "Music Imported" : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1982,7 +1980,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Música Importada"
+            "value" : "Música importada"
           }
         },
         "ru" : {
@@ -2300,6 +2298,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Можно экспортировать только загруженные незащищённые песни."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chỉ có thể xuất bài hát đã tải xuống, không được bảo vệ."
           }
         },
         "zh-Hans" : {
@@ -2696,89 +2700,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "歌曲詳細資訊"
-          }
-        }
-      }
-    },
-    "Tap a field with an arrow to edit it." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اضغط على حقل بجانبه سهم لتعديله."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tippe auf ein Feld mit einem Pfeil, um es zu bearbeiten."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap a field with an arrow to edit it."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toca un campo con una flecha para editarlo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Touchez un champ avec une flèche pour le modifier."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tocca un campo con una freccia per modificarlo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "矢印のある項目をタップすると編集できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "화살표가 있는 필드를 탭하여 편집하세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toque em um campo com uma seta para editá-lo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нажмите на поле со стрелкой, чтобы изменить его."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chạm vào trường có mũi tên để chỉnh sửa."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轻点带箭头的字段即可编辑。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點一下帶有箭頭的欄位即可編輯。"
           }
         }
       }
@@ -3567,91 +3488,81 @@
         }
       }
     },
-    "Unable to Delete Music" : {
-      "extractionState" : "stale",
+    "Unable to Delete Song" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذّر حذف الموسيقى"
+            "value" : "تعذّر حذف الأغنية"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Musik konnte nicht gelöscht werden"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to Delete Music"
+            "value" : "Song kann nicht gelöscht werden"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se puede eliminar música"
+            "value" : "No se ha podido eliminar la canción"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suppression de musique impossible"
+            "value" : "Impossible de supprimer le morceau"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossibile eliminare la musica"
+            "value" : "Impossibile eliminare il brano"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音楽を削除できません"
+            "value" : "曲を削除できません"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "음악을 삭제할 수 없음"
+            "value" : "노래를 삭제할 수 없음"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Não Foi Possível Apagar Música"
+            "value" : "Não foi possível apagar a música"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось удалить музыку"
+            "value" : "Не удалось удалить песню"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Không thể xóa nhạc"
+            "value" : "Không thể xóa bài hát"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法删除音乐"
+            "value" : "无法删除歌曲"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法刪除音樂"
+            "value" : "無法刪除歌曲"
           }
         }
       }
-    },
-    "Unable to Delete Song" : {
-
     },
     "Unable to Export" : {
       "localizations" : {
@@ -3713,6 +3624,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось экспортировать"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể xuất"
           }
         },
         "zh-Hans" : {
@@ -4032,83 +3949,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未命名"
-          }
-        }
-      }
-    },
-    "Updating the music library. Keep Fila open until this finishes." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "جارٍ تحديث مكتبة الموسيقى. أبقِ Fila مفتوحًا حتى يكتمل التحديث."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Musikmediathek wird aktualisiert. Lass Fila geöffnet, bis der Vorgang abgeschlossen ist."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Actualizando la biblioteca de música. Mantén Fila abierto hasta que termine."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour de la bibliothèque musicale. Gardez Fila ouvert jusqu’à la fin."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aggiornamento della libreria musicale. Tieni Fila aperto fino al termine."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ミュージックライブラリを更新しています。完了するまで Fila を開いたままにしてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음악 보관함을 업데이트하고 있습니다. 완료될 때까지 Fila를 열어 두세요."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Atualizando a biblioteca de músicas. Mantenha o Fila aberto até terminar."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обновление медиатеки. Не закрывайте Fila до завершения."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đang cập nhật thư viện nhạc. Giữ Fila mở cho đến khi hoàn tất."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在更新音乐资料库，请保持 Fila 打开，直到完成。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在更新音樂資料庫，請保持 Fila 開啟，直到完成。"
           }
         }
       }

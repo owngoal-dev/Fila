@@ -76,6 +76,7 @@ VERSION_APPLIER     := $(ROOT_DIR)/Scripts/apply-version.sh
 DEVICE_INSTALLER    := $(ROOT_DIR)/Scripts/install-device.sh
 UI_LIBRARY_CHECK    := $(ROOT_DIR)/Scripts/check-ui-libraries.sh
 LOCALIZATION_CHECK  := $(ROOT_DIR)/Scripts/check-localization.sh
+STALE_STRINGS       := $(ROOT_DIR)/Scripts/remove-stale-strings.py
 EXTRACTED_STRINGS   := $(ROOT_DIR)/Scripts/check-extracted-strings.py
 WEBUI_BUILDER       := $(ROOT_DIR)/Scripts/build-webui.sh
 
@@ -119,7 +120,7 @@ endif
 
 .PHONY: all help print-version print-build-number print-deb-path print-tipa-path \
 	print-ipa-path print-flavor \
-	set-version bump-build check harness build compile build-sandboxed compile-sandboxed sim vphone \
+	set-version bump-build check remove-stale harness build compile build-sandboxed compile-sandboxed sim vphone \
 	_build-ios _build-ios-sandboxed _package-deb _packages \
 	deb deb-roothide deb-rootless deb-all tipa ipa packages install clean
 
@@ -129,6 +130,7 @@ help:
 	@echo "Fila:"
 	@echo "  harness     Run the FilaKit tests on macOS (no device, no simulator)"
 	@echo "  check       Validate the Xcode project and packaging inputs"
+	@echo "  remove-stale  Delete stale keys from every string catalogue (check does this too)"
 	@echo "  build       Build the unsigned Fila.app, filad and fila-archive for iPhoneOS"
 	@echo "  compile     Check and compile iPhoneOS products; CI runs harness separately"
 	@echo "  build-sandboxed  Build the unsigned sandboxed Fila.app (FilaSandboxed) for iPhoneOS"
@@ -176,6 +178,12 @@ bump-build:
 		"$(VERSION_APPLIER)" "$(APP_VERSION)" $$(( $(BUILD_NUMBER) + 1 )) >/dev/null; \
 		echo "==> build $$(( $(BUILD_NUMBER) + 1 ))"; fi
 
+# A stale key is one Xcode can no longer find a call site for. `check` prunes
+# them here so the catalogue never carries the marker; under CI it reports and
+# fails instead, because a CI run must not rewrite the tree it is checking.
+remove-stale:
+	@"$(STALE_STRINGS)"
+
 check:
 	@command -v xcodebuild >/dev/null || { echo "error: xcodebuild is required" >&2; exit 69; }
 	@command -v ldid >/dev/null || { echo "error: ldid is required" >&2; exit 69; }
@@ -184,7 +192,7 @@ check:
 	@test -f "$(CONTROL_TEMPLATE)" || { echo "error: Debian control template is missing" >&2; exit 66; }
 	@command -v zip >/dev/null || { echo "error: zip is required" >&2; exit 69; }
 	@test -f "$(PACKAGE_DIR)/Package.swift" || { echo "error: Packages/FilaKit/Package.swift is missing" >&2; exit 66; }
-	@for script in "$(DEB_PACKAGER)" "$(DEB_VERIFIER)" "$(IPA_PACKAGER)" "$(IPA_VERIFIER)" "$(VERSION_APPLIER)" "$(XCODEBUILD_WRAPPER)" "$(DEVICE_INSTALLER)" "$(UI_LIBRARY_CHECK)" "$(LOCALIZATION_CHECK)" "$(WEBUI_BUILDER)"; do \
+	@for script in "$(DEB_PACKAGER)" "$(DEB_VERIFIER)" "$(IPA_PACKAGER)" "$(IPA_VERIFIER)" "$(VERSION_APPLIER)" "$(XCODEBUILD_WRAPPER)" "$(DEVICE_INSTALLER)" "$(UI_LIBRARY_CHECK)" "$(LOCALIZATION_CHECK)" "$(STALE_STRINGS)" "$(WEBUI_BUILDER)"; do \
 		test -x "$$script" || { echo "error: $$script is not executable" >&2; exit 66; }; \
 	done
 	@for xcconfig in Version Base Development Release; do \
@@ -208,6 +216,7 @@ check:
 			|| { echo "error: missing Xcode target $$target" >&2; exit 65; }; \
 	done
 	@"$(UI_LIBRARY_CHECK)"
+	@if [ -n "$${CI:-}" ]; then "$(STALE_STRINGS)" --check; else "$(STALE_STRINGS)"; fi
 	@"$(LOCALIZATION_CHECK)"
 	@Scripts/check-process-launch.sh
 

@@ -43,23 +43,6 @@
         }
       }
     },
-    "Saved %lld of %lld files to Inbox." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saved %lld of %lld files to Inbox."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已将 %2$lld 个文件中的 %1$lld 个存储到收件箱。"
-          }
-        }
-      }
-    },
     "Saved to Fila’s Inbox. Open Fila to view or move the files." : {
       "localizations" : {
         "en" : {
@@ -88,40 +71,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在保存到 Fila…"
-          }
-        }
-      }
-    },
-    "Unable to Save All Files" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to Save All Files"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法保存所有文件"
-          }
-        }
-      }
-    },
-    "Unable to save all files." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to save all files."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法保存所有文件。"
           }
         }
       }
