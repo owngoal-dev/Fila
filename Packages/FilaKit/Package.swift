@@ -24,7 +24,6 @@ let package = Package(
         .library(name: "FilaMedia", targets: ["FilaMedia"]),
         .library(name: "FilaTerminal", targets: ["FilaTerminal"]),
         .library(name: "FilaRemote", targets: ["FilaRemote"]),
-        .library(name: "FilaProvider", type: .static, targets: ["FilaProvider"]),
         .library(name: "FilaBackendKit", targets: ["FilaBackendKit"]),
         .library(name: "FilaBackendUI", targets: ["FilaBackendUI"]),
         .library(name: "CFilaMusicLibrary", type: .static, targets: ["CFilaMusicLibrary"]),
@@ -268,17 +267,6 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
             ],
-            swiftSettings: [.swiftLanguageMode(.v5)]
-        ),
-
-        .target(
-            name: "FilaProvider",
-            dependencies: ["FilaFileOps", "FilaProtocol"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
-        ),
-        .testTarget(
-            name: "FilaProviderTests",
-            dependencies: ["FilaProvider"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

@@ -69,11 +69,9 @@ public enum InstallOutcome: Sendable, Equatable {
 /// where an app lives, how a container is named, and the installer.
 @MainActor
 public protocol ApplicationCapability: AnyObject {
-    /// Whether the feature is offered: the user's switch is on and the
-    /// environment can see other apps at all.
+    /// Whether the feature is offered: whether the environment can see other
+    /// apps at all.
     var isEnabled: Bool { get }
-    /// The user's switch, persisted by the module.
-    var showsApplications: Bool { get set }
 
     /// The installed app registered under `bundleIdentifier`, or nil.
     func locate(bundleIdentifier: String) async -> ApplicationLocation?

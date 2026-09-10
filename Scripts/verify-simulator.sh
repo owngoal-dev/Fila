@@ -4,17 +4,17 @@
 set -Eeuo pipefail
 [[ $# == 1 ]] || { echo 'usage: verify-simulator.sh <Fila.app>' >&2; exit 64; }
 app="$1"
-provider="$app/PlugIns/FilaFileProvider.appex"
+action="$app/PlugIns/FilaSaveAction.appex"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleSupportedPlatforms:0' "$app/Info.plist")" == iPhoneSimulator ]] || {
     echo 'error: simulator verification refuses a device product' >&2
     exit 65
 }
-[[ -x "$provider/FilaFileProvider" ]] || { echo 'error: embedded File Provider is missing' >&2; exit 65; }
+[[ -x "$action/FilaSaveAction" ]] || { echo 'error: embedded Save action is missing' >&2; exit 65; }
 group="$(/usr/libexec/PlistBuddy -c 'Print :FilaAppGroupIdentifier' "$app/Info.plist")"
 readback="$(mktemp "${TMPDIR:-/tmp}/fila-simulator-readback.XXXXXX")"
 sections="$(mktemp "${TMPDIR:-/tmp}/fila-simulator-sections.XXXXXX")"
 trap 'rm -f "$readback" "$sections"' EXIT
-for bundle in "$provider" "$app"; do
+for bundle in "$action" "$app"; do
     executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$bundle/Info.plist")"
     /usr/bin/codesign --display --xml --entitlements - "$bundle" >"$readback"
     identifier="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Info.plist")"

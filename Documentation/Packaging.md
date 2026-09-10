@@ -23,8 +23,8 @@ rests on that invariant.
 
 The installed layout is the same under either prefix:
 
-- `$prefix/Applications/Fila.app`, with `PlugIns/FilaFileProvider.appex` and
-  `PlugIns/FilaSaveAction.appex` embedded in it
+- `$prefix/Applications/Fila.app`, with `PlugIns/FilaSaveAction.appex`
+  embedded in it
 - `$prefix/usr/libexec/filad`
 - `$prefix/usr/libexec/fila-archive`
 - `$prefix/Library/LaunchDaemons/wiki.qaq.filad.plist`
@@ -121,20 +121,18 @@ Group, resources, and bootstrap layout. Invalid bundle symlinks
 and installed-device `.jbroot` artifacts are rejected. These are host packaging
 checks; device checks remain necessary to prove runtime behavior.
 
-Both embedded extensions carry the App Group.
-`Scripts/sign-file-provider.sh` iterates `FilaFileProvider` and
-`FilaSaveAction` and signs each with the group resolved from the app's
-Info.plist, and `verify-deb.sh` requires both appex executables in the payload.
-The read-back is narrower than the signing: `Scripts/verify-file-provider.sh`
-reads entitlements back out of the containing app and the File Provider only,
-so a Save action whose group drifted from the app's would ship unnoticed. That
-gap is known and not yet closed.
+The one embedded extension carries the App Group.
+`Scripts/sign-extensions.sh` signs `FilaSaveAction` with the group resolved
+from the app's Info.plist, and `verify-deb.sh` requires that appex executable
+in the payload. `Scripts/verify-save-action.sh` reads the entitlements back
+out of both the containing app and the extension, so a group that drifted on
+either side is a packaging failure — which it was not while the File Provider
+was the only half read back.
 
 The remaining verifiers, one line each:
 
-- `Scripts/verify-file-provider.sh` — the File Provider's bundle identity,
-  iOS 16 floor, document group, extension point, and version agreement with
-  the containing app.
+- `Scripts/verify-save-action.sh` — the Save action's bundle identity,
+  extension point, App Group, and version agreement with the containing app.
 - `Scripts/verify-icon-entitlements.py` — the IconServices Mach lookups, read
   back out of the signed app; without them application icons are blank and
   nothing else breaks.

@@ -98,14 +98,14 @@ extension RootSplitViewController {
         }
     }
 
-    /// Why a link into Applications went nowhere. A copy without the
-    /// backend — the sandboxed composition, a module that failed to
-    /// bootstrap, or one that found no local backend to read through — has
-    /// no Show Applications switch that would help, so it is not pointed at.
+    /// Why a link into Applications went nowhere. A copy without the backend
+    /// — the sandboxed composition, a module that failed to bootstrap, or one
+    /// that found no local backend to read through — is a different sentence
+    /// from a copy that has the module and cannot see past its own sandbox.
     private var applicationsUnavailableMessage: String {
         BackendComposition.registry.backend(.applications) == nil
             ? String(localized: "Applications are not included in this copy of Fila.")
-            : String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.")
+            : String(localized: "Fila cannot see other apps on this device.")
     }
 
     /// A path's directory. `deletingLastPathComponent` on `/etc` gives `/`,

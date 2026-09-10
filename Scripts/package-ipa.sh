@@ -86,7 +86,7 @@ mkdir -p "$(dirname "$payload_app")"
 rm -rf "$payload_app/_CodeSignature"
 rm -f "$payload_app/embedded.mobileprovision"
 
-bash "$(dirname "$0")/sign-file-provider.sh" "$payload_app" "$kind"
+bash "$(dirname "$0")/sign-extensions.sh" "$payload_app" "$kind"
 if [[ "$kind" == tipa ]]; then
     template="$app_entitlements"
 else
@@ -95,7 +95,7 @@ fi
 python3 "$(dirname "$0")/resolve-app-group-entitlements.py" "$template" "$payload_app/Info.plist" "$staging/app-entitlements.plist"
 bash "$(dirname "$0")/sign-frameworks.sh" "$payload_app"
 ldid -S"$staging/app-entitlements.plist" -Cadhoc "$payload_app/$app_executable"
-bash "$(dirname "$0")/verify-file-provider.sh" "$payload_app" "$kind"
+bash "$(dirname "$0")/verify-save-action.sh" "$payload_app" "$kind"
 ldid -e "$payload_app/$app_executable" >"$signed_entitlements"
 
 # Read the entitlements back out of the signed binary, the same reason

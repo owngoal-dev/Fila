@@ -266,32 +266,19 @@ is given a source that does — `LocalPathDecoration` for a local path,
 snapshot under its share's crumbs. A catalogue's first crumb is its sidebar
 artwork and name, so Applications and Music read the same way a folder does.
 
-The embedded File Provider is a replicated extension (iOS 16; its
-`MinimumOSVersion` keeps it out of Files on 15). The system owns the on-disk
-replica, downloads, conflicts and upload state; the extension answers metadata,
-hands out content and applies mutations. The main app initializes the default
-source to its own private Documents folder, records the choice as a resolved
-path in the configured App Group, and registers one domain named "Fila" at
-launch. Changing the folder removes and re-adds the domain, which on iOS drops
-unsynced edits, and the settings page says so. Selection requires real process
-access; it does not transfer the daemon's privileges.
-
-`ProviderTree` identifies an item by its inode — APFS never reuses one — so a
-rename or move keeps the item and its replica and changes only the metadata
-version. It keeps the last reported state in
-`<App Group>/.fila-provider/<generation>/index.json`; the sync anchor hashes it,
-and a change enumeration rescans the folder and diffs against the baseline the
-anchor names. A lost index costs one re-enumeration. Mutations use the shared
-file-operation layer with the folder as writable root: exclusive creation,
-exclusive rename, atomic content replacement (which swaps the inode, reported as
-a merge), permanent deletion, no trash. Symlinks, special nodes and multiply
-linked files are not exported. The extension has no daemon admission
-entitlement, and App Group membership alone grants access to no other folder.
+There was an embedded File Provider — a replicated extension serving one
+chosen folder to the Files app — and it is gone. The system owns the replica
+in that design, and a root file manager's folders are not replicable: the
+extension had no daemon admission entitlement and could only ever export what
+`mobile` could already reach, which made "choose the folder Files shows" a
+promise it could not keep outside the app's own container. The App Group
+survives it, because `FilaSaveAction` shares that container.
 
 **What degrades, and to what.** `SystemCapabilities` is the one place that says
-whether a feature is offered: environment permits *and* the user has not turned
-it off in Settings → System Features. The environment side reads the live
-`hello`, never `daemonIsInstalled`.
+whether a feature is offered, and it now asks exactly one question: what the
+environment permits. The environment side reads the live `hello`, never
+`daemonIsInstalled`. There are no user switches in front of it — a feature the
+handshake says is available is offered.
 
 | Feature | Sandboxed local | Unsandboxed local | Daemon |
 |---|---|---|---|
@@ -302,10 +289,6 @@ it off in Settings → System Features. The environment side reads the live
 | WebDAV | fine on a bound port ≥ 1024; publishes what the process can read | same | same |
 | Temporary workspace | the app's own `tmp/wiki.qaq.fila/<UUID>` (`FileSession`) | same | same app-container workspace |
 | `FilaGuard` | still enforced in-process | same | in the daemon |
-
-The user-side switches exist because a jailbreak without a full
-system-protection bypass can make a private-framework call hang or crash
-rather than fail: turning the feature off means the call is never made.
 
 **What must not happen.** No build flag or per-packaging source variant to
 tell the environments apart. No fake daemon in the app. No *Connecting…*

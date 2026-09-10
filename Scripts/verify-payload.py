@@ -74,9 +74,6 @@ def main():
     template = "AppGroup.entitlements" if kind == "ipa" else "Fila.entitlements"
     minimum = wanted["MinimumOSVersion"]
     binary(app / "Fila", entitlements(template, group), minimum)
-    provider = app / "PlugIns/FilaFileProvider.appex"
-    template = "AppGroup.entitlements" if kind == "ipa" else "FilaFileProvider.entitlements"
-    binary(provider / "FilaFileProvider", entitlements(template, group), "16.0")
     action = app / "PlugIns/FilaSaveAction.appex"
     template = "AppGroup.entitlements" if kind == "ipa" else "FilaSaveAction.entitlements"
     binary(action / "FilaSaveAction", entitlements(template, group), minimum)
@@ -88,7 +85,7 @@ def main():
         raise ValueError("Save action bundle identity is wrong")
     if action_info.get("NSExtension", {}).get("NSExtensionPointIdentifier") != "com.apple.ui-services":
         raise ValueError("Save action extension point is wrong")
-    for folder, folder_minimum in ((app / "Frameworks", minimum), (provider / "Frameworks", "16.0"), (action / "Frameworks", minimum)):
+    for folder, folder_minimum in ((app / "Frameworks", minimum), (action / "Frameworks", minimum)):
         for library in folder.glob("*.dylib"):
             binary(library, {}, folder_minimum)
         for framework in folder.glob("*.framework"):

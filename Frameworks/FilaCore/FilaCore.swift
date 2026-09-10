@@ -20,7 +20,6 @@
 @_exported import FilaLog
 @_exported import FilaMedia
 @_exported import FilaProtocol
-@_exported import FilaProvider
 @_exported import FilaRemote
 @_exported import FilaTerminal
 @_exported import SnapKit

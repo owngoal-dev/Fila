@@ -17,17 +17,16 @@ struct ApplicationBackendTests {
         let defaults = UserDefaults(suiteName: name)!
         defer { defaults.removePersistentDomain(forName: name) }
         defaults.set("identifier", forKey: "appSort")
-        defaults.set(false, forKey: "showsApplications")
         let storage = ApplicationPreferencesDefaults(defaults: defaults)
         var value = try #require(try storage.load())
-        #expect(value.sort == .identifier && value.scope == .all && !value.showsApplications)
+        #expect(value.sort == .identifier && value.scope == .all)
         value.scope = .user
         try storage.save(value)
         #expect(defaults.string(forKey: "appScope") == "user")
         #expect(defaults.string(forKey: "appSort") == "identifier")
     }
 
-    @Test("The feature is off until the handshake, off in a container, and off by the user's switch")
+    @Test("The feature is off until the handshake and off in a container")
     func gating() throws {
         let files = local()
         let backend = ApplicationBackend(local: files, storage: MemoryStorage())
@@ -39,9 +38,6 @@ struct ApplicationBackendTests {
         #expect(backend.isEnabled)
         #expect(backend.sidebar().places.map(\.kind) == [.root])
         #expect(backend.sidebar().places.first?.location == .root(of: .applications))
-        backend.showsApplications = false
-        #expect(!backend.isEnabled)
-        #expect(backend.sidebar().places.isEmpty)
     }
 
     @Test("Scopes tell user apps from system apps by their bundle container")

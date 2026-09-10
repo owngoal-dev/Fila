@@ -37,7 +37,7 @@ while IFS= read -r catalogue; do
     delete it — or its call site hides the literal from the extractor; see rule 2.
     Do not add \"extractionState\" back to silence this."
     fi
-done < <(find "$root/Fila" "$root/Frameworks" "$root/Packages" "$root/FilaFileProvider" "$root/FilaArchive" "$root/FilaSaveAction" \
+done < <(find "$root/Fila" "$root/Frameworks" "$root/Packages" "$root/FilaArchive" "$root/FilaSaveAction" \
     -name 'Localizable.xcstrings' -not -path '*/.build/*' 2>/dev/null || true)
 
 # 2. No bare literal at a `String.LocalizationValue` parameter.

@@ -198,7 +198,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
             return .message(
                 symbol: "questionmark.app.dashed",
                 title: String(localized: "Applications Unavailable", bundle: bundle),
-                detail: String(localized: "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device.", bundle: bundle)
+                detail: String(localized: "Fila cannot see other apps on this device.", bundle: bundle)
             )
         }
         // Both sources came back empty: the installation database would not

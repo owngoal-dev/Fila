@@ -100,7 +100,7 @@ else
 fi
 
 python3 "$(dirname "$0")/verify-payload.py" "$app" "$kind" "$version"
-bash "$(dirname "$0")/verify-file-provider.sh" "$app" "$kind"
+bash "$(dirname "$0")/verify-save-action.sh" "$app" "$kind"
 # The tipa is the full composition with every module; the ipa is the
 # sandboxed one, and a module that slipped into it is private API that the
 # entitlement check above cannot see.

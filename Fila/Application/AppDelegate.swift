@@ -28,9 +28,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 + " (\(info?["CFBundleVersion"] as? String ?? "?"))"
                 + " on \(ProcessInfo.processInfo.operatingSystemVersionString)"
         )
-        do { try FileProviderSettingsViewController.initializeDefault() }
-        catch { FilaLog.error("File Provider default location initialization failed: \(error)") }
-        FileProviderDomain.register()
         Task {
             do { try await FileSession.shared.prepareTemporaryFiles() }
             catch { FilaLog.error("Temporary workspace preparation failed: \(error)") }

@@ -49,10 +49,6 @@ final class ApplicationCapabilityProxy: ApplicationCapability {
     var backend: ApplicationBackend?
 
     var isEnabled: Bool { backend?.isEnabled ?? false }
-    var showsApplications: Bool {
-        get { backend?.showsApplications ?? false }
-        set { backend?.showsApplications = newValue }
-    }
 
     func locate(bundleIdentifier: String) async -> ApplicationLocation? {
         await backend?.locate(bundleIdentifier: bundleIdentifier)

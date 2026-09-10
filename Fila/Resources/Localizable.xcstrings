@@ -4931,88 +4931,6 @@
         }
       }
     },
-    "Appearance" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المظهر"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erscheinungsbild"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apariencia"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apparence"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aspetto"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外観"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모양"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aparência"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оформление"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Giao diện"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外观"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外觀"
-          }
-        }
-      }
-    },
     "Append Only (uappnd)" : {
       "comment" : "BSD file flag UF_APPEND. The flag name stays in Latin script.",
       "localizations" : {
@@ -6414,88 +6332,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "平衡"
-          }
-        }
-      }
-    },
-    "Behavior" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "السلوك"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verhalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Behavior"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comportamiento"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comportement"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comportamento"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "動作"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "동작"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comportamento"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Поведение"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hành vi"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "行为"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "行為"
           }
         }
       }
@@ -8152,88 +7988,6 @@
         }
       }
     },
-    "Cannot Use Folder" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر استخدام المجلد"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ordner nicht verwendbar"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cannot Use Folder"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se puede usar la carpeta"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier inutilisable"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossibile usare la cartella"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このフォルダは使用できません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "폴더를 사용할 수 없음"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não É Possível Usar a Pasta"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нельзя использовать эту папку"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể dùng thư mục"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法使用此文件夹"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法使用此檔案夾"
-          }
-        }
-      }
-    },
     "Changes take effect the next time you start sharing." : {
       "localizations" : {
         "ar" : {
@@ -8394,88 +8148,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在更改屬性…"
-          }
-        }
-      }
-    },
-    "Changing the folder does not move files. Unsaved edits in Files are discarded. The default is Fila's Documents folder." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تغيير المجلد لا ينقل الملفات. تُتجاهل التعديلات غير المحفوظة في تطبيق الملفات. المجلد الافتراضي هو مجلد المستندات الخاص بـ Fila."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Ändern des Ordners bewegt keine Dateien. Nicht gesicherte Änderungen in „Dateien“ werden verworfen. Standard ist Filas Ordner „Documents“."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changing the folder does not move files. Unsaved edits in Files are discarded. The default is Fila's Documents folder."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cambiar la carpeta no mueve los archivos. Las ediciones sin guardar en Archivos se descartan. La carpeta por omisión es Documentos de Fila."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Changer de dossier ne déplace aucun fichier. Les modifications non enregistrées dans Fichiers sont abandonnées. Par défaut, il s’agit du dossier Documents de Fila."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cambiare cartella non sposta i file. Le modifiche non salvate nell’app File vengono scartate. La cartella predefinita è la cartella Documenti di Fila."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フォルダを変更してもファイルは移動しません。「ファイル」App内の未保存の編集は破棄されます。デフォルトはFilaの「書類」フォルダです。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "폴더를 변경해도 파일은 이동되지 않습니다. 파일 앱에서 저장하지 않은 편집 내용은 폐기됩니다. 기본값은 Fila의 Documents 폴더입니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alterar a pasta não move arquivos. Edições não salvas no app Arquivos são descartadas. O padrão é a pasta Documentos do Fila."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Смена папки не перемещает файлы. Несохранённые изменения в приложении «Файлы» будут потеряны. По умолчанию используется папка «Документы» приложения Fila."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Việc đổi thư mục không di chuyển tệp. Các chỉnh sửa chưa lưu trong ứng dụng Tệp sẽ bị loại bỏ. Mặc định là thư mục Documents của Fila."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改文件夹不会移动文件。“文件”中未保存的编辑会被丢弃。默认为 Fila 的文档文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更改檔案夾不會移動檔案。「檔案」App 中未儲存的編輯會被捨棄。預設為 Fila 的「文件」檔案夾。"
           }
         }
       }
@@ -8810,88 +8482,6 @@
         }
       }
     },
-    "Choose a folder both Fila and the Files app can open. The Files app cannot open folders that need root access." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a folder both Fila and the Files app can open. The Files app cannot open folders that need root access."
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختر مجلدًا يمكن لكل من Fila وتطبيق الملفات فتحه. لا يستطيع تطبيق الملفات فتح المجلدات التي تتطلب صلاحية الجذر."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wähle einen Ordner, den sowohl Fila als auch „Dateien“ öffnen können. „Dateien“ kann keine Ordner öffnen, die Root-Rechte erfordern."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selecciona una carpeta que puedan abrir tanto Fila como la app Archivos. La app Archivos no puede abrir carpetas que requieren acceso root."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez un dossier que Fila et l’app Fichiers peuvent ouvrir. L’app Fichiers ne peut pas ouvrir les dossiers qui nécessitent un accès root."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli una cartella che possano aprire sia Fila sia l’app File. L’app File non può aprire cartelle che richiedono l’accesso root."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filaと「ファイル」Appの両方で開けるフォルダを選択してください。「ファイル」Appは、root権限が必要なフォルダを開けません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila와 파일 앱 모두에서 열 수 있는 폴더를 선택하십시오. 파일 앱은 루트 권한이 필요한 폴더를 열 수 없습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolha uma pasta que o Fila e o app Arquivos possam abrir. O app Arquivos não pode abrir pastas que exigem acesso root."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выберите папку, которую могут открыть и Fila, и приложение «Файлы». Приложение «Файлы» не может открывать папки, требующие доступа root."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy chọn thư mục mà cả Fila và ứng dụng Tệp đều mở được. Ứng dụng Tệp không mở được thư mục cần quyền root."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请选择 Fila 和“文件”App 都能打开的文件夹。“文件”App 无法打开需要 root 权限的文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請選擇 Fila 和「檔案」App 都能開啟的檔案夾。「檔案」App 無法開啟需要 root 權限的檔案夾。"
-          }
-        }
-      }
-    },
     "Choose Audio File" : {
       "localizations" : {
         "ar" : {
@@ -8970,88 +8560,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選擇音訊檔案"
-          }
-        }
-      }
-    },
-    "Choose Folder…" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "اختيار مجلد…"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ordner wählen…"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose Folder…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seleccionar carpeta…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir un dossier…"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scegli cartella…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フォルダを選択…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "폴더 선택…"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolher Pasta…"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбрать папку…"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chọn thư mục…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择文件夹…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選擇檔案夾…"
           }
         }
       }
@@ -19125,6 +18633,88 @@
         }
       }
     },
+    "Fila cannot see other apps on this device." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن لـ Fila رؤية التطبيقات الأخرى على هذا الجهاز."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila kann die anderen Apps auf diesem Gerät nicht sehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila cannot see other apps on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila no puede ver las otras apps de este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila ne peut pas voir les autres apps de cet appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila non riesce a vedere le altre app su questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila はこのデバイス上の他の App を参照できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila가 이 기기의 다른 앱을 볼 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Fila não consegue ver os outros apps neste dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila не видит другие приложения на этом устройстве."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila không thể thấy các ứng dụng khác trên thiết bị này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 无法看到此设备上的其他 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 無法看到此裝置上的其他 App。"
+          }
+        }
+      }
+    },
     "Fila cannot use the system installer. Open “%@” with another installer." : {
       "localizations" : {
         "ar" : {
@@ -19203,89 +18793,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fila 無法使用系統安裝程式。請用其他安裝程式打開「%@」。"
-          }
-        }
-      }
-    },
-    "Fila cannot use this folder. Choose another folder." : {
-      "comment" : "Error shown when the folder picked for the Files app cannot be used by the File Provider.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا يستطيع Fila استخدام هذا المجلد. اختر مجلدًا آخر."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila kann diesen Ordner nicht verwenden. Wähle einen anderen Ordner."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila cannot use this folder. Choose another folder."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila no puede usar esta carpeta. Selecciona otra carpeta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila ne peut pas utiliser ce dossier. Choisissez un autre dossier."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila non può usare questa cartella. Scegli un’altra cartella."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filaはこのフォルダを使用できません。別のフォルダを選択してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila가 이 폴더를 사용할 수 없습니다. 다른 폴더를 선택하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Fila não pode usar esta pasta. Escolha outra pasta."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila не может использовать эту папку. Выберите другую папку."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila không dùng được thư mục này. Hãy chọn thư mục khác."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 无法使用此文件夹。选择其他文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 無法使用此檔案夾。請選擇其他檔案夾。"
           }
         }
       }
@@ -19697,88 +19204,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fila 未能及時打開。請再試一次。"
-          }
-        }
-      }
-    },
-    "Fila Documents" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مستندات Fila"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila-Dokumente"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila Documents"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Documentos de Fila"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Documents Fila"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Documenti di Fila"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filaの書類"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila Documents"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Documentos do Fila"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Документы Fila"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tài liệu Fila"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 文档"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fila 文件"
           }
         }
       }
@@ -20932,170 +20357,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案大小"
-          }
-        }
-      }
-    },
-    "Files App Folder" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مجلد تطبيق الملفات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ordner für „Dateien“"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Files App Folder"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carpeta de la app Archivos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier de l’app Fichiers"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cartella dell’app File"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「ファイル」App用フォルダ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 앱 폴더"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasta do App Arquivos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Папка для приложения «Файлы»"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư mục ứng dụng Tệp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「文件」App 文件夹"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「檔案」App 檔案夾"
-          }
-        }
-      }
-    },
-    "Files app folder updated" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم تحديث مجلد تطبيق الملفات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ordner für „Dateien“ aktualisiert"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Files app folder updated"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carpeta de la app Archivos actualizada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier de l’app Fichiers mis à jour"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cartella dell’app File aggiornata"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「ファイル」App用フォルダを更新しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 앱 폴더가 업데이트됨"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasta do app Arquivos atualizada"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Папка для приложения «Файлы» обновлена"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã cập nhật thư mục ứng dụng Tệp"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新“文件”App 的文件夹"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已更新「檔案」App 檔案夾"
           }
         }
       }
@@ -24154,88 +23415,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "識別"
-          }
-        }
-      }
-    },
-    "If a feature fails or stops responding, turn it off. The rest of Fila keeps working." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إذا تعطلت ميزة أو توقفت عن الاستجابة، أوقفها. تبقى بقية Fila تعمل."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wenn eine Funktion fehlschlägt oder nicht mehr reagiert, deaktiviere sie. Der Rest von Fila funktioniert weiter."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "If a feature fails or stops responding, turn it off. The rest of Fila keeps working."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si una función falla o deja de responder, desactívala. El resto de Fila sigue funcionando."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Si une fonctionnalité échoue ou ne répond plus, désactivez-la. Le reste de Fila continue de fonctionner."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se una funzione non riesce o smette di rispondere, disattivala. Il resto di Fila continua a funzionare."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "機能が失敗したり応答しなくなったりした場合は、オフにしてください。Filaのほかの部分は引き続き使用できます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기능이 실패하거나 응답하지 않으면 끄십시오. Fila의 나머지 기능은 계속 동작합니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se um recurso falhar ou parar de responder, desative-o. O restante do Fila continua funcionando."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Если функция даёт сбой или перестаёт отвечать, выключите её. Остальная часть Fila продолжит работать."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nếu một tính năng bị lỗi hoặc ngừng phản hồi, hãy tắt nó. Phần còn lại của Fila vẫn hoạt động."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "如果某项功能失败或无响应，将其关闭。Fila 的其他功能仍可正常使用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "若某項功能失敗或停止回應，請將它關閉。Fila 的其他部分仍可繼續使用。"
           }
         }
       }
@@ -41077,88 +40256,6 @@
         }
       }
     },
-    "Restore Default" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "استعادة الافتراضي"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard wiederherstellen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restore Default"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restablecer valor por omisión"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rétablir la valeur par défaut"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ripristina predefinito"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デフォルトに戻す"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기본값 복원"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restaurar Padrão"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Восстановить по умолчанию"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Khôi phục mặc định"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "恢复默认"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "回復預設值"
-          }
-        }
-      }
-    },
     "Reveal ${path} in Fila" : {
       "comment" : "How the Reveal in Fila shortcut reads in the Shortcuts editor. ${path} is a parameter name: reproduce it exactly, do not translate what is inside the braces.",
       "localizations" : {
@@ -41733,89 +40830,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "以 root 執行"
-          }
-        }
-      }
-    },
-    "Run Programs" : {
-      "comment" : "Settings toggle: whether executables offer the Run submenu (terminal through the daemon).",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تشغيل البرامج"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Programme ausführen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Run Programs"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ejecutar programas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exécuter des programmes"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esegui programmi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "プログラムの実行"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "프로그램 실행"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Executar Programas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запуск программ"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chạy chương trình"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "运行程序"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "執行程式"
           }
         }
       }
@@ -43795,88 +42809,6 @@
         }
       }
     },
-    "Selected Folder" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "المجلد المحدد"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ausgewählter Ordner"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selected Folder"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carpeta seleccionada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier sélectionné"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cartella selezionata"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "選択したフォルダ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "선택한 폴더"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasta Selecionada"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбранная папка"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư mục đã chọn"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所选文件夹"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所選檔案夾"
-          }
-        }
-      }
-    },
     "Servers" : {
       "localizations" : {
         "ar" : {
@@ -44781,89 +43713,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示"
-          }
-        }
-      }
-    },
-    "Show Applications" : {
-      "comment" : "Settings toggle: whether the sidebar offers the Applications page and app folders draw their LaunchServices names and icons.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إظهار التطبيقات"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apps anzeigen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Applications"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Aplicaciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Afficher les applications"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostra Applicazioni"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アプリケーションを表示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "응용 프로그램 표시"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar Aplicativos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Показывать приложения"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hiển thị Ứng dụng"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "显示应用程序"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "顯示應用程式"
           }
         }
       }
@@ -47014,89 +45863,6 @@
         }
       }
     },
-    "System Features" : {
-      "comment" : "Settings section header for the toggles that turn off features which need system-level access.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ميزات النظام"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Systemfunktionen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System Features"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Funciones del sistema"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fonctionnalités système"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Funzioni di sistema"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "システム機能"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "시스템 기능"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recursos do Sistema"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Системные функции"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tính năng hệ thống"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系统特性"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "系統功能"
-          }
-        }
-      }
-    },
     "System Flags" : {
       "comment" : "Row label in the properties screen for the kernel-set flags (schg, sappnd, arch). Shown, never toggled.",
       "localizations" : {
@@ -48747,88 +47513,6 @@
         }
       }
     },
-    "The Files app folder could not be loaded. Reinstall Fila and try again." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر تحميل مجلد تطبيق الملفات. أعد تثبيت Fila وحاول مرة أخرى."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Ordner für „Dateien“ konnte nicht geladen werden. Installiere Fila neu und versuche es erneut."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Files app folder could not be loaded. Reinstall Fila and try again."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha podido cargar la carpeta de la app Archivos. Reinstala Fila e inténtalo de nuevo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le dossier de l’app Fichiers n’a pas pu être chargé. Réinstallez Fila et réessayez."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non è stato possibile caricare la cartella dell’app File. Reinstalla Fila e riprova."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「ファイル」App用フォルダを読み込めませんでした。Filaを再インストールしてから、もう一度お試しください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 앱 폴더를 불러올 수 없습니다. Fila를 다시 설치한 다음 시도하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível carregar a pasta do app Arquivos. Reinstale o Fila e tente novamente."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось загрузить папку для приложения «Файлы». Переустановите Fila и повторите попытку."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể tải thư mục ứng dụng Tệp. Hãy cài đặt lại Fila rồi thử lại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法载入“文件”App 的文件夹。重新安装 Fila 后重试。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法載入「檔案」App 檔案夾。請重新安裝 Fila 後再試一次。"
-          }
-        }
-      }
-    },
     "The folder “%@” is not empty and cannot be replaced. Rename it or choose another folder." : {
       "localizations" : {
         "ar" : {
@@ -48907,88 +47591,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案夾「%@」不是空的，無法取代。請重新命名或選擇其他檔案夾。"
-          }
-        }
-      }
-    },
-    "The folder could not be opened. Choose another folder." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تعذّر فتح المجلد. اختر مجلدًا آخر."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Ordner konnte nicht geöffnet werden. Wähle einen anderen Ordner."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The folder could not be opened. Choose another folder."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se ha podido abrir la carpeta. Selecciona otra carpeta."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le dossier n’a pas pu être ouvert. Choisissez un autre dossier."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non è stato possibile aprire la cartella. Scegli un’altra cartella."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フォルダを開けませんでした。別のフォルダを選択してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "폴더를 열 수 없습니다. 다른 폴더를 선택하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível abrir a pasta. Escolha outra pasta."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось открыть папку. Выберите другую папку."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không thể mở thư mục. Hãy chọn thư mục khác."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法打开此文件夹。选择其他文件夹。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法打開此檔案夾。請選擇其他檔案夾。"
           }
         }
       }
@@ -51131,88 +49733,6 @@
         }
       }
     },
-    "This folder is unavailable. Choose another folder or restore the default." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "هذا المجلد غير متاح. اختر مجلدًا آخر أو استعد الافتراضي."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dieser Ordner ist nicht verfügbar. Wähle einen anderen Ordner oder stelle den Standard wieder her."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This folder is unavailable. Choose another folder or restore the default."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta carpeta no está disponible. Elige otra carpeta o restablece la predeterminada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ce dossier n’est pas disponible. Choisissez un autre dossier ou rétablissez la valeur par défaut."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Questa cartella non è disponibile. Scegli un’altra cartella o ripristina quella predefinita."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "このフォルダは使用できません。別のフォルダを選択するか、デフォルトに戻してください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "이 폴더를 사용할 수 없습니다. 다른 폴더를 선택하거나 기본값을 복원하십시오."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esta pasta está indisponível. Escolha outra pasta ou restaure o padrão."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Эта папка недоступна. Выберите другую папку или восстановите значение по умолчанию."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thư mục này không khả dụng. Hãy chọn thư mục khác hoặc khôi phục mặc định."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此文件夹不可用。选择其他文件夹或恢复默认设置。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此檔案夾無法使用。請選擇其他檔案夾或回復預設。"
-          }
-        }
-      }
-    },
     "This folder opened in the current tab. Close a tab to open a new one." : {
       "localizations" : {
         "ar" : {
@@ -52529,89 +51049,6 @@
         }
       }
     },
-    "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device." : {
-      "comment" : "Empty state in Installed Apps. Show Applications is the name of the switch in Fila's own Settings.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "شغّل خيار إظهار التطبيقات في الإعدادات. إذا كان مشغلًا بالفعل، فإن Fila لا يستطيع رؤية التطبيقات الأخرى على هذا الجهاز."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere „Apps anzeigen“ in den Einstellungen. Wenn es bereits aktiviert ist, kann Fila andere Apps auf diesem Gerät nicht sehen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activa Mostrar Aplicaciones en Ajustes. Si ya está activado, Fila no puede ver otras apps en este dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez Afficher les applications dans Réglages. Si l’option est déjà activée, Fila ne peut pas voir les autres apps de cet appareil."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attiva Mostra Applicazioni in Impostazioni. Se è già attivo, Fila non riesce a vedere le altre app su questo dispositivo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「設定」で「アプリケーションを表示」をオンにしてください。すでにオンの場合、FilaはこのデバイスのほかのAppを認識できません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정에서 응용 프로그램 표시를 켜십시오. 이미 켜져 있다면, Fila가 이 기기의 다른 앱을 볼 수 없는 것입니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ative Mostrar Aplicativos em Ajustes. Se já estiver ativado, o Fila não consegue ver outros apps neste dispositivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включите параметр «Показывать приложения» в Настройках. Если он уже включён, значит Fila не видит другие приложения на этом устройстве."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy bật Hiển thị Ứng dụng trong Cài đặt. Nếu đã bật, nghĩa là Fila không thấy được các ứng dụng khác trên thiết bị này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在设置中开启“显示应用程序”。若已开启，则说明 Fila 无法查看此设备上的其他应用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請在「設定」中開啟「顯示應用程式」。若已經開啟，表示 Fila 無法看到此裝置上的其他 App。"
-          }
-        }
-      }
-    },
     "Turn on Show Hidden Files to see them." : {
       "localizations" : {
         "ar" : {
@@ -52690,6 +51127,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟「顯示隱藏檔案」即可看到它們。"
+          }
+        }
+      }
+    },
+    "Turning off Remember Recents also deletes the history already recorded." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إيقاف «تذكّر العناصر الأخيرة» يحذف أيضًا السجل المسجَّل بالفعل."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Zuletzt benutzte merken“ auszuschalten löscht auch den bereits aufgezeichneten Verlauf."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turning off Remember Recents also deletes the history already recorded."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivar «Recordar los recientes» también elimina el historial ya registrado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactiver « Mémoriser les récents » supprime aussi l’historique déjà enregistré."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattivare «Ricorda i recenti» elimina anche la cronologia già registrata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「最近の項目を記憶」をオフにすると、記録済みの履歴も削除されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘최근 항목 기억’을 끄면 이미 기록된 기록도 삭제됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativar “Lembrar Recentes” também apaga o histórico já registrado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выключение параметра «Запоминать недавние» также удаляет уже записанную историю."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt “Ghi nhớ mục gần đây” cũng xóa lịch sử đã ghi."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭“记录最近使用”也会删除已经记录的历史。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉「記住最近項目」也會刪除已經記錄的歷史。"
           }
         }
       }

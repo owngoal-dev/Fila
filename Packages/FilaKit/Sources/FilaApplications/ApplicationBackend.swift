@@ -65,16 +65,11 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
     /// can only ever answer with nothing. Nothing until the handshake has
     /// landed, and never a build flag.
     public var isEnabled: Bool {
-        guard preferences.showsApplications, let backend = local.hello?.backend else { return false }
+        guard let backend = local.hello?.backend else { return false }
         if case .local(.container) = backend {
             return false
         }
         return true
-    }
-
-    public var showsApplications: Bool {
-        get { preferences.showsApplications }
-        set { update { $0.showsApplications = newValue } }
     }
 
     public var sort: AppSort {

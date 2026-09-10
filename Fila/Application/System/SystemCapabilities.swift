@@ -40,6 +40,6 @@ enum SystemCapabilities {
     /// `TerminalAccess.openTerminal` refuses without it — so this is exactly
     /// `isPrivileged`, and nothing until the handshake has landed.
     static var runsPrograms: Bool {
-        AppPreferences.shared.runsPrograms && FileSession.shared.hello?.isPrivileged == true
+        FileSession.shared.hello?.isPrivileged == true
     }
 }

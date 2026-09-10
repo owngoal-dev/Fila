@@ -48,13 +48,11 @@ Available folders and actions depend on how you install Fila. The interface is a
 
 Tap a folder to browse it or a file to open it. Touch and hold an item for Copy, Move, Rename, and Properties. Use Select to work with several items at once.
 
-Deleted items go to Trash by default. Open Trash and choose Put Back to restore an item. To delete without the Trash, turn off Settings → Behavior → File Operations → Use Trash. Delete Permanently and Empty Trash cannot be undone.
+Deleted items go to Trash by default. Open Trash and choose Put Back to restore an item. To delete without the Trash, turn off Settings → General → File Operations → Use Trash. Delete Permanently and Empty Trash cannot be undone.
 
 To share a folder with another device, open Settings → File Sharing. Choose a folder, set a user name, password, and port, and turn on sharing. The user name is `fila` and the port is 8080 unless you change them. Fila shows the resulting address and a QR code to scan. On the other device connected to the same network, open that address in a browser or WebDAV client and sign in. Turn on Keep Sharing in Background to keep serving while Fila is not on screen. The connection is not encrypted, so share only on a network you trust.
 
 To reach a network share, open Settings → Servers, add an SMB server with its address and credentials, and it appears in the sidebar. The same page edits and removes saved servers.
-
-On iOS 16 or later, Settings → Files App Folder manages the folder shown in the Files app.
 
 ## Links and Shortcuts
 

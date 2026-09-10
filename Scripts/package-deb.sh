@@ -16,8 +16,8 @@ helper_binary="$3"
     echo "error: app, daemon and helper must come from the same verified build" >&2
     exit 65
 }
-provider_bundle="$app_bundle/PlugIns/FilaFileProvider.appex"
-provider_entitlements="$(cd "$(dirname "$0")/../Packaging" && pwd -P)/FilaFileProvider.entitlements"
+action_bundle="$app_bundle/PlugIns/FilaSaveAction.appex"
+action_entitlements="$(cd "$(dirname "$0")/../Packaging" && pwd -P)/FilaSaveAction.entitlements"
 control_template="$4"
 app_entitlements="$5"
 daemon_entitlements="$6"
@@ -30,10 +30,10 @@ flavor="${12}"
 install_prefix="${13}"
 
 [[ -d "$app_bundle" && -f "$app_bundle/Info.plist" ]] || { echo "error: incomplete app bundle" >&2; exit 66; }
-[[ -d "$provider_bundle" && -x "$provider_bundle/FilaFileProvider" && -f "$provider_bundle/Info.plist" ]] || { echo "error: embedded File Provider is missing" >&2; exit 66; }
+[[ -d "$action_bundle" && -x "$action_bundle/FilaSaveAction" && -f "$action_bundle/Info.plist" ]] || { echo "error: embedded Save action is missing" >&2; exit 66; }
 [[ -x "$daemon_binary" ]] || { echo "error: daemon binary is missing" >&2; exit 66; }
 [[ -x "$helper_binary" ]] || { echo "error: archive helper binary is missing" >&2; exit 66; }
-for input in "$control_template" "$app_entitlements" "$daemon_entitlements" "$launch_plist" "$provider_entitlements"; do
+for input in "$control_template" "$app_entitlements" "$daemon_entitlements" "$launch_plist" "$action_entitlements"; do
     [[ -f "$input" ]] || { echo "error: missing packaging input: $input" >&2; exit 66; }
 done
 [[ "$output_deb" == *.deb ]] || { echo "error: output must end in .deb" >&2; exit 64; }
@@ -95,7 +95,7 @@ mkdir -p "$debian" "$(dirname "$installed_app")" "$(dirname "$installed_daemon")
 /usr/bin/ditto "$app_bundle" "$installed_app"
 /usr/bin/ditto "$daemon_binary" "$installed_daemon"
 /usr/bin/ditto "$helper_binary" "$installed_helper"
-bash "$(dirname "$0")/sign-file-provider.sh" "$installed_app" deb
+bash "$(dirname "$0")/sign-extensions.sh" "$installed_app" deb
 python3 "$(dirname "$0")/resolve-app-group-entitlements.py" "$app_entitlements" "$installed_app/Info.plist" "$staging/app-entitlements.plist"
 app_entitlements="$staging/app-entitlements.plist"
 sed -e "s|@PREFIX@|$install_prefix|g" "$launch_plist" >"$installed_plist"
@@ -119,7 +119,7 @@ ldid -e "$installed_app/$app_executable" >"$app_signed_entitlements"
 ldid -e "$installed_daemon" >"$daemon_signed_entitlements"
 helper_signed_entitlements="$staging/helper-entitlements.plist"
 ldid -e "$installed_helper" >"$helper_signed_entitlements"
-bash "$(dirname "$0")/verify-file-provider.sh" "$installed_app" deb
+bash "$(dirname "$0")/verify-save-action.sh" "$installed_app" deb
 rm -f "$staging/app-entitlements.plist"
 
 require_true() {

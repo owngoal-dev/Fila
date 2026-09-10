@@ -32,8 +32,7 @@ Shipped with that slice, and no longer future work:
 - Tabs with a retained navigation stack each, and one `OperationCenter` for
   jobs, transfers and toasts.
 - WebDAV server and the bundled browser UI in `WebUI/`.
-- Files.app integration through the embedded File Provider (iOS 16+), and a
-  *Save to Fila* share-sheet extension beside it.
+- A *Save to Fila* share-sheet extension.
 - The terminal: libghostty, a pty the daemon opens, and credentials dropped
   before the shell is spawned.
 - Extensible backends. `Frameworks/` holds one dynamic framework per backend
@@ -193,4 +192,4 @@ fixtures were removed in 0.1.6; build-time tests remain in `Packages/FilaKit/Tes
 | Local file access | Two implementations, one handshake. Never a build flag. | `Architecture.md` |
 | Text editor | Runestone, same atomic-save path. | `Fila/Interface/Viewer/` |
 | Built-in web server | WebDAV plus `WebUI/`. | `FilaRemote`, `WebUI/` |
-| Files.app integration | Replicated File Provider, iOS 16+, no daemon, no root. | `Architecture.md`, `FilaFileProvider/` |
+| Files.app integration | Removed. The replicated File Provider could export only what `mobile` already reached, so the folder picker promised access it did not have. | `Architecture.md` |

@@ -908,6 +908,88 @@
         }
       }
     },
+    "Fila cannot see other apps on this device." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن لـ Fila رؤية التطبيقات الأخرى على هذا الجهاز."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila kann die anderen Apps auf diesem Gerät nicht sehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila cannot see other apps on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila no puede ver las otras apps de este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila ne peut pas voir les autres apps de cet appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila non riesce a vedere le altre app su questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila はこのデバイス上の他の App を参照できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila가 이 기기의 다른 앱을 볼 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Fila não consegue ver os outros apps neste dispositivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila не видит другие приложения на этом устройстве."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila không thể thấy các ứng dụng khác trên thiết bị này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 无法看到此设备上的其他 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila 無法看到此裝置上的其他 App。"
+          }
+        }
+      }
+    },
     "Fila could not read the list of installed apps. Pull down to refresh." : {
       "localizations" : {
         "ar" : {
@@ -2060,89 +2142,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Team ID"
-          }
-        }
-      }
-    },
-    "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device." : {
-      "comment" : "Empty state in Installed Apps. Show Applications is the name of the switch in Fila's own Settings.",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "شغّل خيار إظهار التطبيقات في الإعدادات. إذا كان مشغلًا بالفعل، فإن Fila لا يستطيع رؤية التطبيقات الأخرى على هذا الجهاز."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktiviere „Apps anzeigen“ in den Einstellungen. Wenn es bereits aktiviert ist, kann Fila andere Apps auf diesem Gerät nicht sehen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activa Mostrar Aplicaciones en Ajustes. Si ya está activado, Fila no puede ver otras apps en este dispositivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activez Afficher les applications dans Réglages. Si l’option est déjà activée, Fila ne peut pas voir les autres apps de cet appareil."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Attiva Mostra Applicazioni in Impostazioni. Se è già attivo, Fila non riesce a vedere le altre app su questo dispositivo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「設定」で「アプリケーションを表示」をオンにしてください。すでにオンの場合、FilaはこのデバイスのほかのAppを認識できません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "설정에서 응용 프로그램 표시를 켜십시오. 이미 켜져 있다면, Fila가 이 기기의 다른 앱을 볼 수 없는 것입니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ative Mostrar Aplicativos em Ajustes. Se já estiver ativado, o Fila não consegue ver outros apps neste dispositivo."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Включите параметр «Показывать приложения» в Настройках. Если он уже включён, значит Fila не видит другие приложения на этом устройстве."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hãy bật Hiển thị Ứng dụng trong Cài đặt. Nếu đã bật, nghĩa là Fila không thấy được các ứng dụng khác trên thiết bị này."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请在设置中开启“显示应用程序”。若已开启，则说明 Fila 无法查看此设备上的其他应用。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請在「設定」中開啟「顯示應用程式」。若已經開啟，表示 Fila 無法看到此裝置上的其他 App。"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Turn on Show Applications in Settings. If it is already on, Fila cannot see other apps on this device."
           }
         }
       }

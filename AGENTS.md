@@ -50,10 +50,11 @@ between the app and the kernel with nothing in between.
   three from the daemon's own `proc_pidpath`. Anything that needs the prefix
   asks it. An unrecognized or unreadable daemon path refuses startup; only a
   recognized rootful path may produce an empty prefix.
-- **The daemon writes wherever root can; only the File Provider is fenced.**
-  `FileOperations.writableRoot` confines a backend that serves one folder —
-  the File Provider extension — and nothing else sets it. A root file manager
-  confined to its own bootstrap is not one: `/var/mobile` is outside every
+- **The daemon writes wherever root can.** `FileOperations.writableRoot` can
+  confine a backend to one folder, and nothing sets it any more — the File
+  Provider that did is gone. It stays because it is the fence a future
+  single-folder backend would need, and its tests still prove it. A root file
+  manager confined to its own bootstrap is not one: `/var/mobile` is outside every
   jailbreak's install root, and refusing to write there reads as "no
   permission" on every operation. What protects the device is `FilaGuard`'s
   destruction list on every layout, and the bootstrap node itself can never
@@ -215,8 +216,7 @@ between the app and the kernel with nothing in between.
   back; libarchive and MachOKit live here), `FilaMedia` (AVFoundation and
   ImageIO over the same descriptors), `FilaTerminal` (the pty pump and
   libghostty), `FilaRemote` (the WebDAV server and URL download),
-  `FilaProvider` (the File Provider's index), `FilaApplications`,
-  `FilaMusicLibrary`, `FilaSMB`, and the `C*` shims.
+  `FilaApplications`, `FilaMusicLibrary`, `FilaSMB`, and the `C*` shims.
 
   The daemon links **only** `FilaProtocol`, `FilaFileOps` and `FilaLog` — that
   list is a budget, not a habit, and everything else is app-side because
@@ -258,12 +258,9 @@ between the app and the kernel with nothing in between.
   that is not linked is not registered, and a screen that is not registered is
   not offered — which is the whole mechanism behind the two compositions.
 - `FilaArchive/` — `main.swift` for the `fila-archive` helper described above.
-- `FilaFileProvider/` — the Files-app extension. iOS 16 and later, serving the
-  App Group container alone; it has no root access and is the one backend
-  `FileOperations.writableRoot` fences.
-- `FilaSaveAction/` — the *Save to Fila* share-sheet extension, its own
-  entitlements and its own catalogue. It carries the same App Group as the
-  File Provider, and both packagers sign and verify it.
+- `FilaSaveAction/` — the *Save to Fila* share-sheet extension, the only
+  appex, with its own entitlements and its own catalogue. It carries the
+  configured App Group, and both packagers sign and verify it.
 - `Packages/SMBClient/` — the vendored SMB library; see `FILA-VENDOR.md`.
 - `Tests/` — what does not fit `swift test`: `test-packaging.py` and the
   music-import fixtures. `Licenses/` — one directory per dependency, collected
@@ -553,9 +550,9 @@ sentence. The same script fails on a missing or `""` message.
   build's receipt — and carries **only the configured standard App Group**
   entitlement. The
   user approved this shared-container workflow: the sideloading tool must
-  provision the same `APP_GROUP_IDENTIFIER` for the app and embedded File
-  Provider when re-signing. Jailbreak/private entitlements stay excluded
-  from the ordinary IPA and from the File Provider extension.
+  provision the same `APP_GROUP_IDENTIFIER` for the app and the embedded
+  Save action when re-signing. Jailbreak/private entitlements stay excluded
+  from the ordinary IPA and from the extension.
   Path helpers: `make print-tipa-path`, `make print-ipa-path`.
 - `make packages` (`make all`) — all four in one go: the full build, then the
   sandboxed build at the same build number, then every wrapper.
@@ -650,12 +647,11 @@ sentence. The same script fails on a missing or `""` message.
   but where it is. The two archives fail in opposite directions, so
   `verify-ipa.sh` checks jailbreak entitlements for absence on one side and
   presence on the other. Both wrappers require a matching standard App Group
-  on the containing app and on **both** embedded extensions — the File
-  Provider and `FilaSaveAction`, which share that container. Worth knowing
-  before trusting the gate: `Scripts/sign-file-provider.sh` signs both, and
-  `Scripts/verify-deb.sh` requires both appexes in the payload, but
-  `verify-file-provider.sh` reads the entitlements back out of the File
-  Provider alone. A Save-action group that drifts is not caught today.
+  on the containing app and on the one embedded extension, `FilaSaveAction`,
+  which shares that container. `Scripts/sign-extensions.sh` signs it,
+  `Scripts/verify-deb.sh` requires the appex in the payload, and
+  `verify-save-action.sh` reads the entitlements back out of both the app and
+  the extension — the drift that used to go uncaught is caught now.
 
 ### Review gate on file operations
 

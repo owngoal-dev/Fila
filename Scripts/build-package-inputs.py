@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
-INPUTS = ["Fila", "Frameworks", "Filad", "FilaArchive", "FilaFileProvider", "FilaSaveAction", "Fila.xcodeproj", "Configuration", "Packaging", "Licenses", "Scripts", "WebUI", "Packages/FilaKit", "Makefile"]
+INPUTS = ["Fila", "Frameworks", "Filad", "FilaArchive", "FilaSaveAction", "Fila.xcodeproj", "Configuration", "Packaging", "Licenses", "Scripts", "WebUI", "Packages/FilaKit", "Makefile"]
 # The full composition's products. The sandboxed composition builds Fila.app
 # alone into its own directory and names that with `--products Fila.app`.
 PRODUCTS = ["Fila.app", "filad", "fila-archive"]

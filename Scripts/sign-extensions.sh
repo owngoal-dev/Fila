@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-[[ $# == 2 ]] || { echo 'usage: sign-file-provider.sh <app> <ipa|tipa|deb>' >&2; exit 64; }
+[[ $# == 2 ]] || { echo 'usage: sign-extensions.sh <app> <ipa|tipa|deb>' >&2; exit 64; }
 app="$1"
 kind="$2"
 scripts="$(cd "$(dirname "$0")" && pwd -P)"
-resolved="$(mktemp "${TMPDIR:-/tmp}/fila-provider-sign.XXXXXX")"
+resolved="$(mktemp "${TMPDIR:-/tmp}/fila-appex-sign.XXXXXX")"
 trap 'rm -f "$resolved"' EXIT
 
-# The share action has the same standard App Group and its own bundle identity.
-for entry in 'FilaFileProvider:File Provider' 'FilaSaveAction:Save action'; do
+# One embedded extension today: the share action, with the same standard App
+# Group as the containing app and its own bundle identity. The loop stays so
+# a second appex is one entry rather than a rewrite.
+for entry in 'FilaSaveAction:Save action'; do
     appex="${entry%%:*}"
     label="${entry#*:}"
     bundle="$app/PlugIns/$appex.appex"

@@ -7,7 +7,7 @@ import UIKit
 
 /// Native grouped settings with direct feature, diagnostic and about destinations.
 final class SettingsViewController: UIViewController {
-    private enum Page { case main, behavior, about }
+    private enum Page { case main, about }
     private let page: Page
 
     convenience init() {
@@ -29,10 +29,6 @@ final class SettingsViewController: UIViewController {
         case groups
         case operations
         case connectivity
-        case browsing
-        case fileOperations
-        case systemFeatures
-        case scripts
         case branding
         case about
         case backends
@@ -43,14 +39,8 @@ final class SettingsViewController: UIViewController {
     /// from `hello` at configure time, which is why flipping a switch needs no
     /// mirrored copy of the setting to keep in step.
     private enum Row: Hashable {
-        case recordsRecents
-        case launchLocation
-        case usesTrash
-        case runsPrograms
-        case redirectsScriptInterpreters
-        case appearance, behavior, sharing, servers, about
+        case general, sharing, servers, about
         case tasks
-        case fileProvider
         case log
         case version
         case daemon
@@ -74,7 +64,6 @@ final class SettingsViewController: UIViewController {
         super.viewDidLoad()
         switch page {
         case .main: title = String(localized: "Settings")
-        case .behavior: title = String(localized: "Behavior")
         case .about: title = String(localized: "Details")
         }
         view.backgroundColor = .systemGroupedBackground
@@ -164,16 +153,10 @@ final class SettingsViewController: UIViewController {
             // Servers only where a module offers a way to add one: a
             // build without a remote module has no page to push.
             let servers: [Row] = BackendComposition.registry.connectionSetups.isEmpty ? [] : [.servers]
-            snapshot.appendItems([.appearance, .behavior], toSection: .groups)
+            snapshot.appendItems([.general], toSection: .groups)
             snapshot.appendItems([.tasks, .log], toSection: .operations)
             snapshot.appendItems([.sharing] + servers, toSection: .connectivity)
             snapshot.appendItems([.version, .about, .license], toSection: .about)
-        case .behavior:
-            snapshot.appendSections([.browsing, .fileOperations, .systemFeatures, .scripts])
-            snapshot.appendItems([.launchLocation, .recordsRecents], toSection: .browsing)
-            snapshot.appendItems([.usesTrash], toSection: .fileOperations)
-            snapshot.appendItems([.runsPrograms, .fileProvider], toSection: .systemFeatures)
-            snapshot.appendItems([.redirectsScriptInterpreters], toSection: .scripts)
         case .about:
             snapshot.appendSections([.about, .backends])
             snapshot.appendItems([.daemon, .protocolVersion, .installRoot], toSection: .about)
@@ -192,34 +175,16 @@ final class SettingsViewController: UIViewController {
 
     private func configure(_ cell: UICollectionViewListCell, for row: Row) {
         switch row {
-        case .appearance:
-            configureDisclosure(cell, title: String(localized: "Appearance"))
-        case .behavior:
-            configureDisclosure(cell, title: String(localized: "Behavior"))
+        case .general:
+            configureDisclosure(cell, title: String(localized: "General"))
         case .sharing:
             configureDisclosure(cell, title: String(localized: "File Sharing"))
         case .tasks:
             configureDisclosure(cell, title: String(localized: "Tasks"))
-        case .recordsRecents:
-            configureToggle(cell, title: String(localized: "Remember Recents"), keyPath: \.recordsRecents)
-        case .usesTrash:
-            configureToggle(cell, title: String(localized: "Use Trash"), keyPath: \.usesTrash)
-        case .runsPrograms:
-            configureToggle(cell, title: String(localized: "Run Programs"), keyPath: \.runsPrograms)
-        case .redirectsScriptInterpreters:
-            configureToggle(
-                cell,
-                title: String(localized: "Find Script Interpreters"),
-                keyPath: \.redirectsScriptInterpreters
-            )
         case .servers:
             configureDisclosure(cell, title: String(localized: "Servers"))
         case .about:
             configureDisclosure(cell, title: String(localized: "Details"))
-        case .launchLocation:
-            configureLaunchLocation(cell)
-        case .fileProvider:
-            configureDisclosure(cell, title: String(localized: "Files App Folder"))
         case .log:
             configureDisclosure(cell, title: String(localized: "Log"))
         case .version:
@@ -256,62 +221,6 @@ final class SettingsViewController: UIViewController {
                 value: Self.version(of: Bundle(identifier: identifier))
             )
         }
-    }
-
-    private func configureToggle(
-        _ cell: UICollectionViewListCell,
-        title: String,
-        keyPath: ReferenceWritableKeyPath<AppPreferences, Bool>
-    ) {
-        var content = UIListContentConfiguration.cell()
-        content.text = title
-        content.textProperties.numberOfLines = 0
-        cell.contentConfiguration = content
-
-        let toggle = UISwitch()
-        toggle.isOn = AppPreferences.shared[keyPath: keyPath]
-        toggle.accessibilityLabel = title
-        toggle.addAction(UIAction { [weak toggle] _ in
-            guard let toggle else { return }
-            AppPreferences.shared[keyPath: keyPath] = toggle.isOn
-            // Browsers are behind a modal and get no callback of their own, so
-            // the change has to be announced.
-            NotificationCenter.default.post(name: .filaPreferencesChanged, object: nil)
-        }, for: .valueChanged)
-        cell.accessories = [.customView(configuration: .init(customView: toggle, placement: .trailing()))]
-    }
-
-    /// A pull-down button rather than a pushed list of three radio rows: three
-    /// choices fit in a menu, and a whole screen to pick one of them is the
-    /// kind of thing a settings screen accumulates.
-    private func configureLaunchLocation(_ cell: UICollectionViewListCell) {
-        var content = UIListContentConfiguration.cell()
-        content.text = String(localized: "Open at Launch")
-        cell.contentConfiguration = content
-
-        let button = UIButton(type: .system)
-        button.setTitle(Self.name(of: AppPreferences.shared.launchLocation), for: .normal)
-        button.titleLabel?.font = .preferredFont(forTextStyle: .body)
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.accessibilityLabel = String(localized: "Open at Launch")
-        button.showsMenuAsPrimaryAction = true
-        button.changesSelectionAsPrimaryAction = true
-        button.menu = UIMenu(children: LaunchLocation.allCases.map { location in
-            UIAction(
-                title: Self.name(of: location),
-                state: AppPreferences.shared.launchLocation == location ? .on : .off
-            ) { [weak self, weak cell] _ in
-                AppPreferences.shared.launchLocation = location
-                guard let cell else { return }
-                self?.configureLaunchLocation(cell)
-            }
-        })
-        button.sizeToFit()
-        cell.accessories = [.customView(configuration: .init(
-            customView: button,
-            placement: .trailing(),
-            reservedLayoutWidth: .actual
-        ))]
     }
 
     /// The handshake, but only when it came from `filad`. Every About row that
@@ -357,14 +266,13 @@ final class SettingsViewController: UIViewController {
 
     private static func header(for section: Section) -> String? {
         switch section {
-        case .groups: String(localized: "General")
+        // The General row is the first thing on the page and says what it is;
+        // a header repeating the word above it would be the only header on
+        // this page that names its own single row.
+        case .groups: nil
         case .operations: String(localized: "Operations")
         case .connectivity: String(localized: "Connectivity")
         case .backends: String(localized: "Backends")
-        case .browsing: String(localized: "Browsing")
-        case .fileOperations: String(localized: "File Operations")
-        case .systemFeatures: String(localized: "System Features")
-        case .scripts: String(localized: "Scripts")
         case .branding: nil
         case .about: String(localized: "About")
         }
@@ -372,14 +280,6 @@ final class SettingsViewController: UIViewController {
 
     private func footer(for section: Section) -> String? {
         switch section {
-        case .fileOperations:
-            String(localized: "Move deleted items to the trash so they can be put back.")
-        case .systemFeatures:
-            String(
-                localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working."
-            )
-        case .scripts:
-            String(localized: "Fila finds the program a script needs if it isn't in the usual place. Turn this off to run scripts exactly as written.")
         case .about:
             // The only place a user is ever told they are running the
             // unprivileged build, so it says what is true and what to do about
@@ -396,16 +296,8 @@ final class SettingsViewController: UIViewController {
             case .local(.container):
                 String(localized: "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access.")
             }
-        case .groups, .operations, .connectivity, .backends, .browsing, .branding:
+        case .groups, .operations, .connectivity, .backends, .branding:
             nil
-        }
-    }
-
-    private static func name(of location: LaunchLocation) -> String {
-        switch location {
-        case .root: String(localized: "Root")
-        case .home: String(localized: "Home")
-        case .lastVisited: String(localized: "Last Visited")
         }
     }
 
@@ -424,7 +316,7 @@ extension SettingsViewController: UICollectionViewDelegate {
         if row == .tasks {
             return true
         }
-        return [.appearance, .behavior, .sharing, .servers, .about, .license, .log, .fileProvider].contains(row)
+        return [.general, .sharing, .servers, .about, .license, .log].contains(row)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -432,10 +324,8 @@ extension SettingsViewController: UICollectionViewDelegate {
         // Pushed rather than presented: settings is itself usually a sheet, and
         // a sheet over a sheet leaves either screen at half the height it needs.
         switch dataSource.itemIdentifier(for: indexPath) {
-        case .appearance:
-            navigationController?.pushViewController(AppearanceSettingsViewController(), animated: true)
-        case .behavior:
-            navigationController?.pushViewController(SettingsViewController(page: .behavior), animated: true)
+        case .general:
+            navigationController?.pushViewController(GeneralSettingsViewController(), animated: true)
         case .sharing:
             navigationController?.pushViewController(FileSharingViewController(), animated: true)
         case .tasks:
@@ -452,8 +342,6 @@ extension SettingsViewController: UICollectionViewDelegate {
                 else { return }
                 navigation.pushViewController(log, animated: true)
             }
-        case .fileProvider:
-            navigationController?.pushViewController(FileProviderSettingsViewController(), animated: true)
         case .servers:
             navigationController?.pushViewController(ServersSettingsViewController(), animated: true)
         case .about:

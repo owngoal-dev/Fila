@@ -13,10 +13,36 @@ extension Notification.Name {
 
 /// Where the browser opens on launch. `AppPreferences.launchDirectory` resolves
 /// it — the value is a choice; what was last visited is the local backend's.
-enum LaunchLocation: String, CaseIterable {
+///
+/// Stored as one string, and a folder stores its own absolute path. The three
+/// fixed answers are words and a folder is a path, so the two can never be
+/// confused for one another and no second defaults key has to be kept in step
+/// with this one.
+enum LaunchLocation: RawRepresentable, Equatable {
     case root
     case home
     case lastVisited
+    case folder(String)
+
+    init?(rawValue: String) {
+        switch rawValue {
+        case "root": self = .root
+        case "home": self = .home
+        case "lastVisited": self = .lastVisited
+        default:
+            guard rawValue.hasPrefix("/") else { return nil }
+            self = .folder(rawValue)
+        }
+    }
+
+    var rawValue: String {
+        switch self {
+        case .root: "root"
+        case .home: "home"
+        case .lastVisited: "lastVisited"
+        case let .folder(path): path
+        }
+    }
 }
 
 /// What the app itself remembers between launches: switches that are the
@@ -61,6 +87,11 @@ final class AppPreferences {
         case .root: return session.local.rootPath
         case .home: return FileManager.default.fileExists(atPath: "/var/mobile") ? "/var/mobile" : session.local.rootPath
         case .lastVisited: return session.lastDirectoryPath
+        // Not checked for existence: `mobile` cannot stat every directory root
+        // can open, so a check would refuse exactly the folders this file
+        // manager exists for. A folder that really is gone fails in the
+        // browser, where the error says which path and why.
+        case let .folder(path): return path
         }
     }
 
@@ -86,18 +117,7 @@ final class AppPreferences {
         set { defaults.set(newValue, forKey: "highlightsSyntax") }
     }
 
-    // MARK: - System features
-
-    /// The user's half of `SystemCapabilities.runsPrograms`: on by default,
-    /// and turning it off is for a jailbreak whose system-protection bypass
-    /// is partial or absent, where a spawn may hang or crash the app. Off
-    /// means the feature is not offered at all — no Run menu — not that it
-    /// is offered and fails. The Applications switch is the applications
-    /// module's own, under the same reasoning.
-    var runsPrograms: Bool {
-        get { defaults.object(forKey: "runsPrograms") as? Bool ?? true }
-        set { defaults.set(newValue, forKey: "runsPrograms") }
-    }
+    // MARK: - Scripts
 
     /// On by default, because a script written `#!/bin/sh` is every script and
     /// a rootless device has no `/bin/sh` — off, the kernel refuses it and the
