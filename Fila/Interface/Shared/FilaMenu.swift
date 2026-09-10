@@ -42,24 +42,24 @@ enum FilaMenu {
     /// size so it sits in a menu row the way its siblings do.
     private static let rowIconSide: CGFloat = 40
 
-    /// A submenu's icon composed from what it holds — an n×n grid of the
+    /// A submenu's icon composed from what it holds — a square grid of the
     /// first pictures inside it on a rounded tile — so a row that opens a
     /// list says what kind of list, rather than showing the same folder for
-    /// Places, Favorites and Recents alike. One picture fills the tile; up
-    /// to four make a 2×2; more make a 3×3 of the first nine. Nil for an
-    /// empty list, and the caller falls back to the plain folder.
+    /// Places, Favorites and Recents alike. Exactly three shapes: one
+    /// picture fills the tile, nine or more make a 3×3 of the first nine,
+    /// and anything between is a 2×2 of the first four — with two or three
+    /// pictures the remaining cells stay empty, because a 2×1 or a 3×2 is
+    /// a different tile beside its siblings. Nil for an empty list, and the
+    /// caller falls back to the plain folder.
     static func compositeIcon(_ pictures: [UIImage]) -> UIImage? {
-        let pictures = Array(pictures.prefix(9))
         guard !pictures.isEmpty else { return nil }
-        let columns = pictures.count == 1 ? 1 : pictures.count <= 4 ? 2 : 3
+        let columns = pictures.count == 1 ? 1 : pictures.count >= 9 ? 3 : 2
+        let pictures = Array(pictures.prefix(columns * columns))
         let side = rowIconSide
         let inset: CGFloat = 3
         let gap: CGFloat = 2
         let cell = (side - 2 * inset - CGFloat(columns - 1) * gap) / CGFloat(columns)
-        // A grid whose last row is short is centred in the tile rather than
-        // left hanging from its top.
-        let rows = (pictures.count + columns - 1) / columns
-        let top = (side - CGFloat(rows) * cell - CGFloat(rows - 1) * gap) / 2
+        let top = inset
         let tile = CGRect(x: 0, y: 0, width: side, height: side)
         // Rendered on every open of the menu (the callers are deferred
         // elements), so the fill resolves for the current appearance.
