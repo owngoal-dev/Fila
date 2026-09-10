@@ -19,9 +19,10 @@ final class TabSwitcherViewController: UIViewController {
     /// Cards whose first display is an arrival, and get the blur-in.
     private var entering: Set<UUID> = []
 
-    /// The highlighted card: the tab whose page this overview opened over.
+    /// The highlighted card: the tab whose page this overview opened over,
+    /// or — once that tab is closed from here — the one the store moved to.
     private var currentTabID: UUID? {
-        content?.installedTabID
+        content?.installedTabID ?? store.currentID
     }
 
     init(content: TabContainerViewController, deferring: UUID? = nil) {

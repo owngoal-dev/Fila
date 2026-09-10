@@ -18,7 +18,10 @@ public enum ApplicationFolderDecorations {
     static func decorates(_ directory: String, entries: [(name: String, isDirectory: Bool)]) -> Bool {
         [dataRoot, bundleRoot, groupRoot].contains(displayPath(directory))
             || entries.contains(where: {
-                $0.isDirectory && URL(fileURLWithPath: $0.name).pathExtension.lowercased() == "app"
+                // A suffix test, not a `URL` per entry: this runs over every
+                // name of every listing, and nearly all of them answer no.
+                $0.isDirectory && $0.name.utf8.count > 4
+                    && $0.name.range(of: ".app", options: [.anchored, .backwards, .caseInsensitive]) != nil
             })
     }
 

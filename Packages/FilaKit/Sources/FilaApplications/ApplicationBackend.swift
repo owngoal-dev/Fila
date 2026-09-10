@@ -29,6 +29,9 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
     /// LaunchServices costs tens of milliseconds each time — which was the
     /// tail of every directory opened.
     private(set) var catalog: Task<[InstalledApp], Never>?
+    /// The backend the cached read was made under; a different answer from
+    /// the handshake drops it.
+    private var catalogBackend: LocalBackend?
 
     /// The framework bundle, for localized strings: the entry class is in
     /// the framework's own sources, so any class from this module resolves
@@ -55,9 +58,16 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         localUpdates = Task { [weak self] in
             for await _ in local.sidebarUpdates() {
                 guard let self, !Task.isCancelled else { return }
-                // A new handshake is a new environment; what was read under
-                // the old one is not the catalogue any more.
-                catalog = nil
+                // The stream carries every visit and favourite as well as
+                // the handshake. Only a new backend is a new environment,
+                // and only then is what was read under the old one not the
+                // catalogue any more; a folder visit must not cost the
+                // breadcrumb a LaunchServices read.
+                let backend = local.hello?.backend
+                if backend != catalogBackend {
+                    catalogBackend = backend
+                    catalog = nil
+                }
                 publish()
             }
         }
@@ -104,7 +114,14 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         }
         let read = catalog ?? Task { await ApplicationCatalog.load(files: files) }
         catalog = read
-        return await read.value
+        let apps = await read.value
+        // Dropped while the read was in flight — an install landed, say:
+        // what came back describes the moment before it. Once more, and
+        // that read is the one kept.
+        guard catalog == nil, !Task.isCancelled else { return apps }
+        let again = Task { await ApplicationCatalog.load(files: files) }
+        catalog = again
+        return await again.value
     }
 
     public func locate(bundleIdentifier: String) async -> ApplicationLocation? {

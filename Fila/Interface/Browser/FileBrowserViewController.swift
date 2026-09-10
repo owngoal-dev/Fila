@@ -39,6 +39,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     private var volume: VolumeInfo?
 
     override var maximumItemCount: Int { DirectoryReader.maximumEntryCount }
+    override var traceName: String { directory }
 
     private let clipboardBar = ClipboardBarView()
     /// The list's own footer, once one has been dequeued. Weak because the
@@ -560,9 +561,11 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             )
         }
         decoratedWithApplications = SystemCapabilities.showsApplications
-        // Two independent round trips — the folder's decorations and the
-        // volume behind the footer — side by side rather than in a row.
-        async let volume: Void = loadVolume()
+        // The volume behind the footer, on its own task rather than a child
+        // of this one: a listing abandoned mid-flight must not wait on that
+        // round trip, and its answer is about this browser's directory
+        // whenever it lands.
+        Task { [weak self] in await self?.loadVolume() }
         let appFolders = await SystemCapabilities.applications?.decorations(
             in: directory,
             entries: items.map { (name: $0.name, isDirectory: $0.kind == .directory) }
@@ -573,7 +576,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         if refreshAppFolders {
             await reconfigureVisibleItems()
         }
-        await volume
     }
 
     private func loadVolume() async {

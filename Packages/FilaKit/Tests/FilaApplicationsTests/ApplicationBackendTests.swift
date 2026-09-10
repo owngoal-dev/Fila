@@ -95,9 +95,23 @@ struct ApplicationBackendTests {
         // The handshake's republish arrives through a stream and drops the
         // cache as it lands; the root row is published only once it has,
         // so wait for that before counting reads.
-        var sidebar = backend.sidebarUpdates().makeAsyncIterator()
+        let sidebar = backend.sidebarUpdates()
         files.handshakeLanded(LocalHello(protocolVersion: 1, backend: .local(reach: .user)))
-        while let snapshot = await sidebar.next(), snapshot.places.isEmpty {}
+        // Bounded: a lost publish fails the test rather than hanging the suite.
+        let landed = await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                for await snapshot in sidebar where !snapshot.places.isEmpty { return true }
+                return false
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                return false
+            }
+            let first = await group.next() ?? false
+            group.cancelAll()
+            return first
+        }
+        #expect(landed)
         _ = await backend.applications()
         // `Task` is a handle: equal only when it is the same task.
         let first = backend.catalog

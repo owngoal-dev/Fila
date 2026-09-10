@@ -141,16 +141,25 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
     /// reason there are none.
     override func load() -> AsyncThrowingStream<[InstalledApp], Error> {
         let backend = backend
+        // The pull is the one request that means "read it again". The first
+        // load and a change hint take the cached read — a hint has already
+        // dropped it — so opening the page costs no second enumeration.
+        let refresh = pullRequested
+        pullRequested = false
         return AsyncThrowingStream { continuation in
             let task = Task {
-                // The page is the one caller that means "read it again":
-                // its pull is the request, and every change hint drops the
-                // cached read before it lands here.
-                continuation.yield(await backend.applications(refresh: true))
+                continuation.yield(await backend.applications(refresh: refresh))
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    private var pullRequested = false
+
+    override func refreshRequested() {
+        pullRequested = true
+        reload()
     }
 
     override func changes() async throws -> AsyncThrowingStream<Void, Error>? {

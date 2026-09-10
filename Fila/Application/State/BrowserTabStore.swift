@@ -135,6 +135,12 @@ final class BrowserTabStore {
     /// among these (nor among the sessions iOS still holds open).
     private static var live: Set<String> = []
 
+    /// Whether a window with no list has already looked for one to adopt
+    /// this launch. The first such window is the one an install's `uicache`
+    /// or an upgrade left listless, and it takes the dropped list; a window
+    /// the person opens later is a new window, and starts with one tab.
+    private static var adoptionTried = false
+
     private struct State {
         var tabs: [BrowserTab]
         var currentID: UUID
@@ -155,9 +161,16 @@ final class BrowserTabStore {
     }
 
     deinit {
-        // Isolated state, touched from a nonisolated deinit: the store is
-        // only ever made and released on the main thread, by the shell.
-        MainActor.assumeIsolated { _ = Self.live.remove(sessionIdentifier) }
+        // Isolated state, touched from a nonisolated deinit. The shell makes
+        // and releases the store on the main thread; the other arm is for a
+        // last reference dropped by an autorelease pool elsewhere, which
+        // must not trap on the executor check.
+        let session = sessionIdentifier
+        if Thread.isMainThread {
+            MainActor.assumeIsolated { _ = Self.live.remove(session) }
+        } else {
+            Task { @MainActor in _ = Self.live.remove(session) }
+        }
     }
 
     private var loaded: State {
@@ -314,8 +327,11 @@ final class BrowserTabStore {
         var stored = Self.read(
             Key.of(Key.tabs, sessionIdentifier), current: Key.of(Key.current, sessionIdentifier), from: defaults
         )
-        if stored == nil {
-            stored = adoptOrphan()
+        var adoption: Adoption?
+        if stored == nil, !Self.adoptionTried {
+            Self.adoptionTried = true
+            adoption = adoptOrphan()
+            stored = adoption.map { ($0.tabs, $0.current) }
         }
         var tabs = stored?.tabs ?? []
         if case .local(.container) = FileSession.shared.hello?.backend {
@@ -345,7 +361,17 @@ final class BrowserTabStore {
         // edited, truncated or written by an older build is not a reason to
         // start with no tab at all.
         let current = tabs.first { $0.id == stored?.current }?.id ?? tabs[0].id
-        return State(tabs: tabs, currentID: current)
+        let state = State(tabs: tabs, currentID: current)
+        if let adoption {
+            // Written under this session *before* the orphan's keys go: a
+            // kill between the two — the app swiped away before the first
+            // push records anything — must not lose the list to the code
+            // that exists to keep it.
+            self.state = state
+            save(notify: false)
+            Self.remove(adoption.session, from: defaults)
+        }
+        return state
     }
 
     /// A window's list as written, or nil when this window has none. An
@@ -366,20 +392,41 @@ final class BrowserTabStore {
     /// A list is orphaned when its session is neither live in this process
     /// nor one iOS still holds open: a window in the switcher, disconnected
     /// but not discarded, keeps its list for its own return.
-    private func adoptOrphan() -> (tabs: [BrowserTab], current: UUID?)? {
+    private func adoptOrphan() -> Adoption? {
         let orphans = Self.orphans(in: defaults)
         // Keep the recent few, so a stack of dropped sessions cannot grow the
         // plist forever: the rest are the lists no window will come back for.
         for orphan in orphans.dropFirst(Self.orphanLimit) {
             Self.remove(orphan, from: defaults)
         }
-        guard let session = orphans.first else { return nil }
-        defer { Self.remove(session, from: defaults) }
-        if let session {
-            return Self.read(Key.of(Key.tabs, session), current: Key.of(Key.current, session), from: defaults)
+        for session in orphans.prefix(Self.orphanLimit) {
+            if let list = Self.readOrphan(session, from: defaults) {
+                // The keys stay until `load` has written the list under this
+                // session; see there.
+                return Adoption(session: session, tabs: list.tabs, current: list.current)
+            }
+            // A list this build cannot decode — written in an older shape,
+            // or cut short — is not one the next window will read either.
+            // The ones behind it are still tried.
+            Self.remove(session, from: defaults)
         }
-        // The shared list, then the list of paths before it.
-        if let shared = Self.read(Key.tabs, current: Key.current, from: defaults) {
+        return nil
+    }
+
+    /// A list taken over from a window that is gone, and whose keys it came from.
+    private struct Adoption {
+        var session: String?
+        var tabs: [BrowserTab]
+        var current: UUID?
+    }
+
+    /// One orphan's list: a session's, or for `nil` the shared list every
+    /// window once read, then the list of paths before that.
+    private static func readOrphan(_ session: String?, from defaults: UserDefaults) -> (tabs: [BrowserTab], current: UUID?)? {
+        if let session {
+            return read(Key.of(Key.tabs, session), current: Key.of(Key.current, session), from: defaults)
+        }
+        if let shared = read(Key.tabs, current: Key.current, from: defaults) {
             return shared
         }
         let paths = defaults.stringArray(forKey: Key.legacyList) ?? []
@@ -423,6 +470,7 @@ final class BrowserTabStore {
     static func forget(_ sessions: some Sequence<String>, defaults: UserDefaults = .standard) {
         for session in sessions {
             remove(session, from: defaults)
+            live.remove(session)
         }
     }
 
