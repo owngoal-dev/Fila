@@ -27,12 +27,15 @@ final class SettingsViewController: UIViewController {
 
     private enum Section: Hashable {
         case groups
+        case operations
+        case connectivity
         case browsing
         case fileOperations
         case systemFeatures
         case scripts
         case branding
         case about
+        case backends
     }
 
     /// One case per row, so the snapshot is a list of facts rather than a list
@@ -54,6 +57,10 @@ final class SettingsViewController: UIViewController {
         case protocolVersion
         case installRoot
         case license
+        /// One bootstrapped module, by its bundle identifier: which modules
+        /// this build composed over is itself the answer, and the two
+        /// compositions differ.
+        case backend(String)
     }
 
     private var collectionView: UICollectionView!
@@ -153,12 +160,14 @@ final class SettingsViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         switch page {
         case .main:
-            snapshot.appendSections([.groups, .about, .branding])
+            snapshot.appendSections([.groups, .operations, .connectivity, .about, .branding])
             // Servers only where a module offers a way to add one: a
             // build without a remote module has no page to push.
             let servers: [Row] = BackendComposition.registry.connectionSetups.isEmpty ? [] : [.servers]
-            snapshot.appendItems([.appearance, .behavior, .tasks, .sharing] + servers, toSection: .groups)
-            snapshot.appendItems([.version, .log, .about, .license], toSection: .about)
+            snapshot.appendItems([.appearance, .behavior], toSection: .groups)
+            snapshot.appendItems([.tasks, .log], toSection: .operations)
+            snapshot.appendItems([.sharing] + servers, toSection: .connectivity)
+            snapshot.appendItems([.version, .about, .license], toSection: .about)
         case .behavior:
             snapshot.appendSections([.browsing, .fileOperations, .systemFeatures, .scripts])
             snapshot.appendItems([.launchLocation, .recordsRecents], toSection: .browsing)
@@ -166,8 +175,12 @@ final class SettingsViewController: UIViewController {
             snapshot.appendItems([.runsPrograms, .fileProvider], toSection: .systemFeatures)
             snapshot.appendItems([.redirectsScriptInterpreters], toSection: .scripts)
         case .about:
-            snapshot.appendSections([.about])
+            snapshot.appendSections([.about, .backends])
             snapshot.appendItems([.daemon, .protocolVersion, .installRoot], toSection: .about)
+            snapshot.appendItems(
+                BackendComposition.registry.modules.map { Row.backend($0.bundleIdentifier) },
+                toSection: .backends
+            )
         }
         // Reload rather than apply: the item identifiers never change, so a
         // plain apply after the handshake lands would be an empty diff and the
@@ -210,7 +223,7 @@ final class SettingsViewController: UIViewController {
         case .log:
             configureDisclosure(cell, title: String(localized: "Log"))
         case .version:
-            configureFact(cell, title: String(localized: "Version"), value: Self.version)
+            configureFact(cell, title: String(localized: "Version"), value: Self.version(of: .main))
         case .daemon:
             configureFact(cell, title: String(localized: "Daemon"), value: daemonState)
         case .protocolVersion:
@@ -232,6 +245,16 @@ final class SettingsViewController: UIViewController {
             )
         case .license:
             configureDisclosure(cell, title: String(localized: "Open Source Licenses"))
+        case let .backend(identifier):
+            // The framework's own name and its own version: a module is
+            // identified by the bundle it was loaded from, and a stale one
+            // beside a fresh app is exactly what this row is for.
+            let module = BackendComposition.registry.modules.first { $0.bundleIdentifier == identifier }
+            configureFact(
+                cell,
+                title: module?.frameworkName ?? identifier,
+                value: Self.version(of: Bundle(identifier: identifier))
+            )
         }
     }
 
@@ -298,13 +321,19 @@ final class SettingsViewController: UIViewController {
         hello?.isPrivileged == true ? hello : nil
     }
 
-    /// Three states, not two. "Connecting…" is the honest answer while the
+    /// Four states, not two. "Connecting…" is the honest answer while the
     /// handshake is out — `filad` is on-demand and a miss only means launchd
     /// has not spawned it yet — but it stops being honest the moment the app
-    /// has settled on running without it, and the user is owed that.
+    /// has settled on running without it, and the user is owed that. A build
+    /// sealed in its own container has no daemon to wait for at all, and
+    /// "Not Running" would read as something the user could fix.
     private var daemonState: String {
-        guard let hello else { return String(localized: "Connecting…") }
-        return hello.isPrivileged ? String(localized: "Connected") : String(localized: "Not Running")
+        switch hello?.backend {
+        case .none: String(localized: "Connecting…")
+        case .daemon: String(localized: "Connected")
+        case .local(.container): String(localized: "Sandboxed")
+        case .local(.user): String(localized: "Not Running")
+        }
     }
 
     /// Disclosure rows push; switches and menus act in place.
@@ -329,6 +358,9 @@ final class SettingsViewController: UIViewController {
     private static func header(for section: Section) -> String? {
         switch section {
         case .groups: String(localized: "General")
+        case .operations: String(localized: "Operations")
+        case .connectivity: String(localized: "Connectivity")
+        case .backends: String(localized: "Backends")
         case .browsing: String(localized: "Browsing")
         case .fileOperations: String(localized: "File Operations")
         case .systemFeatures: String(localized: "System Features")
@@ -364,7 +396,7 @@ final class SettingsViewController: UIViewController {
             case .local(.container):
                 String(localized: "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access.")
             }
-        case .groups, .browsing, .branding:
+        case .groups, .operations, .connectivity, .backends, .browsing, .branding:
             nil
         }
     }
@@ -377,10 +409,10 @@ final class SettingsViewController: UIViewController {
         }
     }
 
-    private static var version: String {
-        let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "—"
-        let build = info?["CFBundleVersion"] as? String ?? "—"
+    private static func version(of bundle: Bundle?) -> String {
+        guard let info = bundle?.infoDictionary else { return "—" }
+        let short = info["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info["CFBundleVersion"] as? String ?? "—"
         return "\(short) (\(build))"
     }
 }

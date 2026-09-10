@@ -96,10 +96,12 @@ final class LogViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
 
+        // The bars inset the list instead of cropping it: a row cut by a hard
+        // edge under the title reads as a drawing bug, while the same row
+        // sliding under the bar's blur reads as a list that continues.
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout()).then {
             $0.delegate = self
             $0.alwaysBounceVertical = true
-            $0.contentInsetAdjustmentBehavior = .never
             $0.contentInset.bottom = FilaUI.Spacing.settingsTail
         }
         droppedNotice.isHidden = true
@@ -108,8 +110,10 @@ final class LogViewController: UIViewController {
         view.addSubview(content)
         buildDataSource()
         content.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview()
-            make.top.bottom.equalTo(view.safeAreaLayoutGuide)
+            make.top.leading.trailing.equalToSuperview()
+            // The dropped-lines notice is a sentence, not a row: it stays clear
+            // of the bottom bar rather than scrolling under it.
+            make.bottom.equalTo(view.safeAreaLayoutGuide)
         }
 
         search.searchResultsUpdater = self

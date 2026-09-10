@@ -14,7 +14,7 @@ public enum FilaUI {
         /// of the branding line under the main page: the same above as
         /// below, so the line sits in its own space rather than hanging
         /// off the last card.
-        public static let settingsTail: CGFloat = 128
+        public static let settingsTail: CGFloat = 64
     }
 
     public static let minimumTapTarget: CGFloat = 44
