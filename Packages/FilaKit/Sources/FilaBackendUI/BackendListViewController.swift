@@ -1,5 +1,6 @@
 #if canImport(UIKit)
 import FilaBackendKit
+import FilaLog
 import UIKit
 
 /// The list every backend root is shown with: a collection view of `Item`
@@ -39,6 +40,13 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     /// How many items a listing may show. Consumers needing a complete
     /// list must not read one from here.
     open var maximumItemCount: Int { 50_000 }
+
+    /// What the listing trace calls this list. At verbose level every load
+    /// writes where its time went — the wait for each batch, the cost of
+    /// each apply, the tail after the last row — so a slow folder can be
+    /// read off the log screen rather than guessed at. A browser answers
+    /// with its directory.
+    open var traceName: String { String(describing: type(of: self)) }
 
     public private(set) var loadTask: Task<Void, Never>?
     private var changesTask: Task<Void, Never>?
@@ -233,8 +241,22 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             var failed = false
             let startedAt = Date()
             let limit = maximumItemCount
+            let traces = FilaLog.isEnabled(.verbose)
+            var batches = 0
+            var requestedAt = DispatchTime.now()
             do {
                 for try await batch in load() {
+                    // From "asked for the next batch" to "batch in hand":
+                    // the backend's share of the wall clock. Reset at the end
+                    // of the body, after this batch's apply.
+                    defer { requestedAt = .now() }
+                    if traces {
+                        batches += 1
+                        FilaLog.verbose(
+                            "list \(traceName): batch \(batches) n=\(batch.count)"
+                                + " wait=\(milliseconds(since: requestedAt))ms"
+                        )
+                    }
                     // Only the latest reload owns the rows. During a refresh,
                     // a partial listing must not remove later pages.
                     guard !Task.isCancelled else { return }
@@ -281,7 +303,15 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             }
             guard !Task.isCancelled else { return }
             refresher.endRefreshing()
+            let completedAt = DispatchTime.now()
             await loadDidComplete(received: received, elapsed: Date().timeIntervalSince(startedAt), failed: failed)
+            if traces {
+                FilaLog.verbose(
+                    "list \(traceName): complete received=\(received) batches=\(batches)"
+                        + " rows=\(visible.count) in \(Int(Date().timeIntervalSince(startedAt) * 1000))ms"
+                        + " tail=\(milliseconds(since: completedAt))ms"
+                )
+            }
         }
     }
 
@@ -295,7 +325,10 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             completion?()
             return
         }
+        let traces = FilaLog.isEnabled(.verbose)
+        let startedAt = DispatchTime.now()
         visible = arrange(items)
+        let arrangedAt = DispatchTime.now()
         var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
         snapshot.appendSections([0])
         snapshot.appendItems(visible)
@@ -303,6 +336,14 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             dataSource.applySnapshotUsingReloadData(snapshot, completion: completion)
         } else {
             dataSource.apply(snapshot, animatingDifferences: animated, completion: completion)
+        }
+        if traces {
+            FilaLog.verbose(
+                "list \(traceName): apply rows=\(visible.count) of \(items.count)"
+                    + " arrange=\(milliseconds(since: startedAt, until: arrangedAt))ms"
+                    + " snapshot=\(milliseconds(since: arrangedAt))ms"
+                    + (reloadingData ? " reload" : animated ? " animated" : "")
+            )
         }
         collectionView.showStatus(statusContent) { [weak self] in self?.statusAction() }
         snapshotDidApply()
@@ -325,5 +366,10 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
         snapshot.reconfigureItems(snapshot.itemIdentifiers)
         await dataSource.apply(snapshot, animatingDifferences: false)
     }
+}
+
+/// Wall-clock milliseconds between two marks, to one decimal, for the trace.
+private func milliseconds(since start: DispatchTime, until end: DispatchTime = .now()) -> String {
+    String(format: "%.1f", Double(end.uptimeNanoseconds &- start.uptimeNanoseconds) / 1_000_000)
 }
 #endif

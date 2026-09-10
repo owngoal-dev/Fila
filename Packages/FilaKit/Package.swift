@@ -294,6 +294,7 @@ let package = Package(
             name: "FilaBackendUI",
             dependencies: [
                 "FilaBackendKit",
+                "FilaLog",
                 .product(name: "SnapKit", package: "SnapKit"),
                 .product(name: "Then", package: "Then"),
             ],
