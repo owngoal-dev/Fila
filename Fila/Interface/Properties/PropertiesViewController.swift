@@ -734,7 +734,7 @@ final class PropertiesViewController: TabContentViewController {
         let alert = AlertInputViewController(
             title: title,
             message: String.LocalizationValue("Enter a numeric ID. 0 is root, 501 is mobile."),
-            placeholder: .noPlaceholder,
+            placeholder: String.LocalizationValue("Numeric ID"),
             text: String(current),
             doneButtonText: String.LocalizationValue("Set")
         ) { text in

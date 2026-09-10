@@ -234,16 +234,6 @@
         }
       }
     },
-    "“%@” did not match the expected size (%@ instead of %@). The original was kept." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "“%1$@” did not match the expected size (%2$@ instead of %3$@). The original was kept."
-          }
-        }
-      }
-    },
     "“%@” holds too many items to list. Use the Find Files action instead." : {
       "comment" : "Why the List Folder shortcut refused: the folder is past the listing cap. %@ is the folder's path, Find Files the name of another Fila shortcut.",
       "localizations" : {
@@ -317,6 +307,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "「%@」中的項目過多，無法列出。請改用「尋找檔案」動作。"
+          }
+        }
+      }
+    },
+    "“%@” is %@ at the destination instead of %@. The original was kept. Look in the destination folder before trying again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "“%1$@” is %2$@ at the destination instead of %3$@. The original was kept. Look in the destination folder before trying again."
           }
         }
       }
@@ -2199,7 +2199,7 @@
         }
       }
     },
-    "%lld items will be extracted here without replacing existing items. A folder is created only when needed." : {
+    "%lld items will be extracted here without replacing existing items." : {
 
     },
     "%lld items will be extracted here. A folder is created only when needed. Existing items are kept." : {
@@ -3303,6 +3303,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "關於"
+          }
+        }
+      }
+    },
+    "Absolute path" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مسار مطلق"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absoluter Pfad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruta absoluta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chemin absolu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percorso assoluto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絶対パス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "절대 경로"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caminho absoluto"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Абсолютный путь"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đường dẫn tuyệt đối"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "绝对路径"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "絕對路徑"
           }
         }
       }
@@ -7686,7 +7762,11 @@
         }
       }
     },
+    "Choose a folder both Fila and the Files app can open. The Files app cannot open folders that need root access." : {
+
+    },
     "Choose a folder that both Fila and Files can access. Files cannot use Fila's root access." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -10066,12 +10146,12 @@
         }
       }
     },
-    "Copied, but %lld items could not be removed from the source and were kept there: %@. A folder is kept if something was added to it after it was copied." : {
+    "Copied, but %lld items could not be removed from the source and were kept there: %@." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Copied, but %1$lld items could not be removed from the source and were kept there: %2$@. A folder is kept if something was added to it after it was copied."
+            "value" : "Copied, but %1$lld items could not be removed from the source and were kept there: %2$@."
           }
         }
       }
@@ -18005,6 +18085,9 @@
         }
       }
     },
+    "Fila finds the program a script needs if it isn't in the usual place. Turn this off to run scripts exactly as written." : {
+
+    },
     "Fila is running without root access. iOS limits it to its own files and the files you open in it. Install the Fila .deb on a supported device for full access." : {
       "localizations" : {
         "ar" : {
@@ -18312,6 +18395,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "檔案動作"
+          }
+        }
+      }
+    },
+    "File name" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسم الملف"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateiname"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del archivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom du fichier"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome del file"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイル名"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일 이름"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome do arquivo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Имя файла"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên tệp"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案名稱"
           }
         }
       }
@@ -19464,6 +19623,9 @@
           }
         }
       }
+    },
+    "Find Script Interpreters" : {
+
     },
     "Fixed VM Library" : {
       "comment" : "Mach-O file type MH_FVMLIB.",
@@ -21708,9 +21870,6 @@
           }
         }
       }
-    },
-    "If a script names an interpreter that is not on the usual path, Fila finds it and runs the script. Turn this off to run scripts exactly as written." : {
-
     },
     "Image" : {
       "comment" : "Noun. A file format in the \"Open As\" menu.",
@@ -24097,6 +24256,9 @@
         }
       }
     },
+    "Keep Fila open until this finishes." : {
+
+    },
     "Keep Sharing in Background" : {
       "comment" : "Switch in File Sharing. It buys the few seconds iOS allows so a transfer already in flight can land; it does not keep the mount alive.",
       "localizations" : {
@@ -24558,6 +24720,7 @@
     },
     "Large packages take time." : {
       "comment" : "Body of the Reading App and Installing App progress cards.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -25166,6 +25329,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連結"
+          }
+        }
+      }
+    },
+    "Link name" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اسم الرابط"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linkname"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del enlace"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nom du lien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome del collegamento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンク名"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "링크 이름"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nome do link"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Имя ссылки"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên liên kết"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連結名稱"
           }
         }
       }
@@ -28413,6 +28652,82 @@
         }
       }
     },
+    "New name" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الاسم الجديد"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuevo nombre"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau nom"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuovo nome"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい名前"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 이름"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Novo nome"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новое имя"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tên mới"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新名称"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新名稱"
+          }
+        }
+      }
+    },
     "New Symbolic Link" : {
       "localizations" : {
         "ar" : {
@@ -30263,6 +30578,7 @@
       }
     },
     "Nothing can be pasted here: this location does not accept files." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -30645,6 +30961,82 @@
         }
       }
     },
+    "Numeric ID" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "معرّف رقمي"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numerische ID"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID numérico"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID numérique"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID numerico"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数値 ID"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "숫자 ID"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID numérico"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Числовой ID"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID dạng số"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数字 ID"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "數字 ID"
+          }
+        }
+      }
+    },
     "Object File" : {
       "comment" : "Mach-O file type MH_OBJECT, a .o.",
       "localizations" : {
@@ -30722,6 +31114,82 @@
         }
       }
     },
+    "Octal digits" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أرقام ثمانية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oktalziffern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dígitos octales"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiffres octaux"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cifre ottali"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8進数"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8진수"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dígitos octais"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Восьмеричные цифры"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chữ số bát phân"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "八进制数字"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "八進位數字"
+          }
+        }
+      }
+    },
     "Octal Mode" : {
       "comment" : "Alert title: type the permission bits as an octal number.",
       "localizations" : {
@@ -30795,6 +31263,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "八進位權限"
+          }
+        }
+      }
+    },
+    "Offset" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الإزاحة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offset"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desplazamiento"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Décalage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offset"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフセット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오프셋"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deslocamento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Смещение"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Độ lệch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏移量"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏移量"
           }
         }
       }
@@ -35481,6 +36025,7 @@
     },
     "Redirect Script Interpreters" : {
       "comment" : "Settings toggle: run a script through the bootstrap's copy of the interpreter its shebang names.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -46157,9 +46702,6 @@
         }
       }
     },
-    "This file is not valid UTF-8. It is shown and saved in its original encoding." : {
-
-    },
     "This file is not valid UTF-8. It is shown and saved without changing the bytes." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -46236,6 +46778,9 @@
           }
         }
       }
+    },
+    "This file is not valid UTF-8. It is shown and saved without converting it to UTF-8." : {
+
     },
     "This file is too large (%@). The viewer supports files up to %@." : {
       "localizations" : {
@@ -46466,7 +47011,7 @@
         }
       }
     },
-    "This folder is empty. Choose a different folder." : {
+    "This folder is empty. You can still choose it." : {
 
     },
     "This folder is unavailable. Choose another folder or restore the default." : {
@@ -46932,6 +47477,9 @@
         }
       }
     },
+    "This location does not accept files. Choose another folder." : {
+
+    },
     "This offset is past the end of the file. Enter 0x%llx or less." : {
       "localizations" : {
         "ar" : {
@@ -47009,7 +47557,6 @@
       }
     },
     "This PDF has too many pages to preview." : {
-      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -47090,9 +47637,6 @@
           }
         }
       }
-    },
-    "This PDF has too many pages to preview. Open it as Hex to see its contents." : {
-
     },
     "This property list contains values that can be viewed but not edited." : {
       "localizations" : {
@@ -47247,6 +47791,16 @@
         }
       }
     },
+    "Transferring between servers needs %@ of free space on this device for a temporary copy, and only %@ is free. Free up space and try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Transferring between servers needs %1$@ of free space on this device for a temporary copy, and only %2$@ is free. Free up space and try again."
+          }
+        }
+      }
+    },
     "Transferring between servers needs %@ of free space on this device to hold a file on the way, and only %@ is free." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -47320,16 +47874,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在伺服器之間傳輸需要此裝置上有 %@ 的可用空間來暫存檔案，但僅剩 %@ 可用。"
-          }
-        }
-      }
-    },
-    "Transferring between servers needs %@ of free space on this device to hold a file on the way, and only %@ is free. Free up space and try again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Transferring between servers needs %1$@ of free space on this device to hold a file on the way, and only %2$@ is free. Free up space and try again."
           }
         }
       }
@@ -49651,6 +50195,82 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未命名.txt"
+          }
+        }
+      }
+    },
+    "URL" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الرابط"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "URL"
           }
         }
       }

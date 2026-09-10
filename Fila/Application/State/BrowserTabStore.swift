@@ -114,7 +114,17 @@ final class BrowserTabStore {
     private let defaults: UserDefaults
 
     private(set) var tabs: [BrowserTab]
+    /// The tab the last window to act made its own. Persisted so a relaunch
+    /// lands where the person was; at runtime it is only a default, because
+    /// on an iPad two windows share this list and each shows its own tab —
+    /// see `installed`.
     private(set) var currentID: UUID
+
+    /// Which tab each window's content container has on screen. Keyed
+    /// weakly by the container so a closed window's entry goes with it, and
+    /// never persisted: a window that comes back after a relaunch is given a
+    /// tab again through `tabForNewWindow`.
+    private let installed = NSMapTable<AnyObject, NSUUID>.weakToStrongObjects()
 
     private init() {
         let defaults = UserDefaults.standard
@@ -159,6 +169,53 @@ final class BrowserTabStore {
 
     var isFull: Bool {
         tabs.count >= Self.limit
+    }
+
+    // MARK: - Windows
+
+    /// Notes what `container` shows; nil when it shows nothing any more.
+    func setInstalled(_ id: UUID?, by container: AnyObject) {
+        if let id {
+            installed.setObject(id as NSUUID, forKey: container)
+        } else {
+            installed.removeObject(forKey: container)
+        }
+    }
+
+    /// Whether some other window than `container` has `id` on screen.
+    func isInstalled(_ id: UUID, elsewhereThan container: AnyObject) -> Bool {
+        for case let owner as AnyObject in installed.keyEnumerator() where owner !== container {
+            if installed.object(forKey: owner) as UUID? == id { return true }
+        }
+        return false
+    }
+
+    /// A tab no other window than `container` shows: the current one when it
+    /// is free, else the first free one, made current — the window taking it
+    /// is the one acting. Nil when every tab is on some other window's screen.
+    func freeTab(for container: AnyObject) -> BrowserTab? {
+        let current = current
+        guard isInstalled(current.id, elsewhereThan: container) else { return current }
+        guard let free = tabs.first(where: { !isInstalled($0.id, elsewhereThan: container) }) else { return nil }
+        select(free.id)
+        return free
+    }
+
+    /// The tab a window that has shown nothing yet starts on: a free tab, or
+    /// a new tab at the current directory, so two windows do not both edit
+    /// one tab's history — and, at the cap, the current tab shared after all.
+    func tabForNewWindow(_ container: AnyObject) -> BrowserTab {
+        freeTab(for: container) ?? open(current.path) ?? current
+    }
+
+    /// Nothing shows a tab that is gone: the closing window's container has
+    /// not removed its navigation yet when the change is posted, and another
+    /// window choosing its next tab must not read the dead one as taken.
+    private func forgetInstalled(_ ids: Set<UUID>) {
+        let owners = installed.keyEnumerator().allObjects as [AnyObject]
+        for owner in owners where (installed.object(forKey: owner) as UUID?).map(ids.contains) == true {
+            installed.removeObject(forKey: owner)
+        }
     }
 
     // MARK: - Writing
@@ -212,10 +269,12 @@ final class BrowserTabStore {
         if currentID == id {
             currentID = tabs[min(index, tabs.count - 1)].id
         }
+        forgetInstalled([id])
         save()
     }
 
     func closeAll() {
+        forgetInstalled(Set(tabs.map(\.id)))
         tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
         currentID = tabs[0].id
         save()
@@ -234,12 +293,15 @@ final class BrowserTabStore {
         save()
     }
 
-    /// Writes down where the current tab is. Called by the shell whenever the
-    /// live stack could have changed — a push, a pop, a tab switch, the app
-    /// going to the background — because the shell is the only thing that knows
-    /// what is actually on screen.
-    func record(stack: [String], offsets: [String: Double], selection: String?) {
-        guard let top = stack.last, let index = tabs.firstIndex(where: { $0.id == currentID }) else { return }
+    /// Writes down where tab `id` is. Called by the shell whenever the live
+    /// stack could have changed — a push, a pop, a tab switch, the app going
+    /// to the background — because the shell is the only thing that knows
+    /// what is actually on screen. The tab is named rather than taken to be
+    /// the current one: another window may have made a different tab
+    /// current since this one's page was installed. A tab closed from another
+    /// window is not written back into existence.
+    func record(_ id: UUID, stack: [String], offsets: [String: Double], selection: String?) {
+        guard let top = stack.last, let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         // A stack is a path: each directory the parent of the next. The live
         // stack can hold a browser pushed over screens that are not
         // directories — the Applications list and an app's detail, a search's

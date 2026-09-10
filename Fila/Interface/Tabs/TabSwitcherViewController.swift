@@ -17,6 +17,12 @@ final class TabSwitcherViewController: UIViewController {
     /// Cards whose first display is an arrival, and get the blur-in.
     private var entering: Set<UUID> = []
 
+    /// The highlighted card: the tab this window shows, which another
+    /// window's selection does not change.
+    private var currentTabID: UUID? {
+        content?.installedTabID ?? BrowserTabStore.shared.currentID
+    }
+
     init(content: TabContainerViewController, deferring: UUID? = nil) {
         self.content = content
         deferred = deferring
@@ -90,7 +96,7 @@ final class TabSwitcherViewController: UIViewController {
                 title: preview?.title ?? tab.title,
                 path: tab.path,
                 image: preview?.image,
-                current: id == BrowserTabStore.shared.currentID
+                current: id == currentTabID
             ) { [weak self] in self?.shell?.closeTab(id) }
         }
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, id in
@@ -106,7 +112,8 @@ final class TabSwitcherViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
             primaryAction: UIAction { [weak self] _ in
-                self?.content?.showCurrentTab()
+                // Closing without choosing lands back on this window's page.
+                self?.content?.showInstalledTab()
             }
         )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
@@ -267,7 +274,7 @@ final class TabSwitcherViewController: UIViewController {
         let arriving = Set(snapshot.itemIdentifiers)
         // Structural changes leave surviving thumbnails untouched. Only the
         // selection border can change while this overview stays on screen.
-        let current = BrowserTabStore.shared.currentID
+        let current = currentTabID
         for cell in collectionView.visibleCells {
             guard let indexPath = collectionView.indexPath(for: cell),
                   let id = dataSource.itemIdentifier(for: indexPath), arriving.contains(id) else { continue }

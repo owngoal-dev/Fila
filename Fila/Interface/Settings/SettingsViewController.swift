@@ -411,7 +411,15 @@ extension SettingsViewController: UICollectionViewDelegate {
         case .license:
             navigationController?.pushViewController(LicensesViewController(), animated: true)
         case .log:
-            navigationController?.pushViewController(LogViewController(), animated: true)
+            // The page is pushed full: both processes' lines are in it, and
+            // it is parked at the newest, before the transition starts.
+            Task { [weak self] in
+                let log = LogViewController()
+                await log.loadEverything()
+                guard let self, let navigation = navigationController, navigation.topViewController === self
+                else { return }
+                navigation.pushViewController(log, animated: true)
+            }
         case .fileProvider:
             navigationController?.pushViewController(FileProviderSettingsViewController(), animated: true)
         case .servers:

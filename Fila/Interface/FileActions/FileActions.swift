@@ -315,7 +315,7 @@ final class FileActions {
         let alert = AlertInputViewController(
             title: String.LocalizationValue("Rename"),
             message: String.LocalizationValue("Enter a new name. The item stays in the same folder."),
-            placeholder: .noPlaceholder,
+            placeholder: String.LocalizationValue("New name"),
             text: source.lastPathComponent,
             doneButtonText: String.LocalizationValue("Rename")
         ) { name in

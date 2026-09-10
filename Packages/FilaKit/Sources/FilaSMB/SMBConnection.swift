@@ -271,7 +271,7 @@ actor SMBConnection {
                 domain: configuration.domain?.isEmpty == false ? configuration.domain : nil
             )
             let shares = try await client.listShares()
-            try? await client.logoff()
+            _ = try? await client.logoff()
             return shares
                 .filter { $0.type.rawValue & 0x0FFF_FFFF == Share.ShareType.diskTree.rawValue && !$0.name.hasSuffix("$") }
                 .map(\.name)

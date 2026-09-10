@@ -318,6 +318,9 @@ extension FileBrowserViewController {
         prompt(
             title: title,
             message: String.LocalizationValue("Enter a name for the new item in this folder."),
+            placeholder: template == .directory
+                ? String.LocalizationValue("Folder name")
+                : String.LocalizationValue("File name"),
             initial: initial,
             confirm: String.LocalizationValue("Create")
         ) { [weak self] name in
@@ -338,6 +341,7 @@ extension FileBrowserViewController {
             prompt(
                 title: String.LocalizationValue("New Symbolic Link"),
                 message: String.LocalizationValue("Enter a name for the link to the item you chose."),
+                placeholder: String.LocalizationValue("Link name"),
                 initial: target.lastPathComponent,
                 confirm: String.LocalizationValue("Create")
             ) { [weak self] name in
@@ -358,6 +362,7 @@ extension FileBrowserViewController {
         prompt(
             title: String.LocalizationValue("Download from URL"),
             message: String.LocalizationValue("Enter an http or https URL. The file is saved in this folder."),
+            placeholder: String.LocalizationValue("URL"),
             initial: "https://",
             confirm: String.LocalizationValue("Download")
         ) { [weak self] text in
@@ -377,6 +382,7 @@ extension FileBrowserViewController {
         prompt(
             title: String.LocalizationValue("Go to Path"),
             message: String.LocalizationValue("Enter a path starting with a slash."),
+            placeholder: String.LocalizationValue("Absolute path"),
             initial: directory,
             confirm: String.LocalizationValue("Go")
         ) { [weak self] path in
@@ -410,6 +416,7 @@ extension FileBrowserViewController {
     private func prompt(
         title: String.LocalizationValue,
         message: String.LocalizationValue,
+        placeholder: String.LocalizationValue,
         initial: String,
         confirm: String.LocalizationValue,
         handler: @escaping (String) -> Void
@@ -417,7 +424,7 @@ extension FileBrowserViewController {
         let alert = AlertInputViewController(
             title: title,
             message: message,
-            placeholder: .noPlaceholder,
+            placeholder: placeholder,
             text: initial,
             doneButtonText: confirm,
             onConfirm: handler

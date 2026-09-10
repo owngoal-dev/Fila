@@ -616,6 +616,7 @@
       }
     },
     "Copying…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1235,6 +1236,9 @@
         }
       }
     },
+    "Exporting…" : {
+
+    },
     "Fila cannot edit the music library on this device." : {
       "localizations" : {
         "ar" : {
@@ -1691,6 +1695,9 @@
           }
         }
       }
+    },
+    "Keep Fila open until the export finishes." : {
+
     },
     "Keep Fila open until the import finishes." : {
       "localizations" : {
@@ -2614,6 +2621,9 @@
         }
       }
     },
+    "Some details can be edited." : {
+
+    },
     "Song Details" : {
       "localizations" : {
         "ar" : {
@@ -2691,6 +2701,7 @@
       }
     },
     "Tap a field with an arrow to edit it." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3793,6 +3804,9 @@
           }
         }
       }
+    },
+    "Unable to Load Song" : {
+
     },
     "Unable to Refresh" : {
       "localizations" : {
