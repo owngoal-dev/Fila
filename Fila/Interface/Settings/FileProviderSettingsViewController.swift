@@ -69,7 +69,7 @@ final class FileProviderSettingsViewController: UITableViewController {
             location = try ProviderLocation.load(in: Self.groupURL())
             status = nil
             if let location, (try? location.resolve(in: Self.groupURL())) == nil {
-                status = String(localized: "This folder is currently unavailable.")
+                status = String(localized: "This folder is unavailable. Choose another folder or restore the default.")
             }
         } catch {
             status = String(localized: "The Files app folder could not be loaded. Reinstall Fila and try again.")
@@ -121,7 +121,7 @@ final class FileProviderSettingsViewController: UITableViewController {
             switch actions[indexPath.row] {
             case .choose:
                 let picker = SaveDestinationViewController(
-                    message: String(localized: "Choose a folder that both Fila and Files can access. Files cannot use Fila's root access."),
+                    message: String(localized: "Choose a folder both Fila and the Files app can open. The Files app cannot open folders that need root access."),
                     link: FileSession.shared.link
                 ) { [weak self] url in
                     guard let self else { return }

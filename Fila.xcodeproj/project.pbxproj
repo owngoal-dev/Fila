@@ -895,7 +895,6 @@
 				507CA7AA304C27B300EC22A7 /* XCRemoteSwiftPackageReference "Then" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = FA0000000000000000000045 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (

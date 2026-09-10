@@ -680,5 +680,7 @@ public struct StagingFailure: Error, Sendable, Equatable, LocalizedError {
         self.code = code
         self.path = path
     }
-    public var errorDescription: String? { "\(path): \(String(cString: strerror(code)))" }
+    public var errorDescription: String? {
+        String(localized: "The file could not be saved on this device. Try again.")
+    }
 }

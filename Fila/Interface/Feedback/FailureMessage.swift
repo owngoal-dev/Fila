@@ -41,13 +41,13 @@ enum FailureMessage {
         case .insideSource:
             return String(localized: "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder.")
         case .sourceNotWritable:
-            return String(localized: "Items on this server can be copied but not moved: Fila cannot remove them from it.")
+            return String(localized: "Items on this server can be copied but not moved. They cannot be deleted from this location.")
         case .destinationNotWritable:
-            return String(localized: "Nothing can be pasted here: this location does not accept files.")
+            return String(localized: "This location does not accept files. Choose another folder.")
         case let .insufficientStagingSpace(needed, available):
-            return String(localized: "Transferring between servers needs \(FilePresentation.byteLabel(needed)) of free space on this device to hold a file on the way, and only \(FilePresentation.byteLabel(available)) is free.")
+            return String(localized: "Transferring between servers needs \(FilePresentation.byteLabel(needed)) of free space on this device for a temporary copy, and only \(FilePresentation.byteLabel(available)) is free. Free up space and try again.")
         case let .sizeMismatch(path, expected, found):
-            return String(localized: "“\(path.name ?? path.description)” arrived with a different length than was sent (\(FilePresentation.byteLabel(found)) instead of \(FilePresentation.byteLabel(expected))). The original was kept.")
+            return String(localized: "“\(path.name ?? path.description)” is \(FilePresentation.byteLabel(found)) at the destination instead of \(FilePresentation.byteLabel(expected)). The original was kept. Look in the destination folder before trying again.")
         }
     }
 
@@ -57,13 +57,13 @@ enum FailureMessage {
     private static func message(for shortfall: TransferShortfall) -> String {
         var lines: [String] = []
         if !shortfall.uncertain.isEmpty {
-            lines.append(String(localized: "The server did not confirm publishing \(names(shortfall.uncertain)). Look in the destination folder before trying again; the originals were kept."))
+            lines.append(String(localized: "The server did not confirm saving \(names(shortfall.uncertain)). Look in the destination folder before trying again; the originals were kept."))
         }
         if !shortfall.retained.isEmpty {
-            lines.append(String(localized: "Copied, but \(shortfall.retained.count) items could not be removed from the source and were kept there: \(names(shortfall.retained)). Folders are kept when something was added to them since the copy."))
+            lines.append(String(localized: "Copied, but \(shortfall.retained.count) items could not be removed from the source and were kept there: \(names(shortfall.retained))."))
         }
         if !shortfall.skipped.isEmpty {
-            lines.append(String(localized: "\(shortfall.skipped.count) links or special files are not carried between backends and were skipped: \(names(shortfall.skipped))."))
+            lines.append(String(localized: "\(shortfall.skipped.count) links or special files cannot be copied between locations and were skipped: \(names(shortfall.skipped))."))
         }
         return lines.joined(separator: "\n\n")
     }
@@ -71,13 +71,13 @@ enum FailureMessage {
     private static func message(for write: WriteFailure) -> String {
         switch write {
         case let .alreadyExists(path):
-            return String(localized: "“\(path.name ?? path.description)” already exists at the destination.")
+            return String(localized: "“\(path.name ?? path.description)” already exists at the destination. Rename it or choose another folder.")
         case let .notFound(path):
             return String(localized: "“\(path.name ?? path.description)” no longer exists.")
         case let .notEmpty(path):
-            return String(localized: "The folder “\(path.name ?? path.description)” is not empty and cannot be replaced.")
+            return String(localized: "The folder “\(path.name ?? path.description)” is not empty and cannot be replaced. Rename it or choose another folder.")
         case let .publicationUnknown(path):
-            return String(localized: "The server did not confirm publishing “\(path.name ?? path.description)”. Look in the destination folder before trying again.")
+            return String(localized: "The server did not confirm saving “\(path.name ?? path.description)”. Look in the destination folder before trying again.")
         }
     }
 
@@ -94,7 +94,7 @@ enum FailureMessage {
                 return String(localized: "This item is already in the destination folder. Choose another folder.")
             case .sameItem: return String(localized: "The source and destination refer to the same item, even though their paths differ. Choose another destination.")
             case .insideSource: return String(localized: "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder.")
-            case .overlappingSources: return String(localized: "The selection includes the same item more than once, or both a folder and an item inside it. Select each item only once.")
+            case .overlappingSources: return String(localized: "The selection includes the same item more than once, or both a folder and an item inside it. Change the selection and try again.")
             case .conflictingNames: return String(localized: "Two selected items have the same name and would use the same destination. Rename one or transfer them separately.")
             case .differentItemKinds: return String(localized: "A file and a folder have the same name at the destination. Rename one or choose another folder.")
             }
@@ -107,7 +107,7 @@ enum FailureMessage {
             return String(
                 localized: "Part of the path is a file instead of a folder. Choose an existing destination folder."
             )
-        case ELOOP: return String(localized: "A symbolic link in this path cannot be followed for this operation. Choose a direct path to the item.")
+        case ELOOP: return String(localized: "A symbolic link in this path cannot be followed. Choose the item's real location.")
         default: break
         }
         var lines: [String] = []
@@ -146,7 +146,7 @@ enum FailureMessage {
     private static func message(for failure: FormatFailure) -> String {
         switch failure {
         case .notRecognised:
-            String(localized: "This file could not be opened. Open it as hex to see its contents.")
+            String(localized: "This file could not be opened. Open it as Hex to see its contents.")
         case let .damaged(detail):
             String(format: String(localized: "This file is damaged: %@."), detail)
         case let .unsupported(detail):

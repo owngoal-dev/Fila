@@ -215,7 +215,7 @@ final class FileActions {
                     if let presenter = activePresenter {
                         let alert = AlertViewController(
                             title: String(localized: "Cannot Put Back"),
-                            message: String(localized: "The original location of “\(name)” was not recorded. It can only be deleted permanently.")
+                            message: String(localized: "The original location of “\(name)” is unknown. It can only be deleted permanently.")
                         ) { context in
                             context.allowSimpleDispose()
                             context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {

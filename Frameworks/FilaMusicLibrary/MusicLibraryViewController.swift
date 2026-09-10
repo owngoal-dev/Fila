@@ -252,7 +252,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
                         message: BackendScreens.shell?.failureText(for: failure) ?? failure.localizedDescription
                     )
                 } else {
-                    BackendScreens.shell?.toast(String(localized: "Music Imported", bundle: bundle))
+                    BackendScreens.shell?.toast(String(localized: "Music imported", bundle: bundle))
                 }
             }
         }
@@ -278,7 +278,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         beginChange()
         let progress = AlertProgressIndicatorViewController(
             title: String(localized: "Deleting…", bundle: bundle),
-            message: String(localized: "Updating the music library. Keep Fila open until this finishes.", bundle: bundle)
+            message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle)
         )
         presenter.present(progress, animated: true)
         Task { [self] in
@@ -293,7 +293,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
                 }
                 if let failure {
                     BackendScreens.shell?.alert(
-                        title: String(localized: "Unable to Delete Music", bundle: bundle),
+                        title: String(localized: "Unable to Delete Song", bundle: bundle),
                         message: failure.localizedDescription
                     )
                 }

@@ -62,8 +62,8 @@ final class SaveActionViewController: UIViewController {
                 }
                 self?.status.text = String(localized: "Saved to Fila’s Inbox. Open Fila to view or move the files.")
             } catch {
-                self?.status.text = String(localized: "Unable to Save All Files") + "\n"
-                    + String(localized: "Saved \(saved) of \(providers.count) files to Inbox.")
+                self?.status.text = String(localized: "Unable to save all files. Open Fila to view any that were saved.") + "\n"
+                    + String(localized: "Saved \(saved) of \(providers.count) files to Fila’s Inbox.")
                     + "\n\n" + error.localizedDescription
             }
             self?.activity.stopAnimating()

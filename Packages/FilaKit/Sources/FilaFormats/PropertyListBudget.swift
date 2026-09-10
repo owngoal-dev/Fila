@@ -11,7 +11,7 @@ public enum PropertyListBudget {
         do {
             object = try PropertyListSerialization.propertyList(from: data, options: [], format: &format)
         } catch {
-            throw FormatFailure.damaged(String(localized: "it is not a property list", bundle: .module))
+            throw FormatFailure.damaged(String(localized: "its contents could not be read", bundle: .module))
         }
         try validate(object)
         return object
@@ -30,7 +30,7 @@ public enum PropertyListBudget {
         var remainingNodes = 100_000
         var remainingBytes = PreviewLimits.textByteCount
         let tooManyValues = FormatFailure.unsupported(
-            String(localized: "a property list with this many values or nesting levels", bundle: .module)
+            String(localized: "a property list this large or this deeply nested", bundle: .module)
         )
         func consume(_ count: Int) throws {
             guard count <= remainingBytes else {

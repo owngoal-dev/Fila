@@ -215,7 +215,7 @@ final class TextViewerViewController: TabContentViewController {
                 )
             } else if encoding != .utf8 {
                 pendingNotice = String(
-                    localized: "This file is not valid UTF-8. It is shown and saved without changing the bytes."
+                    localized: "This file is not valid UTF-8. It is shown and saved without converting it to UTF-8."
                 )
             }
         } catch {
@@ -481,7 +481,7 @@ final class TextViewerViewController: TabContentViewController {
         guard !isSaving else { return }
         let alert = AlertViewController(
             title: String.LocalizationValue("Unsaved Changes"),
-            message: String.LocalizationValue("Leaving now discards what you typed. The file on disk is unchanged.")
+            message: String.LocalizationValue("Leaving now discards your changes. The file on disk is unchanged.")
         ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()

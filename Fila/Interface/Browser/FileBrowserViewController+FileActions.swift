@@ -376,7 +376,7 @@ extension FileBrowserViewController {
     func promptGoToPath() {
         prompt(
             title: String.LocalizationValue("Go to Path"),
-            message: String.LocalizationValue("Enter an absolute path, starting with a slash."),
+            message: String.LocalizationValue("Enter a path starting with a slash."),
             initial: directory,
             confirm: String.LocalizationValue("Go")
         ) { [weak self] path in

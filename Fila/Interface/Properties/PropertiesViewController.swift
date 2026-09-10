@@ -157,7 +157,7 @@ final class PropertiesViewController: TabContentViewController {
             } catch {
                 guard !Task.isCancelled else { return }
                 FeedbackAlert.show(
-                    String(localized: "Unable to Read This File"),
+                    String(localized: "Unable to Read Item"),
                     message: FailureMessage.text(for: error)
                 )
             }
@@ -341,7 +341,7 @@ final class PropertiesViewController: TabContentViewController {
             }
             if section == .checksums {
                 return self?.checksums == nil
-                    ? String(localized: "Calculate checksums to compare files. Large files may take a while.")
+                    ? String(localized: "Calculate checksums to compare files.")
                     : String(localized: "Tap a checksum to view it in full. Touch and hold to copy.")
             }
             return nil

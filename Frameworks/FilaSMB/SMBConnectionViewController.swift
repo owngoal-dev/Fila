@@ -110,15 +110,15 @@ final class SMBConnectionViewController: UITableViewController {
     override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         switch Section(rawValue: section)! {
         case .server:
-            return String(localized: "SMB 2 over TCP port 445, as Windows, macOS, Samba and most NAS devices serve it. SMB 1 is not supported.", bundle: bundle)
+            return String(localized: "Uses SMB 2 on port 445. SMB 1 is not supported.", bundle: bundle)
         case .account:
             return profile.isGuest
-                ? String(localized: "A guest session has no account. Servers that require one refuse it.", bundle: bundle)
+                ? String(localized: "Guest access has no username or password. Servers that require an account will refuse it.", bundle: bundle)
                 : String(localized: "The password is kept in this device's keychain and never written anywhere else.", bundle: bundle)
         case .name:
             return existing == nil
                 ? nil
-                : String(localized: "Changing the server or the share makes a new entry with its own favorites.", bundle: bundle)
+                : String(localized: "Changing the server or share creates a new sidebar item with its own favorites.", bundle: bundle)
         }
     }
 
@@ -220,7 +220,7 @@ final class SMBConnectionViewController: UITableViewController {
             value = profile.host
         case .port:
             title = String(localized: "Port", bundle: bundle)
-            message = String(localized: "445 unless the server says otherwise.", bundle: bundle)
+            message = String(localized: "Usually 445. Change it only if the server uses another port.", bundle: bundle)
             value = String(profile.port)
         case .share:
             title = String(localized: "Share", bundle: bundle)
@@ -235,16 +235,16 @@ final class SMBConnectionViewController: UITableViewController {
             value = profile.domain ?? ""
         case .username:
             title = String(localized: "User Name", bundle: bundle)
-            message = String(localized: "The account the server knows.", bundle: bundle)
+            message = String(localized: "The user name for this share.", bundle: bundle)
             value = profile.username ?? ""
         case .password:
             title = String(localized: "Password", bundle: bundle)
-            message = String(localized: "The account's password. It is kept in the keychain.", bundle: bundle)
+            message = String(localized: "The password for this share is kept in the keychain.", bundle: bundle)
             value = ""
         case .name:
             title = String(localized: "Name", bundle: bundle)
             message = String(
-                localized: "How the sidebar lists this share. Leave it empty to use the share and server.",
+                localized: "The name shown in the sidebar. Leave empty to use the share and server names.",
                 bundle: bundle
             )
             value = profile.name
@@ -286,7 +286,7 @@ final class SMBConnectionViewController: UITableViewController {
             guard let self else { return }
             let card = BackendScreens.shell?.progressCard(
                 title: String(localized: "Listing Shares…", bundle: bundle),
-                message: String(localized: "Asking \(profile.host) what it shares.", bundle: bundle),
+                message: String(localized: "Looking up shares on \(profile.host).", bundle: bundle),
                 from: self
             )
             do {
@@ -298,7 +298,7 @@ final class SMBConnectionViewController: UITableViewController {
                 card?.dismiss()
                 guard !Task.isCancelled, !(error is CancellationError) else { return }
                 BackendScreens.shell?.alert(
-                    title: String(localized: "Could Not List Shares", bundle: bundle),
+                    title: String(localized: "Unable to List Shares", bundle: bundle),
                     message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
                 )
             }
@@ -310,10 +310,10 @@ final class SMBConnectionViewController: UITableViewController {
             title: String(localized: "Choose Share", bundle: bundle),
             message: shares.isEmpty
                 ? String(
-                    localized: "The server lists no disk shares for this account. Type the share's name instead.",
+                    localized: "This account has no listed shares. Type the share name instead.",
                     bundle: bundle
                 )
-                : String(localized: "The disk shares the server offers this account.", bundle: bundle)
+                : String(localized: "Shared folders available to this account.", bundle: bundle)
         ) { [weak self] context in
             for share in shares.prefix(24) {
                 // The card looks a plain string up as a key; a share the
@@ -359,7 +359,7 @@ final class SMBConnectionViewController: UITableViewController {
             guard let self else { return }
             let card = BackendScreens.shell?.progressCard(
                 title: String(localized: "Connecting…", bundle: bundle),
-                message: String(localized: "Checking \(saving.share) on \(saving.host).", bundle: bundle),
+                message: String(localized: "Connecting to \(saving.share) on \(saving.host).", bundle: bundle),
                 from: self
             )
             let probe = SMBFileService(profile: saving, password: candidatePassword, connectTimeout: 15, requestTimeout: 15)
@@ -382,9 +382,9 @@ final class SMBConnectionViewController: UITableViewController {
         let reason = BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
         let bundle = bundle
         let alert = AlertViewController(
-            title: String(localized: "Could Not Connect", bundle: bundle),
+            title: String(localized: "Unable to Connect", bundle: bundle),
             message: String(
-                localized: "\(reason)\n\nSave the share anyway? It can be opened later once the server answers.",
+                localized: "\(reason)\n\nSave the share anyway? It can be opened later when the server is reachable.",
                 bundle: bundle
             )
         ) { [weak self] context in
@@ -421,7 +421,7 @@ final class SMBConnectionViewController: UITableViewController {
             }
         } catch {
             BackendScreens.shell?.alert(
-                title: String(localized: "Could Not Save Share", bundle: bundle),
+                title: String(localized: "Unable to Save Share", bundle: bundle),
                 message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
             )
         }

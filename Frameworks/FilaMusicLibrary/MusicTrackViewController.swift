@@ -105,8 +105,8 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
         // looks a `LocalizationValue` up in the app bundle, where these keys
         // do not live.
         let progress = AlertProgressIndicatorViewController(
-            title: String(localized: "Saving…", bundle: bundle),
-            message: String(localized: "Copying…", bundle: bundle)
+            title: String(localized: "Exporting…", bundle: bundle),
+            message: String(localized: "Keep Fila open until the export finishes.", bundle: bundle)
         )
         present(progress, animated: true)
         Task { [self] in
@@ -151,7 +151,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                 guard let self, !Task.isCancelled else { return }
                 guard details == nil else { return }
                 BackendScreens.shell?.alert(
-                    title: String(localized: "Music Unavailable", bundle: bundle),
+                    title: String(localized: "Unable to Load Song", bundle: bundle),
                     message: error.localizedDescription
                 )
             }
@@ -178,7 +178,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
 
     func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         guard section == 1, details != nil else { return nil }
-        return String(localized: "Tap a field with an arrow to edit it.", bundle: bundle)
+        return String(localized: "Some details can be edited.", bundle: bundle)
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -226,7 +226,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
         navigationItem.rightBarButtonItem?.isEnabled = false
         let progress = AlertProgressIndicatorViewController(
             title: String(localized: "Saving…", bundle: bundle),
-            message: String(localized: "Updating the music library. Keep Fila open until this finishes.", bundle: bundle)
+            message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle)
         )
         present(progress, animated: true)
         Task { [self] in

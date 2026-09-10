@@ -1,7 +1,85 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "“%@” is not a name an SMB server accepts." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "”%@“ ليس اسمًا يقبله خادم SMB."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ ist kein Name, den ein SMB-Server akzeptiert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” no es un nombre que acepte un servidor SMB."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » n'est pas un nom accepté par un serveur SMB."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” non è un nome accettato da un server SMB."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」は SMB サーバが受け付けない名前です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”은(는) SMB 서버가 허용하지 않는 이름입니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” não é um nome aceito por um servidor SMB."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» — имя, которое сервер SMB не принимает."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” không phải tên mà máy chủ SMB chấp nhận."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”不是 SMB 服务器接受的名称。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」不是 SMB 伺服器接受的名稱。"
+          }
+        }
+      }
+    },
     "%@\n\nSave the share anyway? It can be opened later once the server answers." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -77,7 +155,11 @@
         }
       }
     },
+    "%@\n\nSave the share anyway? It can be opened later when the server is reachable." : {
+
+    },
     "445 unless the server says otherwise." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -457,7 +539,11 @@
         }
       }
     },
+    "An item with that name already exists. Choose a different name." : {
+
+    },
     "Asking %@ what it shares." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -609,7 +695,11 @@
         }
       }
     },
+    "Changing the server or share creates a new sidebar item with its own favorites." : {
+
+    },
     "Changing the server or the share makes a new entry with its own favorites." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -686,6 +776,7 @@
       }
     },
     "Checking %@ on %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -989,6 +1080,16 @@
         }
       }
     },
+    "Connecting to %@ on %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting to %1$@ on %2$@."
+          }
+        }
+      }
+    },
     "Connecting…" : {
       "localizations" : {
         "ar" : {
@@ -1066,6 +1167,7 @@
       }
     },
     "Could Not Connect" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1142,6 +1244,7 @@
       }
     },
     "Could Not List Shares" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1218,6 +1321,7 @@
       }
     },
     "Could Not Save Share" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1522,6 +1626,7 @@
       }
     },
     "How the sidebar lists this share. Leave it empty to use the share and server." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1672,6 +1777,9 @@
           }
         }
       }
+    },
+    "Looking up shares on %@." : {
+
     },
     "Name" : {
       "localizations" : {
@@ -1897,234 +2005,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連接埠"
-          }
-        }
-      }
-    },
-    "SMB 2 over TCP port 445, as Windows, macOS, Samba and most NAS devices serve it. SMB 1 is not supported." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 عبر منفذ TCP 445، كما تقدمه Windows وmacOS وSamba ومعظم أجهزة NAS. SMB 1 غير مدعوم."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 über TCP-Port 445, wie ihn Windows, macOS, Samba und die meisten NAS-Geräte anbieten. SMB 1 wird nicht unterstützt."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 por el puerto TCP 445, como lo sirven Windows, macOS, Samba y la mayoría de los NAS. SMB 1 no es compatible."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 sur le port TCP 445, tel que le servent Windows, macOS, Samba et la plupart des NAS. SMB 1 n'est pas pris en charge."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 sulla porta TCP 445, come lo offrono Windows, macOS, Samba e la maggior parte dei NAS. SMB 1 non è supportato."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windows、macOS、Samba、ほとんどの NAS が提供する TCP ポート 445 の SMB 2 です。SMB 1 は対応していません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Windows, macOS, Samba 및 대부분의 NAS가 제공하는 TCP 포트 445의 SMB 2입니다. SMB 1은 지원되지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 pela porta TCP 445, como servem Windows, macOS, Samba e a maioria dos NAS. SMB 1 não é compatível."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 через TCP-порт 445, как его предоставляют Windows, macOS, Samba и большинство NAS. SMB 1 не поддерживается."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 2 qua cổng TCP 445, như Windows, macOS, Samba và hầu hết NAS cung cấp. Không hỗ trợ SMB 1."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通过 TCP 445 端口的 SMB 2，Windows、macOS、Samba 和大多数 NAS 均提供。不支持 SMB 1。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "透過 TCP 445 連接埠的 SMB 2，Windows、macOS、Samba 和大多數 NAS 均提供。不支援 SMB 1。"
-          }
-        }
-      }
-    },
-    "SMB Share" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مشاركة SMB"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB-Freigabe"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recurso SMB"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partage SMB"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Condivisione SMB"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 共有"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 공유"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compartilhamento SMB"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Общий ресурс SMB"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chia sẻ SMB"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 共享"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 共享"
-          }
-        }
-      }
-    },
-    "SMB Shares" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مشاركات SMB"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB-Freigaben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recursos SMB"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partages SMB"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Condivisioni SMB"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB共有"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 공유"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compartilhamentos SMB"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Общие ресурсы SMB"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chia sẻ SMB"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 共享"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SMB 共享"
           }
         }
       }
@@ -2433,7 +2313,240 @@
         }
       }
     },
+    "Shared folders available to this account." : {
+
+    },
+    "SMB 2 over TCP port 445, as Windows, macOS, Samba and most NAS devices serve it. SMB 1 is not supported." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 عبر منفذ TCP 445، كما تقدمه Windows وmacOS وSamba ومعظم أجهزة NAS. SMB 1 غير مدعوم."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 über TCP-Port 445, wie ihn Windows, macOS, Samba und die meisten NAS-Geräte anbieten. SMB 1 wird nicht unterstützt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 por el puerto TCP 445, como lo sirven Windows, macOS, Samba y la mayoría de los NAS. SMB 1 no es compatible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 sur le port TCP 445, tel que le servent Windows, macOS, Samba et la plupart des NAS. SMB 1 n'est pas pris en charge."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 sulla porta TCP 445, come lo offrono Windows, macOS, Samba e la maggior parte dei NAS. SMB 1 non è supportato."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows、macOS、Samba、ほとんどの NAS が提供する TCP ポート 445 の SMB 2 です。SMB 1 は対応していません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Windows, macOS, Samba 및 대부분의 NAS가 제공하는 TCP 포트 445의 SMB 2입니다. SMB 1은 지원되지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 pela porta TCP 445, como servem Windows, macOS, Samba e a maioria dos NAS. SMB 1 não é compatível."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 через TCP-порт 445, как его предоставляют Windows, macOS, Samba и большинство NAS. SMB 1 не поддерживается."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 2 qua cổng TCP 445, như Windows, macOS, Samba và hầu hết NAS cung cấp. Không hỗ trợ SMB 1."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 TCP 445 端口的 SMB 2，Windows、macOS、Samba 和大多数 NAS 均提供。不支持 SMB 1。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "透過 TCP 445 連接埠的 SMB 2，Windows、macOS、Samba 和大多數 NAS 均提供。不支援 SMB 1。"
+          }
+        }
+      }
+    },
+    "SMB Share" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشاركة SMB"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB-Freigabe"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recurso SMB"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partage SMB"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condivisione SMB"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 共有"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 공유"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartilhamento SMB"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Общий ресурс SMB"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ SMB"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 共享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 共享"
+          }
+        }
+      }
+    },
+    "SMB Shares" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مشاركات SMB"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB-Freigaben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recursos SMB"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partages SMB"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condivisioni SMB"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB共有"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 공유"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartilhamentos SMB"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Общие ресурсы SMB"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chia sẻ SMB"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 共享"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SMB 共享"
+          }
+        }
+      }
+    },
     "Something with that name is already there." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2586,6 +2699,7 @@
       }
     },
     "The account the server knows." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2738,6 +2852,7 @@
       }
     },
     "The account's password. It is kept in the keychain." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2814,6 +2929,7 @@
       }
     },
     "The connection to the server was closed. Try again to reconnect." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2889,7 +3005,11 @@
         }
       }
     },
+    "The connection to the server was closed. Try again." : {
+
+    },
     "The disk shares the server offers this account." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -2966,6 +3086,7 @@
       }
     },
     "The downloaded data could not be written locally (error %d)." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3041,7 +3162,14 @@
         }
       }
     },
+    "The file could not be read for upload. Try again." : {
+
+    },
+    "The file could not be saved on this device. Try again." : {
+
+    },
     "The file to upload could not be read locally (error %d)." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3118,6 +3246,7 @@
       }
     },
     "The folder on the server is not empty." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3192,6 +3321,12 @@
           }
         }
       }
+    },
+    "The folder on the server is not empty. Remove its contents first." : {
+
+    },
+    "The name “%@” cannot be used on this server." : {
+
     },
     "The name of the shared folder on the server." : {
       "localizations" : {
@@ -3268,6 +3403,12 @@
           }
         }
       }
+    },
+    "The name shown in the sidebar. Leave empty to use the share and server names." : {
+
+    },
+    "The password for this share is kept in the keychain." : {
+
     },
     "The password is kept in this device's keychain and never written anywhere else." : {
       "localizations" : {
@@ -3346,6 +3487,7 @@
       }
     },
     "The server could not be reached. %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3421,7 +3563,11 @@
         }
       }
     },
+    "The server could not be reached. Check the address and try again." : {
+
+    },
     "The server did not answer in time." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3496,6 +3642,9 @@
           }
         }
       }
+    },
+    "The server did not answer in time. Try again." : {
+
     },
     "The server has no share named “%@”." : {
       "localizations" : {
@@ -3574,6 +3723,7 @@
       }
     },
     "The server lists no disk shares for this account. Type the share's name instead." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3725,7 +3875,11 @@
         }
       }
     },
+    "The server refused this request. Try again." : {
+
+    },
     "The server refused: %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -3877,6 +4031,9 @@
         }
       }
     },
+    "The user name for this share." : {
+
+    },
     "There is nothing at that path on the server." : {
       "localizations" : {
         "ar" : {
@@ -3952,6 +4109,18 @@
           }
         }
       }
+    },
+    "This account has no listed shares. Type the share name instead." : {
+
+    },
+    "Unable to Connect" : {
+
+    },
+    "Unable to List Shares" : {
+
+    },
+    "Unable to Save Share" : {
+
     },
     "User Name" : {
       "localizations" : {
@@ -4029,81 +4198,11 @@
         }
       }
     },
-    "“%@” is not a name an SMB server accepts." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "”%@“ ليس اسمًا يقبله خادم SMB."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„%@“ ist kein Name, den ein SMB-Server akzeptiert."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” no es un nombre que acepte un servidor SMB."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« %@ » n'est pas un nom accepté par un serveur SMB."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” non è un nome accettato da un server SMB."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」は SMB サーバが受け付けない名前です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@”은(는) SMB 서버가 허용하지 않는 이름입니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” não é um nome aceito por um servidor SMB."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«%@» — имя, которое сервер SMB не принимает."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” không phải tên mà máy chủ SMB chấp nhận."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@”不是 SMB 服务器接受的名称。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%@」不是 SMB 伺服器接受的名稱。"
-          }
-        }
-      }
+    "Uses SMB 2 on port 445. SMB 1 is not supported." : {
+
+    },
+    "Usually 445. Change it only if the server uses another port." : {
+
     }
   },
   "version" : "1.0"

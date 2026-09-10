@@ -148,7 +148,7 @@ final class OperationCoverViewController: UIViewController {
         separator.backgroundColor = AlertControllerConfiguration.separatorColor
         separator.snp.makeConstraints { $0.height.equalTo(1 / UIScreen.main.scale) }
 
-        configure(backgroundButton, title: String(localized: "Continue in Tasks"), accented: true)
+        configure(backgroundButton, title: String(localized: "Continue"), accented: true)
         backgroundButton.addAction(UIAction { [weak self] _ in self?.close() }, for: .touchUpInside)
         configure(cancelButton, title: String(localized: "Cancel"), accented: false)
         cancelButton.addAction(UIAction { [weak self] _ in

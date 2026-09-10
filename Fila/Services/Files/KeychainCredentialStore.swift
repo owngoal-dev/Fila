@@ -76,6 +76,6 @@ struct KeychainError: Error, CustomStringConvertible, LocalizedError {
     }
 
     var errorDescription: String? {
-        String(localized: "The password could not be read from the keychain. \(description)")
+        String(localized: "Unable to use the saved password. Try entering it again.")
     }
 }

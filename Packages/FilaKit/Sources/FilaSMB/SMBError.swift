@@ -95,32 +95,32 @@ extension SMBError: LocalizedError {
     public var errorDescription: String? {
         let bundle = SMBBackend.bundle
         switch self {
-        case let .connectionFailed(reason):
-            return String(localized: "The server could not be reached. \(reason)", bundle: bundle)
+        case .connectionFailed:
+            return String(localized: "The server could not be reached. Check the address and try again.", bundle: bundle)
         case .timedOut:
-            return String(localized: "The server did not answer in time.", bundle: bundle)
+            return String(localized: "The server did not answer in time. Try again.", bundle: bundle)
         case .authenticationFailed:
-            return String(localized: "The server refused the account name or password.", bundle: bundle)
+            return String(localized: "The server refused the account name or password. Check them and try again.", bundle: bundle)
         case let .shareNotFound(share):
-            return String(localized: "The server has no share named “\(share)”.", bundle: bundle)
+            return String(localized: "The server has no share named “\(share)”. Choose another share.", bundle: bundle)
         case .accessDenied:
-            return String(localized: "The account is not allowed to do that.", bundle: bundle)
+            return String(localized: "This account is not allowed to do that. Try another account, or choose a different item.", bundle: bundle)
         case .notFound:
-            return String(localized: "There is nothing at that path on the server.", bundle: bundle)
+            return String(localized: "That item is not on the server. Refresh the folder, or choose another item.", bundle: bundle)
         case .alreadyExists:
-            return String(localized: "Something with that name is already there.", bundle: bundle)
+            return String(localized: "An item with that name already exists. Choose a different name.", bundle: bundle)
         case .directoryNotEmpty:
-            return String(localized: "The folder on the server is not empty.", bundle: bundle)
-        case let .server(status, _):
-            return String(localized: "The server refused: \(status).", bundle: bundle)
+            return String(localized: "The folder on the server is not empty. Remove its contents first.", bundle: bundle)
+        case .server:
+            return String(localized: "The server refused this request. Try again.", bundle: bundle)
         case .disconnected:
-            return String(localized: "The connection to the server was closed. Try again to reconnect.", bundle: bundle)
+            return String(localized: "The connection to the server was closed. Try again.", bundle: bundle)
         case let .invalidName(name):
-            return String(localized: "“\(name)” is not a name an SMB server accepts.", bundle: bundle)
-        case let .descriptorWrite(code):
-            return String(localized: "The downloaded data could not be written locally (error \(code)).", bundle: bundle)
-        case let .descriptorRead(code):
-            return String(localized: "The file to upload could not be read locally (error \(code)).", bundle: bundle)
+            return String(localized: "The name “\(name)” cannot be used on this server. Choose a different name.", bundle: bundle)
+        case .descriptorWrite:
+            return String(localized: "The file could not be saved on this device. Try again.", bundle: bundle)
+        case .descriptorRead:
+            return String(localized: "The file could not be read for upload. Try again.", bundle: bundle)
         }
     }
 }

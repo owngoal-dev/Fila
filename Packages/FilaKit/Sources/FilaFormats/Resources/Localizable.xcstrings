@@ -1,8 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "a property list this large or this deeply nested" : {
+
+    },
     "a property list with this many values or nesting levels" : {
       "comment" : "Fills “Fila does not support this: %@.” — a sentence fragment, lowercase, no full stop.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -86,6 +90,7 @@
     },
     "it is not a property list" : {
       "comment" : "Fills “This file is damaged: %@.” — a sentence fragment, lowercase, no full stop.",
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -166,6 +171,9 @@
           }
         }
       }
+    },
+    "its contents could not be read" : {
+
     }
   },
   "version" : "1.0"

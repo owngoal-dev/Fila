@@ -1,6 +1,82 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "“%@” is %@. Files over %@ are not downloaded for a preview." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حجم ”%1$@“ هو %2$@. الملفات الأكبر من %3$@ لا تُنزَّل للمعاينة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%1$@“ ist %2$@ groß. Dateien über %3$@ werden für eine Vorschau nicht geladen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” ocupa %2$@. Los archivos de más de %3$@ no se descargan para previsualizar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %1$@ » fait %2$@. Les fichiers de plus de %3$@ ne sont pas téléchargés pour un aperçu."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” è di %2$@. I file oltre %3$@ non vengono scaricati per l'anteprima."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」は %2$@ です。%3$@ を超えるファイルはプレビュー用にダウンロードされません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@”은(는) %2$@입니다. %3$@를 초과하는 파일은 미리보기용으로 다운로드되지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” tem %2$@. Arquivos acima de %3$@ não são baixados para pré-visualização."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%1$@» занимает %2$@. Файлы больше %3$@ не загружаются для просмотра."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@” có kích thước %2$@. Tệp lớn hơn %3$@ không được tải xuống để xem trước."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%1$@”大小为 %2$@。超过 %3$@ 的文件不会为预览而下载。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%1$@」大小為 %2$@。超過 %3$@ 的檔案不會為預覽而下載。"
+          }
+        }
+      }
+    },
     "%@ of %@" : {
       "localizations" : {
         "ar" : {
@@ -534,6 +610,7 @@
       }
     },
     "Could Not List Folder" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -837,6 +914,9 @@
         }
       }
     },
+    "Downloading “%@” from the server." : {
+
+    },
     "Downloading…" : {
       "localizations" : {
         "ar" : {
@@ -990,6 +1070,7 @@
       }
     },
     "Fetching “%@” from the server." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -1901,6 +1982,9 @@
         }
       }
     },
+    "The file could not be saved on this device. Try again." : {
+
+    },
     "There is nothing in this folder on the server." : {
       "localizations" : {
         "ar" : {
@@ -2053,81 +2137,8 @@
         }
       }
     },
-    "“%@” is %@. Files over %@ are not downloaded for a preview." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "حجم ”%1$@“ هو %2$@. الملفات الأكبر من %3$@ لا تُنزَّل للمعاينة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "„%1$@“ ist %2$@ groß. Dateien über %3$@ werden für eine Vorschau nicht geladen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%1$@” ocupa %2$@. Los archivos de más de %3$@ no se descargan para previsualizar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "« %1$@ » fait %2$@. Les fichiers de plus de %3$@ ne sont pas téléchargés pour un aperçu."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%1$@” è di %2$@. I file oltre %3$@ non vengono scaricati per l'anteprima."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%1$@」は %2$@ です。%3$@ を超えるファイルはプレビュー用にダウンロードされません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%1$@”은(는) %2$@입니다. %3$@를 초과하는 파일은 미리보기용으로 다운로드되지 않습니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%1$@” tem %2$@. Arquivos acima de %3$@ não são baixados para pré-visualização."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "«%1$@» занимает %2$@. Файлы больше %3$@ не загружаются для просмотра."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%1$@” có kích thước %2$@. Tệp lớn hơn %3$@ không được tải xuống để xem trước."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%1$@”大小为 %2$@。超过 %3$@ 的文件不会为预览而下载。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「%1$@」大小為 %2$@。超過 %3$@ 的檔案不會為預覽而下載。"
-          }
-        }
-      }
+    "Unable to List Folder" : {
+
     }
   },
   "version" : "1.0"

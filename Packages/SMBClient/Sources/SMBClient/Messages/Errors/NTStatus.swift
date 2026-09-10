@@ -16,85 +16,85 @@ extension NTStatus: CustomStringConvertible {
     case .pending:
       return "The operation that was requested is pending completion."
     case .invalidSMB:
-      return "An invalid SMB client request is received by the server."
+      return "The server rejected this request. Try again."
     case .smbBadTid:
-      return "The client request received by the server contains an invalid TID value."
+      return "The connection to this share is no longer valid. Reconnect and try again."
     case .smbBadCommand:
-      return "The client request received by the server contains an unknown SMB command code."
+      return "The server does not support this operation."
     case .smbBadUID:
-      return "The client request to the server contains an invalid UID value."
+      return "This session is no longer valid. Sign in again."
     case .smbUseStandard:
-      return "The client request received by the server is for a non-standard SMB operation (for example, an SMB_COM_READ_MPX request on a non-disk share). The client SHOULD send another request with a different SMB command to perform this operation."
+      return "The server does not support this operation."
     case .bufferOverflow:
-      return "The data was too large to fit into the specified buffer."
+      return "The data is too large. Try a smaller item."
     case .noMoreFiles:
-      return "No more files were found that match the file specification."
+      return "No more matching files were found."
     case .stoppedOnSymlink:
-      return "The create operation stopped after reaching a symbolic link."
+      return "This path is a link. Open the item it points to instead."
     case .notImplemented:
-      return "The requested operation is not implemented."
+      return "The server does not support this operation."
     case .invalidInfoClass:
-      return "The specified information class is not a valid information class for the specified object."
+      return "The server does not support this request."
     case .invalidParameter:
-      return "The parameter specified in the request is not valid."
+      return "That value is not valid. Check it and try again."
     case .noSuchFile:
-      return "File not found."
+      return "That file was not found. Refresh the folder, or choose another item."
     case .noSuchDevice:
-      return "A device that does not exist was specified."
+      return "That location does not exist on this server."
     case .invalidDeviceRequest:
-      return "The specified request is not a valid operation for the target device."
+      return "This operation cannot be used with this item. Choose a different item."
     case .endOfFile:
-      return "The end-of-file marker has been reached. There is no valid data in the file beyond this marker."
+      return "The end of the file was reached."
     case .moreProcessingRequired:
-      return "If extended security has been negotiated, then this error code can be returned in the SMB_COM_SESSION_SETUP_ANDX response from the server to indicate that additional authentication information is to be exchanged. See section 2.2.4.6 for details."
+      return "The server needs more information to sign in. Try again."
     case .accessDenied:
-      return "The client did not have the required permission needed for the operation."
+      return "The account is not allowed to do that."
     case .bufferTooSmall:
-      return "The buffer is too small to contain the entry. No information has been written to the buffer."
+      return "The data is too large. Try a smaller item."
     case .objectNameInvalid:
-      return "The object name is invalid."
+      return "That name is not valid on this server. Choose another name."
     case .objectNameNotFound:
-      return "The object name is not found."
+      return "That item was not found."
     case .objectNameCollision:
-      return "The object name already exists."
+      return "An item with that name already exists. Choose a different name."
     case .sharingViolation:
-      return "A file cannot be opened because the share access flags are incompatible."
+      return "This file is in use on the server. Close it there and try again."
     case .deletePending:
-      return "A non-close operation has been requested of a file object that has a delete pending."
+      return "This item is already being deleted on the server. Wait and try again."
     case .objectPathNotFound:
-      return "The path to the directory specified was not found. This error is also returned on a create request if the operation requires the creation of more than one new directory level for the path specified."
+      return "That folder was not found."
     case .logonFailure:
-      return "The attempted logon is invalid. This is either due to a bad username or authentication information."
+      return "The server refused the account name or password."
     case .badImpersonationLevel:
-      return "A specified impersonation level is invalid. This error is also used to indicate that a required impersonation level was not provided."
+      return "The server refused this request. Try again."
     case .ioTimeout:
-      return "The specified I/O operation was not completed before the time-out period expired."
+      return "The server did not respond in time. Try again."
     case .fileIsADirectory:
-      return "The file that was specified as a target is a directory and the caller specified that it could be anything but a directory."
+      return "That name is a folder, not a file."
     case .notSupported:
-      return "The client request is not supported."
+      return "The server does not support this operation."
     case .networkNameDeleted:
-      return "The network name specified by the client has been deleted on the server. This error is returned if the client specifies an incorrect TID or the share on the server represented by the TID was deleted."
+      return "This share is no longer available. Reconnect and try again."
     case .badNetworkName:
-      return "The specified share name cannot be found on the remote server."
+      return "This share is not on the server. Choose another share."
     case .directoryNotEmpty:
-      return "Indicates that the directory trying to be deleted is not empty."
+      return "The folder on the server is not empty. Remove its contents first."
     case .notADirectory:
-      return "A requested opened file is not a directory."
+      return "That name is a file, not a folder."
     case .fileClosed:
-      return "An I/O request other than close and several other special case operations was attempted using a file object that had already been closed."
+      return "This file is no longer open. Try again."
     case .userSessionDeleted:
-      return "The user session specified by the client has been deleted on the server. This error is returned by the server if the client sends an incorrect UID."
+      return "This session is no longer valid. Sign in again."
     case .connectionRefused:
-      return "The transport-connection attempt was refused by the remote system."
+      return "The server refused the connection. Check the address and try again."
     case .networkSessionExpired:
-      return "The client's session has expired; therefore, the client MUST re-authenticate to continue accessing remote resources."
+      return "The session expired. Sign in again."
     case .fileSystemLimitation:
-      return "The requested operation could not be completed due to a file system limitation."
+      return "The server cannot finish this because of a limit. Try a smaller item or another location."
     case .smbTooManyUIDs:
-      return "The client has requested too many UID values from the server or the client already has an SMB session setup with this UID value."
+      return "Too many sessions are open on this server. Disconnect one and try again."
     default:
-      return "Unknown error: \(String(format: "0x%08X", rawValue))"
+      return "The server refused this request. Try again."
     }
   }
 }

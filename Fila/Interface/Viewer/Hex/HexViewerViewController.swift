@@ -172,7 +172,7 @@ final class HexViewerViewController: TabContentViewController {
 
     private func explain(_ message: String) {
         let alert = AlertViewController(
-            title: String(localized: "Go to Offset"),
+            title: String(localized: "Invalid Offset"),
             message: message
         ) { [weak self] context in
             context.allowSimpleDispose()

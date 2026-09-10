@@ -157,7 +157,7 @@ final class TabSwitcherViewController: UIViewController {
         }
         let alert = AlertViewController(
             title: String(localized: "Close All Tabs?"),
-            message: String(localized: "Every open tab will close; tabs with unsaved changes will ask first.")
+            message: String(localized: "All open tabs will close. You will be asked about unsaved changes first.")
         ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()

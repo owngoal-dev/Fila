@@ -163,7 +163,7 @@ final class FileSharingViewController: UIViewController {
             content.textProperties.numberOfLines = 0
             content.secondaryText = center.isRunning
                 ? (center.addresses.isEmpty
-                    ? String(localized: "No network address yet.")
+                    ? String(localized: "No network address. Connect to a local network and try again.")
                     : center.addresses.joined(separator: "\n"))
                 : String(localized: "Ready to share with devices on your network.")
             content.secondaryTextProperties.color = .secondaryLabel
@@ -227,7 +227,7 @@ final class FileSharingViewController: UIViewController {
             content.text = String(localized: "No devices have connected yet.")
             content.textProperties.color = .secondaryLabel
         case .clearConnections:
-            content.text = String(localized: "Clear Connections")
+            content.text = String(localized: "Clear History")
             content.textProperties.color = .systemRed
         case .qrCode:
             return

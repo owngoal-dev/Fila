@@ -132,8 +132,8 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         if let clipboard = BackendScreens.shell?.clipboard {
             let paste = UIAction(
                 title: clipboard.isCut
-                    ? String(localized: "Move Here (\(clipboard.count) items)", bundle: bundle)
-                    : String(localized: "Copy Here (\(clipboard.count) items)", bundle: bundle),
+                    ? String(localized: "Move Here", bundle: bundle)
+                    : String(localized: "Copy Here", bundle: bundle),
                 image: UIImage(systemName: "doc.on.clipboard"),
                 attributes: clipboard.isPasting ? .disabled : []
             ) { [weak self] _ in
@@ -213,7 +213,7 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         if let loadFailure {
             return .message(
                 symbol: "exclamationmark.triangle",
-                title: String(localized: "Could Not List Folder", bundle: bundle),
+                title: String(localized: "Unable to List Folder", bundle: bundle),
                 detail: BackendScreens.shell?.failureText(for: loadFailure) ?? loadFailure.localizedDescription,
                 button: String(localized: "Try Again", bundle: bundle)
             )
@@ -221,7 +221,7 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         return .message(
             symbol: "folder",
             title: String(localized: "Empty Folder", bundle: bundle),
-            detail: String(localized: "There is nothing in this folder on the server.", bundle: bundle)
+            detail: String(localized: "This folder is empty. Open another folder, or go back.", bundle: bundle)
         )
     }
 
@@ -277,7 +277,7 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
             shell.alert(
                 title: String(localized: "File Too Large to Preview", bundle: bundle),
                 message: String(
-                    localized: "“\(entry.name)” is \(Self.format(size)). Files over \(Self.format(Self.previewSizeLimit)) are not downloaded for a preview.",
+                    localized: "“\(entry.name)” is \(Self.format(size)), over the \(Self.format(Self.previewSizeLimit)) preview limit. Save it to Fila instead.",
                     bundle: bundle
                 )
             )
@@ -289,7 +289,7 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
             guard let self else { return }
             let card = shell.progressCard(
                 title: String(localized: "Downloading…", bundle: bundle),
-                message: String(localized: "Fetching “\(entry.name)” from the server.", bundle: bundle),
+                message: String(localized: "Downloading “\(entry.name)” from the server.", bundle: bundle),
                 from: self
             )
             var workspace: URL?
@@ -362,7 +362,9 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
     struct StagingError: Error, LocalizedError {
         let code: Int32
         let path: String
-        var errorDescription: String? { "\(path): \(String(cString: strerror(code)))" }
+        var errorDescription: String? {
+            String(localized: "The file could not be saved on this device. Try again.", bundle: .module)
+        }
     }
 
     // MARK: - Wording

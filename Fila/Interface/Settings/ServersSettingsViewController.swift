@@ -73,7 +73,7 @@ final class ServersSettingsViewController: UITableViewController {
 
     override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         guard section == setups.count - 1 else { return nil }
-        return String(localized: "Saved servers are listed under Servers in the sidebar. Removing one forgets its saved password and favorites; nothing on the server is touched.")
+        return String(localized: "Saved servers are listed under Servers in the sidebar. Removing one forgets its saved password and favorites; nothing on the server is changed.")
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -137,7 +137,7 @@ final class ServersSettingsViewController: UITableViewController {
         let name = root.displayName
         let alert = AlertViewController(
             title: String.LocalizationValue("Remove “\(name)”?"),
-            message: String.LocalizationValue("Its saved password and favorites are forgotten. Nothing on the server is touched.")
+            message: String.LocalizationValue("Its saved password and favorites are forgotten. Nothing on the server is changed.")
         ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
@@ -147,7 +147,7 @@ final class ServersSettingsViewController: UITableViewController {
                     do {
                         try setup.remove(id)
                     } catch {
-                        FeedbackAlert.show(String(localized: "Could Not Remove Server"), message: FailureMessage.text(for: error))
+                        FeedbackAlert.show(String(localized: "Unable to Remove Server"), message: FailureMessage.text(for: error))
                     }
                 }
             }

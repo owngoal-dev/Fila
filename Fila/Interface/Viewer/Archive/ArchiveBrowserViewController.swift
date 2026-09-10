@@ -184,7 +184,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         ) { [weak self] footer, _, _ in
             let count = self?.members?.count ?? 0
             footer.label.text = count == ArchiveReader.maximumEntryCount
-                ? String(format: String(localized: "Showing the first %lld entries."), Int64(count)) : nil
+                ? String(format: String(localized: "Showing the first %lld items."), Int64(count)) : nil
         }
         dataSource.supplementaryViewProvider = { collection, _, indexPath in
             collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
@@ -232,7 +232,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         let extractTitle = isEditing
             ? String(localized: "Extract Selection")
             : members?.count == ArchiveReader.maximumEntryCount
-            ? String(localized: "Extract Listed Entries")
+            ? String(localized: "Extract Listed Items")
             : String(localized: "Extract All")
         let extract = UIAction(
             title: extractTitle,
@@ -283,7 +283,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         snapshot.appendItems(items)
         dataSource.apply(snapshot, animatingDifferences: false)
         collectionView.showStatus(
-            items.isEmpty ? .message(symbol: "archivebox", title: String(localized: "No Entries")) : nil
+            items.isEmpty ? .message(symbol: "archivebox", title: String(localized: "No Items")) : nil
         )
         refreshActions()
     }
@@ -381,7 +381,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
 
         let form = SaveDestinationViewController(
             message: String(
-                format: String(localized: "%lld items will be extracted here. A folder is created only when needed. Existing items are kept."),
+                format: String(localized: "%lld items will be extracted here without replacing existing items."),
                 Int64(selected.count)
             ),
             link: link
@@ -438,9 +438,9 @@ final class ArchiveBrowserViewController: TabContentViewController {
                        estimate.needsWarning(availableByteCount: available)
                     {
                         let message = estimate.hasUnknownSize
-                            ? String(localized: "The archive does not report all extracted file sizes. There may not be enough space to finish extracting.")
+                            ? String(localized: "This archive does not list a size for every item. Check free space before extracting.")
                             : String(
-                                format: String(localized: "The extracted files need approximately %1$@, more than %2$@ of the %3$@ available at the destination."),
+                                format: String(localized: "These items need %1$@, which is more than %2$@ of the %3$@ free here."),
                                 FilePresentation.byteLabel(estimate.byteCount),
                                 ArchiveSpaceEstimate.warningFraction.formatted(.percent),
                                 FilePresentation.byteLabel(available)
@@ -632,7 +632,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                 }
                 guard found else {
                     throw ViewerFailure.unsupportedContent(
-                        String(localized: "This entry is no longer in the archive. Open it again.")
+                        String(localized: "This item is no longer in the archive. Open it again.")
                     )
                 }
                 guard !Task.isCancelled else { return }

@@ -196,7 +196,7 @@ final class SettingsViewController: UIViewController {
         case .redirectsScriptInterpreters:
             configureToggle(
                 cell,
-                title: String(localized: "Redirect Script Interpreters"),
+                title: String(localized: "Find Script Interpreters"),
                 keyPath: \.redirectsScriptInterpreters
             )
         case .servers:
@@ -347,7 +347,7 @@ final class SettingsViewController: UIViewController {
                 localized: "If a feature fails or stops responding, turn it off. The rest of Fila keeps working."
             )
         case .scripts:
-            String(localized: "Some scripts name an interpreter your system environment stores elsewhere. Fila finds it and runs the script. Turn this off to start scripts exactly as written.")
+            String(localized: "Fila finds the program a script needs if it isn't in the usual place. Turn this off to run scripts exactly as written.")
         case .about:
             // The only place a user is ever told they are running the
             // unprivileged build, so it says what is true and what to do about

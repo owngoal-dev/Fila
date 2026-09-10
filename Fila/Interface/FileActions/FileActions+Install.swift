@@ -167,7 +167,7 @@ extension FileActions {
         await dismiss(progress)
         switch outcome {
         case .installed:
-            Toast.show(String(localized: "App Installed"))
+            Toast.show(String(localized: "App installed"))
         case .unsupported:
             reportInstallRefusal(
                 path,
@@ -201,7 +201,7 @@ extension FileActions {
         guard let presenter = activePresenter else { return nil }
         let progress = AlertProgressIndicatorViewController(
             title: title,
-            message: String.LocalizationValue("Large packages take time.")
+            message: String.LocalizationValue("Keep Fila open until this finishes.")
         )
         await withCheckedContinuation { continuation in
             presenter.present(progress, animated: true) { continuation.resume() }

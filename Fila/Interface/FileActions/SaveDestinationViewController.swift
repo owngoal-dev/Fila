@@ -336,9 +336,9 @@ final class SaveDestinationViewController: UIViewController {
                     list.backgroundView = nil
                 } else {
                     let title: String = if selection.fileTypes != nil {
-                        String(localized: "No Audio Files")
+                        String(localized: "No audio files. Choose a different folder.")
                     } else {
-                        selection.picksFiles ? String(localized: "Folder Is Empty") : String(localized: "No Folders")
+                        selection.picksFiles ? String(localized: "This folder is empty. You can still choose it.") : String(localized: "No subfolders. You can still save here.")
                     }
                     list.backgroundView = StatusView(content: .message(symbol: "folder", title: title))
                 }
