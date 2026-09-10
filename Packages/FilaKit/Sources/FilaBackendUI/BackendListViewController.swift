@@ -13,7 +13,9 @@ import UIKit
 @MainActor
 public protocol PreparableContent: AnyObject {
     func prepare(within budget: TimeInterval) async
-    /// `prepare` has run: a push of this screen need not wait again.
+    /// The screen has what a transition waits for — its first rows are up,
+    /// its listing ended without any, or a wait for it has already run its
+    /// budget — so a transition to it need not wait.
     var isPrepared: Bool { get }
 }
 
@@ -295,19 +297,26 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     /// that arrives a moment after the wait did. The listing runs on
     /// regardless, and the subscription made on appearance spends its
     /// first hint on it rather than starting a second one.
-    public private(set) var isPrepared = false
+    public var isPrepared: Bool { hasSettled || preparationEnded }
+    private var preparationStarted = false
+    private var preparationEnded = false
 
+    /// Re-entrant: a second asker while the first is still waiting — a pop
+    /// to the screen beneath the top while that screen is being readied
+    /// off screen — waits its own budget for the same rows, and whichever
+    /// wait ends first puts them up.
     public func prepare(within budget: TimeInterval) async {
-        guard !isPrepared else { return }
-        isPrepared = true
         loadViewIfNeeded()
         let startedAt = DispatchTime.now()
-        if loadTask == nil {
-            // Half the budget: what lands by then goes up together, and
-            // the apply itself still fits inside the other half.
-            firstApplyHeldUntil = startedAt + budget / 2
-            startLoad()
-            preparedLoadPending = true
+        if !preparationStarted {
+            preparationStarted = true
+            if loadTask == nil {
+                // Half the budget: what lands by then goes up together, and
+                // the apply itself still fits inside the other half.
+                firstApplyHeldUntil = startedAt + budget / 2
+                startLoad()
+                preparedLoadPending = true
+            }
         }
         guard !hasSettled else { return }
         _ = await withTaskGroup(of: Bool.self) { group in
@@ -326,6 +335,13 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
         // `settle()` sets this before it wakes anyone, so it is the answer
         // whichever child spoke first — and a cancelled wait is not a yes.
         let settled = hasSettled
+        // A wait called off — the transition it served was dropped for
+        // another — has not run its budget: it puts nothing up, and the next
+        // transition here waits its own budget rather than landing on the
+        // loading status. The hold on the first apply is a deadline, and
+        // expires on its own.
+        guard !Task.isCancelled else { return }
+        preparationEnded = true
         firstApplyHeldUntil = nil
         // The budget ran out with rows in hand: they go up now, so the push
         // lands on them, and the rest follow at the streaming pace.
