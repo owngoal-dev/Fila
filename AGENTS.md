@@ -1,7 +1,9 @@
 # Fila — Agent Notes
 
 Root file manager for jailbroken iOS 15+ — roothide and rootless bootstraps
-both. **iOS only**: there is no Mac Catalyst build and no macOS product. The
+both. **iOS only**: there is no Mac Catalyst build and no macOS product.
+(`Package.swift` still declares a `.macCatalyst` platform so the package
+resolves; that is not a product and nothing builds one.) The
 app runs as `mobile`; with the privileged backend, the bundled `filad`
 LaunchDaemon opens files and performs filesystem mutations as root. Without
 that backend, `LocalFileService` works under the app's own OS permissions.
@@ -150,12 +152,23 @@ between the app and the kernel with nothing in between.
   going to be written well by hand: `libarchive.xcframework` (7z, rar, iso, xar,
   and the filter chain), `libghostty-spm` (the terminal),
   `Runestone.xcframework` (the text editor's tree-sitter highlighting; ~38 MB of
-  parse tables, shown to the user, chosen), swift-nio (the WebDAV framer),
-  SnapKit (layout), Then (view setup), AlertController (the one alert card),
-  and SPIndicator (the toast chrome under `Toast`). **No third-party
-  dependency links into `filad`.** The next library needs the same argument:
-  what it replaces, and why the hand-written version would be worse rather
-  than merely longer.
+  parse tables, shown to the user, chosen), swift-nio with
+  swift-nio-transport-services (the WebDAV framer; Transport Services wraps an
+  `NWListener` and gives the channel backpressure — see `WebDAV-Library.md`),
+  MachOKit (the Mach-O inspector's parser, inside `FilaFormats`), SnapKit
+  (layout), Then (view setup), AlertController (the one alert card), and
+  SPIndicator (the toast chrome under `Toast`). One dependency is vendored
+  rather than resolved: `Packages/SMBClient`, because listing a remote
+  directory one server response at a time needs one method inside the module
+  and every primitive under it is `private`. `FILA-VENDOR.md` beside it
+  records the revision, the single added method and what was left out; keep
+  it true when the copy moves. Versions elsewhere are declared as `from:`
+  minimums, not exact pins. A new dependency also owes `Licenses/` an
+  entry — `Scripts/collect-licenses.py` collects them and
+  `Licenses/Compatibility.md` records why each licence is compatible.
+  **No third-party dependency links into `filad`.** The next library needs the
+  same argument: what it replaces, and why the hand-written version would be
+  worse rather than merely longer.
 
 ## Layout
 
@@ -166,14 +179,22 @@ between the app and the kernel with nothing in between.
   App source is organized by ownership:
   - `Application/State/` — `AppPreferences`, `FileClipboard`, `BrowserTabStore`
     and shared app-list options; `System/` owns capability availability.
-  - `Services/Files/` — `FileSession`, `DirectoryReader`, `FileSearch` and
-    blocking `DescriptorIO`; `Transfers/` owns `OperationCenter` and downloads;
-    `Sharing/` owns `FileSharingServer` and `WebDAVFileService`; `Applications/`
-    and `Installation/` own installed-app discovery and IPA installation.
+    `BackendComposition` is where the module frameworks are discovered,
+    `AppBackendShell` is the host they are given, and `SidebarModel` merges
+    what they contribute.
+  - `Services/Files/` — `FileSession`, `DirectoryReader` and `FileSearch`;
+    `Transfers/` owns `OperationCenter` and downloads; `Sharing/` owns
+    `FileSharingServer` and `WebDAVFileService`; `Installation/` owns
+    `DebianPackage`. Installed-app discovery and IPA installation are **not**
+    here — they belong to the `FilaApplications` module.
   - `Interface/` groups screens and views by feature. `Navigation/` owns the
-    shell and links; `Applications/` owns app details; `FileActions/` owns
-    shared action/destination panels; `Feedback/` owns errors and toasts;
-    `Shared/` holds reusable UI including `FilaUI` and `FilePresentation`.
+    shell and links; `FileActions/` owns shared action/destination panels;
+    `Feedback/` owns errors and toasts; `Shared/` holds reusable UI including
+    `FilePresentation`. A backend's own screens live with the backend, in
+    `Frameworks/<Name>/`, not here.
+  - `Shortcuts/` — App Intents. A second entry point into the same operations
+    the browser uses, `FilaGuard` and `OperationCenter` included, so a change
+    to a destructive path has two call sites to check, not one.
   `FileSession.operations` directly owns the single `OperationCenter`; do not
   restore the removed `JobCenter` forwarding layer or its failure mailbox.
   Keep filenames aligned with their owning type; independently navigable
@@ -182,28 +203,72 @@ between the app and the kernel with nothing in between.
 - `Filad/` — the daemon, product `filad`. `main.swift` + `Server/`
   (`DaemonServer` listener, `PeerAuthenticator`) + `System/` (`InstallRoot`,
   the libSystem shims).
-- `Packages/FilaKit/` — the local Swift package containing the core modules
-  and the terminal's conditionally compiled UIKit views. The daemon links
-  **only** `FilaProtocol` (the wire vocabulary and
-  `FilaGuard`), `FilaFileOps` (the root side's POSIX calls and jobs) and
-  `FilaLog` — that list is a budget, not a habit, and everything else in the
-  package is app-side because launchd caps the daemon at 6 MB. The app also
-  links `FilaClient` (the XPC link *and* the in-process backend behind one
-  `FileService`), `FilaFormats` (readers and writers that allocate by content
-  size, over a descriptor the daemon handed back; libarchive lives here),
-  `FilaMedia` (AVFoundation and ImageIO over the same descriptors),
-  `FilaTerminal` (the pty pump and libghostty) and `FilaRemote` (the WebDAV
-  server and URL download). The package's libarchive, libghostty and NIO
-  dependencies are app-side; Runestone, AlertController and SPIndicator belong
-  to the app target. SnapKit and Then may be imported by `FilaTerminal` — it is
-  UIKit, and it is not the daemon — and by nothing the daemon links. It used to be
-  `Shared/`; the reason it moved is that the code that can destroy the user's
-  filesystem — the actual `copyfile`/`removefile` jobs, not just the guard —
-  could not be tested without building the daemon, and now it can: each
-  product has its own `swift test` target under `Packages/FilaKit/Tests/`.
-  Core code must build and test on macOS with plain SwiftPM, without building
-  the iOS app or daemon. UIKit-only code stays behind `canImport(UIKit)`;
-  the host harness does not create a macOS product.
+- `Packages/FilaKit/` — the local Swift package. Every module's *source* lives
+  here, whatever image it ends up in, and every module is testable on the Mac:
+  `FilaProtocol` (the wire vocabulary and `FilaGuard`), `FilaFileOps` (the root
+  side's POSIX calls and jobs), `FilaLog`, `FilaClient` (the in-process backend
+  and `DescriptorIO`), `FilaPrivileged` (the XPC link — `DaemonLink`,
+  `DaemonFileService`), `FilaBackendKit` (the backend contract: `FileService`,
+  `Backend`, `BackendModule` and the registry), `FilaBackendUI` (the shared list
+  base, `TabContentViewController` and `FilaUI`), `FilaFormats` (readers and
+  writers that allocate by content size, over a descriptor the daemon handed
+  back; libarchive and MachOKit live here), `FilaMedia` (AVFoundation and
+  ImageIO over the same descriptors), `FilaTerminal` (the pty pump and
+  libghostty), `FilaRemote` (the WebDAV server and URL download),
+  `FilaProvider` (the File Provider's index), `FilaApplications`,
+  `FilaMusicLibrary`, `FilaSMB`, and the `C*` shims.
+
+  The daemon links **only** `FilaProtocol`, `FilaFileOps` and `FilaLog` — that
+  list is a budget, not a habit, and everything else is app-side because
+  launchd caps the daemon at 6 MB. SnapKit and Then may be imported by UIKit
+  modules and by nothing the daemon links.
+
+  The package used to be `Shared/`; the reason it moved is that the code that
+  can destroy the user's filesystem — the actual `copyfile`/`removefile` jobs,
+  not just the guard — could not be tested without building the daemon, and
+  now it can: nearly every module has a `swift test` target under
+  `Packages/FilaKit/Tests/`. Core code must build and test on macOS with plain
+  SwiftPM, without building the iOS app or daemon. UIKit-only code stays behind
+  `canImport(UIKit)`; the host harness does not create a macOS product.
+- `Frameworks/` — the dynamic images the app actually links. Six Xcode
+  framework targets, each compiling package sources rather than depending on a
+  package product:
+  - `FilaCore` is one file of `@_exported import` and nothing else. Every
+    FilaKit product is linked **once**, here, and re-exported: `import
+    FilaClient` in the app resolves to the copy inside `FilaCore.framework`.
+    That is why the app target itself links only Runestone and SPIndicator.
+    Linking a package product from two images would give the process two
+    copies of every class, and Swift conformance lookup and the Objective-C
+    runtime both misbehave on duplicate definitions.
+  - `FilaLocal`, `FilaPrivileged`, `FilaApplications`, `FilaMusicLibrary` and
+    `FilaSMB` are the backend modules: the module's screens, its
+    `FilaBackendModule.plist` manifest and its own string catalogue, over the
+    matching `Packages/FilaKit/Sources/<Name>` directory.
+
+  **A backend module lives in two places on purpose.** The package target is
+  the source and the `swift test` surface; the framework target compiles that
+  same directory. `FilaPrivileged`, `FilaApplications`, `FilaMusicLibrary` and
+  `FilaSMB` are deliberately **not** package products — a product would drag
+  its whole closure into the framework beside the copy already in `FilaCore`.
+  Read the comments in `Package.swift` before changing that shape.
+
+  A module is discovered at launch by its manifest, not by a switch statement:
+  `BackendModuleDiscovery` reads `FilaBackendModule.plist` out of every
+  embedded framework and `BackendRegistry` registers what it finds. A module
+  that is not linked is not registered, and a screen that is not registered is
+  not offered — which is the whole mechanism behind the two compositions.
+- `FilaArchive/` — `main.swift` for the `fila-archive` helper described above.
+- `FilaFileProvider/` — the Files-app extension. iOS 16 and later, serving the
+  App Group container alone; it has no root access and is the one backend
+  `FileOperations.writableRoot` fences.
+- `FilaSaveAction/` — the *Save to Fila* share-sheet extension, its own
+  entitlements and its own catalogue. It carries the same App Group as the
+  File Provider, and both packagers sign and verify it.
+- `Packages/SMBClient/` — the vendored SMB library; see `FILA-VENDOR.md`.
+- `Tests/` — what does not fit `swift test`: `test-packaging.py` and the
+  music-import fixtures. `Licenses/` — one directory per dependency, collected
+  by `Scripts/collect-licenses.py`, with `Compatibility.md` recording why each
+  licence is compatible.
 - `WebUI/` — the browser frontend of the WebDAV server: React + webpack,
   TypeScript, no hand-written HTML. It is pure static output (`dist/index.html`,
   `app.js`, `app.css`) and talks to the backend over WebDAV only. The app
@@ -218,20 +283,29 @@ between the app and the kernel with nothing in between.
   reload is the iteration loop. Design: Cloudflare Kumo — white/black,
   one orange accent, 4 px radius, dense rows.
 - `Configuration/`, `Packaging/`, `Scripts/` — build inputs; see below.
+  `Scripts/` is larger than the few names this document quotes: everything
+  `make check`, `make deb`, `make ipa` and the release workflow enforce lives
+  there, and `.github/workflows/` (`release.yml`, `pages.yml`) is what runs
+  them. Read the script before assuming a rule is only advice.
 - `Documentation/Architecture.md` for the design in full,
-  `Documentation/Roadmap.md` for what was deliberately deferred and why.
+  `Documentation/Roadmap.md` for what was deliberately deferred and why,
+  `Documentation/Packaging.md` for the four wrappers, and
+  `Documentation/Listing-Latency.md` for where a directory listing's time
+  actually goes, measured rather than guessed.
 
 There is deliberately **no CLI target**: the app is the only client. Its XPC
-link to `filad`, `DaemonLink`, lives in `FilaClient` rather than beside its
+link to `filad`, `DaemonLink`, lives in `FilaPrivileged` rather than beside its
 callers in the app, so the backend can be tested through the same host harness.
 
 ## App UI libraries
 
 Fila is UIKit. iGhostVT is SwiftUI, so it redrew Lakr233/AlertController as
 `AlertCardView`; Fila uses the package itself. The four libraries below are
-the only way their jobs get done. `make check` greps the app target and
-`FilaTerminal` for the APIs they replace, and fails the build when one
-comes back.
+the only way their jobs get done. `make check` greps `Fila/`, `Frameworks/`
+and the UIKit package modules (`FilaBackendUI`, `FilaApplications`,
+`FilaMusicLibrary`, `FilaSMB`, `FilaTerminal`) for the APIs they replace, and
+fails the build when one comes back. A screen under `Frameworks/` is policed
+exactly like a screen under `Fila/`.
 
 Configure AlertController once at launch, in `AppDelegate`, before any
 scene exists:
@@ -276,8 +350,8 @@ label.snp.makeConstraints { make in
 ### SnapKit — every constraint
 
 `NSLayoutConstraint.activate`, `anchor.constraint`, and
-`translatesAutoresizingMaskIntoConstraints = false` do not appear in
-`Fila/` or `FilaTerminal`. SnapKit turns the mask off itself.
+`translatesAutoresizingMaskIntoConstraints = false` do not appear in any
+policed root. SnapKit turns the mask off itself.
 
 Pin to the guide that is actually the edge. `make.edges.equalToSuperview()`
 is the full-bleed case, not the default:
@@ -377,7 +451,9 @@ Deletion icons use the standard `trash` symbol, never `trash.slash`.
 One line of input is `AlertInputViewController` (rename, new folder, jump
 to offset). Do not revive `addTextField` to set `keyboardType`. Delayed
 work that currently presents a system progress alert is
-`AlertProgressIndicatorViewController`; update the message with
+`AlertProgressIndicatorViewController`. Both come from the AlertController
+package, not from this repository — grepping the tree for them finds call
+sites and no definition. Update the message with
 `progressContext.purpose(message:)`, and keep FileActions' delayed
 reveal — a job that finishes in a blink never shows the card. Dismiss
 only that operation's own alert.
@@ -420,15 +496,23 @@ sentence. The same script fails on a missing or `""` message.
 
 ## Build & verify
 
-- `make harness` — `swift test --package-path Packages/FilaKit`. No device, no
-  simulator. Run this before anything else; it is where a guard mistake, or a
-  copy that loses an xattr, gets caught.
-- `make check` — project and packaging validation, including the UI-library
-  grep (no `UIAlertController`, no `NSLayoutConstraint.activate`, no
-  SnapKit-bypass `translatesAutoresizingMaskIntoConstraints`, no
-  `SPIndicatorView` outside `Toast.swift`).
-- `make build` — unsigned `Fila.app` + `filad` for iPhoneOS (runs `check` and
-  `harness` first). It, `make sim` and `make vphone` bump
+- `make harness` — `swift test --package-path Packages/FilaKit`, then
+  `Scripts/test-music-import.sh`. No device, no simulator. Run this before
+  anything else; it is where a guard mistake, or a copy that loses an xattr,
+  gets caught.
+- `make check` — project and packaging validation: the ten Xcode targets must
+  all exist, versions and the deployment target must live in `Configuration/`,
+  the string catalogues must match what the compiler extracted, and the
+  UI-library grep must come back empty (no `UIAlertController`, no
+  `NSLayoutConstraint.activate`, no SnapKit-bypass
+  `translatesAutoresizingMaskIntoConstraints`, no `SPIndicatorView` outside
+  `Toast.swift`). Note that outside CI it *rewrites* the tree:
+  `Scripts/remove-stale-strings.py` prunes stale catalogue keys unless `CI` is
+  set, so a `make check` can leave a diff.
+- `make compile` / `make compile-sandboxed` — build only, no packaging. This is
+  what CI runs beside `harness` as three parallel jobs.
+- `make build` — unsigned `Fila.app` + `filad` + `fila-archive` for iPhoneOS
+  (runs `check` and `harness` first). It, `make sim` and `make vphone` bump
   `CURRENT_PROJECT_VERSION` first, so `Version.xcconfig` comes out of a build
   dirty by design.
 - `make sim` — Debug build onto the booted simulator. There is **no daemon**
@@ -478,7 +562,8 @@ sentence. The same script fails on a missing or `""` message.
 - **One shell, two compositions — and within a composition the backend is
   resolved at runtime, never at build time.** `Fila` and `FilaSandboxed` are
   two app targets over the same `Fila/` sources and the same shared
-  frameworks; what differs is the link line. `Fila` links and embeds every
+  frameworks; what differs is the link line. Both embed `FilaCore` — that one
+  is not a backend and is never excluded. `Fila` then links and embeds every
   module framework (`FilaLocal`, `FilaPrivileged`, `FilaApplications`,
   `FilaMusicLibrary`, `FilaSMB`) as `-needed_framework` startup dependencies
   and serves the `.deb` and the `.tipa`; `FilaSandboxed` links `FilaLocal`
@@ -493,7 +578,13 @@ sentence. The same script fails on a missing or `""` message.
   not which wrapper it is. `Scripts/verify-composition.sh` reads the
   composition back out of every packaged bundle — frameworks, load
   commands, and the class and private-framework strings of the excluded
-  modules — and both packagers fail on the wrong one.
+  modules — and both packagers fail on the wrong one; its `shared` list is
+  the statement of what both compositions must carry.
+
+  A **new module framework joins the sandboxed composition** by being added to
+  `FilaSandboxed`'s Frameworks, Embed Frameworks and `-needed_framework` lists
+  and to that `shared` list — three places and a verifier, on purpose. A module
+  that should stay out of the `.ipa` is simply not added, and needs nothing.
 
   `DaemonLink` holds two services — `DaemonFileService` over XPC and
   `LocalFileService` calling `FilaFileOps` in this process — and chooses once,
@@ -559,7 +650,12 @@ sentence. The same script fails on a missing or `""` message.
   but where it is. The two archives fail in opposite directions, so
   `verify-ipa.sh` checks jailbreak entitlements for absence on one side and
   presence on the other. Both wrappers require a matching standard App Group
-  on the containing app and its embedded File Provider.
+  on the containing app and on **both** embedded extensions — the File
+  Provider and `FilaSaveAction`, which share that container. Worth knowing
+  before trusting the gate: `Scripts/sign-file-provider.sh` signs both, and
+  `Scripts/verify-deb.sh` requires both appexes in the payload, but
+  `verify-file-provider.sh` reads the entitlements back out of the File
+  Provider alone. A Save-action group that drifts is not caught today.
 
 ### Review gate on file operations
 
@@ -718,6 +814,12 @@ adding and editing, and its `remove`. Nothing in the shell names SMB: an
 FTP or SFTP module registers a setup and gets the same page, the same
 sidebar rows and the same artwork rule with no shell change.
 
+**A catalogue backend contributes its root row only while it has something to
+show**, and every opener — the sidebar, the tab switcher, a `fila://` link —
+goes through `registry.screen(for:)` rather than naming a concrete type. The
+tab store records a directory per tab, so a catalogue tab restores to the last
+directory the user was in; before that it put Music back at `iTunes_Control`.
+
 Each tab retains its full navigation subtree, including preview/editor content
 and unsaved work. The tab overview lives in the content area and captures the
 actual page. Switching tabs does not close documents; closing or replacing
@@ -742,10 +844,12 @@ the native navigation bar stable on entry and exit.
 
 ### Localization is verified against the compiler, never against a grep
 
-`Fila/Resources/Localizable.xcstrings` ships English and Simplified Chinese,
+`Fila/Resources/Localizable.xcstrings` ships English plus twelve translations,
 and a key that is missing from it **is not a build failure and never warns** —
 it renders the English key itself on a Chinese device, silently. So it has to
-be checked, and checked from the right source.
+be checked, and checked from the right source. Twelve languages also change
+what "add a string" costs: a new key is not done when English is written, and
+the language that quietly ships English is the one nobody on the team reads.
 
 A release build emits one `.stringsdata` per source file under
 `Build/Intermediates.noindex/Fila.build/…/Objects-normal/arm64/`; each is a
@@ -789,11 +893,19 @@ declares `defaultLocalization`, the target takes
 `resources: [.process("Resources")]`, and the call site names its bundle —
 `String(localized: "…", bundle: .module)`. It then emits its own `.stringsdata`
 under `FilaKit.build/…/<Target>-t.build/`, and is diffed like any other target
-rather than scraped. `FilaFormats`, `FilaMedia` and `FilaTerminal` are set up
-this way, and the app carries `CFBundleAllowMixedLocalizations` so it resolves
-strings out of those resource bundles. Add a new target to the table in
-`Scripts/check-extracted-strings.py` when it grows its first string; a target
-missing from that table is not checked at all.
+rather than scraped. `FilaFormats`, `FilaMedia`, `FilaTerminal` and
+`FilaBackendUI` are set up this way, and the app carries
+`CFBundleAllowMixedLocalizations` so it resolves strings out of those resource
+bundles.
+
+A **module framework** is a third case, and the intermediates are where it
+shows: `FilaApplications`, `FilaMusicLibrary` and `FilaSMB` are compiled by
+their Xcode framework targets rather than by SwiftPM, so their `.stringsdata`
+lands under `Fila.build/`, not `FilaKit.build/`. `FilaSaveAction` is an
+extension with its own catalogue for the same reason. The table in
+`Scripts/check-extracted-strings.py` names all nine checked targets and where
+each one's intermediates live. Add a new target to that table when it grows
+its first string; a target missing from it is not checked at all.
 
 `String(localized:)` defaults to `Bundle.main`, which is why the FilaTerminal
 strings *worked* while sitting in the app catalogue and were still wrong: the
@@ -850,7 +962,14 @@ Bundle identifiers are lowercase throughout: app `wiki.qaq.fila`, daemon
 `@PREFIX@/Applications/Fila.app`, `@PREFIX@/usr/libexec/filad`,
 `@PREFIX@/Library/LaunchDaemons/wiki.qaq.filad.plist`.
 
-Localization is English and Simplified Chinese.
+Localization is English plus twelve translations: Arabic, German, Spanish,
+French, Italian, Japanese, Korean, Brazilian Portuguese, Russian, Vietnamese,
+Simplified Chinese and Traditional Chinese. Every catalogue in the repository
+ships all thirteen. Nothing in `make check` verifies that a key is translated
+into all of them — the checks prove that a key exists and that it came from
+real source, not that anyone wrote the Korean. So a string that has only
+English passes every gate and ships English in twelve languages; completing
+a new key is part of adding it, not a later pass.
 
 ## RootHide runtime dependency policy
 

@@ -4,7 +4,14 @@ Fila uses MusicLibrary's client importer on iOS 15 and later. The system owns
 library writes, artwork registration, artist/album grouping and notifications.
 Fila does not issue SQL updates. Diagnostic database queries are read-only.
 
-## Failures corrected in 0.4.1
+The importer is `Packages/FilaKit/Sources/FilaMusicLibrary/MusicLibraryEditor.swift`
+with `MusicLibraryEditor+Import.swift` beside it; the screens that present it
+are in `Frameworks/FilaMusicLibrary/`.
+
+## Failures found on iOS 18.5 and corrected in 0.4.1
+
+These were fixed in 0.4.1 and have shipped since. The section records what the
+importer refuses and why the workarounds exist, not work still to do.
 
 The iOS 18.5 importer rejects three hints that newer versions expose:
 `ML3ClientImportSessionConfiguration.shouldLibraryAdd`,
@@ -85,3 +92,7 @@ copy of the database plus WAL passed `PRAGMA integrity_check` on the host.
 The library service was restarted; its previously queued recovery request then rebuilt the live library empty. Audio files and the host backup remain preserved. The owner confirmed these were test records and requested keeping the empty library.
 This establishes the failure sequence, not the underlying cause of the first
 short read. The revised single-entity deletion path passes host boundary tests; device regression testing of deletion followed by queries remains outstanding. The owner requested starting the 0.4.2 release workflow with this limitation recorded.
+
+Still open as of 2026-09-10, at 0.4.7: nothing in the history since closes it.
+Anyone picking this up should re-run the deletion-then-query sequence on a
+device before treating the path as proven, and date this line again.

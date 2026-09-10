@@ -1,8 +1,15 @@
 # WebDAV library evaluation
 
-Reviewed upstream sources on 2026-09-05. Fila now uses SwiftNIO 2.102.0 and
-NIOTransportServices 1.28.0 for HTTP parsing, serialization and Network.framework
+Reviewed upstream sources on 2026-09-05. Fila uses SwiftNIO and
+NIOTransportServices for HTTP parsing, serialization and Network.framework
 transport. These dependencies link only through FilaRemote in the app.
+
+`Packages/FilaKit/Package.swift` asks for a floor, not an exact version:
+`from: "2.102.0"` for swift-nio and `from: "1.28.0"` for
+swift-nio-transport-services. Those are minimums — the APIs used here exist at
+that version, and a patch release is not a decision worth re-taking. The
+version actually built is whatever `Packages/FilaKit/Package.resolved` pins;
+read it there rather than from this page.
 
 Fila needs an HTTP implementation with bounded request/response streaming while
 every filesystem operation continues through `RemoteFileService`. Reads use a

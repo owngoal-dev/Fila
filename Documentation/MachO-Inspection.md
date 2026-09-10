@@ -1,13 +1,18 @@
 # Mach-O inspection
 
-The inspector uses the app-side `FilaFormats.MachOImage` reader over the
-descriptor supplied by `FileService`. The former UIKit parser is removed.
-No path is reopened, no file is mapped by a dependency, and no executable
-content enters `filad`.
+The inspector uses the app-side `FilaFormats.MachOImage` reader over a
+descriptor from the local backend: `MachOInspectorViewController` is handed a
+`DescriptorFile` and an `any LocalFileAccess`. Do not read the older name
+`FileService` here — that protocol still exists, but it is now the
+backend-neutral one in `FilaBackendKit`, which deliberately has no descriptors,
+so naming it would point at the wrong contract. The former UIKit parser is
+removed. No path is reopened, no file is mapped by a dependency, and no
+executable content enters `filad`.
 
-[MachOKit](https://github.com/p-x9/MachOKit), pinned to 0.52.2, supplies typed
+[MachOKit](https://github.com/p-x9/MachOKit) supplies typed
 load-command layouts, header flags, protection flags, platforms and version
-decoding. These drive the displayed command list, segments and sections,
+decoding. `Package.swift` declares `from: "0.52.2"`, a minimum rather than a
+pin; `Package.resolved` names the version actually built. These drive the displayed command list, segments and sections,
 deployment/SDK versions, entry offset and symbol count. The adapter also
 reads bounded signature identity fields and preserves entitlement viewing.
 MachOKit is a dependency of `FilaFormats` only; it does not link into the daemon.

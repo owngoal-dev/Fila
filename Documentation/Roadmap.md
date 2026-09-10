@@ -7,7 +7,9 @@ is a promise — it is a record of decisions so they don't get re-argued.
 
 The whole vertical slice runs on a device. `filad` serves every operation in
 `FilaOperation`; the app browses, edits, copies, moves, deletes to the trash,
-compresses, and opens what it finds in a viewer. `make packages` builds four
+compresses, opens what it finds in a viewer, hosts a terminal, browses network
+shares, installed applications and the music library, and moves files between
+any two of those. `make packages` builds four
 outputs — the roothide and rootless `.deb`, a TrollStore `.tipa`, and a
 sandboxed `.ipa` — and `make install` puts one on a device over `iproxy`.
 
@@ -21,15 +23,31 @@ deleted originals that had never copied.
 
 Shipped with that slice, and no longer future work:
 
-- `FileService` with two backends, chosen at handshake: XPC to `filad`, or
-  `FilaFileOps` in-process for the `.tipa`, the `.ipa`, and the simulator.
+- `LocalFileAccess` with two implementations, chosen at handshake: XPC to
+  `filad`, or `FilaFileOps` in-process for the `.tipa`, the `.ipa`, and the
+  simulator. (`FileService` is now the backend-neutral protocol above both.)
 - libarchive, statically linked, for the formats Fila reads and writes. 7z
   and RAR stay read-only.
 - Runestone for the text editor.
 - Tabs with a retained navigation stack each, and one `OperationCenter` for
   jobs, transfers and toasts.
 - WebDAV server and the bundled browser UI in `WebUI/`.
-- Files.app integration through the embedded File Provider (iOS 16+).
+- Files.app integration through the embedded File Provider (iOS 16+), and a
+  *Save to Fila* share-sheet extension beside it.
+- The terminal: libghostty, a pty the daemon opens, and credentials dropped
+  before the shell is spawned.
+- Extensible backends. `Frameworks/` holds one dynamic framework per backend
+  — Local, Privileged, SMB, Applications, Music — each registering itself
+  from its own manifest at launch, over the contract in `FilaBackendKit`.
+- SMB shares as first-class destinations, with cross-backend copy and move
+  through one `FileTransfer` executor.
+- Two compositions from one shell: `Fila` links every module, `FilaSandboxed`
+  links only what a sandboxed process can use, and
+  `Scripts/verify-composition.sh` reads the difference back out of the
+  packaged binary.
+- App Intents in `Fila/Shortcuts/`, read and write, over the same guarded
+  operations the browser uses.
+- Thirteen languages, one catalogue per target that shows a sentence.
 
 A version tag runs `.github/workflows/release.yml` and publishes the four
 packages. Local `make check`, `make harness` and `make packages` remain the
@@ -77,11 +95,9 @@ Nothing about this is decided. What *is* decided is that it does not arrive as
 
 | Feature | Note |
 | --- | --- |
-| SMB / FTP clients and extensible backends | [Architecture](RemoteClients.md) and [phased implementation plan](BackendModularisation-Plan.md): MIT SMBClient/libcurl, shared subscriptions, backend-owned roots/DefaultStorage, merged sidebar and cross-backend copy/move. Not implemented. |
-| ApplicationBackend / MusicLibraryBackend extraction | [Named backend and controller plan](RemoteClients.md#backend-and-controller-class-plan): shared sidebar/preferences/list lifecycle, domain-specific typed actions. Not implemented. |
-| Bundled backend module discovery | [Confirmed startup design](RemoteClients.md#bundled-frameworks-and-automatic-startup-discovery): Local/Privileged/SMB/FTP/Applications/Music frameworks, shared BackendKit/BackendUI, startup Mach-O linking and manifest/name-based discovery. Exact app version/build; bootstrap failures logged and omitted from UI. Not implemented. |
-| Sandboxed IPA / potential App Store composition | Proposed FilaSandboxed target with app/music modules excluded from its binary; [root and subclass design](RemoteClients.md#backend-roots-and-sandboxed-local-specialization). Dependency isolation and distribution audit remain future work; no approval claimed. |
-| SFTP / WebDAV clients | Deferred. The device is already a WebDAV *server*; outbound clients are separate. SFTP authentication belongs to connection setup behind the proposed shared contract. |
+| FTP client | Not implemented and not planned. It was designed alongside SMB, and dropped: an `FTPBackend` over libcurl would have brought a TLS build and a second network stack for a protocol nobody asked for twice. `Scripts/build-libcurl.sh` is the leftover of that evaluation. |
+| SFTP / WebDAV clients | Deferred. The device is already a WebDAV *server*; outbound clients are separate. SFTP authentication belongs to connection setup behind the shared backend contract, which now exists. |
+| App Store distribution | The sandboxed `.ipa` composition ships, and it contains no private API by construction. That is not the same as an App Store audit, which nobody has done and no approval is claimed for. |
 | Markdown preview | Asked for and declined. |
 | SQLite browser | A viewer, but much larger than the others, and the only one that wants a real database engine rather than a parser. |
 | Passcode / Face ID lock | Reasonable for an app that can read the whole filesystem. It is a feature rather than a setting. |
@@ -160,7 +176,7 @@ shape until AppSync is a stated requirement. None of this belongs in `filad`:
 `installd` does the work as `_installd` whichever process asks, and root buys
 nothing.
 
-**Current implementation:** `Fila/Services/Installation/IPAInstaller.swift` owns
+**Current implementation:** `Packages/FilaKit/Sources/FilaApplications/IPAInstaller.swift` owns
 installation through the IX → LS chain. Runtime probes and installation
 fixtures were removed in 0.1.6; build-time tests remain in `Packages/FilaKit/Tests`.
 
@@ -171,10 +187,10 @@ fixtures were removed in 0.1.6; build-time tests remain in `Packages/FilaKit/Tes
 | Whole-device search | A daemon job that walks with an explicit `opendir` stack and never `stat`s an entry it is not going to return. The earlier note here said a daemon-side walk would allocate inside the 6 MB budget; that was true of `fts(3)` and not of the walk that was written. | `Architecture.md` |
 | Archives | libarchive over descriptors. ZIP, TAR and the compressed TAR filters are writable; 7z and RAR are read-only. | `FilaFormats` |
 | Mach-O and entitlement viewer | Built, including the entitlements plist out of the code-signature superblob. | `Fila/Interface/Viewer/` |
-| App container jump | App-side through `LSApplicationWorkspace`. The documented limit is that nothing on disk links a bundle UUID to its data UUID, so the fallback scan finds bundles only. | `Fila/Services/Applications/InstalledAppCatalog.swift` |
+| App container jump | App-side through `LSApplicationWorkspace`. The documented limit is that nothing on disk links a bundle UUID to its data UUID, so the fallback scan finds bundles only. | `Packages/FilaKit/Sources/FilaApplications/ApplicationCatalog.swift` |
 | Bookmarks, tabs, recents | App-side state. Each tab retains its navigation stack. | `Fila/Application/State/` |
 | TrollStore / sideloaded packages | `make tipa` and `make ipa`, app only, no daemon — the in-process backend after the grace period. | `Scripts/package-ipa.sh` |
-| FileService | Two backends, one handshake. Never a build flag. | `Architecture.md` |
+| Local file access | Two implementations, one handshake. Never a build flag. | `Architecture.md` |
 | Text editor | Runestone, same atomic-save path. | `Fila/Interface/Viewer/` |
 | Built-in web server | WebDAV plus `WebUI/`. | `FilaRemote`, `WebUI/` |
-| Files.app integration | Replicated File Provider, iOS 16+, no daemon, no root. | `FilaFileProvider/README.md` |
+| Files.app integration | Replicated File Provider, iOS 16+, no daemon, no root. | `Architecture.md`, `FilaFileProvider/` |
