@@ -37,10 +37,8 @@ ssh_options=(
 if [ -n "$password" ]; then
     command -v sshpass >/dev/null || { echo "error: DEVICE_PASSWORD is set but sshpass is not installed (brew install sshpass)" >&2; exit 69; }
     run_ssh() { sshpass -p "$password" ssh "${ssh_options[@]}" -p "$port" "$user@$host" "$@"; }
-    run_scp() { sshpass -p "$password" scp "${ssh_options[@]}" -P "$port" "$@"; }
 else
     run_ssh() { ssh "${ssh_options[@]}" -p "$port" "$user@$host" "$@"; }
-    run_scp() { scp "${ssh_options[@]}" -P "$port" "$@"; }
 fi
 
 if ! nc -z "$host" "$port" 2>/dev/null; then
@@ -55,13 +53,25 @@ shell_quote() {
     printf "'%s'" "${1//$quote/$escaped}"
 }
 
+# A non-login ssh shell on a jailbroken guest can come up with nothing but
+# /usr/bin:/bin — the vphone's does — and sudo, dpkg and uicache all live in
+# the bootstrap. Added rather than substituted, and inside the remote shell as
+# well because sudo may impose its own secure_path. A relocated roothide
+# bootstrap is not guessable from here; its own profile puts it on PATH.
+bootstrap_bin='/var/jb/usr/bin:/var/jb/usr/sbin:/var/jb/bin:/var/jb/sbin'
+
+# The same PATH for the unprivileged calls — killall, uiopen and the upload.
+run_remote() {
+    run_ssh "PATH=\"\$PATH:$bootstrap_bin\"; export PATH; $1"
+}
+
 # Keep the password on sudo's stdin, never in the remote command string.
 run_sudo() {
-    local command="sh -c $(shell_quote "$1")"
+    local command="sh -c $(shell_quote "PATH=\"\$PATH:$bootstrap_bin\"; export PATH; $1")"
     if [ -n "$password" ]; then
-        printf '%s\n' "$password" | run_ssh "sudo -S -p '' $command"
+        printf '%s\n' "$password" | run_ssh "PATH=\"\$PATH:$bootstrap_bin\" sudo -S -p '' $command"
     else
-        run_ssh "sudo $command"
+        run_ssh "PATH=\"\$PATH:$bootstrap_bin\" sudo $command"
     fi
 }
 
@@ -99,11 +109,15 @@ remote_directory="$(run_sudo '
 ')"
 remote_package="$remote_directory/package.deb"
 echo "==> copying $(basename "$package") to $user@$host:$port"
-run_scp "$package" "$user@$host:$remote_package"
+# Streamed over the ssh session rather than scp'd: scp speaks sftp now, and a
+# jailbroken guest's sftp-server lives in the bootstrap where the system sshd
+# does not look for it. The destination is the temporary this script just made
+# and chowned to this user.
+run_remote "cat > $(shell_quote "$remote_package")" <"$package"
 
 if [[ "${2:-}" == --launch ]]; then
     # Let app-owned work finish cleanup before replacing its executable.
-    run_ssh 'if killall -0 Fila 2>/dev/null; then
+    run_remote 'if killall -0 Fila 2>/dev/null; then
         killall -TERM Fila || exit
         attempts=0
         while killall -0 Fila 2>/dev/null; do
@@ -133,5 +147,5 @@ remote_directory=
 
 if [[ "${2:-}" == --launch ]]; then
     echo "==> opening Fila"
-    run_ssh "uiopen --bundleid wiki.qaq.fila"
+    run_remote "uiopen --bundleid wiki.qaq.fila"
 fi
