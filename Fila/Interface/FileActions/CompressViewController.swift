@@ -297,7 +297,7 @@ final class CompressViewController: UIViewController {
             self?.directory = url.path
             self?.apply()
         }
-        present(UINavigationController(rootViewController: picker), animated: true)
+        presentAsSheet(UINavigationController(rootViewController: picker))
     }
 
     @objc private func commit() {

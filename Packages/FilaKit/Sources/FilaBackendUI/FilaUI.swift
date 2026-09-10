@@ -58,17 +58,6 @@ public enum FilaUI {
     }
 }
 
-public extension String.LocalizationValue {
-    /// A text field that shows no placeholder, for the fields that arrive with
-    /// their value already in them.
-    ///
-    /// Written as a value and not as `""` at the call site. Xcode extracts
-    /// every literal in a `String.LocalizationValue` position, so an empty
-    /// literal puts an empty key in the string catalogue — and puts it back on
-    /// the next build after anyone deletes it.
-    static let noPlaceholder = String.LocalizationValue(String())
-}
-
 extension UIListContentConfiguration: @retroactive Then {}
 extension UIButton.Configuration: @retroactive Then {}
 extension UICollectionLayoutListConfiguration: @retroactive Then {}

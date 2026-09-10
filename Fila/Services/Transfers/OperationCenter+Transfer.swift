@@ -173,13 +173,20 @@ extension OperationCenter {
             lock.unlock()
             guard schedule else { return }
             Task { @MainActor [self] in
-                lock.lock()
-                let value = latest
-                latest = nil
-                scheduled = false
-                lock.unlock()
-                if let value { report(value) }
+                if let value = take() { report(value) }
             }
+        }
+
+        /// The pending value, taken under the lock from a synchronous frame:
+        /// a lock held across an await is a hang, and the compiler refuses
+        /// `lock()` in an async context for that reason.
+        private func take() -> JobProgress? {
+            lock.lock()
+            defer { lock.unlock() }
+            let value = latest
+            latest = nil
+            scheduled = false
+            return value
         }
     }
 }

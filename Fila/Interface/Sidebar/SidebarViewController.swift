@@ -524,18 +524,14 @@ final class SidebarViewController: UIViewController {
     private func presentTasks() {
         guard presentedViewController == nil else { return }
         let tasks = TransfersViewController(center: session.operations)
-        let navigation = UINavigationController(rootViewController: tasks).then {
-            $0.modalPresentationStyle = traitCollection.horizontalSizeClass == .regular ? .popover : .pageSheet
-            $0.preferredContentSize = CGSize(width: 420, height: 520)
-        }
+        let navigation = UINavigationController(rootViewController: tasks)
         tasks.navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"), primaryAction: UIAction { [weak navigation] _ in
                 navigation?.dismiss(animated: true)
             }
         )
         tasks.navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
-        navigation.popoverPresentationController?.barButtonItem = tasksItem
-        present(navigation, animated: true)
+        presentAsSheet(navigation)
     }
 
     private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {

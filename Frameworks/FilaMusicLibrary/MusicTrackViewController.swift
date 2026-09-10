@@ -208,7 +208,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
         let alert = AlertInputViewController(
             title: fieldTitle(field),
             message: String(localized: "Edit this song’s details in the device’s music library.", bundle: bundle),
-            placeholder: "",
+            placeholder: fieldTitle(field),
             text: original,
             cancelButtonText: String(localized: "Cancel", bundle: bundle),
             doneButtonText: String(localized: "Save", bundle: bundle)

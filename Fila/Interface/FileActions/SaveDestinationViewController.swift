@@ -412,7 +412,7 @@ final class SaveDestinationViewController: UIViewController {
         let alert = AlertInputViewController(
             title: String.LocalizationValue("Go to Path"),
             message: String.LocalizationValue("Enter an absolute path, starting with a slash."),
-            placeholder: .noPlaceholder,
+            placeholder: String.LocalizationValue("Absolute path"),
             text: directory.path,
             doneButtonText: String.LocalizationValue("Go")
         ) { [weak self] path in

@@ -341,10 +341,10 @@ final class PropertyListEditorViewController: TabContentViewController {
             title: row.label,
             message: row.value.typeName,
             // The computed title takes the plain-`String` overload, so the
-            // empty placeholder is not a catalogue lookup and no empty key
-            // comes of it. The button title still is one, and `String(localized:)`
-            // is both the right overload here and visible to the extractor.
-            placeholder: "",
+            // placeholder and the button title are resolved here with
+            // `String(localized:)` — the right overload, and visible to the
+            // extractor.
+            placeholder: String(localized: "Value"),
             text: row.value.editableText ?? "",
             doneButtonText: String(localized: "Done")
         ) { [weak self] text in
@@ -373,7 +373,7 @@ final class PropertyListEditorViewController: TabContentViewController {
         let alert = AlertInputViewController(
             title: String.LocalizationValue("Rename Key"),
             message: String.LocalizationValue("Keys in the same dictionary must be unique."),
-            placeholder: .noPlaceholder,
+            placeholder: String.LocalizationValue("Key"),
             text: row.label,
             doneButtonText: String.LocalizationValue("Done")
         ) { [weak self] name in

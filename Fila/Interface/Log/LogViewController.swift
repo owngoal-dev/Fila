@@ -73,7 +73,6 @@ final class LogViewController: UIViewController {
     /// than a second is impossible — and the Newest button turns it back on.
     private var isFollowing = true
     private var timer: Timer?
-    private var appearanceTask: Task<Void, Never>?
     private var isFetching = false
     /// A compact row's estimated height is also the follow-mode tolerance;
     /// scrolling does not need to construct fonts on every event.
@@ -122,24 +121,66 @@ final class LogViewController: UIViewController {
         installModalDoneButton()
     }
 
+    /// Everything both processes have logged so far, in the list before the
+    /// screen is pushed: the caller awaits this and then pushes, so the
+    /// page arrives full and parked at its newest line rather than empty
+    /// and filling in with an animation after the transition. The app's
+    /// ring is read synchronously; the daemon is given a moment to answer
+    /// and the poll picks up whatever it had not said by then.
+    func loadEverything() async {
+        loadViewIfNeeded()
+        let cursor = daemonCursor
+        let level = LogPreferences.level
+        let session = session
+        typealias Answer = (records: [FilaLog.Record], dropped: UInt64)
+        let answer: Answer? = await withTaskGroup(of: Answer?.self) { group in
+            group.addTask {
+                try? await session.perform { try await $0.fetchLog(since: cursor, level: level) }
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                return nil
+            }
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first
+        }
+        let (appRecords, _) = FilaLog.snapshot(since: appCursor)
+        if let last = appRecords.last {
+            appCursor = last.sequence
+        }
+        if let answer {
+            if let last = answer.records.last {
+                daemonCursor = last.sequence
+            }
+            daemonDropped = answer.dropped
+            updateDroppedNotice()
+        }
+        add(appRecords + (answer?.records ?? []))
+        scrollsToNewestOnLayout = true
+    }
+
+    /// The list has no size until the push lays it out; the first layout
+    /// with one parks it at the bottom, before a frame of it is drawn.
+    private var scrollsToNewestOnLayout = false
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        guard scrollsToNewestOnLayout, collectionView.bounds.height > 0 else { return }
+        scrollsToNewestOnLayout = false
+        collectionView.layoutIfNeeded()
+        scrollToNewest(animated: false)
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        appearanceTask = Task { [weak self] in
-            do { try await Task.sleep(nanoseconds: 500_000_000) }
-            catch { return }
-            guard let self else { return }
-            await refresh(animated: true)
-            guard !Task.isCancelled else { return }
-            timer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-                Task { await self?.refresh() }
-            }
+        timer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
+            Task { await self?.refresh() }
         }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        appearanceTask?.cancel()
-        appearanceTask = nil
         timer?.invalidate()
         timer = nil
     }
@@ -180,7 +221,7 @@ final class LogViewController: UIViewController {
     // MARK: - Polling
 
     /// Merge both sources before applying a single snapshot for this poll.
-    private func refresh(animated: Bool = false) async {
+    private func refresh() async {
         guard !isFetching else { return }
         isFetching = true
         defer { isFetching = false }
@@ -200,10 +241,10 @@ final class LogViewController: UIViewController {
             daemonDropped = answer.dropped
             updateDroppedNotice()
         }
-        add(appRecords + (answer?.records ?? []), animated: animated)
+        add(appRecords + (answer?.records ?? []))
     }
 
-    private func add(_ incoming: [FilaLog.Record], animated: Bool) {
+    private func add(_ incoming: [FilaLog.Record]) {
         records.append(contentsOf: incoming)
         // Two independent sequences on one timeline, so the order is the
         // clock's; source and sequence break a tie so an apply never shuffles
@@ -220,13 +261,15 @@ final class LogViewController: UIViewController {
             // A delete at the front, which is the shape diffable handles best.
             records.removeFirst(records.count - Self.maximumRowCount)
         }
-        applyFilter(animated: animated)
+        applyFilter()
     }
 
     /// The filters, then one snapshot. Every path that changes what is shown
     /// comes through here — a level change, a keystroke, a new batch — so
-    /// there is exactly one place an apply happens.
-    private func applyFilter(animated: Bool = false) {
+    /// there is exactly one place an apply happens. Never animated: the
+    /// page arrives loaded, and a poll's new lines land as steadily as a
+    /// terminal's.
+    private func applyFilter() {
         let level = LogPreferences.level
         let source = sourceFilter
         let text = searchText
@@ -244,9 +287,8 @@ final class LogViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Int, FilaLog.Record>()
         snapshot.appendSections([0])
         snapshot.appendItems(visible)
-        // Animate the initial reveal after the navigation transition; live polls stay steady.
-        dataSource.apply(snapshot, animatingDifferences: animated) { [weak self] in
-            guard let self, isFollowing else { return }
+        dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
+            guard let self, isFollowing, collectionView.bounds.height > 0 else { return }
             scrollToNewest(animated: false)
         }
     }

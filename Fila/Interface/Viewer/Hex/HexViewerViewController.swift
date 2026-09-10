@@ -146,7 +146,7 @@ final class HexViewerViewController: TabContentViewController {
         let alert = AlertInputViewController(
             title: String.LocalizationValue("Go to Offset"),
             message: String.LocalizationValue("Enter a decimal offset, or a hexadecimal offset with a 0x prefix."),
-            placeholder: .noPlaceholder,
+            placeholder: String.LocalizationValue("Offset"),
             text: "",
             doneButtonText: String.LocalizationValue("Go")
         ) { [weak self] text in

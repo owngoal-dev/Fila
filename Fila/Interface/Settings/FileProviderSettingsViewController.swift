@@ -128,7 +128,7 @@ final class FileProviderSettingsViewController: UITableViewController {
                     do { try save(url, isDefault: false) }
                     catch { show(error) }
                 }
-                present(UINavigationController(rootViewController: picker), animated: true)
+                presentAsSheet(UINavigationController(rootViewController: picker))
             case .restore:
                 try save(Self.defaultDocuments(), isDefault: true)
             }

@@ -4,9 +4,9 @@ import UIKit
 
 /// Add or edit one SMB share.
 ///
-/// Value rows, each edited through the one input card, the way the sharing
-/// settings are: the server's address, the share (typed, or chosen from
-/// what the server lists), the account. Save connects first — a wrong
+/// Every value is typed straight into its row — the server's address, the
+/// share (typed, or chosen from what the server lists), the account — the
+/// way Settings takes a Wi-Fi password. Save connects first — a wrong
 /// password or a missing share is an ordinary card with the server's
 /// reason, and the share can still be saved unreached — then registers
 /// the backend and opens it. Editing the address or the share of a saved
@@ -46,7 +46,9 @@ final class SMBConnectionViewController: UITableViewController {
     init(module: FilaSMBModule, existing: SMBBackend?) {
         self.module = module
         self.existing = existing
-        profile = existing?.profile ?? SMBProfile(name: "", host: "", share: "")
+        // A new share starts in account mode: most servers refuse a guest,
+        // and a form that sent one by default read as "the server is broken".
+        profile = existing?.profile ?? SMBProfile(name: "", host: "", share: "", username: "")
         super.init(style: .insetGrouped)
         title = existing == nil
             ? String(localized: "Add SMB Share", bundle: bundle)
@@ -78,6 +80,8 @@ final class SMBConnectionViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "row")
+        tableView.register(FieldCell.self, forCellReuseIdentifier: "field")
+        tableView.keyboardDismissMode = .interactive
         refreshSaveButton()
     }
 
@@ -93,6 +97,22 @@ final class SMBConnectionViewController: UITableViewController {
         case .account: return profile.isGuest ? [.guest] : [.guest, .domain, .username, .password]
         case .name: return [.name]
         }
+    }
+
+    private func indexPath(of row: Row) -> IndexPath? {
+        for section in Section.allCases {
+            if let index = rows(in: section).firstIndex(of: row) {
+                return IndexPath(row: index, section: section.rawValue)
+            }
+        }
+        return nil
+    }
+
+    /// Redraws one row without touching the field the user is typing in:
+    /// the rows that change while another is edited are never the edited one.
+    private func reload(_ row: Row) {
+        guard let indexPath = indexPath(of: row) else { return }
+        tableView.reloadRows(at: [indexPath], with: .none)
     }
 
     override func numberOfSections(in _: UITableView) -> Int {
@@ -124,57 +144,37 @@ final class SMBConnectionViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let row = rows(in: Section(rawValue: indexPath.section)!)[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "row", for: indexPath)
-        var content = UIListContentConfiguration.valueCell()
-        cell.accessoryView = nil
-        cell.accessoryType = .none
-        cell.selectionStyle = .default
         switch row {
-        case .host:
-            content.text = String(localized: "Address", bundle: bundle)
-            content.secondaryText = profile.host
-        case .port:
-            content.text = String(localized: "Port", bundle: bundle)
-            content.secondaryText = String(profile.port)
-        case .share:
-            content.text = String(localized: "Share", bundle: bundle)
-            content.secondaryText = profile.share
         case .chooseShare:
-            content = .cell()
+            let cell = tableView.dequeueReusableCell(withIdentifier: "row", for: indexPath)
+            var content = UIListContentConfiguration.cell()
             content.text = String(localized: "Choose Share…", bundle: bundle)
             content.textProperties.color = profile.host.isEmpty ? .secondaryLabel : .tintColor
+            cell.contentConfiguration = content
+            cell.accessoryView = nil
             cell.selectionStyle = profile.host.isEmpty ? .none : .default
+            return cell
         case .guest:
-            content = .cell()
+            let cell = tableView.dequeueReusableCell(withIdentifier: "row", for: indexPath)
+            var content = UIListContentConfiguration.cell()
             content.text = String(localized: "Connect as Guest", bundle: bundle)
-            let toggle = UISwitch()
-            toggle.isOn = profile.isGuest
-            toggle.addAction(UIAction { [weak self] action in
-                guard let self, let toggle = action.sender as? UISwitch else { return }
-                setGuest(toggle.isOn)
-            }, for: .valueChanged)
-            cell.accessoryView = toggle
-            cell.selectionStyle = .none
-        case .domain:
-            content.text = String(localized: "Domain", bundle: bundle)
-            content.secondaryText = profile.domain ?? ""
-        case .username:
-            content.text = String(localized: "User Name", bundle: bundle)
-            content.secondaryText = profile.username ?? ""
-        case .password:
-            content.text = String(localized: "Password", bundle: bundle)
-            let present: Bool
-            switch password {
-            case .none: present = isStoredPasswordPresent
-            case let .some(value): present = value?.isEmpty == false
+            cell.contentConfiguration = content
+            cell.accessoryView = UISwitch().then {
+                $0.isOn = profile.isGuest
+                $0.addAction(UIAction { [weak self] action in
+                    guard let self, let toggle = action.sender as? UISwitch else { return }
+                    setGuest(toggle.isOn)
+                }, for: .valueChanged)
             }
-            content.secondaryText = present ? "••••••••" : ""
-        case .name:
-            content.text = String(localized: "Name", bundle: bundle)
-            content.secondaryText = profile.name.isEmpty ? profile.displayName : profile.name
+            cell.selectionStyle = .none
+            return cell
+        case .host, .port, .share, .domain, .username, .password, .name:
+            let cell = tableView.dequeueReusableCell(withIdentifier: "field", for: indexPath) as! FieldCell
+            cell.configure(field(for: row)) { [weak self] text in
+                self?.apply(text, to: row)
+            }
+            return cell
         }
-        cell.contentConfiguration = content
-        return cell
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -183,15 +183,16 @@ final class SMBConnectionViewController: UITableViewController {
         switch row {
         case .chooseShare:
             guard !profile.host.isEmpty else { return }
+            view.endEditing(true)
             chooseShare()
-        case .guest:
-            break
-        default:
-            edit(row)
+        case .guest, .host, .port, .share, .domain, .username, .password, .name:
+            // Tapping the row's title focuses its field.
+            (tableView.cellForRow(at: indexPath) as? FieldCell)?.beginEditing()
         }
     }
 
     private func setGuest(_ guest: Bool) {
+        view.endEditing(true)
         if guest {
             profile.username = nil
             profile.domain = nil
@@ -205,76 +206,97 @@ final class SMBConnectionViewController: UITableViewController {
 
     // MARK: - Editing
 
-    /// AlertController resolves a `String.LocalizationValue` against the
-    /// app's bundle, where none of this module's strings live, so every
-    /// card here is given text already resolved from the module's own
-    /// catalogue.
-    private func edit(_ row: Row) {
-        let title: String
-        let message: String
-        let value: String
+    private func field(for row: Row) -> FieldCell.Configuration {
         switch row {
         case .host:
-            title = String(localized: "Address", bundle: bundle)
-            message = String(localized: "The server's host name or IP address.", bundle: bundle)
-            value = profile.host
+            return .init(
+                title: String(localized: "Address", bundle: bundle),
+                placeholder: String(localized: "Host name or IP address", bundle: bundle),
+                text: profile.host,
+                keyboard: .URL
+            )
         case .port:
-            title = String(localized: "Port", bundle: bundle)
-            message = String(localized: "445 unless the server says otherwise.", bundle: bundle)
-            value = String(profile.port)
+            return .init(
+                title: String(localized: "Port", bundle: bundle),
+                placeholder: String(SMBProfile.defaultPort),
+                text: profile.port == SMBProfile.defaultPort ? "" : String(profile.port),
+                keyboard: .numberPad
+            )
         case .share:
-            title = String(localized: "Share", bundle: bundle)
-            message = String(localized: "The name of the shared folder on the server.", bundle: bundle)
-            value = profile.share
+            return .init(
+                title: String(localized: "Share", bundle: bundle),
+                placeholder: String(localized: "Shared folder", bundle: bundle),
+                text: profile.share
+            )
         case .domain:
-            title = String(localized: "Domain", bundle: bundle)
-            message = String(
-                localized: "The account's domain or workgroup. Leave it empty unless the server needs one.",
-                bundle: bundle
+            return .init(
+                title: String(localized: "Domain", bundle: bundle),
+                placeholder: String(localized: "Optional", bundle: bundle),
+                text: profile.domain ?? ""
             )
-            value = profile.domain ?? ""
         case .username:
-            title = String(localized: "User Name", bundle: bundle)
-            message = String(localized: "The account the server knows.", bundle: bundle)
-            value = profile.username ?? ""
-        case .password:
-            title = String(localized: "Password", bundle: bundle)
-            message = String(localized: "The account's password. It is kept in the keychain.", bundle: bundle)
-            value = ""
-        case .name:
-            title = String(localized: "Name", bundle: bundle)
-            message = String(
-                localized: "How the sidebar lists this share. Leave it empty to use the share and server.",
-                bundle: bundle
+            return .init(
+                title: String(localized: "User Name", bundle: bundle),
+                placeholder: String(localized: "Required", bundle: bundle),
+                text: profile.username ?? ""
             )
-            value = profile.name
-        case .chooseShare, .guest:
-            return
-        }
-        let alert = AlertInputViewController(
-            title: title,
-            message: message,
-            placeholder: "",
-            text: value,
-            cancelButtonText: String(localized: "Cancel", bundle: bundle),
-            doneButtonText: String(localized: "Done", bundle: bundle)
-        ) { [weak self] text in
-            guard let self else { return }
-            let trimmed = text.trimmingCharacters(in: .whitespaces)
-            switch row {
-            case .host: profile.host = trimmed
-            case .port: profile.port = Int(trimmed) ?? SMBProfile.defaultPort
-            case .share: profile.share = trimmed
-            case .domain: profile.domain = trimmed.isEmpty ? nil : trimmed
-            case .username: profile.username = trimmed
-            case .password: password = .some(text.isEmpty ? nil : text)
-            case .name: profile.name = trimmed
-            case .chooseShare, .guest: break
+        case .password:
+            let stored: Bool
+            switch password {
+            case .none: stored = isStoredPasswordPresent
+            case .some: stored = false
             }
-            tableView.reloadData()
-            refreshSaveButton()
+            let typed: String
+            switch password {
+            case let .some(.some(value)): typed = value
+            default: typed = ""
+            }
+            return .init(
+                title: String(localized: "Password", bundle: bundle),
+                // A stored password is never shown, not even as dots in the
+                // field: the dots are a placeholder, and typing replaces it.
+                placeholder: stored ? "••••••••" : String(localized: "Optional", bundle: bundle),
+                text: typed,
+                isSecure: true
+            )
+        case .name:
+            let hasIdentity = !profile.host.isEmpty && !profile.share.isEmpty
+            return .init(
+                title: String(localized: "Name", bundle: bundle),
+                placeholder: hasIdentity ? profile.displayName : String(localized: "Optional", bundle: bundle),
+                text: profile.name
+            )
+        case .chooseShare, .guest:
+            preconditionFailure("not a field")
         }
-        present(alert, animated: true)
+    }
+
+    private func apply(_ text: String, to row: Row) {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        switch row {
+        case .host:
+            let wasEmpty = profile.host.isEmpty
+            profile.host = trimmed
+            if wasEmpty != trimmed.isEmpty { reload(.chooseShare) }
+            reload(.name)
+        case .port:
+            // Empty is the default; anything else must parse, or Save waits.
+            profile.port = trimmed.isEmpty ? SMBProfile.defaultPort : (Int(trimmed) ?? 0)
+        case .share:
+            profile.share = trimmed
+            reload(.name)
+        case .domain:
+            profile.domain = trimmed.isEmpty ? nil : trimmed
+        case .username:
+            profile.username = trimmed
+        case .password:
+            password = .some(text.isEmpty ? nil : text)
+        case .name:
+            profile.name = trimmed
+        case .chooseShare, .guest:
+            break
+        }
+        refreshSaveButton()
     }
 
     /// Asks the server for its disk shares with the account as entered.
@@ -347,6 +369,7 @@ final class SMBConnectionViewController: UITableViewController {
     // MARK: - Saving
 
     private func save() {
+        view.endEditing(true)
         guard profile.validationFailure == nil else { return }
         // A share pointed elsewhere is a new entry with its own identity.
         var saving = profile
@@ -425,5 +448,87 @@ final class SMBConnectionViewController: UITableViewController {
                 message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
             )
         }
+    }
+}
+
+/// One labelled text field in a grouped row: the title leading, the value
+/// typed trailing, the way Settings lays out a form.
+private final class FieldCell: UITableViewCell {
+    struct Configuration {
+        var title: String
+        var placeholder: String
+        var text: String
+        var keyboard: UIKeyboardType = .default
+        var isSecure = false
+    }
+
+    private let titleLabel = UILabel().then {
+        $0.font = .preferredFont(forTextStyle: .body)
+        $0.adjustsFontForContentSizeCategory = true
+        $0.setContentHuggingPriority(.required, for: .horizontal)
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+    }
+
+    private let field = UITextField().then {
+        $0.font = .preferredFont(forTextStyle: .body)
+        $0.adjustsFontForContentSizeCategory = true
+        $0.textAlignment = .right
+        $0.autocapitalizationType = .none
+        $0.autocorrectionType = .no
+        $0.spellCheckingType = .no
+        $0.smartQuotesType = .no
+        $0.smartDashesType = .no
+        $0.smartInsertDeleteType = .no
+        $0.clearButtonMode = .whileEditing
+        $0.returnKeyType = .done
+    }
+
+    private var onChange: ((String) -> Void)?
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        selectionStyle = .none
+        field.addTarget(self, action: #selector(changed), for: .editingChanged)
+        field.addTarget(self, action: #selector(finishTextEntry(_:)), for: .editingDidEndOnExit)
+        let row = UIStackView(arrangedSubviews: [titleLabel, field]).then {
+            $0.axis = .horizontal
+            $0.alignment = .center
+            $0.spacing = FilaUI.Spacing.large
+        }
+        contentView.addSubview(row)
+        row.snp.makeConstraints { make in
+            make.edges.equalTo(contentView.layoutMarginsGuide)
+            make.height.greaterThanOrEqualTo(FilaUI.minimumTapTarget - 2 * FilaUI.Spacing.small)
+        }
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(_ configuration: Configuration, onChange: @escaping (String) -> Void) {
+        titleLabel.text = configuration.title
+        field.do {
+            $0.text = configuration.text
+            $0.placeholder = configuration.placeholder
+            $0.accessibilityLabel = configuration.title
+            $0.keyboardType = configuration.keyboard
+            $0.isSecureTextEntry = configuration.isSecure
+            $0.textContentType = configuration.isSecure ? .password : nil
+        }
+        self.onChange = onChange
+    }
+
+    func beginEditing() {
+        field.becomeFirstResponder()
+    }
+
+    @objc private func changed() {
+        onChange?(field.text ?? "")
+    }
+
+    @objc private func finishTextEntry(_ sender: UITextField) {
+        sender.resignFirstResponder()
     }
 }

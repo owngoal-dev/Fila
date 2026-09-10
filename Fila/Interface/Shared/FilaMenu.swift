@@ -13,13 +13,16 @@ enum FilaMenu {
         goToPath: @escaping () -> Void,
         open: @escaping (String) -> Void
     ) -> [UIMenuElement] {
-        let places = SidebarLocation.orderedDestinations.compactMap { destination -> UIMenuElement? in
+        let directories = SidebarLocation.orderedDestinations.compactMap { destination -> SidebarPlace? in
             guard case let .directory(place) = destination else { return nil }
-            return UIAction(title: place.title, image: preview(for: place)) { _ in open(place.path) }
+            return place
+        }
+        let places = directories.map { place in
+            UIAction(title: place.title, image: preview(for: place)) { _ in open(place.path) }
         }
         let locations = [UIMenu(
             title: String(localized: "Places"),
-            image: UIImage(named: "FileIcons/folder"),
+            image: compositeIcon(directories.compactMap(preview(for:))) ?? UIImage(named: "FileIcons/folder"),
             children: places
         )]
             + collections(open: open)
@@ -32,6 +35,51 @@ enum FilaMenu {
         case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
         case .symbol: FilePresentation.image(kind: .directory, name: place.title)
         }
+    }
+
+    /// The row asset's side: `Scripts/make-file-icons.swift` renders the
+    /// `FileIcons` set at 40 points, and a composed icon is drawn at the same
+    /// size so it sits in a menu row the way its siblings do.
+    private static let rowIconSide: CGFloat = 40
+
+    /// A submenu's icon composed from what it holds — an n×n grid of the
+    /// first pictures inside it on a rounded tile — so a row that opens a
+    /// list says what kind of list, rather than showing the same folder for
+    /// Places, Favorites and Recents alike. One picture fills the tile; up
+    /// to four make a 2×2; more make a 3×3 of the first nine. Nil for an
+    /// empty list, and the caller falls back to the plain folder.
+    static func compositeIcon(_ pictures: [UIImage]) -> UIImage? {
+        let pictures = Array(pictures.prefix(9))
+        guard !pictures.isEmpty else { return nil }
+        let columns = pictures.count == 1 ? 1 : pictures.count <= 4 ? 2 : 3
+        let side = rowIconSide
+        let inset: CGFloat = 3
+        let gap: CGFloat = 2
+        let cell = (side - 2 * inset - CGFloat(columns - 1) * gap) / CGFloat(columns)
+        let tile = CGRect(x: 0, y: 0, width: side, height: side)
+        let image = UIGraphicsImageRenderer(size: tile.size).image { _ in
+            UIColor.secondarySystemFill.setFill()
+            UIBezierPath(roundedRect: tile, cornerRadius: side * 0.22).fill()
+            for (index, picture) in pictures.enumerated() {
+                let box = CGRect(
+                    x: inset + CGFloat(index % columns) * (cell + gap),
+                    y: inset + CGFloat(index / columns) * (cell + gap),
+                    width: cell,
+                    height: cell
+                )
+                // Aspect fit: the artwork is square, but a symbol is not.
+                let scale = min(box.width / max(picture.size.width, 1), box.height / max(picture.size.height, 1))
+                let size = CGSize(width: picture.size.width * scale, height: picture.size.height * scale)
+                picture.draw(in: CGRect(
+                    x: box.midX - size.width / 2, y: box.midY - size.height / 2, width: size.width, height: size.height
+                ))
+            }
+        }
+        return image.withRenderingMode(.alwaysOriginal)
+    }
+
+    private static func folderIcon(named name: String) -> UIImage? {
+        FilePresentation.image(kind: .directory, name: (name as NSString).lastPathComponent)
     }
 
     static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
@@ -81,21 +129,27 @@ enum FilaMenu {
                 })
             }
         }
+        let folder = UIImage(named: "FileIcons/folder")
+        let drive = UIImage(named: "FileIcons/drive-internal")
+        let favorites = session.favoritePaths
+        let recents = session.recentPaths(limit: 8)
         return [
             UIMenu(
                 title: String(localized: "Favorites"),
-                image: UIImage(named: "FileIcons/folder"),
-                children: [folders(session.favoritePaths)]
+                image: compositeIcon(favorites.compactMap(folderIcon(named:))) ?? folder,
+                children: [folders(favorites)]
             ),
             UIMenu(
+                // The mounts are listed when the menu opens; the tile says
+                // "volumes" with the drive picture, four up.
                 title: String(localized: "Mount Points"),
-                image: UIImage(named: "FileIcons/drive-internal"),
+                image: compositeIcon(Array(repeating: drive, count: 4).compactMap(\.self)) ?? drive,
                 children: [mounts]
             ),
             UIMenu(
                 title: String(localized: "Recents"),
-                image: UIImage(named: "FileIcons/folder"),
-                children: [folders(session.recentPaths(limit: 8))]
+                image: compositeIcon(recents.compactMap(folderIcon(named:))) ?? folder,
+                children: [folders(recents)]
             ),
         ]
     }

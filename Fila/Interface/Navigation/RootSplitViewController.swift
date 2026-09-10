@@ -28,6 +28,7 @@ final class RootSplitViewController: UISplitViewController {
 
     init() {
         super.init(style: .doubleColumn)
+        content.owner = self
     }
 
     @available(*, unavailable)

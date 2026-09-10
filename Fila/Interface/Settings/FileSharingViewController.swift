@@ -238,19 +238,23 @@ final class FileSharingViewController: UIViewController {
     private func edit(_ row: Row) {
         let title: String.LocalizationValue
         let message: String.LocalizationValue
+        let placeholder: String.LocalizationValue
         let value: String
         switch row {
         case .userName:
             title = "User Name"
             message = "Anyone connecting must enter this name."
+            placeholder = "User Name"
             value = AppPreferences.shared.serverUsername
         case .password:
             title = "Password"
             message = "Anyone connecting must enter this password. Leave it empty to generate a new one."
+            placeholder = "Password"
             value = AppPreferences.shared.serverPassword
         case .port:
             title = "Port"
             message = "Enter a port from 1024 to 65535."
+            placeholder = "Port"
             value = String(AppPreferences.shared.serverPort)
         default:
             return
@@ -258,7 +262,7 @@ final class FileSharingViewController: UIViewController {
         let alert = AlertInputViewController(
             title: title,
             message: message,
-            placeholder: .noPlaceholder,
+            placeholder: placeholder,
             text: value,
             doneButtonText: String.LocalizationValue("Save")
         ) { [weak self] text in
@@ -285,7 +289,7 @@ final class FileSharingViewController: UIViewController {
             AppPreferences.shared.serverRoot = url.path
             self?.apply()
         }
-        present(UINavigationController(rootViewController: picker), animated: true)
+        presentAsSheet(UINavigationController(rootViewController: picker))
     }
 
     private static func header(for section: Section) -> String? {

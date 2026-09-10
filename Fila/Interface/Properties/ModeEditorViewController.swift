@@ -189,7 +189,7 @@ final class ModeEditorViewController: TabContentViewController {
         let alert = AlertInputViewController(
             title: String.LocalizationValue("Octal Mode"),
             message: String.LocalizationValue("Enter three or four octal digits (0–7)."),
-            placeholder: .noPlaceholder,
+            placeholder: String.LocalizationValue("Octal digits"),
             text: String(format: "%04o", mode),
             doneButtonText: String.LocalizationValue("Set")
         ) { [weak self] text in

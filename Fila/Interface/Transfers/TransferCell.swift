@@ -16,7 +16,6 @@ final class TransferCell: UICollectionViewListCell {
     private let detailLabel = UILabel()
     private let amountLabel = UILabel()
     private let percentageLabel = UILabel()
-    private let currentFileLabel = UILabel()
     private let progressView = UIProgressView(progressViewStyle: .default)
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let progressStack = UIStackView()
@@ -47,7 +46,7 @@ final class TransferCell: UICollectionViewListCell {
             $0.textColor = .secondaryLabel
             $0.lineBreakMode = .byTruncatingMiddle
         }
-        for label in [detailLabel, amountLabel, percentageLabel, currentFileLabel] {
+        for label in [detailLabel, amountLabel, percentageLabel] {
             label.do {
                 $0.font = .preferredFont(forTextStyle: .footnote)
                 $0.textColor = .secondaryLabel
@@ -60,7 +59,7 @@ final class TransferCell: UICollectionViewListCell {
             $0.textAlignment = .right
             $0.setContentCompressionResistancePriority(.required, for: .horizontal)
         }
-        for label in [titleLabel, subtitleLabel, detailLabel, amountLabel, percentageLabel, currentFileLabel] {
+        for label in [titleLabel, subtitleLabel, detailLabel, amountLabel, percentageLabel] {
             label.adjustsFontForContentSizeCategory = true
         }
         let numbers = UIStackView(arrangedSubviews: [spinner, amountLabel, percentageLabel]).then {
@@ -73,7 +72,6 @@ final class TransferCell: UICollectionViewListCell {
             $0.spacing = FilaUI.Spacing.small
             $0.addArrangedSubview(progressView)
             $0.addArrangedSubview(numbers)
-            $0.addArrangedSubview(currentFileLabel)
         }
         let text = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel, progressStack, detailLabel]).then {
             $0.axis = .vertical
@@ -125,8 +123,6 @@ final class TransferCell: UICollectionViewListCell {
                 spinner.startAnimating()
             }
             amountLabel.text = Self.workingAmount(progress)
-            currentFileLabel.text = progress.map { ($0.currentPath as NSString).lastPathComponent }
-            currentFileLabel.isHidden = currentFileLabel.text?.isEmpty != false
 
         case let .finished(failure):
             if let real = operation.failure {
@@ -149,7 +145,6 @@ final class TransferCell: UICollectionViewListCell {
             titleLabel.text, operation.subtitle, detailLabel.text,
             operation.isRunning ? amountLabel.text : nil,
             operation.isRunning ? percentageLabel.text : nil,
-            operation.isRunning ? currentFileLabel.text : nil,
         ].compactMap(\.self).filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
