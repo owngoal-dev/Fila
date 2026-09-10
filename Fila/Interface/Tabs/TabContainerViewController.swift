@@ -21,11 +21,15 @@ final class TabContainerViewController: UIViewController {
     /// owner has a Tabs button that does nothing.
     weak var owner: RootSplitViewController?
 
+    /// This window's tab list. The shell makes one per window scene and
+    /// hands it here; the switcher reads it through the container.
+    let store: BrowserTabStore
+
     private var tabs: [UUID: Content] = [:]
-    /// The tab whose navigation is installed, even while the overview covers it.
-    private(set) var installedTabID: UUID? {
-        didSet { BrowserTabStore.shared.setInstalled(installedTabID, by: self) }
-    }
+    /// The tab whose navigation is installed, even while the overview covers
+    /// it. Usually the store's current tab; not while a tab opened from a
+    /// menu is on its way — current in the store, its page not yet installed.
+    private(set) var installedTabID: UUID?
 
     private var displayed: UIViewController?
     private var appearance: Appearance = .hidden
@@ -36,6 +40,16 @@ final class TabContainerViewController: UIViewController {
     private var settled = false
     private var connectionTask: Task<Void, Never>?
 
+    init(store: BrowserTabStore) {
+        self.store = store
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("not supported")
+    }
+
     deinit { connectionTask?.cancel() }
 
     var navigation: UINavigationController? {
@@ -45,36 +59,16 @@ final class TabContainerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        NotificationCenter.default.addObserver(
-            self, selector: #selector(tabsChanged), name: .filaTabsChanged, object: nil
-        )
-    }
-
-    /// The tab list is shared between windows; this window's page is not.
-    /// A tab closed from another window's overview leaves this one showing a
-    /// page no tab names any more, so it moves on to the current tab. The
-    /// window doing the closing is in its overview, where its own closes are
-    /// handled by the shell, and is left alone here.
-    @objc private func tabsChanged() {
-        let store = BrowserTabStore.shared
-        guard !isShowingOverview, let id = installedTabID,
-              !store.tabs.contains(where: { $0.id == id }) else { return }
-        removeClosedTabs()
-        // A close never grows the list: a tab no other window shows, else
-        // the current one shared.
-        let tab = store.freeTab(for: self) ?? store.current
-        showTab(tab.id) { makeNavigation(Self.browsers(for: tab)) }
     }
 
     /// Re-installs this window's own tab — the page the user is looking at
     /// — for the callers that need a live navigation and must not switch
     /// tabs: closing the overview without choosing, and a push or replace
     /// on this window. `showCurrentTab` is for the callers that have just
-    /// made a tab current on purpose; here another window may have moved
-    /// `currentID` since this page was installed.
+    /// made a tab current on purpose. With nothing installed yet — the
+    /// window is still connecting — the current tab is shown instead.
     func showInstalledTab() {
-        guard let id = installedTabID, tabs[id] != nil,
-              BrowserTabStore.shared.tabs.contains(where: { $0.id == id }) else {
+        guard let id = installedTabID, tabs[id] != nil, store.tabs.contains(where: { $0.id == id }) else {
             showCurrentTab()
             return
         }
@@ -165,16 +159,13 @@ final class TabContainerViewController: UIViewController {
             }
             return
         }
-        // A window that has shown nothing yet is given a tab of its own; after
-        // that, the current tab is whatever this window's last action made it.
-        let store = BrowserTabStore.shared
-        let tab = tabs.isEmpty ? store.tabForNewWindow(self) : store.current
+        let tab = store.current
         showTab(tab.id) { makeNavigation(Self.browsers(for: tab)) }
         removeClosedTabs()
     }
 
     func showCurrentTab(root: UIViewController) {
-        showTab(BrowserTabStore.shared.currentID) { makeNavigation([root]) }
+        showTab(store.currentID) { makeNavigation([root]) }
         removeClosedTabs()
     }
 
@@ -187,7 +178,7 @@ final class TabContainerViewController: UIViewController {
 
     /// Removing a background tab does not install, lay out or snapshot a survivor.
     func removeClosedTabs() {
-        let remaining = Set(BrowserTabStore.shared.tabs.map(\.id))
+        let remaining = Set(store.tabs.map(\.id))
         for id in tabs.keys.filter({ !remaining.contains($0) }) {
             guard let closed = tabs.removeValue(forKey: id)?.navigation else { continue }
             closed.willMove(toParent: nil)
@@ -196,7 +187,6 @@ final class TabContainerViewController: UIViewController {
             if installedTabID == id {
                 installedTabID = nil
             }
-            // A tab closed from another window can be the one on screen.
             if displayed === closed {
                 displayed = nil
             }
@@ -274,10 +264,10 @@ final class TabContainerViewController: UIViewController {
     /// through the previous location. Back lazily opens the new path's parent;
     /// its other ancestors remain available in the path bar.
     func showRoot(_ path: String, select: String?) {
-        let store = BrowserTabStore.shared
         if let id = installedTabID, let navigation, store.tabs.contains(where: { $0.id == id }) {
-            // This window's tab, made current by the jump: an action in a
-            // window is an action on the tab that window shows.
+            // The tab on screen, made current by the jump: an action on this
+            // page is an action on its tab, whatever a tab still arriving
+            // from a menu has made current meanwhile.
             store.select(id)
             store.record(id, stack: [path], offsets: [:], selection: select)
             tabs[id]?.preview = nil
@@ -288,9 +278,7 @@ final class TabContainerViewController: UIViewController {
         showCurrentTab()
     }
 
-    /// Writes down the installed tab's stack — the tab this window shows,
-    /// which is the current one unless another window has since made a
-    /// different tab current.
+    /// Writes down the installed tab's stack — the tab this window shows.
     func captureCurrentTab() {
         guard let id = installedTabID, let navigation else { return }
         let browsers = navigation.viewControllers.compactMap { $0 as? FileBrowserViewController }
@@ -301,7 +289,7 @@ final class TabContainerViewController: UIViewController {
         }
         let top = browsers.last
         let selection = (top?.isViewLoaded ?? false) ? top?.selectedPaths().first : nil
-        BrowserTabStore.shared.record(
+        store.record(
             id,
             stack: browsers.map(\.directory),
             offsets: offsets,

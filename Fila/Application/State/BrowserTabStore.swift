@@ -1,9 +1,11 @@
 import Foundation
+import UIKit
 
 extension Notification.Name {
-    /// A tab was opened, closed, reordered, or switched to. The switcher
-    /// redraws; nothing else listens, because the shell is the only other
-    /// thing that touches tabs and it is what posted this.
+    /// A tab was opened, closed, reordered, or switched to. Posted with the
+    /// store that changed as the object: the switcher and the container of
+    /// that window redraw, and another window's — with a store of its own —
+    /// hears nothing, because nothing of its changed.
     static let filaTabsChanged = Notification.Name("wiki.qaq.fila.tabs")
 }
 
@@ -91,7 +93,15 @@ extension BrowserTab {
     }
 }
 
-/// Every open tab, and which one is in front.
+/// One window's open tabs, and which one is in front.
+///
+/// One per window scene, not one for the app: with two Fila windows on an
+/// iPad, a tab closed in one must not vanish from the other, and Close All
+/// in one is not Close All in both. The list is keyed by the scene session's
+/// `persistentIdentifier`, which is what iOS itself keys the window's
+/// restoration by, so a window that comes back after a relaunch finds its
+/// own tabs — and a window iOS has discarded takes its keys with it (see
+/// `forget`).
 ///
 /// `UserDefaults` for the same reason everything else in `AppPreferences` is: it
 /// is a small amount of text that has to survive a respring. Both dimensions
@@ -100,8 +110,6 @@ extension BrowserTab {
 /// sits behind `fila://`, which is an unauthenticated entry point.
 @MainActor
 final class BrowserTabStore {
-    static let shared = BrowserTabStore()
-
     /// How many tabs may exist at once. Roughly what a switcher grid shows
     /// without becoming a scrolling archive of everywhere you have ever been.
     private static let limit = 16
@@ -111,111 +119,75 @@ final class BrowserTabStore {
     /// thirty Back taps, so the far end of a long walk is worth nothing.
     private static let depthLimit = 32
 
+    /// How many windows' lists are kept for windows that are not open. A
+    /// window closed on an iPad is discarded by iOS and its list goes then;
+    /// this is the bound on what an installer's `uicache` — which drops every
+    /// session without telling the app — can leave behind.
+    private static let orphanLimit = 8
+
     private let defaults: UserDefaults
 
-    private(set) var tabs: [BrowserTab]
-    /// The tab the last window to act made its own. Persisted so a relaunch
-    /// lands where the person was; at runtime it is only a default, because
-    /// on an iPad two windows share this list and each shows its own tab —
-    /// see `installed`.
-    private(set) var currentID: UUID
+    /// The window this list belongs to: its scene session's persistent identifier.
+    let sessionIdentifier: String
 
-    /// Which tab each window's content container has on screen. Keyed
-    /// weakly by the container so a closed window's entry goes with it, and
-    /// never persisted: a window that comes back after a relaunch is given a
-    /// tab again through `tabForNewWindow`.
-    private let installed = NSMapTable<AnyObject, NSUUID>.weakToStrongObjects()
+    /// The stores alive right now, by session. What a session connecting
+    /// with no list of its own may adopt is a list whose window is *not*
+    /// among these (nor among the sessions iOS still holds open).
+    private static var live: Set<String> = []
 
-    private init() {
-        let defaults = UserDefaults.standard
+    private struct State {
+        var tabs: [BrowserTab]
+        var currentID: UUID
+    }
+
+    /// Read on first use, not at construction: the scene connects — and this
+    /// object is made — before the handshake has landed, and what a tab's
+    /// chain looks like depends on which backend answered. Every reader
+    /// waits for `FileSession.shared.hello` first (the container's
+    /// `showCurrentTab`, a link's `ready()`), so by the first read the answer
+    /// is known.
+    private var state: State?
+
+    init(sessionIdentifier: String, defaults: UserDefaults = .standard) {
+        self.sessionIdentifier = sessionIdentifier
         self.defaults = defaults
-        var stored = Self.load(from: defaults)
-        if case .local(.container) = FileSession.shared.hello?.backend {
-            // A remembered directory this container does not hold — the
-            // full root's launch directory from a build that had it, the
-            // container root from a build that started at Home, or a path
-            // under the container a sideloading tool's reinstall retired —
-            // reopens at the root that exists. Anything inside keeps its
-            // place and gets the chain that starts there.
-            let root = FileSession.shared.local.rootPath
-            let roots = [root, URL(fileURLWithPath: root).resolvingSymlinksInPath().path]
-            for index in stored.indices {
-                let path = stored[index].path
-                if roots.contains(where: { path == $0 || path.hasPrefix($0 + "/") }) {
-                    stored[index].stack = BrowserTab.chain(to: path)
-                } else {
-                    stored[index].stack = BrowserTab.chain(to: root)
-                    stored[index].offsets = [:]
-                    stored[index].selection = nil
-                }
-            }
+        Self.live.insert(sessionIdentifier)
+    }
+
+    deinit {
+        // Isolated state, touched from a nonisolated deinit: the store is
+        // only ever made and released on the main thread, by the shell.
+        MainActor.assumeIsolated { _ = Self.live.remove(sessionIdentifier) }
+    }
+
+    private var loaded: State {
+        get {
+            if let state { return state }
+            let state = load()
+            self.state = state
+            return state
         }
-        tabs = stored.isEmpty ? [BrowserTab(path: AppPreferences.shared.launchDirectory)] : stored
-        // The remembered tab, if it is still one of them — a plist that was
-        // edited, truncated or written by an older build is not a reason to
-        // start with no tab at all.
-        let remembered = defaults.string(forKey: Self.currentKey).flatMap(UUID.init(uuidString:))
-        currentID = tabs.first { $0.id == remembered }?.id ?? tabs[0].id
+        set { state = newValue }
     }
 
     // MARK: - Reading
+
+    var tabs: [BrowserTab] { loaded.tabs }
+
+    /// The tab in front of this window. Persisted so a relaunch lands where
+    /// the person was.
+    var currentID: UUID { loaded.currentID }
 
     var current: BrowserTab {
         // `currentID` is only ever set to a tab that exists, and `tabs` is
         // never empty — but the fallback is the first tab rather than a crash,
         // because a corrupt plist is not worth taking the app down for.
-        tabs.first { $0.id == currentID } ?? tabs[0]
+        let state = loaded
+        return state.tabs.first { $0.id == state.currentID } ?? state.tabs[0]
     }
 
     var isFull: Bool {
         tabs.count >= Self.limit
-    }
-
-    // MARK: - Windows
-
-    /// Notes what `container` shows; nil when it shows nothing any more.
-    func setInstalled(_ id: UUID?, by container: AnyObject) {
-        if let id {
-            installed.setObject(id as NSUUID, forKey: container)
-        } else {
-            installed.removeObject(forKey: container)
-        }
-    }
-
-    /// Whether some other window than `container` has `id` on screen.
-    func isInstalled(_ id: UUID, elsewhereThan container: AnyObject) -> Bool {
-        for case let owner as AnyObject in installed.keyEnumerator() where owner !== container {
-            if installed.object(forKey: owner) as UUID? == id { return true }
-        }
-        return false
-    }
-
-    /// A tab no other window than `container` shows: the current one when it
-    /// is free, else the first free one, made current — the window taking it
-    /// is the one acting. Nil when every tab is on some other window's screen.
-    func freeTab(for container: AnyObject) -> BrowserTab? {
-        let current = current
-        guard isInstalled(current.id, elsewhereThan: container) else { return current }
-        guard let free = tabs.first(where: { !isInstalled($0.id, elsewhereThan: container) }) else { return nil }
-        select(free.id)
-        return free
-    }
-
-    /// The tab a window that has shown nothing yet starts on: a free tab, or
-    /// a new tab at the current directory, so two windows do not both edit
-    /// one tab's history — and, at the cap, the current tab shared after all.
-    func tabForNewWindow(_ container: AnyObject) -> BrowserTab {
-        freeTab(for: container) ?? open(current.path) ?? current
-    }
-
-    /// Nothing shows a tab that is gone: the closing window's container has
-    /// not removed its navigation yet when the change is posted, and another
-    /// window choosing its next tab must not read the dead one as taken.
-    private func forgetInstalled(_ ids: Set<UUID>) {
-        let owners = installed.keyEnumerator().allObjects as [AnyObject]
-        for owner in owners where (installed.object(forKey: owner) as UUID?).map(ids.contains) == true {
-            installed.removeObject(forKey: owner)
-        }
     }
 
     // MARK: - Writing
@@ -227,8 +199,8 @@ final class BrowserTabStore {
     func open(_ path: String) -> BrowserTab? {
         guard !isFull else { return nil }
         let tab = BrowserTab(path: path)
-        tabs.append(tab)
-        currentID = tab.id
+        loaded.tabs.append(tab)
+        loaded.currentID = tab.id
         save()
         return tab
     }
@@ -252,7 +224,7 @@ final class BrowserTabStore {
 
     func select(_ id: UUID) {
         guard tabs.contains(where: { $0.id == id }) else { return }
-        currentID = id
+        loaded.currentID = id
         save()
     }
 
@@ -260,23 +232,21 @@ final class BrowserTabStore {
     /// directory rather than an empty shell — there is always somewhere to be.
     func close(_ id: UUID) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
-        tabs.remove(at: index)
-        if tabs.isEmpty {
-            tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
+        loaded.tabs.remove(at: index)
+        if loaded.tabs.isEmpty {
+            loaded.tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
         }
         // Closing the tab you are on lands on the one that took its place, or
         // on the new last one — the same thing every tabbed app does.
-        if currentID == id {
-            currentID = tabs[min(index, tabs.count - 1)].id
+        if loaded.currentID == id {
+            loaded.currentID = loaded.tabs[min(index, loaded.tabs.count - 1)].id
         }
-        forgetInstalled([id])
         save()
     }
 
     func closeAll() {
-        forgetInstalled(Set(tabs.map(\.id)))
-        tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
-        currentID = tabs[0].id
+        loaded.tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
+        loaded.currentID = loaded.tabs[0].id
         save()
     }
 
@@ -289,7 +259,8 @@ final class BrowserTabStore {
     /// reorder racing a close, and the close wins.
     func reorder(to order: [UUID]) {
         guard Set(order) == Set(tabs.map(\.id)) else { return }
-        tabs = order.compactMap { id in tabs.first { $0.id == id } }
+        let tabs = tabs
+        loaded.tabs = order.compactMap { id in tabs.first { $0.id == id } }
         save()
     }
 
@@ -297,9 +268,8 @@ final class BrowserTabStore {
     /// stack could have changed — a push, a pop, a tab switch, the app going
     /// to the background — because the shell is the only thing that knows
     /// what is actually on screen. The tab is named rather than taken to be
-    /// the current one: another window may have made a different tab
-    /// current since this one's page was installed. A tab closed from another
-    /// window is not written back into existence.
+    /// the current one: a tab opened from a menu is current before its page
+    /// is on screen, while the page being written down is still the old one.
     func record(_ id: UUID, stack: [String], offsets: [String: Double], selection: String?) {
         guard let top = stack.last, let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         // A stack is a path: each directory the parent of the next. The live
@@ -314,40 +284,158 @@ final class BrowserTabStore {
         // The *outermost* directories are dropped when a walk runs long: the
         // folder you are in and the ones just above it are the ones Back is for.
         let trimmed = Array(stack.suffix(Self.depthLimit))
-        tabs[index].stack = trimmed
+        loaded.tabs[index].stack = trimmed
         // Offsets for directories that are no longer in the stack are dropped
         // with them, which is what keeps this dictionary from being a log.
-        tabs[index].offsets = offsets.filter { trimmed.contains($0.key) }
-        tabs[index].selection = selection
+        loaded.tabs[index].offsets = offsets.filter { trimmed.contains($0.key) }
+        loaded.tabs[index].selection = selection
         save(notify: false)
     }
 
     // MARK: - Storage
 
-    private static let tabsKey = "tabState"
-    private static let currentKey = "currentTab"
-    /// The `[String]` list this replaced. Read once, to carry a person's open
-    /// tabs across the upgrade, then never again.
-    private static let legacyKey = "tabs"
+    /// Three keys per window, each suffixed `.<session identifier>`: the
+    /// tabs, the current one, and when they were last written — the last so
+    /// that a window with no list of its own adopts the *most recent* one
+    /// left behind. The unsuffixed `tabState`/`currentTab` are the one list
+    /// every window shared before this; they are read as the oldest orphan
+    /// and never written again. `tabs`, the `[String]` before that, likewise.
+    private enum Key {
+        static let tabs = "tabState"
+        static let current = "currentTab"
+        static let written = "tabsWritten"
+        static let legacyList = "tabs"
 
-    private static func load(from defaults: UserDefaults) -> [BrowserTab] {
-        if let data = defaults.data(forKey: tabsKey),
-           let decoded = try? JSONDecoder().decode([BrowserTab].self, from: data)
-        {
-            return decoded.filter { !$0.stack.isEmpty }
+        /// One of the three, for one window.
+        static func of(_ base: String, _ session: String) -> String { "\(base).\(session)" }
+    }
+
+    private func load() -> State {
+        var stored = Self.read(
+            Key.of(Key.tabs, sessionIdentifier), current: Key.of(Key.current, sessionIdentifier), from: defaults
+        )
+        if stored == nil {
+            stored = adoptOrphan()
         }
-        return (defaults.stringArray(forKey: legacyKey) ?? []).map { BrowserTab(path: $0) }
+        var tabs = stored?.tabs ?? []
+        if case .local(.container) = FileSession.shared.hello?.backend {
+            // A remembered directory this container does not hold — the
+            // full root's launch directory from a build that had it, the
+            // container root from a build that started at Home, or a path
+            // under the container a sideloading tool's reinstall retired —
+            // reopens at the root that exists. Anything inside keeps its
+            // place and gets the chain that starts there.
+            let root = FileSession.shared.local.rootPath
+            let roots = [root, URL(fileURLWithPath: root).resolvingSymlinksInPath().path]
+            for index in tabs.indices {
+                let path = tabs[index].path
+                if roots.contains(where: { path == $0 || path.hasPrefix($0 + "/") }) {
+                    tabs[index].stack = BrowserTab.chain(to: path)
+                } else {
+                    tabs[index].stack = BrowserTab.chain(to: root)
+                    tabs[index].offsets = [:]
+                    tabs[index].selection = nil
+                }
+            }
+        }
+        if tabs.isEmpty {
+            tabs = [BrowserTab(path: AppPreferences.shared.launchDirectory)]
+        }
+        // The remembered tab, if it is still one of them — a plist that was
+        // edited, truncated or written by an older build is not a reason to
+        // start with no tab at all.
+        let current = tabs.first { $0.id == stored?.current }?.id ?? tabs[0].id
+        return State(tabs: tabs, currentID: current)
+    }
+
+    /// A window's list as written, or nil when this window has none. An
+    /// empty list is not nil: it is a list, and reads as one fresh tab.
+    private static func read(_ tabsKey: String, current currentKey: String, from defaults: UserDefaults) -> (tabs: [BrowserTab], current: UUID?)? {
+        guard let data = defaults.data(forKey: tabsKey),
+              let decoded = try? JSONDecoder().decode([BrowserTab].self, from: data) else { return nil }
+        return (decoded.filter { !$0.stack.isEmpty }, defaults.string(forKey: currentKey).flatMap(UUID.init(uuidString:)))
+    }
+
+    /// A window connecting with no list takes over the most recently written
+    /// list whose window is gone — the one an install's `uicache` dropped
+    /// along with every other session, so a person's tabs come back after an
+    /// update; on an upgrade from the shared list, that list. The keys move
+    /// to this session so no second window adopts the same tabs. Nothing to
+    /// adopt means a fresh tab at the launch directory.
+    ///
+    /// A list is orphaned when its session is neither live in this process
+    /// nor one iOS still holds open: a window in the switcher, disconnected
+    /// but not discarded, keeps its list for its own return.
+    private func adoptOrphan() -> (tabs: [BrowserTab], current: UUID?)? {
+        let orphans = Self.orphans(in: defaults)
+        // Keep the recent few, so a stack of dropped sessions cannot grow the
+        // plist forever: the rest are the lists no window will come back for.
+        for orphan in orphans.dropFirst(Self.orphanLimit) {
+            Self.remove(orphan, from: defaults)
+        }
+        guard let session = orphans.first else { return nil }
+        defer { Self.remove(session, from: defaults) }
+        if let session {
+            return Self.read(Key.of(Key.tabs, session), current: Key.of(Key.current, session), from: defaults)
+        }
+        // The shared list, then the list of paths before it.
+        if let shared = Self.read(Key.tabs, current: Key.current, from: defaults) {
+            return shared
+        }
+        let paths = defaults.stringArray(forKey: Key.legacyList) ?? []
+        return paths.isEmpty ? nil : (paths.map { BrowserTab(path: $0) }, nil)
+    }
+
+    /// Sessions whose lists no window will read again, most recently written
+    /// first. `nil` stands for the unsuffixed keys, and sorts last — they
+    /// predate the timestamp.
+    private static func orphans(in defaults: UserDefaults) -> [String?] {
+        let held = Set(UIApplication.shared.openSessions.map(\.persistentIdentifier)).union(live)
+        let prefix = Key.tabs + "."
+        var found: [(session: String?, written: Double)] = []
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(prefix) {
+            let session = String(key.dropFirst(prefix.count))
+            guard !session.isEmpty, !held.contains(session) else { continue }
+            found.append((session, defaults.double(forKey: Key.of(Key.written, session))))
+        }
+        if defaults.object(forKey: Key.tabs) != nil || defaults.object(forKey: Key.legacyList) != nil {
+            found.append((nil, -.infinity))
+        }
+        return found.sorted { $0.written > $1.written }.map(\.session)
+    }
+
+    private static func remove(_ session: String?, from defaults: UserDefaults) {
+        if let session {
+            for base in [Key.tabs, Key.current, Key.written] {
+                defaults.removeObject(forKey: Key.of(base, session))
+            }
+        } else {
+            defaults.removeObject(forKey: Key.tabs)
+            defaults.removeObject(forKey: Key.current)
+            defaults.removeObject(forKey: Key.legacyList)
+        }
+    }
+
+    /// Drops the lists of windows iOS has discarded — closed in the app
+    /// switcher, or expired. The one place a window's keys are removed on
+    /// purpose: a session that is merely disconnected is one iOS means to
+    /// bring back.
+    static func forget(_ sessions: some Sequence<String>, defaults: UserDefaults = .standard) {
+        for session in sessions {
+            remove(session, from: defaults)
+        }
     }
 
     /// `notify: false` for the one caller that is recording what is already on
     /// screen: telling the switcher to redraw for a scroll position it cannot
     /// see would be a notification per scroll.
     private func save(notify: Bool = true) {
-        defaults.set(try? JSONEncoder().encode(tabs), forKey: Self.tabsKey)
-        defaults.set(currentID.uuidString, forKey: Self.currentKey)
-        defaults.removeObject(forKey: Self.legacyKey)
+        let state = loaded
+        defaults.set(try? JSONEncoder().encode(state.tabs), forKey: Key.of(Key.tabs, sessionIdentifier))
+        defaults.set(state.currentID.uuidString, forKey: Key.of(Key.current, sessionIdentifier))
+        defaults.set(Date().timeIntervalSinceReferenceDate, forKey: Key.of(Key.written, sessionIdentifier))
         if notify {
-            NotificationCenter.default.post(name: .filaTabsChanged, object: nil)
+            NotificationCenter.default.post(name: .filaTabsChanged, object: self)
         }
     }
 }

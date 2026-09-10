@@ -46,6 +46,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         return configuration
     }
 
+    /// A window closed in the app switcher, or one iOS gave up restoring:
+    /// its tabs go with it. The one place a window's list is dropped on
+    /// purpose — see `BrowserTabStore.forget`.
+    func application(_: UIApplication, didDiscardSceneSessions sessions: Set<UISceneSession>) {
+        FilaLog.info("\(sessions.count) scene session(s) discarded")
+        BrowserTabStore.forget(sessions.map(\.persistentIdentifier))
+    }
+
     /// A listing of a directory with a hundred thousand entries is the app's
     /// largest allocation by a wide margin, and jetsam gives no other notice.
     /// A screen that went blank right after one of these lines is explained.

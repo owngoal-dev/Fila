@@ -6,13 +6,15 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(
         _ scene: UIScene,
-        willConnectTo _: UISceneSession,
+        willConnectTo session: UISceneSession,
         options connectionOptions: UIScene.ConnectionOptions
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
-        FilaLog.info("scene connected")
+        FilaLog.info("scene connected: \(session.persistentIdentifier)")
         let window = UIWindow(windowScene: windowScene)
-        let root = RootSplitViewController()
+        // The session names the window's tabs: each window keeps its own
+        // list, under the identifier iOS restores the window by.
+        let root = RootSplitViewController(sessionIdentifier: session.persistentIdentifier)
         window.rootViewController = root
         window.makeKeyAndVisible()
         self.window = window

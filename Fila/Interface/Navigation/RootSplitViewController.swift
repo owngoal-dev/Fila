@@ -20,13 +20,22 @@ final class RootSplitViewController: UISplitViewController {
     /// through `presentSidebar()`.
     let sidebar = SidebarViewController()
 
+    /// This window's tabs. One list per window scene, keyed by the scene
+    /// session that made this shell, so two windows on an iPad each keep
+    /// their own — see `BrowserTabStore`.
+    let tabs: BrowserTabStore
+
     /// One runtime owner moves intact between the split view's column hosts.
     /// A size-class change never dismantles a tab's navigation subtree.
-    let content = TabContainerViewController()
+    let content: TabContainerViewController
     private let wideContent = UIViewController()
     private let compactContent = UIViewController()
 
-    init() {
+    /// `sessionIdentifier` is the scene session's `persistentIdentifier`:
+    /// what the window's tabs are stored under.
+    init(sessionIdentifier: String) {
+        tabs = BrowserTabStore(sessionIdentifier: sessionIdentifier)
+        content = TabContainerViewController(store: tabs)
         super.init(style: .doubleColumn)
         content.owner = self
     }
@@ -313,7 +322,7 @@ final class RootSplitViewController: UISplitViewController {
     /// anything else jumps. See `FileBrowserViewController.open(directory:)`.
     func openInNewTab(_ path: String) {
         content.captureCurrentTab()
-        guard let tab = BrowserTabStore.shared.open(path) else {
+        guard let tab = tabs.open(path) else {
             FeedbackAlert.show(
                 String(localized: "Too Many Tabs"),
                 message: String(localized: "This folder opened in the current tab. Close a tab to open a new one.")
@@ -352,9 +361,9 @@ final class RootSplitViewController: UISplitViewController {
     }
 
     func openInNewTab(_ controller: UIViewController, directory: String) {
-        guard !BrowserTabStore.shared.isFull else { return }
+        guard !tabs.isFull else { return }
         content.captureCurrentTab()
-        guard BrowserTabStore.shared.open(directory) != nil else { return }
+        guard tabs.open(directory) != nil else { return }
         content.showCurrentTab(root: controller)
     }
 
@@ -364,7 +373,7 @@ final class RootSplitViewController: UISplitViewController {
     /// whatever it decided, so the link navigates either way.
     func openFromLink(_ path: String) {
         content.captureCurrentTab()
-        BrowserTabStore.shared.openFromLink(path)
+        tabs.openFromLink(path)
         content.showCurrentTab()
         if !isCollapsed {
             show(.secondary)
@@ -378,7 +387,7 @@ final class RootSplitViewController: UISplitViewController {
 
     func selectTab(_ id: UUID) {
         content.captureCurrentTab()
-        BrowserTabStore.shared.select(id)
+        tabs.select(id)
         content.showCurrentTab()
     }
 
@@ -387,9 +396,9 @@ final class RootSplitViewController: UISplitViewController {
     }
 
     func closeAllTabs() {
-        closeTabs(BrowserTabStore.shared.tabs.map(\.id)[...]) { [weak self] in
+        closeTabs(tabs.tabs.map(\.id)[...]) { [weak self] in
             guard let self else { return }
-            BrowserTabStore.shared.closeAll()
+            tabs.closeAll()
             content.removeClosedTabs()
             content.showCurrentTab()
         }
@@ -402,13 +411,13 @@ final class RootSplitViewController: UISplitViewController {
             if let completion { completion() } else { content.showTabSwitcher() }
             return
         }
-        guard BrowserTabStore.shared.tabs.contains(where: { $0.id == id }) else {
+        guard tabs.tabs.contains(where: { $0.id == id }) else {
             closeTabs(ids.dropFirst(), completion: completion)
             return
         }
         content.confirmClosingTab(id) { [weak self] in
             guard let self else { return }
-            BrowserTabStore.shared.close(id)
+            tabs.close(id)
             content.removeClosedTabs()
             closeTabs(ids.dropFirst(), completion: completion)
         }
@@ -417,8 +426,8 @@ final class RootSplitViewController: UISplitViewController {
     /// Closing or replacing content consults the editor that owns its work.
     /// Merely switching to another retained tab does not discard anything.
     private func confirmLeavingContent(_ leave: @escaping () -> Void) {
-        // This window's own page, not whatever tab another window last made
-        // current: a push or replace here acts on the tab on this screen.
+        // The page on this screen, not a tab still arriving from a menu: a
+        // push or replace acts on what the person is looking at.
         content.showInstalledTab()
         let navigation = content.navigation
         let source = navigation?.topViewController

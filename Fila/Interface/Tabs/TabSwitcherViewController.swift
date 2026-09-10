@@ -8,6 +8,8 @@ import UIKit
 /// The content overview shows the last visible frame of each live tab.
 final class TabSwitcherViewController: UIViewController {
     private weak var content: TabContainerViewController?
+    /// The window's tab list, the container's own.
+    private let store: BrowserTabStore
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Int, UUID>!
 
@@ -17,14 +19,14 @@ final class TabSwitcherViewController: UIViewController {
     /// Cards whose first display is an arrival, and get the blur-in.
     private var entering: Set<UUID> = []
 
-    /// The highlighted card: the tab this window shows, which another
-    /// window's selection does not change.
+    /// The highlighted card: the tab whose page this overview opened over.
     private var currentTabID: UUID? {
-        content?.installedTabID ?? BrowserTabStore.shared.currentID
+        content?.installedTabID
     }
 
     init(content: TabContainerViewController, deferring: UUID? = nil) {
         self.content = content
+        store = content.store
         deferred = deferring
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Tabs")
@@ -60,7 +62,7 @@ final class TabSwitcherViewController: UIViewController {
             self,
             selector: #selector(tabsChanged),
             name: .filaTabsChanged,
-            object: nil
+            object: store
         )
     }
 
@@ -90,7 +92,7 @@ final class TabSwitcherViewController: UIViewController {
 
     private func buildDataSource() {
         let card = UICollectionView.CellRegistration<TabCardCell, UUID> { [weak self] cell, _, id in
-            guard let self, let tab = BrowserTabStore.shared.tabs.first(where: { $0.id == id }) else { return }
+            guard let self, let tab = store.tabs.first(where: { $0.id == id }) else { return }
             let preview = content?.preview(for: tab)
             cell.configure(
                 title: preview?.title ?? tab.title,
@@ -103,8 +105,8 @@ final class TabSwitcherViewController: UIViewController {
             collection.dequeueConfiguredReusableCell(using: card, for: indexPath, item: id)
         }
         dataSource.reorderingHandlers.canReorderItem = { _ in true }
-        dataSource.reorderingHandlers.didReorder = { transaction in
-            BrowserTabStore.shared.reorder(to: transaction.finalSnapshot.itemIdentifiers)
+        dataSource.reorderingHandlers.didReorder = { [store] transaction in
+            store.reorder(to: transaction.finalSnapshot.itemIdentifiers)
         }
     }
 
@@ -158,7 +160,7 @@ final class TabSwitcherViewController: UIViewController {
     /// The bar button sits where a thumb rests during one-handed browsing, so
     /// more than one tab asks first. A lone tab closes without ceremony.
     private func confirmCloseAll() {
-        guard BrowserTabStore.shared.tabs.count > 1 else {
+        guard store.tabs.count > 1 else {
             shell?.closeAllTabs()
             return
         }
@@ -177,7 +179,7 @@ final class TabSwitcherViewController: UIViewController {
     }
 
     private func newTabMenuElements() -> [UIMenuElement] {
-        let full = BrowserTabStore.shared.isFull
+        let full = store.isFull
         func open(_ path: String, title: String, image: UIImage?, subtitle: String? = nil) -> UIAction {
             UIAction(
                 title: title,
@@ -269,7 +271,7 @@ final class TabSwitcherViewController: UIViewController {
     private func apply(animated: Bool) {
         var snapshot = NSDiffableDataSourceSnapshot<Int, UUID>()
         snapshot.appendSections([0])
-        snapshot.appendItems(BrowserTabStore.shared.tabs.map(\.id).filter { $0 != deferred })
+        snapshot.appendItems(store.tabs.map(\.id).filter { $0 != deferred })
         let existing = Set(dataSource.snapshot().itemIdentifiers)
         let arriving = Set(snapshot.itemIdentifiers)
         // Structural changes leave surviving thumbnails untouched. Only the
