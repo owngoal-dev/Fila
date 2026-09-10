@@ -19,6 +19,11 @@ public enum FilaUI {
 
     public static let minimumTapTarget: CGFloat = 44
 
+    /// How long a push waits for a screen's first rows — about three frames
+    /// — before going ahead with the loading status instead. See
+    /// `PreparableContent`.
+    public static let preparationBudget: TimeInterval = 0.05
+
     /// The accent, this faint, is a pressed or selected sidebar row: the
     /// same wash for both, never the system's solid fill.
     public static let selectionTintAlpha: CGFloat = 0.15

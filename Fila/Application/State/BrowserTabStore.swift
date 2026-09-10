@@ -135,11 +135,14 @@ final class BrowserTabStore {
     /// among these (nor among the sessions iOS still holds open).
     private static var live: Set<String> = []
 
-    /// Whether a window with no list has already looked for one to adopt
-    /// this launch. The first such window is the one an install's `uicache`
-    /// or an upgrade left listless, and it takes the dropped list; a window
-    /// the person opens later is a new window, and starts with one tab.
-    private static var adoptionTried = false
+    /// When the app launched; the app delegate sets it first thing. A
+    /// window connecting with no list in the first moments after launch is
+    /// one iOS restored — after an install's `uicache` dropped every
+    /// session, or on an upgrade from the shared list — and takes a dropped
+    /// list, every such window in turn. A window opened later is a new
+    /// window, and starts with one tab.
+    static var launchedAt = Date()
+    private static let restorationWindow: TimeInterval = 10
 
     private struct State {
         var tabs: [BrowserTab]
@@ -328,12 +331,24 @@ final class BrowserTabStore {
             Key.of(Key.tabs, sessionIdentifier), current: Key.of(Key.current, sessionIdentifier), from: defaults
         )
         var adoption: Adoption?
-        if stored == nil, !Self.adoptionTried {
-            Self.adoptionTried = true
+        if stored == nil, Date().timeIntervalSince(Self.launchedAt) < Self.restorationWindow {
             adoption = adoptOrphan()
             stored = adoption.map { ($0.tabs, $0.current) }
         }
         var tabs = stored?.tabs ?? []
+        var current = stored?.current
+        if adoption != nil {
+            // Fresh identities. The orphan's keys outlive a kill between the
+            // save below and their removal, and a list adopted twice must
+            // not put the same tab in two windows.
+            var renamed: [UUID: UUID] = [:]
+            for index in tabs.indices {
+                let id = UUID()
+                renamed[tabs[index].id] = id
+                tabs[index].id = id
+            }
+            current = current.flatMap { renamed[$0] }
+        }
         if case .local(.container) = FileSession.shared.hello?.backend {
             // A remembered directory this container does not hold — the
             // full root's launch directory from a build that had it, the
@@ -360,8 +375,7 @@ final class BrowserTabStore {
         // The remembered tab, if it is still one of them — a plist that was
         // edited, truncated or written by an older build is not a reason to
         // start with no tab at all.
-        let current = tabs.first { $0.id == stored?.current }?.id ?? tabs[0].id
-        let state = State(tabs: tabs, currentID: current)
+        let state = State(tabs: tabs, currentID: tabs.first { $0.id == current }?.id ?? tabs[0].id)
         if let adoption {
             // Written under this session *before* the orphan's keys go: a
             // kill between the two — the app swiped away before the first

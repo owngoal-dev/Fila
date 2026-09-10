@@ -1,3 +1,5 @@
+import FilaBackendUI
+import FilaLog
 import SnapKit
 import Then
 import UIKit
@@ -271,12 +273,33 @@ final class TabContainerViewController: UIViewController {
             store.select(id)
             store.record(id, stack: [path], offsets: [:], selection: select)
             tabs[id]?.preview = nil
-            navigation.setViewControllers(Self.browsers(for: store.current), animated: false)
+            // A jump replaces the stack with no transition, so it has the
+            // same wait a push has: the new root gets the budget to put its
+            // first rows up, and a jump that overtakes this one wins.
+            jumpGeneration += 1
+            let generation = jumpGeneration
+            let browsers = Self.browsers(for: store.current)
+            if let root = browsers.last as? PreparableContent {
+                Task { [weak self, weak navigation] in
+                    await root.prepare(within: FilaUI.preparationBudget)
+                    guard let self, let navigation, generation == jumpGeneration, installedTabID == id else {
+                        FilaLog.verbose("jump to \(path) overtaken")
+                        return
+                    }
+                    navigation.setViewControllers(browsers, animated: false)
+                    FilaLog.verbose("jump to \(path) installed")
+                }
+            } else {
+                navigation.setViewControllers(browsers, animated: false)
+            }
         } else {
             store.record(store.currentID, stack: [path], offsets: [:], selection: select)
         }
         showCurrentTab()
     }
+
+    /// Counts jumps, so one still waiting for its rows yields to a newer one.
+    private var jumpGeneration = 0
 
     /// Writes down the installed tab's stack — the tab this window shows.
     func captureCurrentTab() {

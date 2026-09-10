@@ -37,6 +37,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     /// operation keeps the entry's real name.
     var appFolders: [String: FolderDecoration] = [:]
     private var volume: VolumeInfo?
+    /// The footer's volume fetch, on its own so an abandoned listing does
+    /// not wait on it; owned so leaving the screen cancels it.
+    private var volumeTask: Task<Void, Never>?
 
     override var maximumItemCount: Int { DirectoryReader.maximumEntryCount }
     override var traceName: String { directory }
@@ -175,6 +178,16 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         super.viewDidAppear(animated)
         restoreScrollOffsetIfArrived()
         session.setLastDirectory(directory)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        volumeTask?.cancel()
+        volumeTask = nil
+    }
+
+    deinit {
+        volumeTask?.cancel()
     }
 
     override func changes() async throws -> AsyncThrowingStream<Void, Error>? {
@@ -563,9 +576,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         decoratedWithApplications = SystemCapabilities.showsApplications
         // The volume behind the footer, on its own task rather than a child
         // of this one: a listing abandoned mid-flight must not wait on that
-        // round trip, and its answer is about this browser's directory
-        // whenever it lands.
-        Task { [weak self] in await self?.loadVolume() }
+        // round trip. One at a time; the newest answer is the one shown.
+        volumeTask?.cancel()
+        volumeTask = Task { [weak self] in await self?.loadVolume() }
         let appFolders = await SystemCapabilities.applications?.decorations(
             in: directory,
             entries: items.map { (name: $0.name, isDirectory: $0.kind == .directory) }
@@ -637,37 +650,18 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     }
 
     override func arrange(_ nodes: [FileNode]) -> [FileNode] {
-        // Deduplicated by name: pages are read from a directory that is live,
-        // and one name arriving twice would put two rows with the same identity
-        // into the snapshot, which is a crash rather than a glitch.
-        var seen = Set<String>()
-        var items = nodes.filter { seen.insert($0.name).inserted }
-        if !session.showsHidden {
-            items.removeAll(where: \.isHidden)
-        }
-        return items.sorted(by: precedes)
+        arrangement.arrange(nodes)
     }
 
-    /// Directories first regardless of direction — reversing that puts the way
-    /// out of a folder at the bottom of a hundred thousand files.
-    private func precedes(_ lhs: FileNode, _ rhs: FileNode) -> Bool {
-        if lhs.isNavigable != rhs.isNavigable {
-            return lhs.isNavigable
-        }
-        let order: ComparisonResult = switch session.sortKey {
-        case .name: lhs.name.localizedStandardCompare(rhs.name)
-        case .date: compare(lhs.modified, rhs.modified)
-        case .size: compare(lhs.size, rhs.size)
-        case .kind: FilePresentation.sortKind(for: lhs).compare(FilePresentation.sortKind(for: rhs))
-        }
-        guard order != .orderedSame else {
-            return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
-        }
-        return session.sortAscending ? order == .orderedAscending : order == .orderedDescending
+    /// The same arrangement for the load's applies, which sort off the main
+    /// thread: the preferences are read here, once, and travel with it.
+    override func arranger() -> (@Sendable ([FileNode]) -> [FileNode])? {
+        let arrangement = arrangement
+        return { arrangement.arrange($0) }
     }
 
-    private func compare<T: Comparable>(_ lhs: T, _ rhs: T) -> ComparisonResult {
-        lhs == rhs ? .orderedSame : (lhs < rhs ? .orderedAscending : .orderedDescending)
+    private var arrangement: FileArrangement {
+        FileArrangement(showsHidden: session.showsHidden, sortKey: session.sortKey, ascending: session.sortAscending)
     }
 
     /// How many items, and what is left on the volume they are on.

@@ -118,6 +118,13 @@ struct ApplicationBackendTests {
         #expect(first != nil)
         _ = await backend.applications()
         #expect(backend.catalog == first)
+        // A visit publishes too — every folder the user uses does — and
+        // must not cost the breadcrumb a second enumeration.
+        if let path = try? ServicePath("/tmp") {
+            try? files.recordVisit(path)
+        }
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        #expect(backend.catalog == first)
         _ = await backend.applications(refresh: true)
         #expect(backend.catalog != nil && backend.catalog != first)
         backend.catalogChanged()

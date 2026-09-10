@@ -29,9 +29,36 @@ final class TabNavigationController: UINavigationController {
         super.setToolbarHidden(!hasItems, animated: animated)
     }
 
+    /// Screens whose push is waiting on their first rows, in order. A
+    /// caller deciding whether a screen is already on its way looks here as
+    /// well as at `viewControllers`.
+    private(set) var pendingPushes: [UIViewController] = []
+    private var pendingPush: Task<Void, Never>?
+
+    /// An animated push of a screen that fetches on the way in waits for
+    /// its first rows — up to `preparationBudget`, about three frames — so
+    /// the transition lands on content rather than on a wait that turns
+    /// into content a moment later. Past the budget the screen goes up
+    /// with its loading status and the rows animate in. Pushes queue in
+    /// order behind one that is waiting; everything else pushes at once.
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        owner?.prepareNavigationItems(for: viewController, in: self, ancestors: viewControllers)
+        owner?.prepareNavigationItems(for: viewController, in: self, ancestors: viewControllers + pendingPushes)
         prepareContent(viewController)
+        guard animated, let content = viewController as? PreparableContent else {
+            super.pushViewController(viewController, animated: animated)
+            return
+        }
+        pendingPushes.append(viewController)
+        let previous = pendingPush
+        pendingPush = Task { [weak self] in
+            await previous?.value
+            await content.prepare(within: FilaUI.preparationBudget)
+            self?.pushPrepared(viewController, animated: animated)
+        }
+    }
+
+    private func pushPrepared(_ viewController: UIViewController, animated: Bool) {
+        pendingPushes.removeAll { $0 === viewController }
         super.pushViewController(viewController, animated: animated)
     }
 

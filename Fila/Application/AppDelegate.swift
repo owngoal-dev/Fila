@@ -16,6 +16,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // line per XPC call.
         do { try TerminalTemporaryFiles.cleanup() }
         catch { FilaLog.error("Terminal configuration cleanup failed: \(error)") }
+        // Windows connecting in the moments after this are the ones iOS
+        // restored; the tab store tells them from windows opened later.
+        BrowserTabStore.launchedAt = Date()
         AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .systemBlue
         // The app icon, light and dark, rendered by Scripts/make-app-mark.swift.
         AlertControllerConfiguration.alertImage = UIImage(named: "AppIconMark")
@@ -32,7 +35,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             do { try await FileSession.shared.prepareTemporaryFiles() }
             catch { FilaLog.error("Temporary workspace preparation failed: \(error)") }
         }
-
         return true
     }
 

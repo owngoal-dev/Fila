@@ -50,6 +50,13 @@ extension FileBrowserViewController {
             navigation.popToViewController(existing, animated: true)
             return
         }
+        // A second tap inside the moment a push waits for its rows must not
+        // push the folder twice.
+        if let tabs = navigation as? TabNavigationController,
+           tabs.pendingPushes.contains(where: { ($0 as? FileBrowserViewController)?.directory == path })
+        {
+            return
+        }
         // A child of this folder is a descent. Anything else is a jump — and
         // the shell owns those, because re-rooting is a tab-wide operation.
         // Without a shell to ask (a browser outside the window), a push is

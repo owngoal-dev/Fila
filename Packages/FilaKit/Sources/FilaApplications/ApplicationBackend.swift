@@ -115,11 +115,12 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         let read = catalog ?? Task { await ApplicationCatalog.load(files: files) }
         catalog = read
         let apps = await read.value
-        // Dropped while the read was in flight — an install landed, say:
-        // what came back describes the moment before it. Once more, and
-        // that read is the one kept.
-        guard catalog == nil, !Task.isCancelled else { return apps }
-        let again = Task { await ApplicationCatalog.load(files: files) }
+        // No longer the read that is kept — dropped by an install landing,
+        // or replaced by a pull — so what came back describes the moment
+        // before that. Once more, joining whatever read is current rather
+        // than starting one beside it.
+        guard catalog != read, !Task.isCancelled else { return apps }
+        let again = catalog ?? Task { await ApplicationCatalog.load(files: files) }
         catalog = again
         return await again.value
     }

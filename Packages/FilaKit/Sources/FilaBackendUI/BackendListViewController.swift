@@ -3,6 +3,18 @@ import FilaBackendKit
 import FilaLog
 import UIKit
 
+/// A screen that can start fetching before it is pushed, so the push lands
+/// on content rather than on a wait that turns into content a moment later.
+///
+/// The shell calls `prepare(within:)` and pushes when it returns: with the
+/// first rows applied if they came inside the budget, with the loading
+/// status if they did not — and in that case the rows animate in when they
+/// land. The fetch runs to completion either way.
+@MainActor
+public protocol PreparableContent: AnyObject {
+    func prepare(within budget: TimeInterval) async
+}
+
 /// The list every backend root is shown with: a collection view of `Item`
 /// rows, one reload owner, and one subscription to the backend's changes.
 ///
@@ -19,7 +31,7 @@ import UIKit
 /// catalogue switch and no preference read: those belong to the subclass
 /// and to the backend behind it.
 @MainActor
-open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewController {
+open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewController, PreparableContent {
     public private(set) var collectionView: UICollectionView!
     public private(set) var dataSource: UICollectionViewDiffableDataSource<Int, Item>!
     public let refresher = UIRefreshControl()
@@ -50,6 +62,40 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
 
     public private(set) var loadTask: Task<Void, Never>?
     private var changesTask: Task<Void, Never>?
+
+    /// The least time between two streaming applies after the first:
+    /// room for frames between one apply's main-thread cost and the next.
+    private static var applyInterval: TimeInterval { 0.12 }
+
+    /// The most new rows one streaming apply hands over. A diff costs a
+    /// fixed price plus a few microseconds per inserted row, and the price
+    /// differs by device and by whether cells are on screen, so this is
+    /// tuned as the load goes: each apply's measured cost scales the next
+    /// chunk toward `applyTarget`, never over the budget a push waits for.
+    private var applyRowLimit = BackendListPacing.initialRowLimit
+
+    /// A load started by `prepare` is this screen's initial listing: the
+    /// first hint of the change subscription must not start a second one.
+    private var preparedLoadPending = false
+
+    /// Rows are on screen, or the load ended without any: what a push
+    /// waits for. Resumed once, then true for the screen's life.
+    private var hasSettled = false
+    private var settledWaiters: [UUID: CheckedContinuation<Void, Never>] = [:]
+
+    /// Bumped by every apply. An arrangement computed off the main thread
+    /// lands only if nothing applied while it was being computed.
+    private var applyGeneration = 0
+
+    /// Rows a load has received and not yet handed to `items`.
+    private var pendingRows: [Item] = []
+    /// When the load's last streaming apply was, nil before its first.
+    private var lastApplyAt: DispatchTime?
+    /// While a push is waiting, the first apply is held until here, so
+    /// everything that lands inside the budget goes up together and the
+    /// rows the transition shows are not reordered by the batch after it.
+    /// The deadline, or completion, flushes.
+    private var firstApplyHeldUntil: DispatchTime?
 
     /// While true, reloads are held rather than started — a context menu
     /// animating shut must not have its cell pulled out from under it. The
@@ -112,6 +158,17 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     /// Filter and order for display. Called on every snapshot.
     open func arrange(_ items: [Item]) -> [Item] {
         items
+    }
+
+    /// The same arrangement as a value that can run off the main thread: a
+    /// pure function over the items, with the preferences it needs captured
+    /// at the moment it is asked for. A streaming or final apply of a load
+    /// sorts through this when it is given, so twenty thousand names never
+    /// cost the main thread a frame. Nil — the default — arranges on the
+    /// main thread through `arrange`, which is right for a list that is
+    /// small or already ordered.
+    open func arranger() -> (@Sendable ([Item]) -> [Item])? {
+        nil
     }
 
     /// What to show behind the rows: nil when there are rows to show.
@@ -184,19 +241,34 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     }
 
     /// One subscription for as long as the screen is up. The first hint
-    /// lands at once and is the initial listing; every later one is a reload
-    /// under the usual rules. Without a change stream the screen reloads on
-    /// appearance and on request only.
+    /// lands at once and is the initial listing — unless `prepare` already
+    /// started that listing before the push, in which case the hint is
+    /// spent on it; every later one is a reload under the usual rules.
+    /// Without a change stream the screen reloads on appearance and on
+    /// request only.
     private func observeChanges() {
         changesTask?.cancel()
         changesTask = Task { [weak self] in
             do {
-                guard let self, let stream = try await changes() else {
-                    self?.reload()
+                guard let self else { return }
+                guard let stream = try await changes() else {
+                    if preparedLoadPending {
+                        preparedLoadPending = false
+                    } else {
+                        reload()
+                    }
                     return
                 }
+                var first = true
                 for try await _ in stream {
                     guard !Task.isCancelled else { return }
+                    if first, preparedLoadPending {
+                        first = false
+                        preparedLoadPending = false
+                        await loadTask?.value
+                        continue
+                    }
+                    first = false
                     reload()
                     // One listing at a time: a hint that lands mid-listing
                     // waits in the stream's one-slot buffer and starts the
@@ -214,6 +286,81 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
 
     // MARK: - Loading
 
+    /// Starts the initial listing now, before the screen is in a window,
+    /// and returns once the first rows are applied, the load has ended
+    /// without any, or `budget` has passed — whichever is first. The push
+    /// then lands on content or on the loading status, never on content
+    /// that arrives a moment after the wait did. The listing runs on
+    /// regardless, and the subscription made on appearance spends its
+    /// first hint on it rather than starting a second one.
+    public func prepare(within budget: TimeInterval) async {
+        loadViewIfNeeded()
+        let startedAt = DispatchTime.now()
+        if loadTask == nil {
+            preparedLoadPending = true
+            // Half the budget: what lands by then goes up together, and
+            // the apply itself still fits inside the other half.
+            firstApplyHeldUntil = startedAt + budget / 2
+            startLoad()
+        }
+        guard !hasSettled else { return }
+        let raced = await withTaskGroup(of: Bool.self) { group in
+            group.addTask { @MainActor [weak self] in
+                await self?.waitUntilSettled()
+                return true
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(budget * 1_000_000_000))
+                return false
+            }
+            let first = await group.next() ?? false
+            group.cancelAll()
+            return first
+        }
+        // Both ready at once: the rows are up, whichever child spoke first.
+        let settled = raced || hasSettled
+        firstApplyHeldUntil = nil
+        // The budget ran out with rows in hand: they go up now, so the push
+        // lands on them, and the rest follow at the streaming pace.
+        if !settled, lastApplyAt == nil, !pendingRows.isEmpty, loadTask != nil {
+            await applyPendingRows(animated: false)
+        }
+        if FilaLog.isEnabled(.verbose) {
+            FilaLog.verbose(
+                "list \(traceName): prepared rows=\(visible.count) pending=\(pendingRows.count)"
+                    + (settled ? " in " : " budget spent at ") + "\(milliseconds(since: startedAt))ms"
+                    + " window=\(viewIfLoaded?.window != nil)"
+            )
+        }
+    }
+
+    /// Suspends until `settle()`. Cancellation — the budget ran out —
+    /// resumes at once rather than holding the group open.
+    private func waitUntilSettled() async {
+        guard !hasSettled else { return }
+        let ticket = UUID()
+        await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                if hasSettled || Task.isCancelled {
+                    continuation.resume()
+                } else {
+                    settledWaiters[ticket] = continuation
+                }
+            }
+        } onCancel: {
+            Task { @MainActor in self.settledWaiters.removeValue(forKey: ticket)?.resume() }
+        }
+    }
+
+    private func settle() {
+        hasSettled = true
+        let waiters = settledWaiters
+        settledWaiters = [:]
+        for waiter in waiters.values {
+            waiter.resume()
+        }
+    }
+
     /// Lists again. On screen only: a retained tab reloads when it appears,
     /// without competing with the one the user is viewing.
     public func reload() {
@@ -222,6 +369,11 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             reloadWasHeld = true
             return
         }
+        firstApplyHeldUntil = nil
+        startLoad()
+    }
+
+    private func startLoad() {
         // A completed task remains here, so a loaded empty list also keeps
         // its current presentation when another request starts.
         let keepsContent = loadTask != nil
@@ -232,12 +384,13 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             willStartInitialLoad()
             applySnapshot(animated: false)
         }
+        pendingRows = []
+        lastApplyAt = nil
+        applyRowLimit = BackendListPacing.initialRowLimit
         loadTask = Task { [weak self] in
             guard let self else { return }
-            var pending: [Item] = []
             var received = 0
             var truncated = false
-            var lastApply = Date.distantPast
             var failed = false
             let startedAt = Date()
             let limit = maximumItemCount
@@ -250,6 +403,9 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                     // the backend's share of the wall clock. Reset at the end
                     // of the body, after this batch's apply.
                     defer { requestedAt = .now() }
+                    // Only the latest reload owns the rows. During a refresh,
+                    // a partial listing must not remove later pages.
+                    guard !Task.isCancelled else { return }
                     if traces {
                         batches += 1
                         FilaLog.verbose(
@@ -257,32 +413,41 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
                                 + " wait=\(milliseconds(since: requestedAt))ms"
                         )
                     }
-                    // Only the latest reload owns the rows. During a refresh,
-                    // a partial listing must not remove later pages.
-                    guard !Task.isCancelled else { return }
                     let remaining = limit - received
-                    pending.append(contentsOf: batch.prefix(remaining))
+                    pendingRows.append(contentsOf: batch.prefix(remaining))
                     received += min(remaining, batch.count)
                     if batch.count > remaining {
                         truncated = true
                         break
                     }
                     guard !keepsContent else { continue }
-                    // Re-arranging the accumulated list on every apply is
-                    // O(n log n) per batch; the throttle keeps that off the
-                    // critical path of a huge directory streaming in.
-                    guard Date().timeIntervalSince(lastApply) > 0.15 else { continue }
-                    items.append(contentsOf: pending)
-                    pending = []
-                    lastApply = Date()
-                    applySnapshot(animated: false)
+                    // The first rows go up as soon as no push is holding
+                    // them — they are what it waits for. After that one
+                    // apply per interval: a diff costs by the row count,
+                    // so a huge folder gets rarer applies rather than more
+                    // of them.
+                    if let lastApplyAt {
+                        if DispatchTime.now() < lastApplyAt + Self.applyInterval { continue }
+                    } else if let held = firstApplyHeldUntil, DispatchTime.now() < held {
+                        continue
+                    }
+                    await applyPendingRows(animated: animatesArrival)
+                    guard !Task.isCancelled else { return }
                 }
                 guard !Task.isCancelled else { return }
                 isTruncated = truncated
                 if keepsContent {
-                    items = pending
+                    items = pendingRows
+                    pendingRows = []
                 } else {
-                    items.append(contentsOf: pending)
+                    // What is still waiting goes up in bounded applies, the
+                    // last of them the final one below.
+                    while pendingRows.count > applyRowLimit {
+                        await applyPendingRows(animated: animatesArrival)
+                        guard !Task.isCancelled else { return }
+                    }
+                    items.append(contentsOf: pendingRows)
+                    pendingRows = []
                 }
             } catch {
                 guard !Task.isCancelled else { return }
@@ -298,10 +463,9 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
             }
             guard !Task.isCancelled else { return }
             isLoading = false
-            await withCheckedContinuation { continuation in
-                self.applySnapshot(animated: keepsContent) { continuation.resume() }
-            }
+            await applyArranged(animated: keepsContent || animatesArrival, awaitingCompletion: true)
             guard !Task.isCancelled else { return }
+            settle()
             refresher.endRefreshing()
             let completedAt = DispatchTime.now()
             await loadDidComplete(received: received, elapsed: Date().timeIntervalSince(startedAt), failed: failed)
@@ -315,39 +479,125 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
         }
     }
 
+    /// One streaming apply: up to `applyRowLimit` of the waiting rows join
+    /// `items` and go up; rows on screen settle a waiting push.
+    private func applyPendingRows(animated: Bool) async {
+        let take = min(pendingRows.count, applyRowLimit)
+        items.append(contentsOf: pendingRows.prefix(take))
+        pendingRows.removeFirst(take)
+        lastApplyAt = .now()
+        let cost = await applyArranged(animated: animated)
+        // Tuned on screen only: an apply with no cells to make says
+        // nothing about the ones that follow the push.
+        if viewIfLoaded?.window != nil {
+            applyRowLimit = BackendListPacing.rowLimit(after: take, costing: cost)
+        }
+        if !visible.isEmpty {
+            settle()
+        }
+    }
+
+    /// Rows landing on a screen that is up with nothing shown yet — the
+    /// push went ahead of them — replace the status with a transition.
+    /// Rows applied before the push, or added under rows already there,
+    /// simply appear.
+    private var animatesArrival: Bool {
+        viewIfLoaded?.window != nil && visible.isEmpty
+    }
+
+    /// A load's apply: arranged off the main thread when the subclass can
+    /// say how, on it otherwise, and shown when the arrangement is current.
+    /// A streaming apply returns as soon as the rows are handed over — an
+    /// animated arrival must not hold the next batch back for the length
+    /// of its animation — while the final one waits for the collection
+    /// view to finish, so what follows it finds the rows in place.
+    @discardableResult
+    private func applyArranged(animated: Bool, awaitingCompletion: Bool = false) async -> TimeInterval {
+        guard let arranger = arranger() else {
+            if awaitingCompletion {
+                await withCheckedContinuation { continuation in
+                    applySnapshot(animated: animated) { continuation.resume() }
+                }
+            } else {
+                applySnapshot(animated: animated)
+            }
+            return 0
+        }
+        applyGeneration += 1
+        let generation = applyGeneration
+        let traces = FilaLog.isEnabled(.verbose)
+        let startedAt = DispatchTime.now()
+        let snapshot = items
+        let arranged = await Task.detached(priority: .userInitiated) { arranger(snapshot) }.value
+        // Something applied meanwhile — a sort change, say — over items
+        // that already included these; this arrangement is the older one.
+        guard !Task.isCancelled, generation == applyGeneration else { return 0 }
+        let arrangedAt = DispatchTime.now()
+        if awaitingCompletion {
+            await withCheckedContinuation { continuation in
+                show(arranged, animated: animated, reloadingData: false) { continuation.resume() }
+            }
+        } else {
+            show(arranged, animated: animated, reloadingData: false, completion: nil)
+        }
+        if traces {
+            FilaLog.verbose(
+                "list \(traceName): apply rows=\(arranged.count) of \(snapshot.count)"
+                    + " arrange=\(milliseconds(since: startedAt, until: arrangedAt))ms off main "
+                    + (animated ? "diff" : "apply") + "=\(milliseconds(since: arrangedAt, until: appliedAt))ms"
+                    + " hooks=\(milliseconds(since: appliedAt))ms" + (animated ? " animated" : "")
+                    + (viewIfLoaded?.window == nil ? " off window" : "")
+            )
+        }
+        return max(0, Double(appliedAt.uptimeNanoseconds) - Double(arrangedAt.uptimeNanoseconds)) / 1_000_000_000
+    }
+
     /// Applies `arrange(items)` as the list's one section, then the status
     /// panel behind it. `reloadingData` redraws every row from scratch
     /// instead of diffing: `apply` with an identical snapshot is an empty
     /// diff that never asks the cell provider for anything, so a layout or
     /// unit change that leaves the items alone needs the reload.
     public func applySnapshot(animated: Bool, reloadingData: Bool = false, completion: (() -> Void)? = nil) {
-        guard let dataSource else {
+        guard dataSource != nil else {
             completion?()
             return
         }
+        applyGeneration += 1
         let traces = FilaLog.isEnabled(.verbose)
         let startedAt = DispatchTime.now()
-        visible = arrange(items)
+        let arranged = arrange(items)
         let arrangedAt = DispatchTime.now()
+        show(arranged, animated: animated, reloadingData: reloadingData, completion: completion)
+        if traces {
+            FilaLog.verbose(
+                "list \(traceName): apply rows=\(arranged.count) of \(items.count)"
+                    + " arrange=\(milliseconds(since: startedAt, until: arrangedAt))ms "
+                    + (animated && !reloadingData ? "diff" : "apply") + "=\(milliseconds(since: arrangedAt, until: appliedAt))ms"
+                    + " hooks=\(milliseconds(since: appliedAt))ms"
+                    + (reloadingData ? " reload" : animated ? " animated" : "")
+            )
+        }
+    }
+
+    /// The one place rows reach the collection view.
+    private func show(_ arranged: [Item], animated: Bool, reloadingData: Bool, completion: (() -> Void)?) {
+        visible = arranged
         var snapshot = NSDiffableDataSourceSnapshot<Int, Item>()
         snapshot.appendSections([0])
-        snapshot.appendItems(visible)
+        snapshot.appendItems(arranged)
         if reloadingData {
             dataSource.applySnapshotUsingReloadData(snapshot, completion: completion)
         } else {
             dataSource.apply(snapshot, animatingDifferences: animated, completion: completion)
         }
-        if traces {
-            FilaLog.verbose(
-                "list \(traceName): apply rows=\(visible.count) of \(items.count)"
-                    + " arrange=\(milliseconds(since: startedAt, until: arrangedAt))ms"
-                    + " snapshot=\(milliseconds(since: arrangedAt))ms"
-                    + (reloadingData ? " reload" : animated ? " animated" : "")
-            )
-        }
+        appliedAt = .now()
         collectionView.showStatus(statusContent) { [weak self] in self?.statusAction() }
         snapshotDidApply()
     }
+
+    /// When the last apply handed its rows over, before the status panel
+    /// and `snapshotDidApply` ran: the trace splits the two.
+    private var appliedAt = DispatchTime.now()
 
     /// Replaces what is shown without a load: what a subclass calls when
     /// its arrangement changed but the content did not.
@@ -368,8 +618,27 @@ open class BackendListViewController<Item: Hashable & Sendable>: TabContentViewC
     }
 }
 
+/// The numbers behind a load's streaming applies.
+enum BackendListPacing {
+    /// New rows per apply before anything has been measured.
+    static let initialRowLimit = 5000
+    static let minimumRowLimit = 1000
+    static let maximumRowLimit = 20000
+    /// What one apply should cost the main thread: under the budget a
+    /// push waits for, with room for the frame around it.
+    static let applyTarget: TimeInterval = 0.04
+
+    /// The next chunk, from what the last one cost: scaled toward the
+    /// target, and never by more than a factor of four at once.
+    static func rowLimit(after rows: Int, costing seconds: TimeInterval) -> Int {
+        guard rows > 0, seconds > 0.001 else { return maximumRowLimit }
+        let scaled = Double(rows) * min(4, max(0.25, applyTarget / seconds))
+        return min(maximumRowLimit, max(minimumRowLimit, Int(scaled)))
+    }
+}
+
 /// Wall-clock milliseconds between two marks, to one decimal, for the trace.
 private func milliseconds(since start: DispatchTime, until end: DispatchTime = .now()) -> String {
-    String(format: "%.1f", Double(end.uptimeNanoseconds &- start.uptimeNanoseconds) / 1_000_000)
+    String(format: "%.1f", max(0, Double(end.uptimeNanoseconds) - Double(start.uptimeNanoseconds)) / 1_000_000)
 }
 #endif
