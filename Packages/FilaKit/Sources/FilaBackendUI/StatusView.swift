@@ -119,9 +119,12 @@ public final class StatusView: UIView {
             make.bottom.equalTo(stack.snp.top).offset(-FilaUI.Spacing.small)
         }
         // Artwork comes at the properties page's 192 points; here it is a
-        // glyph, not a preview. A symbol is smaller than this and unaffected.
+        // glyph, not a preview. A square box, so a picture of any shape is
+        // fitted into it rather than stretched; a symbol is smaller than this
+        // and only centred.
         symbolView.snp.makeConstraints { make in
-            make.width.height.lessThanOrEqualTo(96)
+            make.width.lessThanOrEqualTo(96)
+            make.height.equalTo(symbolView.snp.width)
         }
 
         // The width has to have a floor, not just a ceiling. With only the two

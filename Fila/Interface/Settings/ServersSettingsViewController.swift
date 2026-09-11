@@ -92,6 +92,7 @@ final class ServersSettingsViewController: UITableViewController {
             content.secondaryTextProperties.font = .preferredFont(forTextStyle: .footnote)
             content.image = root.flatMap(SidebarLocation.image(for:))
             content.imageProperties.maximumSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
+            content.imageProperties.reservedLayoutSize = content.imageProperties.maximumSize
             cell.contentConfiguration = content
             cell.accessoryType = .disclosureIndicator
         case .add:

@@ -170,7 +170,8 @@ final class ArchiveBrowserViewController: TabContentViewController {
             }
             content.secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
             content.secondaryTextProperties.color = .secondaryLabel
-            content.imageProperties.maximumSize = CGSize(width: 40, height: 40)
+            content.imageProperties.maximumSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
+            content.imageProperties.reservedLayoutSize = content.imageProperties.maximumSize
             cell.contentConfiguration = content
             cell.accessories = canOpen
                 ? [.multiselect(), .disclosureIndicator(displayed: .whenNotEditing)]
