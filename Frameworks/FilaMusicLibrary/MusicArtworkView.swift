@@ -8,13 +8,20 @@ final class MusicArtworkView: UIView {
     private var trackID: Int64?
     private var load: Task<Void, Never>?
     private let imageView = UIImageView()
-    private let noteView = UIImageView(image: UIImage(systemName: "music.note")).then {
-        $0.contentMode = .scaleAspectFit
-        $0.tintColor = .tertiaryLabel
+    private let noteView = UIImageView()
+
+    /// A song without cover art is an audio file, and draws as one: the app's
+    /// own audio artwork, never a glyph.
+    static var placeholder: UIImage? {
+        BackendScreens.shell?.fileIcon(named: "Track.m4a", isDirectory: false)
     }
 
     init() {
         super.init(frame: .zero)
+        noteView.do {
+            $0.image = Self.placeholder
+            $0.contentMode = .scaleAspectFit
+        }
         backgroundColor = .secondarySystemFill
         layer.cornerRadius = 8
         clipsToBounds = true
@@ -24,7 +31,7 @@ final class MusicArtworkView: UIView {
         imageView.snp.makeConstraints { $0.edges.equalToSuperview() }
         noteView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-            make.width.height.equalTo(snp.width).multipliedBy(0.28)
+            make.width.height.equalTo(snp.width).multipliedBy(0.8)
         }
         isAccessibilityElement = false
     }

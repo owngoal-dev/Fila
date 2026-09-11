@@ -263,6 +263,8 @@ final class ViewerContainerViewController: TabContentViewController {
             node: details.node,
             additional: additional,
             groupsFileOperations: true,
+            // The archive browser offers its own, which can also take a selection.
+            offersExtraction: detectedFormat != .archive,
             confirm: confirmBlock
         )
     }
@@ -301,16 +303,7 @@ final class ViewerContainerViewController: TabContentViewController {
                 let file = try await DescriptorFile.open(details.path, link: link)
                 try self?.present(format: format, file: file)
             } catch {
-                let alert = AlertViewController(
-                    title: String(localized: "Unable to Open This File"),
-                    message: FailureMessage.text(for: error)
-                ) { context in
-                    context.allowSimpleDispose()
-                    context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                        context.dispose()
-                    }
-                }
-                self?.present(alert, animated: true)
+                self?.presentMessage(String(localized: "Unable to Open This File"), message: FailureMessage.text(for: error))
             }
         }
     }

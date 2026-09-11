@@ -57,7 +57,11 @@ extension FileBrowserViewController: UIDocumentPickerDelegate, PHPickerViewContr
                 for index in 0 ..< count {
                     let staging = try await session.makeTemporaryDirectory()
                     do {
-                        let file = try await prepareImport { try await prepare(index, staging) }
+                        let file = try await ProgressCard.run(
+                            title: String(localized: "Preparing…"),
+                            message: String(localized: "Loading the selected file for import."),
+                            from: self
+                        ) { _ in try await prepare(index, staging) }
                         let outcome = try await performTransfer(
                             JobRequest(kind: .copy, sources: [file.path], destination: directory)
                         )
@@ -79,41 +83,8 @@ extension FileBrowserViewController: UIDocumentPickerDelegate, PHPickerViewContr
                     FeedbackAlert.show(String(localized: "Import Failed"), message: message)
                     return
                 }
-                let alert = AlertViewController(
-                    title: String(localized: "Import Failed"),
-                    message: message
-                ) { context in
-                    context.allowSimpleDispose()
-                    context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) { context.dispose() }
-                }
-                present(alert, animated: true)
+                presentMessage(String(localized: "Import Failed"), message: message)
             }
         }
-    }
-
-    private func prepareImport(_ body: () async throws -> URL) async throws -> URL {
-        let progress = AlertProgressIndicatorViewController(
-            title: String.LocalizationValue("Preparing…"),
-            message: String.LocalizationValue("Loading the selected file for import.")
-        )
-        let reveal = Task { @MainActor in
-            do { try await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000)) }
-            catch { return }
-            guard !Task.isCancelled, viewIfLoaded?.window != nil, presentedViewController == nil else { return }
-            await withCheckedContinuation { continuation in
-                present(progress, animated: true) { continuation.resume() }
-            }
-        }
-        let result: Result<URL, Error>
-        do { result = try await .success(body()) }
-        catch { result = .failure(error) }
-        reveal.cancel()
-        await reveal.value
-        if progress.presentingViewController != nil, !progress.isBeingDismissed {
-            await withCheckedContinuation { continuation in
-                progress.dismiss(animated: true) { continuation.resume() }
-            }
-        }
-        return try result.get()
     }
 }

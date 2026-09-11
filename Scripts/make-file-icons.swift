@@ -21,8 +21,10 @@
 // list of monochrome glyphs that all read the same at a glance.
 //
 // A type whose composed icon is a blank page (`public.database`,
-// `public.symlink`) is deliberately absent: an icon that says nothing is worse
-// than the SF Symbol `FilePresentation` falls back to.
+// `public.symlink`) is deliberately absent: a database draws as the generic
+// `document`, and a symlink draws its target with the `alias` arrow over it.
+// No file is ever drawn with an SF Symbol — a glyph among pictures reads as a
+// control — so anything `FilePresentation` pictures has an entry here.
 
 import AppKit
 import UniformTypeIdentifiers
@@ -71,6 +73,14 @@ let icons: [(name: String, source: Source)] = [
     // sits in the bottom-left corner of a full canvas, so it overlays at icon
     // size rather than as a small badge.
     ("alias", .bundled("AliasBadgeIcon")),
+    // A fifo, a socket or a device node: Finder's gear. `UnknownFSObjectIcon`
+    // is the literal match, but it is a faint dashed outline that all but
+    // vanishes on a light row.
+    ("special", .bundled("ToolbarAdvanced")),
+    // A link whose target does not exist: "there is nothing there".
+    ("broken-link", .bundled("GenericQuestionMarkIcon")),
+    // The corner mark on a favourite folder in the sidebar.
+    ("favorite", .bundled("FavoriteItemsIcon")),
     ("plist", .composed("com.apple.property-list")),
     ("image", .composed("public.image")),
     ("text", .composed("public.plain-text")),

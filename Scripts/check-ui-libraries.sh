@@ -53,6 +53,17 @@ if [[ -n "$alert_hits" ]]; then
     echo "$alert_hits" >&2
 fi
 
+# One progress card: it waits out the reveal delay, runs the work in a task a
+# caller can cancel, and is gone before the caller shows what came of it.
+# A second card built by hand gets none of that. Modules reach it through
+# `BackendShell.withProgress`.
+progress_hits="$(search 'AlertProgressIndicatorViewController\(' "${ui_roots[@]}" \
+    | grep -v 'Fila/Interface/Feedback/ProgressCard.swift' || true)"
+if [[ -n "$progress_hits" ]]; then
+    error "progress cards must go through ProgressCard.run (or BackendShell.withProgress); found:"
+    echo "$progress_hits" >&2
+fi
+
 indicator_hits="$(search 'import SPIndicator|SPIndicatorView' "${ui_roots[@]}" \
     | grep -v 'Fila/Interface/Feedback/Toast.swift' || true)"
 if [[ -n "$indicator_hits" ]]; then
@@ -121,6 +132,17 @@ delete_icon_hits="$(search '"trash\.slash"' "${ui_roots[@]}")"
 if [[ -n "$delete_icon_hits" ]]; then
     error "deletion uses the standard trash symbol:"
     echo "$delete_icon_hits" >&2
+fi
+
+# A file, a folder, an archive entry or an app is never drawn with an SF Symbol:
+# a glyph among pictures reads as a control. These files exist only to draw
+# those pictures, so any symbol in one of them is a file drawn as a glyph. A
+# type with no picture gets artwork from Scripts/make-file-icons.swift.
+file_picture_hits="$(search 'systemName' "${ui_roots[@]}" \
+    | grep -E 'Shared/FilePresentation[^/]*\.swift|Shared/IconRowCell\.swift|Browser/BrowserGridCell\.swift|FilaMusicLibrary/MusicArtworkView\.swift|FilaApplications/ApplicationArtworkCache\.swift' || true)"
+if [[ -n "$file_picture_hits" ]]; then
+    error "files are drawn with FileIcons artwork, never an SF Symbol; found systemName in a file-picture source:"
+    echo "$file_picture_hits" >&2
 fi
 
 # An SF Symbol from a release newer than the deployment target is not a build

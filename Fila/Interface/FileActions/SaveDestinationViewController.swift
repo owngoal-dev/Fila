@@ -446,16 +446,7 @@ final class SaveDestinationViewController: UIViewController {
     }
 
     private func showError(_ message: String) {
-        let alert = AlertViewController(
-            title: String(localized: "Unable to Create Folder"),
-            message: message
-        ) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                context.dispose()
-            }
-        }
-        present(alert, animated: true)
+        presentMessage(String(localized: "Unable to Create Folder"), message: message)
     }
 
     @objc private func cancel() {

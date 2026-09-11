@@ -230,30 +230,26 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
     }
 
     private func importMusic(_ file: URL) {
-        guard !isChangingLibrary, let files = backend.files else { return }
+        guard !isChangingLibrary, let files = backend.files, let shell = BackendScreens.shell else { return }
         beginChange()
-        // Resolved against this framework's catalogue; AlertController would
-        // look a `LocalizationValue` up in the app bundle.
-        let progress = AlertProgressIndicatorViewController(
-            title: String(localized: "Importing Music…", bundle: bundle),
-            message: String(localized: "Keep Fila open until the import finishes.", bundle: bundle)
-        )
-        present(progress, animated: true)
         Task {
             var failure: Error?
             do {
-                _ = try await MusicLibraryEditor.shared.importTrack(from: file.path, files: files)
-            } catch { failure = error }
-            progress.dismiss(animated: true) { [self] in
-                endChange()
-                if let failure {
-                    BackendScreens.shell?.alert(
-                        title: String(localized: "Unable to Import Music", bundle: bundle),
-                        message: BackendScreens.shell?.failureText(for: failure) ?? failure.localizedDescription
-                    )
-                } else {
-                    BackendScreens.shell?.toast(String(localized: "Music imported", bundle: bundle))
+                // Resolved against this framework's catalogue; the app would
+                // look a key up in its own bundle.
+                try await shell.withProgress(
+                    title: String(localized: "Importing Music…", bundle: bundle),
+                    message: String(localized: "Keep Fila open until the import finishes.", bundle: bundle),
+                    from: self
+                ) { _ in
+                    _ = try await MusicLibraryEditor.shared.importTrack(from: file.path, files: files)
                 }
+            } catch { failure = error }
+            endChange()
+            if let failure {
+                shell.alert(title: String(localized: "Unable to Import Music", bundle: bundle), message: shell.failureText(for: failure))
+            } else {
+                shell.toast(String(localized: "Music imported", bundle: bundle))
             }
         }
     }
@@ -274,29 +270,25 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
     }
 
     private func deleteMusic(_ track: MusicLibraryTrack, from presenter: UIViewController) {
-        guard !isChangingLibrary else { return }
+        guard !isChangingLibrary, let shell = BackendScreens.shell else { return }
         beginChange()
-        let progress = AlertProgressIndicatorViewController(
-            title: String(localized: "Deleting…", bundle: bundle),
-            message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle)
-        )
-        presenter.present(progress, animated: true)
         Task { [self] in
             var failure: Error?
             do {
-                _ = try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
+                try await shell.withProgress(
+                    title: String(localized: "Deleting…", bundle: bundle),
+                    message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle),
+                    from: presenter
+                ) { _ in
+                    _ = try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
+                }
             } catch { failure = error }
-            progress.dismiss(animated: true) { [self] in
-                endChange()
-                if failure == nil, presenter !== self, navigationController?.topViewController === presenter {
-                    navigationController?.popViewController(animated: true)
-                }
-                if let failure {
-                    BackendScreens.shell?.alert(
-                        title: String(localized: "Unable to Delete Song", bundle: bundle),
-                        message: failure.localizedDescription
-                    )
-                }
+            endChange()
+            if failure == nil, presenter !== self, navigationController?.topViewController === presenter {
+                navigationController?.popViewController(animated: true)
+            }
+            if let failure {
+                shell.alert(title: String(localized: "Unable to Delete Song", bundle: bundle), message: failure.localizedDescription)
             }
         }
     }

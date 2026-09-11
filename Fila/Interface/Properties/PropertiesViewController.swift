@@ -175,51 +175,31 @@ final class PropertiesViewController: TabContentViewController {
         }
     }
 
-    /// The existing media service consumes and closes the backend descriptor.
+    /// The file's own picture, or a navigable bundle's app artwork.
     /// A stale or cancelled preview never updates a reused/closed page.
     private func loadPreview() {
         previewTask?.cancel()
         let path = details.path
         let node = details.node
-        let link = link
         previewTask = Task { [weak self] in
-            let image: UIImage?
-            var maximumSide: CGFloat = 192
-            if let executable = await FilePresentation.executableImage(for: path, node: node, session: .shared, large: true) {
-                image = executable
-            } else if node.kind == .regular {
-                let rendered = await ThumbnailService.shared.thumbnail(
-                    path: path,
-                    modified: node.modified,
-                    byteCount: node.size,
-                    maxPixelSize: 512
-                ) {
-                    let descriptor = try await link.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
-                    var status = stat()
-                    guard fstat(descriptor, &status) == 0 else {
-                        let code = POSIXErrorCode(rawValue: errno) ?? .EIO
-                        close(descriptor)
-                        throw POSIXError(code)
-                    }
-                    guard status.st_mode & S_IFMT == S_IFREG else {
-                        close(descriptor)
-                        throw POSIXError(.EINVAL)
-                    }
-                    return descriptor
-                }
-                image = rendered.map { UIImage(cgImage: $0) }
+            var image: UIImage?
+            var maximumSide = FilePresentation.largeSide
+            // `link` is always `FileSession.shared.link`: every caller passes
+            // `session.link`, and there is one session.
+            switch await FilePresentation.picture(for: path, node: node, session: .shared, large: true) {
+            case let .icon(icon)?:
+                image = icon
+            case let .thumbnail(thumbnail)?:
+                image = thumbnail
                 maximumSide = 512
-            } else if node.isNavigable {
+            case nil:
+                guard node.isNavigable else { break }
                 let decoration = await SystemCapabilities.applications?.decorationLookup()
                 if let identifier = decoration?(path)?.applicationIdentifier,
                    let artwork = SystemCapabilities.applicationArtwork
                 {
                     image = await artwork.icon(for: identifier)
-                } else {
-                    image = nil
                 }
-            } else {
-                image = nil
             }
             guard !Task.isCancelled, let self, details.path == path, let image else { return }
             previewImage = image
@@ -774,16 +754,10 @@ final class PropertiesViewController: TabContentViewController {
     }
 
     private func report(_ error: Error) {
-        let alert = AlertViewController(
-            title: String(localized: "Unable to Change Item"),
+        presentMessage(
+            String(localized: "Unable to Change Item"),
             message: FailureMessage.text(for: error, whileWriting: true)
-        ) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                context.dispose()
-            }
-        }
-        present(alert, animated: true)
+        )
     }
 
     // MARK: - Formatting

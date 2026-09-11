@@ -76,17 +76,13 @@ final class IconRowCell: UICollectionViewListCell {
         iconView.addSubview(linkBadge)
 
         favoriteBadge.do {
-            $0.image = UIImage(systemName: "star.circle.fill")
-            $0.tintColor = .secondaryLabel
-            $0.backgroundColor = .systemBackground
-            $0.layer.cornerRadius = Self.badgeSize / 2
-            $0.clipsToBounds = true
+            $0.image = FilePresentation.image(for: .artwork("favorite"))
+            $0.contentMode = .scaleAspectFit
         }
         iconView.addSubview(favoriteBadge)
 
         appBadge.do {
             $0.contentMode = .scaleAspectFit
-            $0.tintColor = .systemBrown
             $0.backgroundColor = .systemBackground
             $0.layer.cornerRadius = 4
             $0.clipsToBounds = true
@@ -255,25 +251,24 @@ final class IconRowCell: UICollectionViewListCell {
     }
 
     /// A picture of the file itself where one can be made cheaply — see
-    /// `ThumbnailCache`. Lands only if the cell still shows this row.
+    /// `FilePresentation.picture`. Lands only if the cell still shows this row.
     func showThumbnail(for path: String, node: FileNode, session: FileSession) {
-        guard node.kind == .regular || node.link?.resolvedKind == .regular else { return }
+        guard FilePresentation.canHavePicture(node) else { return }
         let token = UUID()
         iconToken = token
         thumbnailTask?.cancel()
         thumbnailTask = Task { [weak self] in
-            if let executable = await FilePresentation.executableImage(for: path, node: node, session: session) {
-                guard let self, iconToken == token else { return }
-                iconView.image = executable
-                return
+            let picture = await FilePresentation.picture(for: path, node: node, session: session)
+            guard let self, iconToken == token, let picture else { return }
+            switch picture {
+            case let .icon(image):
+                iconView.image = image
+            case let .thumbnail(image):
+                iconView.image = image
+                iconView.contentMode = .scaleAspectFill
+                iconView.clipsToBounds = true
+                iconView.layer.cornerRadius = 4
             }
-            guard node.kind == .regular, FilePresentation.format(of: node) == .image,
-                  let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session),
-                  let self, iconToken == token else { return }
-            iconView.image = thumbnail
-            iconView.contentMode = .scaleAspectFill
-            iconView.clipsToBounds = true
-            iconView.layer.cornerRadius = 4
         }
     }
 

@@ -68,7 +68,18 @@ extension FileBrowserViewController {
         navigation.pushViewController(FileBrowserViewController(directory: path), animated: true)
     }
 
+    /// A tap. A zip is something to unpack; looking inside it is Preview.
     func open(_ node: FileNode) {
+        guard !isTrash else { return }
+        if !node.isNavigable, FileActions.extractsOnTap(node.name) {
+            FileActions(presenter: self, directory: directory).extract(path(of: node))
+            return
+        }
+        preview(node)
+    }
+
+    /// A folder opens, a file shows in its viewer — an archive, its contents.
+    func preview(_ node: FileNode) {
         // A trashed item is not somewhere to go or something to read: it is
         // put back, or it is gone. Both are in its menu.
         guard !isTrash else { return }

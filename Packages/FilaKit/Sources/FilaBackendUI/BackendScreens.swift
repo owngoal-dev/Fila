@@ -43,7 +43,7 @@ public protocol BackendShell: AnyObject {
     func delete(_ path: String, subtitle: String) async throws
     /// The transient success line.
     func toast(_ text: String)
-    /// An error card with a title, a reason and Close.
+    /// An error card with a title, a reason and OK.
     func alert(title: String, message: String)
     /// The permanent-deletion card, under the destructive accent.
     func confirmPermanentDeletion(
@@ -64,9 +64,15 @@ public protocol BackendShell: AnyObject {
     /// The app's artwork for a backend's root — the same picture its
     /// sidebar row shows — for the first crumb of the root's screens.
     func rootArtwork(for root: BackendRoot) -> UIImage?
-    /// The delayed progress card for work that may take a while: shown
-    /// only once it has, updated through the handle, dismissed by it.
-    func progressCard(title: String, message: String, from presenter: UIViewController) -> any BackendProgressCard
+    /// Runs `operation` under the app's progress card: shown only once the
+    /// work has taken a moment, its message changed through `update`, and
+    /// gone before this returns. Cancelling the calling task cancels it.
+    func withProgress<T: Sendable>(
+        title: String,
+        message: String,
+        from presenter: UIViewController,
+        operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T
+    ) async throws -> T
     /// The app's viewer for a local file, pushed into `presenter`'s stack:
     /// a snapshot of a remote file gets the same reader a local one does.
     /// `released` runs once the viewer is gone, so its workspace can go.
@@ -96,13 +102,6 @@ public struct BackendClipboardSummary: Equatable, Sendable {
         self.isCut = isCut
         self.isPasting = isPasting
     }
-}
-
-/// A progress card the shell lent: what the caller can do with it.
-@MainActor
-public protocol BackendProgressCard: AnyObject {
-    func update(message: String)
-    func dismiss()
 }
 
 public extension UITableView {

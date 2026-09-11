@@ -122,10 +122,7 @@ final class TextViewerViewController: TabContentViewController {
         super.viewDidAppear(animated)
         guard let message = pendingNotice, presentedViewController == nil else { return }
         pendingNotice = nil
-        let alert = AlertViewController(title: title ?? details.node.name, message: message) { context in
-            context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
-        }
-        present(alert, animated: true)
+        presentMessage(title ?? details.node.name, message: message)
     }
 
     private func buildInterface() {
@@ -494,16 +491,7 @@ final class TextViewerViewController: TabContentViewController {
     }
 
     private func presentSaveFailure(_ error: Error) {
-        let alert = AlertViewController(
-            title: String(localized: "Unable to Save"),
-            message: FailureMessage.text(for: error, whileWriting: true)
-        ) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                context.dispose()
-            }
-        }
-        present(alert, animated: true)
+        presentMessage(String(localized: "Unable to Save"), message: FailureMessage.text(for: error, whileWriting: true))
     }
 }
 

@@ -1,5 +1,4 @@
 import FilaFormats
-import FilaMedia
 import FilaProtocol
 import Foundation
 import UIKit
@@ -11,56 +10,33 @@ import UIKit
 /// the extension table without the signature table — which keeps one list of
 /// extensions in the project instead of two that drift.
 enum FilePresentation {
-    /// Visible rows refine their fallback using four magic bytes in the app.
-    /// A mode of 0777 also belongs to ordinary user documents, so it is not evidence.
-    @MainActor
-    static func executableImage(
-        for path: String,
-        node: FileNode,
-        session: FileSession,
-        large: Bool = false
-    ) async -> UIImage? {
-        guard node.kind == .regular || node.link?.resolvedKind == .regular else { return nil }
-        let found = await ThumbnailService.shared.isMachO(
-            path: path,
-            modified: node.modified,
-            byteCount: node.kind == .symbolicLink ? 4 : node.size,
-            cacheResult: node.kind != .symbolicLink
-        ) {
-            try await session.perform(retryOnDisconnect: true) {
-                try await $0.open(path, flags: O_RDONLY | O_NONBLOCK | (node.kind == .symbolicLink ? 0 : O_NOFOLLOW))
-            }
-        }
-        guard found, !Task.isCancelled else { return nil }
-        return UIImage(
-            named: large ? "FileIcons/executable-large" : "FileIcons/executable"
-        )?.withRenderingMode(.alwaysOriginal)
-    }
-
-    /// Which picture a row draws.
+    /// Which picture a row draws: a full-colour PNG out of the asset
+    /// catalogue, never tinted.
     ///
-    /// Two cases because there are two kinds of artwork and they are drawn
-    /// differently: `artwork` is a full-colour PNG out of the asset catalogue
-    /// and must not be tinted, `symbol` is a template that takes the row's
-    /// secondary colour. A single string would have collapsed that and made
-    /// every folder grey.
+    /// There is no SF Symbol case, on purpose. A file, a folder, an archive
+    /// entry or an app is always drawn with artwork: a glyph among pictures
+    /// reads as a control. A type the system has no picture for draws as the
+    /// generic `document`.
     enum Icon: Hashable {
         /// A name under `Assets.xcassets/FileIcons`.
         case artwork(String)
-        /// An SF Symbol, for the types the system has no distinct picture for.
-        case symbol(String)
+
+        var name: String {
+            switch self {
+            case let .artwork(name): name
+            }
+        }
     }
 
     static func format(of node: FileNode) -> FileFormat {
         FileFormat.detect(head: Data(), name: node.name)
     }
 
-    /// A colour icon wherever the system had one, and an SF Symbol wherever it
-    /// did not.
+    /// The artwork for a node, from its name and kind alone.
     ///
-    /// The line is drawn on whether the composed macOS icon says anything: a
-    /// SQLite database and a symlink both compose to a blank sheet of paper, so
-    /// they keep their glyph rather than ship artwork that reads as "unknown".
+    /// Where the composed macOS icon is a blank sheet of paper — a SQLite
+    /// database — the row draws the generic `document`: nothing more specific
+    /// exists, and a glyph would be the one row drawn differently.
     ///
     /// A symlink draws whatever its *target* would draw. The badge that says it
     /// is a link is drawn over the corner by `IconRowCell`, not chosen here:
@@ -82,7 +58,7 @@ enum FilePresentation {
         // lie, and a jailbroken filesystem is full of them, so it keeps a
         // picture that says "there is nothing there" rather than borrowing one.
         guard let link = node.link, let kind = link.resolvedKind else {
-            return .symbol("questionmark.square.dashed")
+            return .artwork("broken-link")
         }
         // The *target's* name: `latest -> release-3.2.png` is an image row.
         // `fstatat` follows the whole chain, so `kind` is never itself a link —
@@ -105,9 +81,9 @@ enum FilePresentation {
         case .symbolicLink:
             // Unreachable: `icon(for:)` sends links to `linkIcon` and a
             // resolved kind is never a link. Here so the switch is total.
-            return .symbol("arrowshape.turn.up.right")
+            return .artwork("document")
         case .fifo, .socket, .blockDevice, .characterDevice:
-            return .symbol("gearshape")
+            return .artwork("special")
         case .regular, .unknown:
             break
         }
@@ -129,9 +105,8 @@ enum FilePresentation {
         case .audio: return .artwork("audio")
         case .video: return .artwork("video")
         case .pdf: return .artwork("pdf")
-        case .sqlite: return .symbol("cylinder")
         case .text: return .artwork("text")
-        case .binary: return .artwork("document")
+        case .sqlite, .binary: return .artwork("document")
         }
     }
 
@@ -142,8 +117,7 @@ enum FilePresentation {
     /// listing draws from at most a dozen distinct icons no matter how long it
     /// is, so there is nothing to evict and no cost in keeping them.
     /// `UIImage(named:)` has a cache of its own behind it; the point of this
-    /// one is to skip the symbol configuration and the rendering-mode copy,
-    /// which `UIImage` does not cache and which are the expensive half.
+    /// one is to skip the rendering-mode copy, which `UIImage` does not cache.
     @MainActor
     static func image(for node: FileNode) -> UIImage? {
         image(for: icon(for: node))
@@ -154,21 +128,17 @@ enum FilePresentation {
         image(for: icon(kind: kind, name: name))
     }
 
+    /// Artwork named outright, for a picture that is not a node's: a folder
+    /// behind a tab, a clipboard entry that no longer exists.
     @MainActor
-    private static func image(for icon: Icon) -> UIImage? {
+    static func image(for icon: Icon) -> UIImage? {
         if let hit = iconCache[icon] {
             return hit
         }
-        let image: UIImage? = switch icon {
-        case let .artwork(name):
-            UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-        case let .symbol(name):
-            UIImage(systemName: name, withConfiguration: symbolConfiguration)?
-                .withRenderingMode(.alwaysTemplate)
+        guard let image = UIImage(named: "FileIcons/\(icon.name)")?.withRenderingMode(.alwaysOriginal) else {
+            return nil
         }
-        if let image {
-            iconCache[icon] = image
-        }
+        iconCache[icon] = image
         return image
     }
 
@@ -177,25 +147,12 @@ enum FilePresentation {
     /// Not cached: one page shows one of them.
     @MainActor
     static func largeImage(for node: FileNode) -> UIImage? {
-        switch icon(for: node) {
-        case let .artwork(name):
-            UIImage(named: "FileIcons/\(name)-large")?.withRenderingMode(.alwaysOriginal)
-        case let .symbol(name):
-            UIImage(
-                systemName: name,
-                withConfiguration: UIImage.SymbolConfiguration(pointSize: largeSide / 2, weight: .regular)
-            )?.withRenderingMode(.alwaysTemplate)
-        }
+        UIImage(named: "FileIcons/\(icon(for: node).name)-large")?.withRenderingMode(.alwaysOriginal)
     }
 
     /// The side of the large artwork, in points; `Scripts/make-file-icons.swift`
     /// renders to the same number.
     static let largeSide: CGFloat = 192
-
-    /// The point size a symbol is drawn at so it sits beside 40pt artwork
-    /// without looking like a different list.
-    @MainActor
-    private static let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
 
     @MainActor
     private static var iconCache: [Icon: UIImage] = [:]

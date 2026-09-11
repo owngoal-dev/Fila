@@ -1,6 +1,5 @@
 import FilaBackendUI
 import FilaBackendKit
-import AlertController
 import FilaLog
 import FilaProtocol
 import UIKit
@@ -89,7 +88,7 @@ extension RootSplitViewController {
             openApp(bundle: bundle, container: container)
         case .installedApps:
             guard let screen = SidebarLocation.screen(for: .root(of: .applications)) else {
-                alert(title: String(localized: "Applications Unavailable"), message: applicationsUnavailableMessage)
+                presentMessage(String(localized: "Applications Unavailable"), message: applicationsUnavailableMessage)
                 return
             }
             push(screen)
@@ -144,12 +143,12 @@ extension RootSplitViewController {
             // handshake lands would answer "not installed" for an app that is.
             await FileSession.shared.ready()
             guard let applications = SystemCapabilities.applications, applications.isEnabled else {
-                self.alert(title: String(localized: "Applications Unavailable"), message: self.applicationsUnavailableMessage)
+                self.presentMessage(String(localized: "Applications Unavailable"), message: self.applicationsUnavailableMessage)
                 return
             }
             guard let app = await applications.locate(bundleIdentifier: bundle) else {
-                self.alert(
-                    title: String(localized: "App Not Found"),
+                self.presentMessage(
+                    String(localized: "App Not Found"),
                     message: String(localized: "“\(bundle)” is not installed on this device.")
                 )
                 return
@@ -162,8 +161,8 @@ extension RootSplitViewController {
                 // see `ApplicationCatalog`. Saying so beats silently showing the
                 // bundle instead and letting the user work out why.
                 guard let data = app.dataPath else {
-                    self.alert(
-                        title: String(localized: "No App Data"),
+                    self.presentMessage(
+                        String(localized: "No App Data"),
                         message: String(localized: "Fila could not find App Data for \(app.name).")
                     )
                     return
@@ -178,20 +177,10 @@ extension RootSplitViewController {
     /// as a crash. The URL is echoed back truncated: it came from a stranger
     /// and an alert is not a place to render an arbitrary kilobyte.
     private func reportUnrecognized(_ url: URL) {
-        alert(
-            title: String(localized: "Unsupported Link"),
+        presentMessage(
+            String(localized: "Unsupported Link"),
             message: String(localized: "Fila cannot open this link. Check the address and try again.")
                 + "\n\n" + String(url.absoluteString.prefix(200))
         )
-    }
-
-    private func alert(title: String, message: String) {
-        let alert = AlertViewController(title: title, message: message) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                context.dispose()
-            }
-        }
-        present(alert, animated: true)
     }
 }

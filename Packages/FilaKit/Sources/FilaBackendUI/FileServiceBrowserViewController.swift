@@ -30,8 +30,9 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
     private var truncationReported = false
     private var snapshotTask: Task<Void, Never>?
     private let cell = UICollectionView.CellRegistration<BackendRowCell, FileEntry> { cell, _, entry in
+        // No fallback: a file is never drawn as a glyph, and the shell that
+        // owns the artwork always exists in the app.
         let icon = BackendScreens.shell?.fileIcon(named: entry.name, isDirectory: entry.entersDirectory)
-            ?? UIImage(systemName: entry.entersDirectory ? "folder" : "doc")
         cell.configure(name: entry.name, detail: FileServiceBrowserViewController.detail(for: entry), image: icon)
         cell.accessories = entry.entersDirectory ? [.disclosureIndicator()] : []
         cell.contentView.alpha = entry.isHidden ? 0.55 : 1
@@ -287,37 +288,31 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         let backend = backend
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
-            let card = shell.progressCard(
-                title: String(localized: "Downloading…", bundle: bundle),
-                message: String(localized: "Downloading “\(entry.name)” from the server.", bundle: bundle),
-                from: self
-            )
             var workspace: URL?
             do {
                 let directory = try await shell.makeWorkspace()
                 workspace = directory
                 let target = directory.appendingPathComponent(entry.name)
-                let service = try await backend.fileService()
-                let descriptor = try Self.openStaging(target)
-                do {
+                try await shell.withProgress(
+                    title: String(localized: "Downloading…", bundle: bundle),
+                    message: String(localized: "Downloading “\(entry.name)” from the server.", bundle: bundle),
+                    from: self
+                ) { update in
+                    let service = try await backend.fileService()
+                    let descriptor = try Self.openStaging(target)
+                    defer { close(descriptor) }
                     try await service.copyContents(of: child, to: descriptor) { progress in
                         Task { @MainActor in
                             guard let expected = progress.expected, expected > 0 else { return }
-                            card.update(message: String(
+                            update(String(
                                 localized: "\(Self.format(progress.completed)) of \(Self.format(expected))", bundle: self.bundle
                             ))
                         }
                     }
-                } catch {
-                    close(descriptor)
-                    throw error
                 }
-                close(descriptor)
                 try Task.checkCancellation()
-                card.dismiss()
                 use(target) { try? FileManager.default.removeItem(at: directory) }
             } catch {
-                card.dismiss()
                 if let workspace { try? FileManager.default.removeItem(at: workspace) }
                 guard !(error is CancellationError), !Task.isCancelled else { return }
                 shell.alert(

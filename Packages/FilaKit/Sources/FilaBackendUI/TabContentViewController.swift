@@ -295,20 +295,19 @@ open class TabContentViewController: UIViewController {
         // the breadcrumb a few points of a scroller that already scrolls. On
         // iOS 26 each item sits in its own capsule, with wider outer margins
         // and gaps than the flat bar, and the breadcrumb gets a capsule too.
-        let slot: CGFloat
-        var reserved: CGFloat
+        let hasLeading = searchPlacementItem != nil || wantsSearchButton
+        let hasTrailing = bar != nil
+        let reserved: CGFloat
         if #available(iOS 26.0, *) {
-            slot = FilaUI.minimumTapTarget + 2 * FilaUI.Spacing.large
+            // The bar centres the breadcrumb like a title. Sized off one side
+            // only — a viewer has Tabs and no Search — it runs into Tabs, and
+            // the two capsules melt into one.
+            let slot = FilaUI.minimumTapTarget + 2 * FilaUI.Spacing.large
             reserved = 2 * (FilaUI.Spacing.large + FilaUI.Spacing.medium) + 2 * FilaUI.Spacing.small
+                + (hasLeading || hasTrailing ? 2 * slot : 0)
         } else {
-            slot = FilaUI.minimumTapTarget + FilaUI.Spacing.large + FilaUI.Spacing.small
-            reserved = 2 * FilaUI.Spacing.large
-        }
-        if searchPlacementItem != nil || wantsSearchButton {
-            reserved += slot
-        }
-        if bar != nil {
-            reserved += slot
+            let slot = FilaUI.minimumTapTarget + FilaUI.Spacing.large + FilaUI.Spacing.small
+            reserved = 2 * FilaUI.Spacing.large + (hasLeading ? slot : 0) + (hasTrailing ? slot : 0)
         }
         let target = max(FilaUI.minimumTapTarget, available - reserved)
         if abs((width.layoutConstraints.first?.constant ?? 0) - target) > 0.5 {

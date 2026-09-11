@@ -11,9 +11,11 @@ import UniformTypeIdentifiers
 ///
 /// This is the one place the server reads a shared file by path rather than
 /// through a descriptor the backend opened: QuickLook takes a URL and nothing
-/// else. It reads with the app's own rights, so a root-only file simply has no
+/// else. It reads with the app's own rights, so a root-only file has no
 /// thumbnail — the row keeps its icon — and the path has already passed the
 /// same `isServed` and `details` checks as the download it stands in for.
+/// "Has no thumbnail" is checked here, not left to QuickLook: on the device it
+/// answers an unreadable text file with a blank page rather than a failure.
 // ponytail: no cache; QuickLook re-renders per request. Add a size-bounded on-disk cache keyed by inode/mtime if a camera roll on Wi-Fi feels slow.
 extension WebDAVHandler {
     /// The requested edge in pixels, clamped to something a list row can use.
@@ -56,6 +58,7 @@ enum Thumbnailer {
     /// the page draws its own.
     static func png(for path: String, side: Int) async -> Data? {
         #if canImport(QuickLookThumbnailing)
+            guard access(path, R_OK) == 0 else { return nil }
             let request = QLThumbnailGenerator.Request(
                 fileAt: URL(fileURLWithPath: path),
                 size: CGSize(width: side, height: side),

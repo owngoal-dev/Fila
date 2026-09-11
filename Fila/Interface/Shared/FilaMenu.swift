@@ -31,10 +31,7 @@ enum FilaMenu {
     }
 
     static func preview(for place: SidebarPlace) -> UIImage? {
-        switch place.icon {
-        case let .artwork(name): UIImage(named: "FileIcons/\(name)")?.withRenderingMode(.alwaysOriginal)
-        case .symbol: FilePresentation.image(kind: .directory, name: place.title)
-        }
+        FilePresentation.image(for: place.icon)
     }
 
     /// The row asset's side: `Scripts/make-file-icons.swift` renders the

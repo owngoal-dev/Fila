@@ -327,23 +327,22 @@ final class SMBConnectionViewController: UITableViewController {
         let candidatePassword = passwordForConnecting()
         work?.cancel()
         work = Task { @MainActor [weak self] in
-            guard let self else { return }
-            let card = BackendScreens.shell?.progressCard(
-                title: String(localized: "Listing Shares…", bundle: bundle),
-                message: String(localized: "Looking up shares on \(profile.host).", bundle: bundle),
-                from: self
-            )
+            guard let self, let shell = BackendScreens.shell else { return }
             do {
-                let shares = try await SMBShares.list(profile: profile, password: candidatePassword)
-                card?.dismiss()
+                let shares = try await shell.withProgress(
+                    title: String(localized: "Listing Shares…", bundle: bundle),
+                    message: String(localized: "Looking up shares on \(profile.host).", bundle: bundle),
+                    from: self
+                ) { _ in
+                    try await SMBShares.list(profile: profile, password: candidatePassword)
+                }
                 guard !Task.isCancelled else { return }
                 present(shareChoice(shares), animated: true)
             } catch {
-                card?.dismiss()
                 guard !Task.isCancelled, !(error is CancellationError) else { return }
-                BackendScreens.shell?.alert(
+                shell.alert(
                     title: String(localized: "Unable to List Shares", bundle: bundle),
-                    message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
+                    message: shell.failureText(for: error)
                 )
             }
         }
@@ -401,22 +400,21 @@ final class SMBConnectionViewController: UITableViewController {
         let candidatePassword = passwordForConnecting()
         work?.cancel()
         work = Task { @MainActor [weak self] in
-            guard let self else { return }
-            let card = BackendScreens.shell?.progressCard(
-                title: String(localized: "Connecting…", bundle: bundle),
-                message: String(localized: "Connecting to \(saving.share) on \(saving.host).", bundle: bundle),
-                from: self
-            )
+            guard let self, let shell = BackendScreens.shell else { return }
             let probe = SMBFileService(profile: saving, password: candidatePassword, connectTimeout: 15, requestTimeout: 15)
             do {
-                _ = try await probe.details(.root)
+                try await shell.withProgress(
+                    title: String(localized: "Connecting…", bundle: bundle),
+                    message: String(localized: "Connecting to \(saving.share) on \(saving.host).", bundle: bundle),
+                    from: self
+                ) { _ in
+                    _ = try await probe.details(.root)
+                }
                 await probe.disconnect()
-                card?.dismiss()
                 guard !Task.isCancelled else { return }
                 await commit(saving)
             } catch {
                 await probe.disconnect()
-                card?.dismiss()
                 guard !Task.isCancelled, !(error is CancellationError) else { return }
                 offerSavingUnreached(saving, error: error)
             }

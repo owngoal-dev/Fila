@@ -94,8 +94,13 @@ final class AppBackendShell: BackendShell {
         SidebarLocation.image(for: root)
     }
 
-    func progressCard(title: String, message: String, from presenter: UIViewController) -> any BackendProgressCard {
-        DelayedProgressCard(title: title, message: message, presenter: presenter)
+    func withProgress<T: Sendable>(
+        title: String,
+        message: String,
+        from presenter: UIViewController,
+        operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T
+    ) async throws -> T {
+        try await ProgressCard.run(title: title, message: message, from: presenter, operation: operation)
     }
 
     /// The app's own viewer over the snapshot, chosen by format like any
@@ -166,37 +171,5 @@ private final class ReleaseOnDeinit {
 
     deinit {
         release()
-    }
-}
-
-/// The delayed progress card, as the app shows one: presented only once
-/// the work has taken a moment, with Cancel, dismissed by whoever asked.
-@MainActor
-private final class DelayedProgressCard: BackendProgressCard {
-    private let card: AlertProgressIndicatorViewController
-    private weak var presenter: UIViewController?
-    private var reveal: Task<Void, Never>?
-    private var dismissed = false
-
-    init(title: String, message: String, presenter: UIViewController) {
-        card = AlertProgressIndicatorViewController(title: title, message: message)
-        self.presenter = presenter
-        reveal = Task { @MainActor [weak self] in
-            do { try await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000)) } catch { return }
-            guard let self, !dismissed, let presenter = self.presenter,
-                  presenter.viewIfLoaded?.window != nil, presenter.presentedViewController == nil else { return }
-            presenter.present(card, animated: true)
-        }
-    }
-
-    func update(message: String) {
-        card.progressContext.purpose(message: message)
-    }
-
-    func dismiss() {
-        dismissed = true
-        reveal?.cancel()
-        guard card.presentingViewController != nil else { return }
-        card.dismiss(animated: true)
     }
 }

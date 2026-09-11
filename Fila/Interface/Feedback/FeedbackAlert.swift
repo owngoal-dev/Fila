@@ -1,4 +1,3 @@
-import AlertController
 import FilaLog
 import UIKit
 
@@ -27,10 +26,6 @@ enum FeedbackAlert {
         {
             return
         }
-        let alert = AlertViewController(title: title, message: message) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("Close"), attribute: .accent) { context.dispose() }
-        }
-        presenter.present(alert, animated: true)
+        presenter.presentMessage(title, message: message)
     }
 }

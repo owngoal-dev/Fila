@@ -65,7 +65,7 @@ extension FileBrowserViewController {
                 for: path,
                 node: node,
                 additional: file,
-                preview: { [weak self] in self?.open(node) }
+                preview: { [weak self] in self?.preview(node) }
             )
         )
     }

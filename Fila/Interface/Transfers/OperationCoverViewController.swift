@@ -27,10 +27,11 @@ final class OperationCoverViewController: UIViewController {
     private let cancelButton = UIButton(type: .system)
     private let actionStack = UIStackView()
 
-    /// `shown` runs once the card is on screen and `dismissed` once it is off
-    /// again — neither runs at all where the job finished inside the reveal
-    /// delay and no card was ever presented. A caller with an alert of its own
-    /// needs both: one presented into this card's dismissal never appears.
+    /// `shown` runs once the card is on its way onto the screen and `dismissed`
+    /// once it is off again — neither runs at all where the job finished inside
+    /// the reveal delay and no card was ever presented. A caller with an alert
+    /// of its own needs both: one presented into this card's presentation or
+    /// dismissal never appears.
     static func present(
         for operationID: UUID,
         from presenter: UIViewController,
@@ -46,10 +47,11 @@ final class OperationCoverViewController: UIViewController {
             let content = OperationCoverViewController(center: center, operationID: operationID)
             content.onDismiss = dismissed
             let alert = AlertViewController(contentViewController: content)
-            presenter.present(alert, animated: true) {
-                shown()
-                content.update()
-            }
+            presenter.present(alert, animated: true) { content.update() }
+            // At the start, not in the completion: a job that ends mid-animation
+            // closes the card the moment it lands, and whatever waits on it must
+            // not be presented in between. A refused presentation sets nothing.
+            if alert.presentingViewController != nil { shown() }
         }
     }
 

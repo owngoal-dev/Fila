@@ -52,7 +52,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
 
     /// The library, then this song under its current title.
     func decorationCrumbs(for _: TabContentViewController) -> [PathBarView.Crumb] {
-        [root, PathBarView.Crumb(title: title ?? "", target: track.id.description, icon: UIImage(systemName: "music.note"))]
+        [root, PathBarView.Crumb(title: title ?? "", target: track.id.description, icon: MusicArtworkView.placeholder)]
     }
 
     /// The only earlier crumb is the library.
@@ -101,32 +101,30 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
         guard !isSaving, let shell = BackendScreens.shell else { return }
         isSaving = true
         navigationItem.rightBarButtonItem?.isEnabled = false
-        // Resolved here, against this framework's catalogue: AlertController
-        // looks a `LocalizationValue` up in the app bundle, where these keys
-        // do not live.
-        let progress = AlertProgressIndicatorViewController(
-            title: String(localized: "Exporting…", bundle: bundle),
-            message: String(localized: "Keep Fila open until the export finishes.", bundle: bundle)
-        )
-        present(progress, animated: true)
         Task { [self] in
             var failure: Error?
             do {
-                let staged = try await shell.stage(path)
-                let workspace = staged.deletingLastPathComponent()
-                defer { try? FileManager.default.removeItem(at: workspace) }
-                let named = workspace.appendingPathComponent(target.lastPathComponent)
-                if named != staged { try FileManager.default.moveItem(at: staged, to: named) }
-                try await shell.copy(named, into: target.deletingLastPathComponent().path, subtitle: target.path)
-            } catch { failure = error }
-            progress.dismiss(animated: true) { [self] in
-                isSaving = false
-                navigationItem.rightBarButtonItem?.isEnabled = true
-                if let failure {
-                    shell.alert(title: String(localized: "Unable to Export", bundle: bundle), message: shell.failureText(for: failure))
-                } else {
-                    shell.toast(String(localized: "Saved", bundle: bundle))
+                // Resolved here, against this framework's catalogue: the app
+                // would look a key up in its own bundle, where these do not live.
+                try await shell.withProgress(
+                    title: String(localized: "Exporting…", bundle: bundle),
+                    message: String(localized: "Keep Fila open until the export finishes.", bundle: bundle),
+                    from: self
+                ) { _ in
+                    let staged = try await shell.stage(path)
+                    let workspace = staged.deletingLastPathComponent()
+                    defer { try? FileManager.default.removeItem(at: workspace) }
+                    let named = workspace.appendingPathComponent(target.lastPathComponent)
+                    if named != staged { try FileManager.default.moveItem(at: staged, to: named) }
+                    try await shell.copy(named, into: target.deletingLastPathComponent().path, subtitle: target.path)
                 }
+            } catch { failure = error }
+            isSaving = false
+            navigationItem.rightBarButtonItem?.isEnabled = true
+            if let failure {
+                shell.alert(title: String(localized: "Unable to Export", bundle: bundle), message: shell.failureText(for: failure))
+            } else {
+                shell.toast(String(localized: "Saved", bundle: bundle))
             }
         }
     }
@@ -220,37 +218,28 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
     }
 
     private func save(_ field: MusicLibraryEditor.Field, original: String, value: String) {
-        guard !isSaving else { return }
+        guard !isSaving, let shell = BackendScreens.shell else { return }
         load?.cancel()
         isSaving = true
         navigationItem.rightBarButtonItem?.isEnabled = false
-        let progress = AlertProgressIndicatorViewController(
-            title: String(localized: "Saving…", bundle: bundle),
-            message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle)
-        )
-        present(progress, animated: true)
         Task { [self] in
             var failure: Error?
             do {
-                let result = try await MusicLibraryEditor.shared.save(
-                    id: track.id,
-                    field: field,
-                    original: original,
-                    value: value
-                )
+                let result = try await shell.withProgress(
+                    title: String(localized: "Saving…", bundle: bundle),
+                    message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle),
+                    from: self
+                ) { [track] _ in
+                    try await MusicLibraryEditor.shared.save(id: track.id, field: field, original: original, value: value)
+                }
                 applyDetails(result)
             } catch { failure = error }
             isSaving = false
             navigationItem.rightBarButtonItem?.isEnabled = true
-            progress.dismiss(animated: true) { [self] in
-                if let failure {
-                    BackendScreens.shell?.alert(
-                        title: String(localized: "Unable to Save", bundle: bundle),
-                        message: failure.localizedDescription
-                    )
-                } else {
-                    BackendScreens.shell?.toast(String(localized: "Saved", bundle: bundle))
-                }
+            if let failure {
+                shell.alert(title: String(localized: "Unable to Save", bundle: bundle), message: failure.localizedDescription)
+            } else {
+                shell.toast(String(localized: "Saved", bundle: bundle))
             }
         }
     }

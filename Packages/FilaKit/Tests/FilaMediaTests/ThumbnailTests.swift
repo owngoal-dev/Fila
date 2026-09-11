@@ -235,6 +235,24 @@ struct ThumbnailTests {
         }
     }
 
+    /// QuickLook answers an unreadable text file with a blank page, not a
+    /// failure, so the service must not ask it. Root reads everything.
+    @Test("QuickLook is never asked for a file this process cannot read", .enabled(if: getuid() != 0))
+    func quickLookNeedsReadAccess() async throws {
+        try await withScratchAsync { directory in
+            let url = directory.appendingPathComponent("private.txt")
+            try Data("root only".utf8).write(to: url)
+            let service = ThumbnailService()
+            #expect(chmod(url.path, 0) == 0)
+            let refused = await service.quickLookThumbnail(path: url.path, modified: 1, byteCount: 9)
+            #expect(refused == nil)
+            // The refusal is not remembered: a chmod leaves the key unchanged.
+            #expect(chmod(url.path, 0o644) == 0)
+            let page = await service.quickLookThumbnail(path: url.path, modified: 1, byteCount: 9)
+            #expect(page != nil)
+        }
+    }
+
     @Test("A cancelled row opens nothing")
     func cancellationOpensNothing() async throws {
         try await withScratchAsync { directory in

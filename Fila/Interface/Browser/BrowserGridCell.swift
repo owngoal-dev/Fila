@@ -17,13 +17,9 @@ final class BrowserGridCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        image.do {
-            $0.contentMode = .scaleAspectFit
-            $0.tintColor = .tintColor
-        }
+        image.contentMode = .scaleAspectFit
         appBadge.do {
             $0.contentMode = .scaleAspectFit
-            $0.tintColor = .systemBrown
             $0.backgroundColor = .systemBackground
             $0.layer.cornerRadius = 6
             $0.clipsToBounds = true
@@ -108,19 +104,18 @@ final class BrowserGridCell: UICollectionViewCell {
                 }
             }
         }
-        guard node.kind == .regular || node.link?.resolvedKind == .regular else { return }
+        guard FilePresentation.canHavePicture(node) else { return }
         thumbnailTask = Task { [weak self] in
-            if let executable = await FilePresentation.executableImage(for: path, node: node, session: session) {
-                guard let self, self.token == token else { return }
-                image.image = executable
-                return
+            let picture = await FilePresentation.picture(for: path, node: node, session: session)
+            guard let self, self.token == token, let picture else { return }
+            switch picture {
+            case let .icon(icon):
+                image.image = icon
+            case let .thumbnail(thumbnail):
+                image.image = thumbnail
+                image.contentMode = .scaleAspectFill
+                image.clipsToBounds = true
             }
-            guard node.kind == .regular, FilePresentation.format(of: node) == .image else { return }
-            let thumbnail = await ThumbnailCache.shared.thumbnail(for: path, node: node, session: session)
-            guard let self, self.token == token, let thumbnail else { return }
-            image.image = thumbnail
-            image.contentMode = .scaleAspectFill
-            image.clipsToBounds = true
         }
     }
 }

@@ -13,7 +13,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
     private let backend: ApplicationBackend
     private var filter = ""
     private let cell = UICollectionView.CellRegistration<BackendRowCell, InstalledApp> { cell, _, app in
-        cell.configure(name: app.name, detail: app.bundleIdentifier, image: UIImage(systemName: "app"))
+        cell.configure(name: app.name, detail: app.bundleIdentifier, image: ApplicationArtworkCache.shared.placeholder)
         cell.showApplicationIcon(app.bundleIdentifier, artwork: ApplicationArtworkCache.shared)
     }
 
@@ -242,7 +242,9 @@ extension ApplicationListViewController: UICollectionViewDelegate {
             let locations = app.locations.map { location in
                 UIAction(
                     title: ApplicationDetailViewController.title(of: location),
-                    image: UIImage(systemName: ApplicationDetailViewController.symbol(of: location))
+                    // The location as the browser draws it: the bundle as an
+                    // application, a container as a folder.
+                    image: BackendScreens.shell?.fileIcon(named: location.path, isDirectory: true)
                 ) { [weak self] _ in
                     guard let self, let navigation = navigationController,
                           navigation.topViewController === self,

@@ -13,8 +13,11 @@ final class ApplicationArtworkCache: ApplicationArtwork {
         return cache
     }()
 
-    /// What a row shows for an app with no artwork, and while artwork loads.
-    let placeholder = UIImage(systemName: "app.fill")
+    /// What a row shows for an app with no artwork, and while artwork loads:
+    /// the app's generic application artwork, never a glyph.
+    var placeholder: UIImage? {
+        BackendScreens.shell?.fileIcon(named: "Application.app", isDirectory: true)
+    }
 
     func cachedIcon(for identifier: String?) -> UIImage? {
         guard let identifier else { return placeholder }

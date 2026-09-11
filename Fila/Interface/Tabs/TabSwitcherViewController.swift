@@ -450,7 +450,7 @@ private final class TabCardCell: UICollectionViewCell {
 
     func configure(title: String, path: String, image: UIImage?, current: Bool, onClose: @escaping () -> Void) {
         titleLabel.text = title
-        imageView.image = image ?? UIImage(systemName: "folder")
+        imageView.image = image ?? FilePresentation.image(for: .artwork("folder"))
         imageView.contentMode = image == nil ? .center : .scaleAspectFill
         self.onClose = onClose
         accessibilityLabel = title + ", " + path

@@ -270,16 +270,10 @@ final class CompressViewController: UIViewController {
             ) { [weak self] confirmed in
                 guard let self else { return }
                 guard confirmed == entered else {
-                    let alert = AlertViewController(
-                        title: String.LocalizationValue("Passwords Do Not Match"),
-                        message: String.LocalizationValue("The password was not changed. Try again.")
-                    ) { context in
-                        context.allowSimpleDispose()
-                        context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                            context.dispose()
-                        }
-                    }
-                    present(alert, animated: true)
+                    presentMessage(
+                        String(localized: "Passwords Do Not Match"),
+                        message: String(localized: "The password was not changed. Try again.")
+                    )
                     return
                 }
                 password = confirmed

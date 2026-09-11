@@ -1,6 +1,9 @@
 import CoreGraphics
 import FilaFormats
 import Foundation
+#if canImport(QuickLookThumbnailing)
+    import QuickLookThumbnailing
+#endif
 
 /// Thumbnails for a file list, generated in this process from a descriptor the
 /// daemon opened.
@@ -16,11 +19,15 @@ import Foundation
 ///   plays the file.
 ///
 /// The app already holds the bytes; drawing a 160-point square out of them is
-/// arithmetic, not authority. `QLThumbnailGenerator` would put that arithmetic
-/// in someone else's process, which is a real gain — except that it only takes
-/// a file URL, so reaching it means copying every file the user scrolls past
-/// into the container first. That trade is the wrong way round, and it is why
-/// the project's "nothing spawns a process" rule did not have to be relaxed.
+/// arithmetic, not authority.
+///
+/// `QLThumbnailGenerator` draws what those three cannot — a text page, an
+/// office document, a font — but it only takes a file URL and reads it in its
+/// own process, as this app. So it is asked only for a path this process can
+/// read itself (`quickLookThumbnail`), never for a file the daemon opened on
+/// its behalf: copying every root-only file the user scrolls past into the
+/// container first would be the wrong way round. Measured on the device, a
+/// path the app cannot read is not a failure there but a blank page.
 ///
 /// Everything here fails to `nil`. A thumbnail is a convenience; the caller
 /// already has a file-type icon, and a picture that could not be made is not
@@ -111,6 +118,52 @@ public actor ThumbnailService {
     ) async -> CGImage? {
         guard byteCount > 0, maxPixelSize > 0, maxPixelSize <= 512 else { return nil }
         let key = "\(path)@\(modified.bitPattern)@\(byteCount)@\(maxPixelSize)" as NSString
+        return await generate(key) {
+            // A failed open is never remembered. `filad` is on-demand and a miss
+            // right after a respring is normal — remembering it would mark every
+            // file on the first screen as picture-less for the life of the process,
+            // and nothing in the key would ever change to let them recover.
+            let descriptor = try await open()
+            guard descriptor >= 0 else { throw POSIXError(.EBADF) }
+            defer { close(descriptor) }
+            return await render(descriptor: descriptor, name: (path as NSString).lastPathComponent, maxPixelSize: maxPixelSize)
+        }
+    }
+
+    /// QuickLook's thumbnail of the file at `path`, or nil. For the types
+    /// `thumbnail` does not draw; it shares that call's bound and cache.
+    ///
+    /// Only a path this process can read: QuickLook reads it by path, as this
+    /// app, and turns an unreadable text file into a blank page rather than a
+    /// failure. A type with no thumbnailer fails, and that is remembered.
+    public func quickLookThumbnail(path: String, modified: Double, byteCount: Int64, maxPixelSize: Int = 160) async -> CGImage? {
+        #if canImport(QuickLookThumbnailing)
+            guard byteCount > 0, byteCount <= PreviewLimits.fileByteCount, maxPixelSize > 0, maxPixelSize <= 512 else { return nil }
+            let key = "ql:\(path)@\(modified.bitPattern)@\(byteCount)@\(maxPixelSize)" as NSString
+            return await generate(key) {
+                // Not remembered: permissions change, and a chmod keeps the key.
+                guard access(path, R_OK) == 0 else { throw POSIXError(.EACCES) }
+                // Off this actor, like the decoders: the request is a round trip
+                // to QuickLook's own process.
+                return await Task.detached(priority: .utility) {
+                    let request = QLThumbnailGenerator.Request(
+                        fileAt: URL(fileURLWithPath: path),
+                        size: CGSize(width: maxPixelSize, height: maxPixelSize),
+                        scale: 1,
+                        representationTypes: .thumbnail
+                    )
+                    return try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request).cgImage
+                }.value
+            }
+        #else
+            return nil
+        #endif
+    }
+
+    /// The cache and the bound around one generation. `make` runs at most
+    /// once, only on a miss and only in a free slot. Its nil means "nothing to
+    /// draw" and is remembered; a throw means "not now" and is not.
+    private func generate(_ key: NSString, _ make: () async throws -> CGImage?) async -> CGImage? {
         if let hit = images.object(forKey: key) {
             return hit
         }
@@ -123,18 +176,9 @@ public actor ThumbnailService {
         defer { release() }
         guard !Task.isCancelled else { return nil }
 
-        // A failed open is never remembered. `filad` is on-demand and a miss
-        // right after a respring is normal — remembering it would mark every
-        // file on the first screen as picture-less for the life of the process,
-        // and nothing in the key would ever change to let them recover.
-        guard let descriptor = try? await open(), descriptor >= 0 else { return nil }
-        defer { close(descriptor) }
-
-        guard let image = await render(
-            descriptor: descriptor,
-            name: (path as NSString).lastPathComponent,
-            maxPixelSize: maxPixelSize
-        ) else {
+        let made: CGImage?
+        do { made = try await make() } catch { return nil }
+        guard let image = made else {
             failures.setObject(NSNull(), forKey: key)
             return nil
         }

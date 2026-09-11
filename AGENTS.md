@@ -446,14 +446,23 @@ Every alert has a visible Close/Cancel/OK action;
 Deletion icons use the standard `trash` symbol, never `trash.slash`.
 
 One line of input is `AlertInputViewController` (rename, new folder, jump
-to offset). Do not revive `addTextField` to set `keyboardType`. Delayed
-work that currently presents a system progress alert is
-`AlertProgressIndicatorViewController`. Both come from the AlertController
-package, not from this repository — grepping the tree for them finds call
-sites and no definition. Update the message with
-`progressContext.purpose(message:)`, and keep FileActions' delayed
-reveal — a job that finishes in a blink never shows the card. Dismiss
-only that operation's own alert.
+to offset). Do not revive `addTextField` to set `keyboardType`. It comes
+from the AlertController package, not from this repository — grepping the
+tree for it finds call sites and no definition.
+
+Work that makes the user wait runs under `ProgressCard.run` (a module's
+under `BackendShell.withProgress`, which is the same card). It reveals the
+package's `AlertProgressIndicatorViewController` only after
+`StatusView.revealDelay`, so work that finishes in a blink shows nothing,
+passes the work an `update` for the message, and returns only once its own
+card is gone — the next alert is never presented into a dismissal. Cancelling
+the calling task cancels the work. `Scripts/check-ui-libraries.sh` fails on
+the progress alert constructed anywhere else. A job in `OperationCenter`
+uses `JobCover` instead: its card carries the counts, Cancel and Continue, and
+`settle` holds an alert of the caller's own until the card has left.
+
+A message with nothing to decide — a result, a refusal — is
+`presentMessage(_:message:)`, one OK; do not build the same card by hand.
 
 A card does not need a popover source. `anchor(_:to:)` remains for
 share sheets and document pickers, not for alerts.
@@ -800,6 +809,17 @@ mounted share). A glyph among pictures reads as a control, which is what
 is therefore required and there is no `symbolName`; a backend that needs a
 new picture adds it to the script and regenerates rather than naming a symbol.
 
+**Neither does anything that pictures a file.** A file, folder, archive entry
+or app — a row, a grid cell, a badge, a placeholder, a menu entry that opens a
+location — is `FileIcons` artwork through `FilePresentation` (or
+`BackendShell.fileIcon` from a module). `FilePresentation.Icon` has no symbol
+case; a fifo or device is `special`, a dangling link `broken-link`, a type with
+no picture of its own the generic `document`. A better picture made from the
+file itself is one tier in `FilePresentation.picture`, which rows, the grid and
+Properties all ask. `Scripts/check-ui-libraries.sh` fails on `systemName` in
+the sources that only draw file pictures. Actions, empty states and screen
+crumbs keep their symbols: they are controls and labels, not files.
+
 **Servers are managed in Settings › Servers, never in the sidebar.** The
 sidebar's Servers section lists saved remote roots as destinations and
 nothing else: no *Add …* row, no swipe to edit or remove. The settings page
@@ -833,8 +853,8 @@ file details before choosing its viewer.
 Initial listings may stream pages. Refreshes keep current rows, including a
 loaded empty state, until the complete replacement is ready; cancel stale
 tasks before they publish. Apply one final diff and animate actual removals.
-Slow deletion can show the delayed `AlertProgressIndicatorViewController`;
-finish or dismiss only that operation's own alert. Never clear the list just to show loading.
+Slow deletion shows its job's delayed `JobCover` card; finish or dismiss only
+that operation's own card. Never clear the list just to show loading.
 Search scope belongs in its context menu, and search presentation must leave
 the native navigation bar stable on entry and exit.
 

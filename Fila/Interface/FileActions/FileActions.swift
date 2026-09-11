@@ -60,6 +60,7 @@ final class FileActions {
         additional: [UIMenuElement] = [],
         includesProperties: Bool = true,
         groupsFileOperations: Bool = false,
+        offersExtraction: Bool = true,
         preview: (() -> Void)? = nil,
         confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
     ) -> [UIMenuElement] {
@@ -88,7 +89,7 @@ final class FileActions {
         // A name that lies costs one failed job, not a wrong file — but a
         // folder called `Backup.zip` is not an archive under any reading.
         let isArchive = !node.isNavigable && FileFormat.detect(head: Data(), name: node.name) == .archive
-        let extraction: [UIMenuElement] = isArchive ? [
+        let extraction: [UIMenuElement] = isArchive && offersExtraction ? [
             UIAction(
                 title: String(localized: "Extract"),
                 image: UIImage(systemName: OperationCenter.Kind.extract.symbol)
@@ -212,18 +213,10 @@ final class FileActions {
                 switch outcome {
                 case let failure as FilaFailure where failure.systemError == ENOATTR:
                     let name = failure.path.map { ($0 as NSString).lastPathComponent } ?? ""
-                    if let presenter = activePresenter {
-                        let alert = AlertViewController(
-                            title: String(localized: "Cannot Put Back"),
-                            message: String(localized: "The original location of “\(name)” is unknown. It can only be deleted permanently.")
-                        ) { context in
-                            context.allowSimpleDispose()
-                            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                                context.dispose()
-                            }
-                        }
-                        presenter.present(alert, animated: true)
-                    }
+                    activePresenter?.presentMessage(
+                        String(localized: "Cannot Put Back"),
+                        message: String(localized: "The original location of “\(name)” is unknown. It can only be deleted permanently.")
+                    )
                 case let error?: report(error)
                 case nil: break
                 }
@@ -397,44 +390,12 @@ final class FileActions {
                     in: directory
                 )
                 let request = JobRequest(kind: .compress, sources: paths, destination: destination, archive: options)
-                let identifier = try await center.startJob(
+                try await jobCover().show(center.startJob(
                     request,
                     kind: .compress,
                     title: OperationCenter.Kind.compress.runningTitle,
                     subtitle: OperationCenter.describe(paths, destination: directory)
-                )
-                guard let operation = center.operation(forJob: identifier),
-                      let presenter = activePresenter else { return }
-                OperationCoverViewController.present(for: operation.id, from: presenter, center: center)
-            } catch { report(error) }
-        }
-    }
-
-    /// The helper publishes one item directly, or groups multiple top-level
-    /// items in a folder. An encrypted archive asks for its password, and the
-    /// archive browser is where that question gets asked.
-    func extract(_ path: String) {
-        presenter?.setEditing(false, animated: true)
-        let directory = (path as NSString).deletingLastPathComponent
-        let center = session.operations
-        Task {
-            do {
-                let identifier = try await center.startJob(
-                    // Options are not optional for an archive job — the helper
-                    // refuses one without them. Nil members is every member.
-                    JobRequest(
-                        kind: .extract,
-                        sources: [path],
-                        destination: directory,
-                        archive: ArchiveOptions(organizeExtraction: true)
-                    ),
-                    kind: .extract,
-                    title: OperationCenter.Kind.extract.runningTitle,
-                    subtitle: OperationCenter.describe([path], destination: directory)
-                )
-                guard let operation = center.operation(forJob: identifier),
-                      let presenter = activePresenter else { return }
-                OperationCoverViewController.present(for: operation.id, from: presenter, center: center)
+                ))
             } catch { report(error) }
         }
     }
@@ -520,16 +481,7 @@ final class FileActions {
         if let failure = error as? FilaFailure {
             presenter.report(failure); return
         }
-        let alert = AlertViewController(
-            title: String(localized: "Operation Failed"),
-            message: FailureMessage.text(for: error)
-        ) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                context.dispose()
-            }
-        }
-        presenter.present(alert, animated: true)
+        presenter.presentMessage(String(localized: "Operation Failed"), message: FailureMessage.text(for: error))
     }
 
     /// The first name this directory does not already hold. An empty extension

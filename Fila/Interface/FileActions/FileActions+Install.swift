@@ -107,22 +107,21 @@ extension FileActions {
         }
         Self.appInstallInFlight = true
         Task {
-            let progress = await presentProgress(title: String.LocalizationValue("Reading App…"))
             let staged: URL
             let manifest: PackageManifest
             do {
-                staged = try await session.stage(path)
-                do { manifest = try await applications.manifest(ofPackageAt: staged) } catch {
-                    try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
-                    throw error
+                (staged, manifest) = try await withInstallProgress(String(localized: "Reading App…")) {
+                    let staged = try await self.session.stage(path)
+                    do { return try await (staged, applications.manifest(ofPackageAt: staged)) } catch {
+                        try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
+                        throw error
+                    }
                 }
             } catch {
-                await dismiss(progress)
                 Self.appInstallInFlight = false
                 report(error)
                 return
             }
-            await dismiss(progress)
             guard let presenter = activePresenter else {
                 try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
                 Self.appInstallInFlight = false
@@ -154,8 +153,11 @@ extension FileActions {
     private func installApp(
         _ path: String, staged: URL, manifest: PackageManifest, applications: any ApplicationCapability
     ) async {
-        let progress = await presentProgress(title: String.LocalizationValue("Installing App…"))
-        let outcome = await applications.install(packageAt: staged)
+        // Only a cancelled wait comes back empty, and installd may still be
+        // reading the package then: that is the unanswered case.
+        let outcome = (try? await withInstallProgress(String(localized: "Installing App…")) {
+            await applications.install(packageAt: staged)
+        }) ?? .timedOut
         // An unanswered request may still be reading its source. Preserve the
         // workspace and keep further requests disabled for this session.
         switch outcome {
@@ -164,7 +166,6 @@ extension FileActions {
             try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
             Self.appInstallInFlight = false
         }
-        await dismiss(progress)
         switch outcome {
         case .installed:
             Toast.show(String(localized: "App installed"))
@@ -195,25 +196,17 @@ extension FileActions {
         }
     }
 
-    /// Copying and installing a package is never a blink, so the card shows at
-    /// once rather than after the delete path's reveal delay.
-    private func presentProgress(title: String.LocalizationValue) async -> AlertProgressIndicatorViewController? {
-        guard let presenter = activePresenter else { return nil }
-        let progress = AlertProgressIndicatorViewController(
+    /// The work runs whether or not there is a screen left to put the card on.
+    private func withInstallProgress<T: Sendable>(
+        _ title: String,
+        _ operation: @escaping @MainActor () async throws -> T
+    ) async throws -> T {
+        guard let presenter = activePresenter else { return try await operation() }
+        return try await ProgressCard.run(
             title: title,
-            message: String.LocalizationValue("Keep Fila open until this finishes.")
-        )
-        await withCheckedContinuation { continuation in
-            presenter.present(progress, animated: true) { continuation.resume() }
-        }
-        return progress
-    }
-
-    private func dismiss(_ progress: AlertProgressIndicatorViewController?) async {
-        guard let progress else { return }
-        await withCheckedContinuation { continuation in
-            progress.dismiss(animated: true) { continuation.resume() }
-        }
+            message: String(localized: "Keep Fila open until this finishes."),
+            from: presenter
+        ) { _ in try await operation() }
     }
 
     /// A refusal with a way out: the same share sheet the `.tipa` route uses,

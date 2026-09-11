@@ -59,14 +59,6 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
         }
     }
 
-    static func symbol(of location: InstalledApp.Location) -> String {
-        switch location.kind {
-        case .bundle: "app"
-        case .data: "folder"
-        case .group: "person.2"
-        }
-    }
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.reloadWithAnimation()
@@ -84,7 +76,7 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
     }
 
     private var icon: UIImage? {
-        ApplicationArtworkCache.shared.cachedIcon(for: app.bundleIdentifier) ?? UIImage(systemName: "app")
+        ApplicationArtworkCache.shared.cachedIcon(for: app.bundleIdentifier) ?? ApplicationArtworkCache.shared.placeholder
     }
 
     override func numberOfSections(in _: UITableView) -> Int {

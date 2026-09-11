@@ -160,8 +160,9 @@ final class ClipboardViewController: TabContentViewController {
             content.secondaryTextProperties.numberOfLines = 0
             content.secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
             content.secondaryTextProperties.color = color
-            content.image = UIImage(systemName: Self.symbol(for: status))
-            content.imageProperties.tintColor = color == .systemRed ? .systemRed : .secondaryLabel
+            content.image = Self.image(for: status)
+            content.imageProperties.maximumSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
+            content.imageProperties.reservedLayoutSize = content.imageProperties.maximumSize
             cell.contentConfiguration = content
             cell.selectionStyle = self?.onReveal == nil ? .none : .default
             return cell
@@ -366,11 +367,16 @@ final class ClipboardViewController: TabContentViewController {
 }
 
 extension ClipboardViewController: UITableViewDelegate {
-    private static func symbol(for status: Status) -> String {
+    /// Until the backend answers, the entry is a generic document: only its
+    /// name is known, and a folder's name says nothing.
+    private static func image(for status: Status) -> UIImage? {
         switch status {
-        case .checking, .unknown: "questionmark.circle"
-        case .missing: "exclamationmark.triangle"
-        case let .present(entry): entry.entersDirectory ? "folder" : "doc"
+        case .checking, .unknown:
+            FilePresentation.image(for: .artwork("document"))
+        case .missing:
+            FilePresentation.image(for: .artwork("broken-link"))
+        case let .present(entry):
+            FilePresentation.image(kind: entry.entersDirectory ? .directory : .regular, name: entry.name)
         }
     }
 

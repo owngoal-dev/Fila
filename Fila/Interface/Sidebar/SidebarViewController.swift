@@ -41,7 +41,7 @@ final class SidebarViewController: UIViewController {
     private let settingsShown: Bool
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
-    /// Only the current eight rows' presentation; thumbnail reuse stays in ThumbnailCache.
+    /// Only the current eight rows' presentation; thumbnail reuse stays in ThumbnailService.
     private var recentItems: [String: (image: UIImage?, name: String?, isDirectory: Bool)] = [:]
     private var recentsDecoratedWithApplications = SystemCapabilities.showsApplications
     private var recentImageTask: Task<Void, Never>?
@@ -295,12 +295,8 @@ final class SidebarViewController: UIViewController {
         case .header: return
         case let .place(place):
             name = place.title
-            switch place.icon {
-            case let .artwork(artwork):
-                let artwork = FileActions.isTrash(place.path) && !trashHasItems ? "trash-empty" : artwork
-                image = UIImage(named: "FileIcons/\(artwork)")?.withRenderingMode(.alwaysOriginal)
-            case let .symbol(symbol): image = UIImage(systemName: symbol)
-            }
+            let artwork = FileActions.isTrash(place.path) && !trashHasItems ? "trash-empty" : place.icon.name
+            image = UIImage(named: "FileIcons/\(artwork)")?.withRenderingMode(.alwaysOriginal)
         case let .favorite(path), let .recent(path):
             name = path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
             image = recentItems[path]?.image ?? FilePresentation.image(kind: .directory, name: name)

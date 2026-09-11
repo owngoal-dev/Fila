@@ -239,16 +239,25 @@ final class ArchiveBrowserViewController: TabContentViewController {
             image: UIImage(systemName: "archivebox"),
             attributes: canExtract ? [] : .disabled
         ) { [weak self] _ in
-            self?.promptForDestination()
+            guard let self else { return }
+            self.extract(chosenRows)
+        }
+        let extractTo = UIAction(
+            title: String(localized: "Extract To…"),
+            image: UIImage(systemName: "folder"),
+            attributes: canExtract ? [] : .disabled
+        ) { [weak self] _ in
+            guard let self else { return }
+            self.extract(chosenRows, choosingDestination: true)
         }
         if let container = parent as? ViewerContainerViewController {
             trailingNavigationItems = []
             fileActionsOwner = container
-            container.childMenuElements = [select, extract]
+            container.childMenuElements = [select, extract, extractTo]
             container.refreshBarItems()
         } else {
             menuItem.menu = UIMenu(
-                children: FilaMenu.groups([select, extract])
+                children: FilaMenu.groups([select, extract, extractTo])
                     + (fileActionsOwner?.fileMenuElements(presenting: self) ?? [])
             )
             trailingNavigationItems = [menuItem]
@@ -365,149 +374,53 @@ final class ArchiveBrowserViewController: TabContentViewController {
 
     // MARK: - Extraction
 
-    private func promptForDestination() {
-        if isEditing {
-            let items = (collectionView.indexPathsForSelectedItems ?? [])
-                .compactMap { dataSource.itemIdentifier(for: $0) }
-            chooseDestination(for: entries(for: items))
-        } else {
-            chooseDestination(for: directory.isEmpty ? members ?? [] : entries(for: [.directory(directory)]))
-        }
+    /// The shared extraction, which asks its questions on whichever screen is
+    /// on top: the viewer that embeds this one, or this one when pushed.
+    private var fileActions: FileActions {
+        FileActions(presenter: parent as? ViewerContainerViewController ?? self, directory: destinationHint)
     }
 
-    private func chooseDestination(for selected: [Row]) {
-        let selected = selected.filter { !$0.entry.isRootDirectory && !$0.entry.isFinderMetadata }
-        guard !selected.isEmpty else { return }
+    /// The selection while selecting, otherwise everything this screen lists.
+    private var chosenRows: [Row] {
+        guard isEditing else {
+            return directory.isEmpty ? members ?? [] : entries(for: [.directory(directory)])
+        }
+        return entries(for: (collectionView.indexPathsForSelectedItems ?? []).compactMap {
+            dataSource.itemIdentifier(for: $0)
+        })
+    }
 
+    /// Beside the archive, or wherever the user picks.
+    private func extract(_ rows: [Row], choosingDestination: Bool = false) {
+        let rows = rows.filter { !$0.entry.isRootDirectory && !$0.entry.isFinderMetadata }
+        guard !rows.isEmpty else { return }
+        guard choosingDestination else { return extract(rows, into: destinationHint) }
         let form = SaveDestinationViewController(
+            directory: URL(fileURLWithPath: destinationHint, isDirectory: true),
             message: String(
                 format: String(localized: "%lld items will be extracted here without replacing existing items."),
-                Int64(selected.count)
+                Int64(rows.count)
             ),
             link: link
         ) { [weak self] destination in
-            self?.extract(selected, to: destination.path)
+            self?.extract(rows, into: destination.path)
         }
         presentAsSheet(UINavigationController(rootViewController: form))
     }
 
-    /// An `.extract` job on the daemon — the work runs in `fila-archive`, or
-    /// in-process without a daemon — with the screen covered by its progress.
-    ///
     /// Matched by position in the archive, never by name: a name is not an
     /// identity — an archive may carry the same one twice — and the name rides
     /// along only so the job can notice the archive changing underneath the
     /// two passes. See `ArchiveJob` for the ordering and the link checks.
-    ///
-    /// An encrypted member is asked for its password before the job starts;
-    /// a wrong one comes back as `.wrongPassword` and is asked again.
-    private func extract(
-        _ selection: [Row],
-        to destination: String,
-        password: String? = nil,
-        spaceConfirmed: Bool = false
-    ) {
-        if password == nil, selection.contains(where: \.entry.isEncrypted) {
-            return promptPassword { [weak self] password in
-                self?.extract(selection, to: destination, password: password)
-            }
-        }
+    private func extract(_ rows: [Row], into destination: String) {
         setEditing(false, animated: true)
-        let request = JobRequest(
-            kind: .extract,
-            sources: [archivePath],
-            destination: destination,
-            archive: ArchiveOptions(
-                password: password,
-                members: selection.map {
-                    ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath)
-                },
-                organizeExtraction: true
-            )
+        fileActions.extract(
+            archivePath,
+            members: rows.map { ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath) },
+            into: destination,
+            estimate: ArchiveSpaceEstimate(entries: rows.map(\.entry)),
+            encrypted: rows.contains(where: \.entry.isEncrypted)
         )
-        let center = FileSession.shared.operations
-        Task { [weak self] in
-            guard self != nil else { return }
-            do {
-                if !spaceConfirmed {
-                    guard let self else { return }
-                    let estimate = ArchiveSpaceEstimate(entries: selection.map(\.entry))
-                    // Advisory only. The extraction checks real writes even if
-                    // the volume cannot provide an estimate here.
-                    if let available = try? await availableSpace(at: destination),
-                       estimate.needsWarning(availableByteCount: available)
-                    {
-                        let message = estimate.hasUnknownSize
-                            ? String(localized: "This archive does not list a size for every item. Check free space before extracting.")
-                            : String(
-                                format: String(localized: "These items need %1$@, which is more than %2$@ of the %3$@ free here."),
-                                FilePresentation.byteLabel(estimate.byteCount),
-                                ArchiveSpaceEstimate.warningFraction.formatted(.percent),
-                                FilePresentation.byteLabel(available)
-                            )
-                        let alert = AlertViewController(
-                            title: String(localized: "Low Storage Space"),
-                            message: message
-                        ) { [weak self] context in
-                            context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
-                            context.addAction(title: String.LocalizationValue("Extract"), attribute: .accent) {
-                                context.dispose {
-                                    self?.extract(selection, to: destination, password: password, spaceConfirmed: true)
-                                }
-                            }
-                        }
-                        present(alert, animated: true)
-                        return
-                    }
-                }
-                try Task.checkCancellation()
-                let identifier = try await center.startJob(
-                    request,
-                    kind: .extract,
-                    title: OperationCenter.Kind.extract.runningTitle,
-                    subtitle: OperationCenter.describe([request.sources[0]], destination: destination)
-                ) { [weak self] outcome in
-                    guard outcome.code == .wrongPassword else { return }
-                    // The cover is still on its way out; give it the beat.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        self?.promptPassword { [weak self] password in
-                            self?.extract(selection, to: destination, password: password)
-                        }
-                    }
-                }
-                guard let self, let operation = center.operation(forJob: identifier) else { return }
-                OperationCoverViewController.present(for: operation.id, from: self, center: center)
-            } catch {
-                self?.report(error)
-            }
-        }
-    }
-
-    /// A new extraction folder does not exist yet. Ask the backend for the
-    /// nearest existing ancestor, whose resolved volume will receive it.
-    private func availableSpace(at destination: String) async throws -> Int64 {
-        guard destination.hasPrefix("/") else { throw FilaFailure(code: .invalidRequest, path: destination) }
-        var path = destination
-        while true {
-            do { return try await link.volumeInfo(for: path).availableByteCount }
-            catch let failure as FilaFailure where failure.systemError == ENOENT && path != "/" {
-                path = (path as NSString).deletingLastPathComponent
-            }
-        }
-    }
-
-    private func promptPassword(_ handler: @escaping (String) -> Void) {
-        let alert = AlertInputViewController(
-            title: String.LocalizationValue("Enter Password"),
-            message: String.LocalizationValue("This archive is encrypted. Enter its password to extract."),
-            placeholder: String.LocalizationValue("Password"),
-            text: "",
-            doneButtonText: String.LocalizationValue("Extract")
-        ) { password in
-            guard !password.isEmpty else { return }
-            handler(password)
-        }
-        present(alert, animated: true)
     }
 }
 
@@ -532,8 +445,9 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         case let .member(row):
             if Self.isNested(row.entry) {
                 descend(into: row)
-            } else {
-                chooseDestination(for: [row])
+            } else if row.entry.kind == .regular {
+                // A link or a device member carries no bytes to show.
+                preview(row)
             }
         }
     }
@@ -550,20 +464,24 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             guard let self else { return nil }
-            var actions = [UIAction(
-                title: String(localized: "Extract"),
-                image: UIImage(systemName: "archivebox")
-            ) { _ in
-                self.chooseDestination(for: self.entries(for: [item]))
-            }]
-            if case let .member(row) = item, Self.isNested(row.entry) {
-                actions.insert(
-                    UIAction(
-                        title: String(localized: "Open"),
-                        image: UIImage(systemName: "arrow.right")
-                    ) { _ in self.descend(into: row) },
-                    at: 0
-                )
+            var actions = [
+                UIAction(title: String(localized: "Extract"), image: UIImage(systemName: "archivebox")) { _ in
+                    self.extract(self.entries(for: [item]))
+                },
+                UIAction(title: String(localized: "Extract To…"), image: UIImage(systemName: "folder")) { _ in
+                    self.extract(self.entries(for: [item]), choosingDestination: true)
+                },
+            ]
+            if case let .member(row) = item {
+                if Self.isNested(row.entry) {
+                    actions.insert(UIAction(title: String(localized: "Open"), image: UIImage(systemName: "arrow.right")) { _ in
+                        self.descend(into: row)
+                    }, at: 0)
+                } else if row.entry.kind == .regular {
+                    actions.insert(UIAction(title: String(localized: "Preview"), image: UIImage(systemName: "eye")) { _ in
+                        self.preview(row)
+                    }, at: 0)
+                }
             }
             return UIMenu(children: actions)
         }
@@ -578,112 +496,136 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
     }
 
     /// A `.deb` is an `ar` holding a compressed tar, and the thing anyone wants
-    /// out of one is a layer down.
-    ///
-    /// The member is staged in the app's workspace rather than held in memory
-    /// — it can be a hundred megabytes — and the child owns its directory.
+    /// out of one is a layer down. The child owns the staged directory.
     private func descend(into row: Row) {
-        let entry = row.entry
+        stage(row) { [self] staged in
+            pushDetail(ArchiveBrowserViewController(
+                title: row.entry.name,
+                archivePath: staged.path,
+                link: link,
+                destinationHint: destinationHint,
+                staged: staged,
+                openArchive: {
+                    let descriptor = open(staged.path, O_RDONLY)
+                    guard descriptor >= 0 else { throw ViewerFailure.readFailed(errno) }
+                    return descriptor
+                }
+            ))
+        }
+    }
+
+    /// The member in the app's own viewer, the way a snapshot of a remote file
+    /// is shown; the viewer's going removes the staged directory.
+    private func preview(_ row: Row) {
+        stage(row) { [self] staged in
+            let directory = staged.deletingLastPathComponent()
+            guard let shell = BackendScreens.shell else {
+                try? FileManager.default.removeItem(at: directory)
+                return
+            }
+            // From the screen the stack holds — the viewer container around
+            // this browser, or this browser pushed a layer down — or an open
+            // that pushed nothing is taken for the viewer it opened.
+            shell.preview(staged, title: row.entry.name, from: navigationController?.topViewController ?? self) {
+                try? FileManager.default.removeItem(at: directory)
+            }
+        }
+    }
+
+    /// Pulls one member out into a fresh directory in the app's workspace,
+    /// under the name the archive gives it so a viewer detects it as it would
+    /// on disk, then hands it to `use`, which owns the directory from then on.
+    /// Staged rather than held in memory — it can be a hundred megabytes — and
+    /// nothing is handed over once this screen is no longer on top.
+    private func stage(_ row: Row, password: String? = nil, then use: @escaping @MainActor (URL) -> Void) {
+        if row.entry.isEncrypted, password == nil {
+            return fileActions.promptArchivePassword { [weak self] password in
+                self?.stage(row, password: password, then: use)
+            }
+        }
         collectionView.isHidden = true
         progress.isHidden = false
         progress.showStatus(String(localized: "Opening…"))
         refreshActions()
         let openArchive = openArchive
         let name = title_
-        let link = link
-        let destinationHint = destinationHint
         work?.cancel()
         work = Task.detached { [weak self] in
             do {
                 let staging = try await FileSession.shared.makeTemporaryDirectory()
-                let staged = staging.appendingPathComponent("archive")
                 var handedOff = false
                 defer {
                     if !handedOff {
                         try? FileManager.default.removeItem(at: staging)
                     }
                 }
-                try Task.checkCancellation()
-                let descriptor = try await openArchive()
-                defer { close(descriptor) }
-                let reader = try ArchiveReader(descriptor: descriptor, name: name)
-                var found = false
-                var index = -1
-                while !found, let candidate = try reader.next() {
-                    guard !Task.isCancelled else { return }
-                    index += 1
-                    guard index == row.index else { continue }
-                    guard candidate.declaredPath == entry.declaredPath else {
-                        throw ViewerFailure.unsupportedContent(
-                            String(localized: "The archive changed while it was open. Open it again.")
-                        )
-                    }
-                    guard FileManager.default.createFile(atPath: staged.path, contents: nil) else {
-                        throw ViewerFailure.writeFailed(EACCES)
-                    }
-                    let output = open(staged.path, O_WRONLY | O_TRUNC)
-                    guard output >= 0 else { throw ViewerFailure.writeFailed(errno) }
-                    defer { close(output) }
-                    try reader.read(
-                        into: output,
-                        maximumByteCount: ViewerLimits.containerCopyByteCount
-                    ) { _, _ in !Task.isCancelled }
-                    found = true
-                }
-                guard found else {
-                    throw ViewerFailure.unsupportedContent(
-                        String(localized: "This item is no longer in the archive. Open it again.")
-                    )
-                }
+                let staged = try await Self.write(row, from: openArchive, archiveName: name, password: password, into: staging)
                 guard !Task.isCancelled else { return }
-                // The child owns the staged file and removes it when it goes, so
-                // it has to be built before the push and cleaned up by hand if
-                // there is no navigation controller left to push onto. Building
-                // it inside the argument list would skip both when the optional
-                // chain short-circuits, and leave the file behind for good.
                 handedOff = await MainActor.run { [weak self] () -> Bool in
-                    self?.progress.isHidden = true
-                    self?.collectionView.isHidden = false
-                    self?.refreshActions()
-                    guard let self, let navigation = navigationController,
-                          navigation.topViewController === self
-                          || navigation.topViewController === self.parent else { return false }
-                    pushDetail(ArchiveBrowserViewController(
-                        title: entry.name,
-                        archivePath: staged.path,
-                        link: link,
-                        destinationHint: destinationHint,
-                        staged: staged,
-                        openArchive: {
-                            let descriptor = open(staged.path, O_RDONLY)
-                            guard descriptor >= 0 else { throw ViewerFailure.readFailed(errno) }
-                            return descriptor
-                        }
-                    ))
+                    guard let self else { return false }
+                    endStaging()
+                    guard let navigation = navigationController,
+                          navigation.topViewController === self || navigation.topViewController === parent else { return false }
+                    use(staged)
                     return true
                 }
             } catch {
                 guard !Task.isCancelled else { return }
                 await MainActor.run { [weak self] in
-                    self?.progress.isHidden = true
-                    self?.collectionView.isHidden = false
-                    self?.refreshActions()
+                    self?.endStaging()
                     self?.report(error)
                 }
             }
         }
     }
 
-    private func report(_ error: Error) {
-        let alert = AlertViewController(
-            title: String(localized: "Unable to Open This File"),
-            message: FailureMessage.text(for: error)
-        ) { context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("OK"), attribute: .accent) {
-                context.dispose()
+    private func endStaging() {
+        progress.isHidden = true
+        collectionView.isHidden = false
+        refreshActions()
+    }
+
+    /// Walks to the member by its position — never its name, see `Row` — and
+    /// writes it into `directory`. libarchive blocks, so this runs detached.
+    private nonisolated static func write(
+        _ row: Row,
+        from openArchive: @Sendable () async throws -> Int32,
+        archiveName: String,
+        password: String?,
+        into directory: URL
+    ) async throws -> URL {
+        let descriptor = try await openArchive()
+        defer { close(descriptor) }
+        let reader = try ArchiveReader(descriptor: descriptor, name: archiveName, password: password)
+        var index = -1
+        while let candidate = try reader.next() {
+            guard !Task.isCancelled else { throw CancellationError() }
+            index += 1
+            guard index == row.index else { continue }
+            guard candidate.declaredPath == row.entry.declaredPath else {
+                throw ViewerFailure.unsupportedContent(
+                    String(localized: "The archive changed while it was open. Open it again.")
+                )
             }
+            // The name the archive declared is untrusted; `..` would climb out.
+            let target = directory.appendingPathComponent(ArchivePath.validated(row.entry.name) ?? "item")
+            guard FileManager.default.createFile(atPath: target.path, contents: nil) else {
+                throw ViewerFailure.writeFailed(EACCES)
+            }
+            let output = open(target.path, O_WRONLY | O_TRUNC)
+            guard output >= 0 else { throw ViewerFailure.writeFailed(errno) }
+            defer { close(output) }
+            try reader.read(into: output, maximumByteCount: ViewerLimits.containerCopyByteCount) { _, _ in
+                !Task.isCancelled
+            }
+            return target
         }
-        present(alert, animated: true)
+        throw ViewerFailure.unsupportedContent(
+            String(localized: "This item is no longer in the archive. Open it again.")
+        )
+    }
+
+    private func report(_ error: Error) {
+        presentMessage(String(localized: "Unable to Open This File"), message: FailureMessage.text(for: error))
     }
 }
