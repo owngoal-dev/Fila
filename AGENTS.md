@@ -477,9 +477,12 @@ rooted at their folder, because a sandboxed local root (Documents) contains
 neither the Inbox nor the app's workspace. A drag between Fila's screens
 carries a `FileReference` as its local object; every screen proposes a drop
 with `FileReference.proposal` and hands it to `FileDrop` (modules:
-`BackendShell.drop` for a folder, `droppedFiles` for a screen that takes
-files, like the music library). Do not add a second copy path for a new
-screen.
+`BackendShell.drop` for a folder, `receiveFiles` for a screen that takes
+files of given types, like the music library — a share's or another app's
+files are fetched first). Do not add a second copy path for a new screen. A
+card whose answer is awaited is `CardQuestion.ask`; something arriving from
+outside its screen presents through `TopPresenter`, which never stacks on a
+progress card.
 
 A message with nothing to decide — a result, a refusal — is
 `presentMessage(_:message:)`, one OK; do not build the same card by hand.

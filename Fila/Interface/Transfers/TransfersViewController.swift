@@ -167,15 +167,10 @@ final class TransfersViewController: UIViewController {
     /// Where a toast's *Details* goes. Wrapped and presented here rather than
     /// by the screen itself, so the screen stays usable anywhere else.
     static func presentAsSheet() {
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }),
-            let root = scene.keyWindow?.rootViewController else { return }
+        TopPresenter.whenReady(present)
+    }
 
-        var top = root
-        while let presented = top.presentedViewController {
-            top = presented
-        }
+    private static func present(from top: UIViewController) {
         // A second failure while the list is already up must not stack another
         // copy of it on top of the first.
         if let navigation = top as? UINavigationController,

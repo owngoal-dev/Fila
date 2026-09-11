@@ -69,6 +69,7 @@ extension OperationCenter {
     func putBack(trashed paths: [String], started: ((UInt64) -> Void)? = nil) async throws {
         // One item's refusal is no reason to leave the rest in the trash: every
         // item is tried, and the first refusal is what the caller hears about.
+        // A Cancel is not a refusal — it stops the items still waiting too.
         var firstFailure: Error?
         for path in paths {
             do {
@@ -79,6 +80,9 @@ extension OperationCenter {
                     throw FilaFailure(code: .operationFailed, systemError: ENOATTR, path: path)
                 }
                 try await restore(path, to: origin, started: started)
+            } catch let failure as FilaFailure where failure.code == .cancelled {
+                // A refusal before the Cancel still has to be heard.
+                throw firstFailure ?? failure
             } catch {
                 if firstFailure == nil {
                     firstFailure = error

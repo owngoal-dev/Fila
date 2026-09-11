@@ -27,9 +27,10 @@ final class JobCover {
         OperationCoverViewController.present(
             source,
             from: presenter,
-            shown: { [weak self] in self?.isShowing = true },
-            dismissed: { [weak self] in
-                guard let self else { return }
+            // Strong: the card is what keeps the cover alive once its caller's
+            // Task has ended, so the follow-up `settle` stored still runs.
+            shown: { [self] in isShowing = true },
+            dismissed: { [self] in
                 isShowing = false
                 let waiting = pending
                 pending = nil

@@ -36,11 +36,7 @@ extension RootSplitViewController {
             }
             // On top of whatever is up: a share arriving while Settings is
             // open would otherwise be refused by `present` and lost.
-            var presenter: UIViewController = self
-            while let above = presenter.presentedViewController {
-                presenter = above
-            }
-            presenter.presentAsSheet(UINavigationController(rootViewController: picker))
+            TopPresenter.whenReady(from: self) { $0.presentAsSheet(UINavigationController(rootViewController: picker)) }
         }
     }
 }
