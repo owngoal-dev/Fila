@@ -20,6 +20,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // restored; the tab store tells them from windows opened later.
         BrowserTabStore.launchedAt = Date()
         DeviceIcons.prewarm()
+        ExecutableWatch.start { [weak self] in self?.offerRelaunch() }
         AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .systemBlue
         // The app icon, light and dark, rendered by Scripts/make-app-mark.swift.
         AlertControllerConfiguration.alertImage = UIImage(named: "AppIconMark")
@@ -75,6 +76,29 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillEnterForeground(_: UIApplication) {
         for backend in BackendComposition.fileBackends {
             backend.setObservationPaused(false)
+        }
+    }
+
+    /// An update replaced the running copy (`ExecutableWatch`). Quitting runs
+    /// the same cleanup as a normal termination.
+    private func offerRelaunch() {
+        FilaLog.info("executable replaced by an update")
+        TopPresenter.whenReady { top in
+            let alert = AlertViewController(
+                title: String.LocalizationValue("Fila Was Updated"),
+                message: String.LocalizationValue("This is still the old version. Quit Fila and open it again to use the new one.")
+            ) { context in
+                context.addAction(title: String.LocalizationValue("Later")) {
+                    context.dispose()
+                }
+                context.addAction(title: String.LocalizationValue("Quit Fila"), attribute: .accent) {
+                    context.dispose {
+                        self.applicationWillTerminate(.shared)
+                        exit(0)
+                    }
+                }
+            }
+            top.present(alert, animated: true)
         }
     }
 

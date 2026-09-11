@@ -644,7 +644,11 @@ sentence. The same script fails on a missing or `""` message.
   package, so first installation still uses the device's package installer.
   The script's optional `--launch` argument closes the old Fila before installation
   and asks iOS to open the new one afterward. Confirm the installed payload and actual launch: a locked
-  iPad can accept installation while refusing to launch the app.
+  iPad can accept installation while refusing to launch the app. Without it, a
+  Fila left running — in front or suspended — sees its executable replaced
+  (`ExecutableWatch`) and asks to be quit; the daemon needs no watch, since
+  the postinst restarts it. A suspended Fila ignores the SIGTERM `--launch`
+  sends, so on an iPad that wait can time out: kill it with `-KILL` first.
 - `make vphone` — incremental Debug build and signing, then serve one `.deb`
   from a dedicated temporary directory over HTTP. No SSH and no VM restart.
   The running VM's native socket places the download URL in its clipboard;
