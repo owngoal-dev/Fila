@@ -46,7 +46,7 @@ Available folders and actions depend on how you install Fila. The interface is a
 
 ## Using Fila
 
-Tap a folder to browse it or a file to open it. Touch and hold an item for Copy, Move, Rename, and Properties. Use Select to work with several items at once.
+Tap a folder to browse it or a file to open it. Tapping a ZIP, 7z, RAR, or TAR archive extracts it into the same folder; to look inside instead, touch and hold it and choose Preview. Packages such as `.deb` and `.ipa` open on a tap. Touch and hold an item for Copy, Move, Rename, and Properties. Use Select to work with several items at once.
 
 Deleted items go to Trash by default. Open Trash and choose Put Back to restore an item. To delete without the Trash, turn off Settings → General → File Operations → Use Trash. Delete Permanently and Empty Trash cannot be undone.
 
