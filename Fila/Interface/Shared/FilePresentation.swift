@@ -14,22 +14,12 @@ enum FilePresentation {
     /// entry or an app is always drawn with a picture: a glyph among pictures
     /// reads as a control.
     enum Icon: Hashable {
-        /// The OS's own picture: every file, folder and bundle — see `DeviceIcons`.
-        case device(DeviceIcons.Subject)
-        /// A picture the OS has none of — a sidebar place, a badge: a name
-        /// under `Assets.xcassets/FileIcons`.
+        /// A name under `Assets.xcassets/FileIcons`: a folder, a bundle, a
+        /// file type the Mac has a picture of, a sidebar place, a badge.
         case artwork(String)
-
-        /// The picture a backend names for its root (`BackendRoot.artworkName`):
-        /// the OS's folder and app for those two names, the app's own
-        /// artwork for the rest.
-        static func named(_ name: String) -> Icon {
-            switch name {
-            case "folder": .device(.folder)
-            case "application": .device(.bundle("app"))
-            default: .artwork(name)
-            }
-        }
+        /// A file type no artwork matches, by lowercased extension (empty
+        /// for none), drawn by the device — see `DeviceIcons`.
+        case device(String)
     }
 
     static func format(of node: FileNode) -> FileFormat {
@@ -58,7 +48,7 @@ enum FilePresentation {
         // lie, and a jailbroken filesystem is full of them, so it keeps a
         // picture that says "there is nothing there" rather than borrowing one.
         guard let link = node.link, let kind = link.resolvedKind else {
-            return .device(.unknown)
+            return .artwork("broken-link")
         }
         // The *target's* name: `latest -> release-3.2.png` is an image row.
         // `fstatat` follows the whole chain, so `kind` is never itself a link —
@@ -74,37 +64,54 @@ enum FilePresentation {
             // showing `Foo.app` as a folder hides exactly the fact that makes
             // it interesting on a jailbroken device.
             switch ext {
-            case "app", "kext", "framework": return .device(.bundle(ext))
-            default: return .device(.folder)
+            case "app": return .artwork("application")
+            case "kext", "framework": return .artwork("kext")
+            default: return .artwork("folder")
             }
         case .symbolicLink:
             // Unreachable: `icon(for:)` sends links to `linkIcon` and a
             // resolved kind is never a link. Here so the switch is total.
-            return .device(.unknown)
+            return .artwork("broken-link")
         case .fifo, .socket, .blockDevice, .characterDevice:
-            return .device(.unknown)
+            return .artwork("special")
         case .regular, .unknown:
-            // The OS names a type by its extension, and draws a crash report
-            // only under one of them. Permissions do not identify content:
-            // new user files default to 0777.
-            switch ext {
-            case "ips", "panic", "hang", "spin", "diag":
-                return .device(.file("crash"))
-            default:
-                // An extension the OS declares no type for draws what no
-                // extension draws, so `backup.1 … backup.99999` is one
-                // picture to make and keep, not a hundred thousand.
-                let declared = UTType(filenameExtension: ext).map { !$0.isDynamic } ?? false
-                return .device(.file(declared ? ext : ""))
-            }
+            break
+        }
+        // Presentation only: these stay whatever `FileFormat` says they are
+        // for the viewer — a crash report opens as text — but draw as the
+        // thing a person recognises them as.
+        switch ext {
+        case "ttf", "ttc", "otf", "dfont": return .artwork("font")
+        case "ips", "crash", "panic", "hang", "spin", "diag": return .artwork("report")
+        default: break
+        }
+        // By name alone: permissions do not identify content, since new user
+        // files default to 0777, and a Mach-O without an extension is found
+        // by `FilePresentation.picture`.
+        switch FileFormat.detect(name: name) {
+        case .propertyList: return .artwork("plist")
+        case .machO: return .artwork("executable")
+        case .archive: return .artwork("archive")
+        case .image: return .artwork("image")
+        case .audio: return .artwork("audio")
+        case .video: return .artwork("video")
+        case .pdf: return .artwork("pdf")
+        case .text: return .artwork("text")
+        case .sqlite, .binary, nil:
+            // No artwork matches, so the device draws the type. An
+            // extension the OS declares no type for draws what no
+            // extension draws, so `backup.1 … backup.99999` is one
+            // picture to make and keep, not a hundred thousand.
+            let declared = UTType(filenameExtension: ext).map { !$0.isDynamic } ?? false
+            return .device(declared ? ext : "")
         }
     }
 
     /// The icon as a drawable image, at the size a row draws it.
     ///
     /// Cached, because this is called once per cell per scroll tick and a
-    /// directory can hold 100k of them: `DeviceIcons` keeps the OS's pictures
-    /// and `artworkCache` the app's own. A listing draws from a few dozen
+    /// directory can hold 100k of them: `artworkCache` keeps the app's own
+    /// pictures and `DeviceIcons` the OS's. A listing draws from a few dozen
     /// distinct pictures no matter how long it is, so there is nothing to evict.
     @MainActor
     static func image(for node: FileNode) -> UIImage? {
@@ -121,8 +128,8 @@ enum FilePresentation {
     @MainActor
     static func image(for icon: Icon) -> UIImage? {
         switch icon {
-        case let .device(subject):
-            return DeviceIcons.image(for: subject)
+        case let .device(type):
+            return DeviceIcons.image(for: type)
         case let .artwork(name):
             if let hit = artworkCache[name] {
                 return hit
@@ -135,7 +142,19 @@ enum FilePresentation {
         }
     }
 
-    /// The side of the properties page's picture, in points.
+    /// The picture at the properties page's size: the artwork's `-large` set
+    /// rather than the row's bitmap scaled up, which is a blur. The device's
+    /// is the cached one; `DeviceIcons.largeImage` resolves a sharper one.
+    @MainActor
+    static func largeImage(for icon: Icon) -> UIImage? {
+        switch icon {
+        case let .device(type): DeviceIcons.image(for: type)
+        case let .artwork(name): UIImage(named: "FileIcons/\(name)-large")?.withRenderingMode(.alwaysOriginal)
+        }
+    }
+
+    /// The side of the properties page's picture, in points;
+    /// `Scripts/make-file-icons.swift` renders `-large` to the same number.
     static let largeSide: CGFloat = 192
 
     @MainActor

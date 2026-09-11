@@ -31,6 +31,12 @@ public enum FileFormat: Sendable, Hashable, CaseIterable {
         return extensionMatch(name) ?? (hasBinaryControls(head) ? .binary : .text)
     }
 
+    /// What the name alone says: nil for a missing or unknown extension,
+    /// where `detect` with an empty head guesses text.
+    public static func detect(name: String) -> FileFormat? {
+        extensionMatch(name)
+    }
+
     /// How many bytes `detect` wants. Reading more is waste; reading fewer
     /// misses the longest signature.
     public static let detectionByteCount = 512

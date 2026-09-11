@@ -833,31 +833,30 @@ keep their own size.
 ### The sidebar: pictures, never symbols, and no forms
 
 **The sidebar never draws an SF Symbol.** Every row — the presets, a
-favourite, a mount, a catalogue root, a saved server — shows a picture: the
-OS's own folder or app where the row is one (`BackendRoot.artworkName`
-`folder` and `application`, through `FilePresentation.Icon.named`), and
-otherwise a piece of artwork under `Assets.xcassets/FileIcons`, produced by
-`Scripts/make-file-icons.swift` from the Mac's `CoreTypes.bundle` (a saved
-server is `GenericSharepoint`, the shared-folder icon Finder uses for a
-mounted share). That artwork is Apple's and shipping it is redistribution, so
-the set is kept to what iOS has no picture of — the places, the trash, the
-link and favourite badges — and each is a candidate for replacement, never a
-precedent. A glyph among pictures reads as a control, which is what
-*Add SMB Share…* with a `plus.circle` looked like. `BackendRoot.artworkName`
-is therefore required and there is no `symbolName`; a backend that needs a
-new picture uses the OS's first and argues for artwork second.
+favourite, a mount, a catalogue root, a saved server — shows a piece of
+artwork under `Assets.xcassets/FileIcons` (`BackendRoot.artworkName`),
+produced by `Scripts/make-file-icons.swift` from the Mac's `CoreTypes.bundle`
+(a saved server is `GenericSharepoint`, the shared-folder icon Finder uses
+for a mounted share). A glyph among pictures reads as a control, which is
+what *Add SMB Share…* with a `plus.circle` looked like.
+`BackendRoot.artworkName` is therefore required and there is no `symbolName`.
 
 **Neither does anything that pictures a file.** A file, folder, bundle,
 archive entry or app — a row, a grid cell, a placeholder, a menu entry that
-opens a location — is the OS's own picture, drawn at runtime by `DeviceIcons`
-through `FilePresentation` (or `BackendShell.fileIcon` from a module): the app
-ships no file-type artwork. QuickLook's `.icon` of a probe in the app's
-caches draws a folder, a bundle, a Mach-O executable and the "?" page a
-dangling link, fifo or device gets; `UIDocumentInteractionController.icons`
-draws a file type by extension, synchronously. `DeviceIcons.prepare()` blocks
-launch (bounded) until the folder and bundle pictures exist, so a synchronous
-caller always gets one; a lookup is never nil. The browser page's row icons
-are the same pictures, drawn by the app and served at `/_fila/icon-…png`.
+opens a location — is drawn through `FilePresentation` (or
+`BackendShell.fileIcon` from a module). A folder, a bundle, a fifo or device,
+a dangling link and every type `FileFormat.detect(name:)` recognises by
+extension is the Mac's artwork, shipped at the grid's 64 points and the
+properties page's 192: that is Apple's artwork redistributed, chosen because
+QuickLook's pictures on the device are low-resolution and draw an app as a
+blank tile. Only a type no artwork matches — an unknown extension, none, a
+database, an office document — is the device's own picture (`DeviceIcons`):
+`UIDocumentInteractionController.icons` by extension, synchronously, and
+QuickLook's `.icon` of a probe for the common ones, prewarmed at launch; a
+lookup is never nil. QuickLook's page thumbnail is likewise only for such a
+type: its page of a text file or a plist is a near-blank square, worse than
+the artwork. The browser page's row icons are the same pictures,
+drawn by the app and served at `/_fila/icon-…png`.
 `FilePresentation.Icon` has no symbol case. A better picture made from the file itself is one tier in
 `FilePresentation.picture`, which rows, the grid and Properties all ask; a
 cell's is a square (`SquareImage`) drawn with the thumbnail edge,

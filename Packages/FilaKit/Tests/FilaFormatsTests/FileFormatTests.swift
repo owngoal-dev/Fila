@@ -17,6 +17,13 @@ struct FileFormatTests {
         #expect(FileFormat.detect(head: Data(), name: "photo.HEIC") == .image)
     }
 
+    @Test("The name alone says nothing without a known extension")
+    func nameAlone() {
+        #expect(FileFormat.detect(name: "notes.txt") == .text)
+        #expect(FileFormat.detect(name: "hosts") == nil)
+        #expect(FileFormat.detect(name: "state.zqx") == nil)
+    }
+
     @Test("A NUL byte is what separates a binary from something worth editing")
     func binaryVersusText() {
         #expect(FileFormat.detect(head: Data("# Fila\nhello".utf8), name: "unnamed") == .text)

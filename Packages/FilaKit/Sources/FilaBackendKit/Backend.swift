@@ -51,10 +51,9 @@ public struct BackendRoot: Equatable, Sendable {
     public let kind: Kind
     /// Already localized by the backend that owns it.
     public let displayName: String
-    /// The picture beside `displayName`: `folder` and `application` are the
-    /// OS's own, any other name the app's artwork filed under
-    /// `FileIcons/<artworkName>`. Never an SF Symbol: the sidebar draws
-    /// pictures, and a glyph among them reads as a control.
+    /// The app's own artwork beside `displayName`, by the name the app
+    /// files it under (`FileIcons/<artworkName>`). Never an SF Symbol: the
+    /// sidebar draws pictures, and a glyph among them reads as a control.
     public let artworkName: String
     /// Where the root is, for a list that must tell two roots of the same
     /// kind apart — a share's host and name, an FTP server's address. Nil

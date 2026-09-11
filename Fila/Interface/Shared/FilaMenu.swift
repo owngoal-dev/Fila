@@ -47,7 +47,7 @@ enum FilaMenu {
         func submenu(_ title: String, _ actions: [UIAction]) -> [UIMenu] {
             actions.isEmpty ? [] : [UIMenu(
                 title: title,
-                image: compositeIcon(actions.compactMap(\.image)) ?? FilePresentation.image(for: .device(.folder)),
+                image: compositeIcon(actions.compactMap(\.image)) ?? FilePresentation.image(for: .artwork("folder")),
                 children: actions
             )]
         }
@@ -156,7 +156,7 @@ enum FilaMenu {
                 })
             }
         }
-        let folder = FilePresentation.image(for: .device(.folder))
+        let folder = FilePresentation.image(for: .artwork("folder"))
         let drive = FilePresentation.image(for: .artwork("drive-internal"))
         let favorites = session.favoritePaths
         let recents = session.recentPaths(limit: 8)

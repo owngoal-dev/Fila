@@ -137,8 +137,8 @@ fi
 # A file, a folder, an archive entry or an app is never drawn with an SF Symbol:
 # a glyph among pictures reads as a control. These files exist only to draw
 # those pictures, so any symbol in one of them is a file drawn as a glyph.
-# Files, folders and types are the OS's own pictures (DeviceIcons); what the OS
-# has no picture of is artwork from Scripts/make-file-icons.swift.
+# Files, folders and types are artwork from Scripts/make-file-icons.swift, and
+# a type no artwork matches is the OS's own picture (DeviceIcons).
 file_picture_hits="$(search 'systemName' "${ui_roots[@]}" \
     | grep -E 'Shared/FilePresentation[^/]*\.swift|Shared/DeviceIcons\.swift|Shared/IconRowCell\.swift|Browser/BrowserGridCell\.swift|FilaMusicLibrary/MusicArtworkView\.swift|FilaApplications/ApplicationArtworkCache\.swift' || true)"
 if [[ -n "$file_picture_hits" ]]; then

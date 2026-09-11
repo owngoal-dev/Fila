@@ -13,7 +13,7 @@ extension PathBarView {
     @MainActor
     static func localCrumbs(for path: String) -> [Crumb] {
         let local = FileSession.shared.local
-        let folder = FilePresentation.image(for: .device(.folder))
+        let folder = FilePresentation.image(for: .artwork("folder"))
         var crumbs = [Crumb(title: "@" + UIDevice.current.name, target: "/", icon: folder)]
         var prefix = ""
         if local.rootPath != "/" {

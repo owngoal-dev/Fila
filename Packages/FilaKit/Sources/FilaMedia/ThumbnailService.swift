@@ -30,8 +30,8 @@ import Foundation
 /// made through the descriptor the daemon opened, in an app-owned directory
 /// that is removed again the moment QuickLook answers.
 ///
-/// QuickLook also draws the OS's own picture of a type (`quickLookIcon`): the
-/// app ships no artwork for files, and asks the system it runs on instead.
+/// QuickLook also draws the OS's own picture of a type (`quickLookIcon`), for
+/// a file type the app ships no artwork for.
 ///
 /// Everything here fails to `nil`. A thumbnail is a convenience; the caller
 /// already has a file-type icon, and a picture that could not be made is not
@@ -199,21 +199,15 @@ public actor ThumbnailService {
     }
 
     /// The picture the OS draws for the type of the item at `path` — QuickLook's
-    /// icon, not its content — as a square of `maxPixelSize`. `contentType`
-    /// overrides the type the name implies. No byte of the item is read, so
-    /// `path` is a probe the caller made: an empty file or directory whose name
-    /// carries the type.
-    public func quickLookIcon(path: String, contentType: String? = nil, maxPixelSize: Int) async -> CGImage? {
+    /// icon, not its content — as a square of `maxPixelSize`. No byte of the
+    /// item is read, so `path` is a probe the caller made: an empty file whose
+    /// name carries the type.
+    public func quickLookIcon(path: String, maxPixelSize: Int) async -> CGImage? {
         #if canImport(QuickLookThumbnailing)
             guard maxPixelSize > 0, maxPixelSize <= 1024 else { return nil }
-            let key = "icon:\(contentType ?? ""):\(path)@\(maxPixelSize)" as NSString
+            let key = "icon:\(path)@\(maxPixelSize)" as NSString
             return await generate(key) {
-                let icon = await Self.quickLook(
-                    URL(fileURLWithPath: path),
-                    maxPixelSize: maxPixelSize,
-                    types: .icon,
-                    contentType: contentType
-                )
+                let icon = await Self.quickLook(URL(fileURLWithPath: path), maxPixelSize: maxPixelSize, types: .icon)
                 // Fitted, never cropped: QuickLook may keep a page icon's own
                 // aspect, and the folded corner is part of the picture.
                 return icon.flatMap { SquareImage.fit($0, maxSide: maxPixelSize) }
@@ -230,8 +224,7 @@ public actor ThumbnailService {
         private static func quickLook(
             _ url: URL,
             maxPixelSize: Int,
-            types: QLThumbnailGenerator.Request.RepresentationTypes,
-            contentType: String? = nil
+            types: QLThumbnailGenerator.Request.RepresentationTypes
         ) async -> CGImage? {
             await Task.detached(priority: .utility) {
                 let request = QLThumbnailGenerator.Request(
@@ -240,9 +233,6 @@ public actor ThumbnailService {
                     scale: 1,
                     representationTypes: types
                 )
-                if let contentType, let type = UTType(contentType) {
-                    request.contentType = type
-                }
                 return try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request).cgImage
             }.value
         }

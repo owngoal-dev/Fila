@@ -203,8 +203,8 @@ final class PropertiesViewController: TabContentViewController {
                         image = await artwork.icon(for: identifier)
                     }
                 }
-                if image == nil, case let .device(subject) = FilePresentation.icon(for: node) {
-                    image = await DeviceIcons.largeImage(for: subject)
+                if image == nil, case let .device(type) = FilePresentation.icon(for: node) {
+                    image = await DeviceIcons.largeImage(for: type)
                 }
             }
             guard !Task.isCancelled, let self, details.path == path, let image else { return }
@@ -265,7 +265,7 @@ final class PropertiesViewController: TabContentViewController {
                     for: indexPath
                 ) as! PropertiesPreviewCell
                 preview.show(
-                    image: previewImage ?? FilePresentation.image(for: details.node),
+                    image: previewImage ?? FilePresentation.largeImage(for: FilePresentation.icon(for: details.node)),
                     title: URL(fileURLWithPath: details.path).lastPathComponent,
                     kind: Self.name(of: details.node.kind),
                     maximumSide: previewMaximumSide

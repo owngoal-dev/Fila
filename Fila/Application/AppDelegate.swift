@@ -19,8 +19,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // Windows connecting in the moments after this are the ones iOS
         // restored; the tab store tells them from windows opened later.
         BrowserTabStore.launchedAt = Date()
-        // Before any scene: the first sidebar and listing draw the OS's icons.
-        DeviceIcons.prepare()
+        DeviceIcons.prewarm()
         AlertControllerConfiguration.accentColor = UIColor(named: "AccentColor") ?? .systemBlue
         // The app icon, light and dark, rendered by Scripts/make-app-mark.swift.
         AlertControllerConfiguration.alertImage = UIImage(named: "AppIconMark")

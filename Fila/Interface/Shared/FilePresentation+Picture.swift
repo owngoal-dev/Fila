@@ -2,7 +2,6 @@ import FilaFormats
 import FilaMedia
 import FilaProtocol
 import UIKit
-import UniformTypeIdentifiers
 
 /// A better picture than the type icon, made from the file itself.
 ///
@@ -33,7 +32,8 @@ extension FilePresentation {
     /// `large` is the properties page: a 512 px thumbnail of any regular file,
     /// whole. A row or grid cell gets a 160 px square of an image only — the
     /// other decoders cost too much to run for every file scrolled past. Both
-    /// get QuickLook's page of a document; it runs in QuickLook's process.
+    /// get QuickLook's page of a type no artwork matches; it runs in
+    /// QuickLook's process.
     @MainActor
     static func picture(for path: String, node: FileNode, session: FileSession, large: Bool = false) async -> Picture? {
         guard canHavePicture(node) else { return nil }
@@ -44,14 +44,13 @@ extension FilePresentation {
         // 2. The content itself. Never through a link: the open refuses to
         //    follow one, and the cache key would be the link's own `lstat`.
         guard node.kind == .regular else { return nil }
-        let format = format(of: node)
         let side = large ? 512 : 160
         let open: @Sendable () async throws -> Int32 = {
             try await session.perform(retryOnDisconnect: true) {
                 try await $0.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
             }
         }
-        if large || format == .image,
+        if large || format(of: node) == .image,
            let image = await ThumbnailService.shared.thumbnail(
                path: path,
                modified: node.modified,
@@ -62,9 +61,12 @@ extension FilePresentation {
            ) {
             return Task.isCancelled ? nil : .thumbnail(UIImage(cgImage: image))
         }
-        // 3. QuickLook's page, for what the decoders above do not draw. A
-        //    file this process cannot read is staged into its own workspace.
-        guard quickLookDraws(node.name, format: format),
+        // 3. QuickLook's page, for a declared type no artwork matches — an
+        //    office document, say. A type with artwork keeps it: QuickLook's
+        //    page of a text file or a plist is a near-blank square, and an
+        //    unknown extension, or none, has no thumbnailer at all. A file
+        //    this process cannot read is staged into its own workspace.
+        guard case let .device(type) = icon(for: node), !type.isEmpty,
               let page = await ThumbnailService.shared.quickLookThumbnail(
                   path: path,
                   modified: node.modified,
@@ -76,21 +78,6 @@ extension FilePresentation {
               ),
               !Task.isCancelled else { return nil }
         return .thumbnail(UIImage(cgImage: page))
-    }
-
-    /// Text, a property list, and any type the system declares — an office
-    /// document, a font. Not audio: a song without artwork comes back as a
-    /// generic note, worse than the type icon. An unknown extension, or none,
-    /// has no thumbnailer, and asking would cost a round trip for every such row.
-    private static func quickLookDraws(_ name: String, format: FileFormat) -> Bool {
-        switch format {
-        case .text, .propertyList:
-            true
-        case .binary:
-            UTType(filenameExtension: (name as NSString).pathExtension).map { !$0.isDynamic } ?? false
-        case .image, .pdf, .video, .audio, .archive, .sqlite, .machO:
-            false
-        }
     }
 
     /// Four magic bytes, read in the app. A mode of 0777 also belongs to
@@ -113,7 +100,7 @@ extension FilePresentation {
             }
         }
         guard found, !Task.isCancelled else { return nil }
-        return large ? await DeviceIcons.largeImage(for: .executable) : DeviceIcons.image(for: .executable)
+        return large ? largeImage(for: .artwork("executable")) : image(for: .artwork("executable"))
     }
 }
 

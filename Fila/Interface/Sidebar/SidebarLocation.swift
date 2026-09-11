@@ -44,10 +44,10 @@ struct SidebarPlace: Hashable {
             icon = .artwork("drive-internal")
         case .favorite:
             title = (path as NSString).lastPathComponent
-            icon = .device(.folder)
+            icon = .artwork("folder")
         case let .named(name):
             title = name
-            icon = .device(.folder)
+            icon = .artwork("folder")
         }
     }
 }
@@ -107,10 +107,10 @@ enum SidebarLocation {
         BackendComposition.registry.screen(for: location) as? UIViewController
     }
 
-    /// The picture the backend names (`FilePresentation.Icon.named`). A name
-    /// nothing draws gets the OS's folder rather than a glyph: the sidebar
-    /// is pictures throughout, and a symbol among them reads as a control.
+    /// The artwork the backend names. A name nothing draws gets the folder
+    /// rather than a glyph: the sidebar is pictures throughout, and a symbol
+    /// among them reads as a control.
     @MainActor static func image(for root: BackendRoot) -> UIImage? {
-        FilePresentation.image(for: .named(root.artworkName)) ?? FilePresentation.image(for: .device(.folder))
+        FilePresentation.image(for: .artwork(root.artworkName)) ?? FilePresentation.image(for: .artwork("folder"))
     }
 }
