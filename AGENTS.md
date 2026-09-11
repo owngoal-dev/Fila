@@ -823,8 +823,9 @@ caches draws a folder, a bundle, a Mach-O executable and the "?" page a
 dangling link, fifo or device gets; `UIDocumentInteractionController.icons`
 draws a file type by extension, synchronously. `DeviceIcons.prepare()` blocks
 launch (bounded) until the folder and bundle pictures exist, so a synchronous
-caller always gets one; a lookup is never nil. `FilePresentation.Icon` has no
-symbol case. A better picture made from the file itself is one tier in
+caller always gets one; a lookup is never nil. The browser page's row icons
+are the same pictures, drawn by the app and served at `/_fila/icon-…png`.
+`FilePresentation.Icon` has no symbol case. A better picture made from the file itself is one tier in
 `FilePresentation.picture`, which rows, the grid and Properties all ask; a
 cell's is a square (`SquareImage`) drawn with the thumbnail edge,
 Properties' is whole. `Scripts/check-ui-libraries.sh` fails on `systemName` in

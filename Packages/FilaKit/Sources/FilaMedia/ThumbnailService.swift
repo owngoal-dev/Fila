@@ -250,7 +250,7 @@ public actor ThumbnailService {
     /// new file at `target`, which must not exist. The size is `fstat`ed off the
     /// descriptor, and a file that grows past the limit mid-copy fails rather
     /// than being cut short into a different picture.
-    static func copy(_ descriptor: Int32, to target: URL, limit: Int64) throws {
+    private static func copy(_ descriptor: Int32, to target: URL, limit: Int64) throws {
         var status = stat()
         guard fstat(descriptor, &status) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
         guard status.st_mode & S_IFMT == S_IFREG else { throw POSIXError(.EINVAL) }
