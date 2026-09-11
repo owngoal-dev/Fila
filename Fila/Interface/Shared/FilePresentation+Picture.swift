@@ -15,9 +15,11 @@ import UniformTypeIdentifiers
 /// a whole file or reports a failure: a picture is a convenience.
 extension FilePresentation {
     enum Picture {
-        /// Artwork: drawn whole, the way the type icon it replaces is.
+        /// The OS's picture of what the file is: drawn whole, the way the type
+        /// icon it replaces is.
         case icon(UIImage)
-        /// The file's own content: fills its square and is clipped to it.
+        /// The file's own content. A cell's is already square (`SquareImage`)
+        /// and is drawn with the thumbnail edge; the properties page's is whole.
         case thumbnail(UIImage)
     }
 
@@ -28,11 +30,10 @@ extension FilePresentation {
         node.kind == .regular || node.link?.resolvedKind == .regular
     }
 
-    /// `large` is the properties page: `-large` artwork, and a 512 px thumbnail
-    /// of any regular file. A row or grid cell gets the 40pt artwork and a
-    /// 160 px thumbnail of an image only — the other decoders cost too much to
-    /// run for every file scrolled past. Both get QuickLook's page of a
-    /// document the app can read itself; it runs in QuickLook's process.
+    /// `large` is the properties page: a 512 px thumbnail of any regular file,
+    /// whole. A row or grid cell gets a 160 px square of an image only — the
+    /// other decoders cost too much to run for every file scrolled past. Both
+    /// get QuickLook's page of a document; it runs in QuickLook's process.
     @MainActor
     static func picture(for path: String, node: FileNode, session: FileSession, large: Bool = false) async -> Picture? {
         guard canHavePicture(node) else { return nil }
@@ -45,32 +46,41 @@ extension FilePresentation {
         guard node.kind == .regular else { return nil }
         let format = format(of: node)
         let side = large ? 512 : 160
+        let open: @Sendable () async throws -> Int32 = {
+            try await session.perform(retryOnDisconnect: true) {
+                try await $0.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
+            }
+        }
         if large || format == .image,
            let image = await ThumbnailService.shared.thumbnail(
                path: path,
                modified: node.modified,
                byteCount: node.size,
                maxPixelSize: side,
-               open: {
-                   try await session.perform(retryOnDisconnect: true) {
-                       try await $0.open(path, flags: O_RDONLY | O_NONBLOCK | O_NOFOLLOW)
-                   }
-               }
+               square: !large,
+               open: open
            ) {
             return Task.isCancelled ? nil : .thumbnail(UIImage(cgImage: image))
         }
-        // 3. QuickLook's page, for what the decoders above do not draw.
+        // 3. QuickLook's page, for what the decoders above do not draw. A
+        //    file this process cannot read is staged into its own workspace.
         guard quickLookDraws(node.name, format: format),
               let page = await ThumbnailService.shared.quickLookThumbnail(
-                  path: path, modified: node.modified, byteCount: node.size, maxPixelSize: side
+                  path: path,
+                  modified: node.modified,
+                  byteCount: node.size,
+                  maxPixelSize: side,
+                  square: !large,
+                  workspace: { try await session.makeTemporaryDirectory() },
+                  open: open
               ),
               !Task.isCancelled else { return nil }
-        return .icon(framed(page))
+        return .thumbnail(UIImage(cgImage: page))
     }
 
     /// Text, a property list, and any type the system declares — an office
     /// document, a font. Not audio: a song without artwork comes back as a
-    /// generic note, worse than the artwork. An unknown extension, or none,
+    /// generic note, worse than the type icon. An unknown extension, or none,
     /// has no thumbnailer, and asking would cost a round trip for every such row.
     private static func quickLookDraws(_ name: String, format: FileFormat) -> Bool {
         switch format {
@@ -81,18 +91,6 @@ extension FilePresentation {
         case .image, .pdf, .video, .audio, .archive, .sqlite, .machO:
             false
         }
-    }
-
-    /// A page is drawn whole, with the hairline edge the Files app gives one:
-    /// a white page on a white row has no edge of its own.
-    private static func framed(_ page: CGImage) -> UIImage {
-        let bounds = CGRect(x: 0, y: 0, width: page.width, height: page.height)
-        let format = UIGraphicsImageRendererFormat.preferred().with { $0.scale = 1 }
-        return UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
-            UIImage(cgImage: page).draw(in: bounds)
-            UIColor(white: 0, alpha: 0.15).setStroke()
-            context.stroke(bounds.insetBy(dx: 0.5, dy: 0.5))
-        }.withRenderingMode(.alwaysOriginal)
     }
 
     /// Four magic bytes, read in the app. A mode of 0777 also belongs to
@@ -115,8 +113,35 @@ extension FilePresentation {
             }
         }
         guard found, !Task.isCancelled else { return nil }
-        return UIImage(
-            named: large ? "FileIcons/executable-large" : "FileIcons/executable"
-        )?.withRenderingMode(.alwaysOriginal)
+        return large ? await DeviceIcons.largeImage(for: .executable) : DeviceIcons.image(for: .executable)
+    }
+}
+
+extension UIImageView {
+    /// Draws a file's picture the way every cell draws one: an icon whole, a
+    /// thumbnail filling its square with rounded corners and a hairline edge —
+    /// a white page on a white row has no edge of its own.
+    func show(_ picture: FilePresentation.Picture) {
+        switch picture {
+        case let .icon(image):
+            showIcon(image)
+        case let .thumbnail(image):
+            self.image = image
+            contentMode = .scaleAspectFill
+            clipsToBounds = true
+            layer.cornerRadius = 4
+            layer.borderWidth = 1 / max(traitCollection.displayScale, 1)
+            layer.borderColor = UIColor(white: 0, alpha: 0.15).cgColor
+        }
+    }
+
+    /// A type icon, with everything `show` sets for a thumbnail put back — the
+    /// state a reused cell starts from.
+    func showIcon(_ image: UIImage?) {
+        self.image = image
+        contentMode = .scaleAspectFit
+        clipsToBounds = false
+        layer.cornerRadius = 0
+        layer.borderWidth = 0
     }
 }

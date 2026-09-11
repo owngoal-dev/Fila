@@ -52,6 +52,11 @@ public final class WebDAVServer: @unchecked Sendable {
         /// `nil` answers a browser's directory GET with 404 and leaves the DAV
         /// protocol untouched.
         public var webRoot: URL?
+        /// A PNG of the picture the OS draws for an item named `name` — a
+        /// directory or a file, by its extension — for the browser page's
+        /// rows (`/_fila/icon-…png`). The page ships no artwork of its own.
+        /// `nil` answers those with 404 and the page shows no icon.
+        public var typeIcon: (@Sendable (_ name: String, _ isDirectory: Bool) async -> Data?)?
 
         public init(
             port: UInt16,
@@ -60,7 +65,8 @@ public final class WebDAVServer: @unchecked Sendable {
             root: String = "/",
             advertisesBonjour: Bool = true,
             serviceName: String = "Fila",
-            webRoot: URL? = nil
+            webRoot: URL? = nil,
+            typeIcon: (@Sendable (_ name: String, _ isDirectory: Bool) async -> Data?)? = nil
         ) {
             self.port = port
             self.username = username
@@ -69,6 +75,7 @@ public final class WebDAVServer: @unchecked Sendable {
             self.advertisesBonjour = advertisesBonjour
             self.serviceName = serviceName
             self.webRoot = webRoot
+            self.typeIcon = typeIcon
         }
     }
 

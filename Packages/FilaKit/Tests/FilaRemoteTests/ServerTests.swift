@@ -27,7 +27,8 @@ final class Harness {
     init(
         service: RemoteFileService = LocalService(),
         ioTimeout: TimeAmount = .seconds(HTTPConnection.readTimeoutSeconds),
-        webRoot: String? = nil
+        webRoot: String? = nil,
+        typeIcon: (@Sendable (String, Bool) async -> Data?)? = nil
     ) async throws {
         web.file("index.html", contents: "<!doctype html><script src=\"/_fila/app.js\"></script>")
         web.file("app.js", contents: "console.log('fila')")
@@ -39,7 +40,8 @@ final class Harness {
             password: password,
             root: scratch.root,
             advertisesBonjour: false,
-            webRoot: URL(fileURLWithPath: webRoot ?? web.root, isDirectory: true)
+            webRoot: URL(fileURLWithPath: webRoot ?? web.root, isDirectory: true),
+            typeIcon: typeIcon
         ))
         var found: UInt16?
         for _ in 0 ..< 100 {
@@ -421,6 +423,28 @@ struct ServerTests {
         // And a plain GET of the file is still the file, not a thumbnail.
         let whole = try await harness.send("GET", "/dot.png")
         #expect(whole.body == png)
+    }
+
+    @Test("A row icon is the app's picture of the type the name asks for")
+    func typeIcons() async throws {
+        let harness = try await Harness(typeIcon: { name, isDirectory in
+            Data("\(isDirectory ? "dir" : "file"):\(name)".utf8)
+        })
+        let folder = try await harness.send("GET", "/_fila/icon-dir.png")
+        #expect(folder.status == 200)
+        #expect(folder.header("content-type") == "image/png")
+        #expect(folder.body == Data("dir:x".utf8))
+        let bundle = try await harness.send("GET", "/_fila/icon-dir-app.png")
+        #expect(bundle.body == Data("dir:x.app".utf8))
+        let pdf = try await harness.send("GET", "/_fila/icon-file-pdf.png")
+        #expect(pdf.body == Data("file:x.pdf".utf8))
+        for target in ["/_fila/icon-.png", "/_fila/icon-file-.png", "/_fila/icon-file-tar-gz.png", "/_fila/icon-link.png"] {
+            let refused = try await harness.send("GET", target)
+            #expect(refused.status == 404, "\(target)")
+        }
+        // Without a drawer the route is absent, not an error.
+        let bare = try await Harness()
+        #expect(try await bare.send("GET", "/_fila/icon-dir.png").status == 404)
     }
 
     @Test("Without a web root the DAV protocol is intact and the page is absent")

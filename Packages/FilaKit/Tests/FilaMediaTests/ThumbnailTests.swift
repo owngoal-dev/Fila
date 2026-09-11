@@ -236,20 +236,74 @@ struct ThumbnailTests {
     }
 
     /// QuickLook answers an unreadable text file with a blank page, not a
-    /// failure, so the service must not ask it. Root reads everything.
-    @Test("QuickLook is never asked for a file this process cannot read", .enabled(if: getuid() != 0))
+    /// failure, so the service must not ask it by path. Root reads everything.
+    @Test("QuickLook is never asked for a path this process cannot read", .enabled(if: getuid() != 0))
     func quickLookNeedsReadAccess() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("private.txt")
             try Data("root only".utf8).write(to: url)
             let service = ThumbnailService()
             #expect(chmod(url.path, 0) == 0)
-            let refused = await service.quickLookThumbnail(path: url.path, modified: 1, byteCount: 9)
+            let refused = await service.quickLookThumbnail(
+                path: url.path, modified: 1, byteCount: 9,
+                workspace: { directory }, open: { try openForReading(url) }
+            )
             #expect(refused == nil)
             // The refusal is not remembered: a chmod leaves the key unchanged.
             #expect(chmod(url.path, 0o644) == 0)
-            let page = await service.quickLookThumbnail(path: url.path, modified: 1, byteCount: 9)
-            #expect(page != nil)
+            let page = await service.quickLookThumbnail(
+                path: url.path, modified: 1, byteCount: 9,
+                workspace: { throw OpenFailed(path: "readable", code: 0) }, open: { throw OpenFailed(path: "readable", code: 0) }
+            )
+            #expect(page != nil, "a readable path goes to QuickLook as it is, with nothing staged")
+        }
+    }
+
+    /// The daemon's descriptor stands in for the path: the copy QuickLook
+    /// reads is made through it, and is gone again once the page is drawn.
+    @Test("An unreadable file is staged through its descriptor and the copy removed", .enabled(if: getuid() != 0))
+    func quickLookStagesUnreadable() async throws {
+        try await withScratchAsync { directory in
+            let url = directory.appendingPathComponent("private.txt")
+            try Data("root only\nsecond line".utf8).write(to: url)
+            let size = try byteCount(of: url)
+            // Opened while readable, the way the daemon opens it as root.
+            let descriptor = try openForReading(url)
+            defer { close(descriptor) }
+            #expect(chmod(url.path, 0) == 0)
+            let workspace = directory.appendingPathComponent("stage")
+            let page = await ThumbnailService().quickLookThumbnail(
+                path: url.path, modified: 1, byteCount: size, square: true,
+                workspace: {
+                    try FileManager.default.createDirectory(at: workspace, withIntermediateDirectories: false)
+                    return workspace
+                },
+                open: { dup(descriptor) }
+            )
+            let image = try #require(page)
+            #expect(image.width == image.height)
+            #expect(!FileManager.default.fileExists(atPath: workspace.path))
+        }
+    }
+
+    @Test("A cell's thumbnail is square; a preview's is whole")
+    func squareThumbnail() async throws {
+        try await withScratchAsync { directory in
+            let url = directory.appendingPathComponent("wide.png")
+            try writePNG(width: 900, height: 300, to: url)
+            let size = try byteCount(of: url)
+            let service = ThumbnailService()
+            let square = try #require(await service.thumbnail(
+                path: url.path, modified: 1, byteCount: size, maxPixelSize: 90, square: true,
+                open: { try openForReading(url) }
+            ))
+            #expect(square.width == square.height)
+            let whole = try #require(await service.thumbnail(
+                path: url.path, modified: 1, byteCount: size, maxPixelSize: 90,
+                open: { try openForReading(url) }
+            ))
+            #expect(whole.width == 90)
+            #expect(whole.height == 30)
         }
     }
 

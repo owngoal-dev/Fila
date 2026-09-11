@@ -1,7 +1,8 @@
 // Pulls everything the page shares with the app out of the app's own sources,
-// so there is one accent colour, one icon set and one extension table in the
-// repository. Runs before every webpack build; output lives in src/generated
-// and is not checked in.
+// so there is one accent colour and one extension table in the repository.
+// Row icons are not here: the server draws the device's own at runtime
+// (`/_fila/icon-…png`). Runs before every webpack build; output lives in
+// src/generated and is not checked in.
 const fs = require('fs');
 const path = require('path');
 
@@ -9,7 +10,7 @@ const repo = path.resolve(__dirname, '..', '..');
 const assets = path.join(repo, 'Fila/Resources/Assets.xcassets');
 const out = path.join(__dirname, '..', 'src', 'generated');
 fs.rmSync(out, { recursive: true, force: true });
-fs.mkdirSync(path.join(out, 'icons'), { recursive: true });
+fs.mkdirSync(out, { recursive: true });
 
 // Accent colour: AccentColor.colorset, light and dark appearances.
 const colorset = JSON.parse(fs.readFileSync(path.join(assets, 'AccentColor.colorset/Contents.json'), 'utf8'));
@@ -27,16 +28,6 @@ fs.writeFileSync(
   path.join(out, 'accent.css'),
   `/* generated from Assets.xcassets/AccentColor.colorset */\n:root { --accent: ${accentLight}; }\n@media (prefers-color-scheme: dark) { :root { --accent: ${accentDark}; } }\n`,
 );
-
-// Row artwork: the 40 pt @2x PNGs the app draws in its own list.
-const iconsDir = path.join(assets, 'FileIcons');
-const icons = [];
-for (const set of fs.readdirSync(iconsDir)) {
-  const m = /^([a-z]+)\.imageset$/.exec(set);
-  if (!m) continue;
-  fs.copyFileSync(path.join(iconsDir, set, `${m[1]}@2x.png`), path.join(out, 'icons', `${m[1]}.png`));
-  icons.push(m[1]);
-}
 
 // The app mark, light and dark, from Scripts/make-app-mark.swift's output.
 // Renamed without the "@": the server serves /_fila/ files by a plain name.
@@ -59,4 +50,4 @@ for (const m of table.matchAll(/case\s+((?:"[^"]+",?\s*)+):\s*(?:return\s+)?\.(\
 if (!formats.plist || !formats.zip) throw new Error('could not read extensionMatch from FileFormat.swift');
 fs.writeFileSync(path.join(out, 'formats.json'), JSON.stringify(formats, null, 2) + '\n');
 
-console.log(`synced accent ${accentLight}/${accentDark}, ${icons.length} icons, ${Object.keys(formats).length} extensions`);
+console.log(`synced accent ${accentLight}/${accentDark}, ${Object.keys(formats).length} extensions`);

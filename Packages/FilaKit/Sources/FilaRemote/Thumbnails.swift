@@ -52,6 +52,43 @@ extension WebDAVHandler {
     }
 }
 
+/// `GET /_fila/icon-<dir|file>[-<extension>].png` — the picture the OS draws
+/// for a type, for the browser page's rows. The page ships no artwork: the
+/// only icons that would match the app's are Apple's, and shipping them is
+/// redistributing them, so the app draws the device's own (`typeIcon`).
+extension WebDAVHandler {
+    /// `icon-file-pdf.png` → `("x.pdf", false)`, `icon-dir.png` → `("x", true)`.
+    /// The extension is letters and digits only — the page strips the rest —
+    /// so a name made here never carries a separator.
+    static func typeIconRequest(_ asset: String) -> (name: String, isDirectory: Bool)? {
+        guard asset.hasPrefix("icon-"), asset.hasSuffix(".png") else { return nil }
+        let parts = asset.dropFirst("icon-".count).dropLast(".png".count)
+            .split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+        guard let kind = parts.first, kind == "dir" || kind == "file" else { return nil }
+        let type = parts.count > 1 ? String(parts[1]) : ""
+        guard parts.count == 1 || !type.isEmpty,
+              type.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber) })
+        else { return nil }
+        return (type.isEmpty ? "x" : "x.\(type)", kind == "dir")
+    }
+
+    func typeIcon(for item: (name: String, isDirectory: Bool), on http: HTTPConnection, includeBody: Bool) async throws -> Int {
+        guard let png = await configuration.typeIcon?(item.name, item.isDirectory) else {
+            try await respond(http, 404)
+            return 404
+        }
+        try await http.write(head(200, headers: [
+            ("Content-Type", "image/png"),
+            // The same picture for every file of the type, for the session.
+            ("Cache-Control", "private, max-age=86400"),
+        ], contentLength: png.count))
+        if includeBody {
+            try await http.write(png)
+        }
+        return 200
+    }
+}
+
 enum Thumbnailer {
     /// A PNG no larger than `side` on either edge, or nil when QuickLook has no
     /// real rendering for the file — a generic document icon is not one, and

@@ -22,7 +22,7 @@ enum FilaMenu {
         }
         let locations = [UIMenu(
             title: String(localized: "Places"),
-            image: compositeIcon(directories.compactMap(preview(for:))) ?? UIImage(named: "FileIcons/folder"),
+            image: compositeIcon(directories.compactMap(preview(for:))) ?? FilePresentation.image(for: .device(.folder)),
             children: places
         )]
             + collections(open: open)
@@ -34,9 +34,8 @@ enum FilaMenu {
         FilePresentation.image(for: place.icon)
     }
 
-    /// The row asset's side: `Scripts/make-file-icons.swift` renders the
-    /// `FileIcons` set at 40 points, and a composed icon is drawn at the same
-    /// size so it sits in a menu row the way its siblings do.
+    /// A menu row's picture side: a composed icon is drawn at 40 points so it
+    /// sits in a menu row the way its siblings do.
     private static let rowIconSide: CGFloat = 40
 
     /// A submenu's icon composed from what it holds — a square grid of the
@@ -132,8 +131,8 @@ enum FilaMenu {
                 })
             }
         }
-        let folder = UIImage(named: "FileIcons/folder")
-        let drive = UIImage(named: "FileIcons/drive-internal")
+        let folder = FilePresentation.image(for: .device(.folder))
+        let drive = FilePresentation.image(for: .artwork("drive-internal"))
         let favorites = session.favoritePaths
         let recents = session.recentPaths(limit: 8)
         return [

@@ -115,7 +115,13 @@ final class FileSharingServer {
                 advertisesBonjour: false,
                 serviceName: UIDevice.current.name,
                 // `WebUI/dist`, copied in by the "Build Web UI" build phase.
-                webRoot: Bundle.main.url(forResource: "WebUI", withExtension: nil)
+                webRoot: Bundle.main.url(forResource: "WebUI", withExtension: nil),
+                // The page's row icons are the pictures the app draws.
+                typeIcon: { name, isDirectory in
+                    await MainActor.run {
+                        FilePresentation.image(kind: isDirectory ? .directory : .regular, name: name)?.pngData()
+                    }
+                }
             ))
         } catch {
             // The listener's own failures already log themselves; this is the

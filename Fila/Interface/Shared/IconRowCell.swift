@@ -185,12 +185,9 @@ final class IconRowCell: UICollectionViewListCell {
         detailLabel.isHidden = detail?.isEmpty != false
         sizeLabel.text = nil
         sizeLabel.isHidden = true
-        iconView.image = image
+        iconView.showIcon(image)
         iconView.tintColor = tintColor
         iconView.alpha = 1
-        iconView.contentMode = .scaleAspectFit
-        iconView.clipsToBounds = false
-        iconView.layer.cornerRadius = 0
         linkBadge.isHidden = true
         appBadge.isHidden = true
         favoriteBadge.isHidden = true
@@ -260,15 +257,7 @@ final class IconRowCell: UICollectionViewListCell {
         thumbnailTask = Task { [weak self] in
             let picture = await FilePresentation.picture(for: path, node: node, session: session)
             guard let self, iconToken == token, let picture else { return }
-            switch picture {
-            case let .icon(image):
-                iconView.image = image
-            case let .thumbnail(image):
-                iconView.image = image
-                iconView.contentMode = .scaleAspectFill
-                iconView.clipsToBounds = true
-                iconView.layer.cornerRadius = 4
-            }
+            iconView.show(picture)
         }
     }
 

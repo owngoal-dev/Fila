@@ -372,9 +372,9 @@ extension ClipboardViewController: UITableViewDelegate {
     private static func image(for status: Status) -> UIImage? {
         switch status {
         case .checking, .unknown:
-            FilePresentation.image(for: .artwork("document"))
+            FilePresentation.image(for: .device(.file("")))
         case .missing:
-            FilePresentation.image(for: .artwork("broken-link"))
+            FilePresentation.image(for: .device(.unknown))
         case let .present(entry):
             FilePresentation.image(kind: entry.entersDirectory ? .directory : .regular, name: entry.name)
         }
