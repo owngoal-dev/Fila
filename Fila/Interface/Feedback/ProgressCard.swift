@@ -9,9 +9,9 @@ import UIKit
 /// caller shows next would otherwise be presented into the card's own
 /// dismissal and never appear.
 ///
-/// Continue closes the card and lets the work finish; `run` still returns its
-/// result. Cancel is offered only where `cancellable` says the work can stop
-/// part-way without leaving anything half done: it cancels the work, and
+/// The card stays until the work ends. Its one button, Cancel, is enabled only
+/// where `cancellable` says the work can stop part-way without leaving
+/// anything half done: it cancels the work, and
 /// `run` throws `CancellationError` once the work has stopped — even if the
 /// work finished anyway, because the user was told it would not. The work
 /// runs in a task of its own, so cancelling the calling task cancels it too.

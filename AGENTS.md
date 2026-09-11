@@ -457,9 +457,11 @@ subclassed into one, and `Scripts/check-ui-libraries.sh` fails on
 `AlertProgressIndicatorViewController` anywhere. The card renders a
 `Source` — a job's row in `OperationCenter`, or work run under
 `ProgressCard.run` (a module's under `BackendShell.withProgress`) — so both
-look and behave alike: revealed only after `StatusView.revealDelay`,
-Continue always (the card closes, the work finishes), Cancel only where the
-work can stop part-way without leaving anything half done. `ProgressCard.run`
+look and behave alike: revealed only after `StatusView.revealDelay`, up until
+the work ends, with one button, Cancel, enabled only where the work can stop
+part-way without leaving anything half done. There is no Continue: it meant
+"close the card, the work goes on", and people could not tell that from
+reading it. `ProgressCard.run`
 and `BackendShell.withProgress` take `cancellable:` explicitly at every call
 site; installd, and music-library imports, saves and deletes, are not.
 Cancel makes `run` throw `CancellationError` once the work has stopped, and

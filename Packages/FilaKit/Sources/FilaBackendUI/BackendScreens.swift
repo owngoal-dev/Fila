@@ -67,9 +67,9 @@ public protocol BackendShell: AnyObject {
     func rootArtwork(for root: BackendRoot) -> UIImage?
     /// Runs `operation` under the app's progress card: shown only once the
     /// work has taken a moment, its message changed through `update`, and
-    /// gone before this returns. Continue closes the card and lets the work
-    /// finish. `cancellable` offers Cancel too — only for work that can stop
-    /// part-way without leaving anything half done; it then throws
+    /// gone before this returns. The card stays until the work ends; its one
+    /// button, Cancel, is enabled by `cancellable` — only for work that can
+    /// stop part-way without leaving anything half done; it then throws
     /// `CancellationError`. Cancelling the calling task cancels the work.
     func withProgress<T: Sendable>(
         title: String,

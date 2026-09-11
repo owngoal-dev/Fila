@@ -7,10 +7,10 @@ import Then
 import UIKit
 
 /// The one progress card, hosted by AlertViewController: a job in the
-/// operation centre, or the work a caller runs under `ProgressCard`. Cancel
-/// stops the work where it can stop; Continue closes the card and lets it
-/// finish. Whoever runs the work owns the result announcement; dismissing
-/// this card never announces it again.
+/// operation centre, or the work a caller runs under `ProgressCard`. It stays
+/// until the work ends; its one button, Cancel, stops the work where it can
+/// stop and is disabled where it cannot. Whoever runs the work owns the result
+/// announcement; dismissing this card never announces it again.
 final class OperationCoverViewController: UIViewController {
     /// What the card shows and how it stops the work. The card renders
     /// nothing else, so both kinds of work look and behave the same.
@@ -57,9 +57,7 @@ final class OperationCoverViewController: UIViewController {
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let separator = UIView()
     private let countLabel = UILabel()
-    private let backgroundButton = UIButton(type: .system)
     private let cancelButton = UIButton(type: .system)
-    private let actionStack = UIStackView()
 
     /// `shown` runs once the card is on its way onto the screen and `dismissed`
     /// once it is off again — neither runs at all where the job finished inside
@@ -124,17 +122,10 @@ final class OperationCoverViewController: UIViewController {
         dismissed?()
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        updateActionAxis()
-    }
-
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
-            backgroundButton.setNeedsUpdateConfiguration()
             cancelButton.setNeedsUpdateConfiguration()
-            view.setNeedsLayout()
         }
     }
 
@@ -182,9 +173,7 @@ final class OperationCoverViewController: UIViewController {
         separator.backgroundColor = AlertControllerConfiguration.separatorColor
         separator.snp.makeConstraints { $0.height.equalTo(1 / UIScreen.main.scale) }
 
-        configure(backgroundButton, title: String(localized: "Continue"), accented: true)
-        backgroundButton.addAction(UIAction { [weak self] _ in self?.close() }, for: .touchUpInside)
-        configure(cancelButton, title: String(localized: "Cancel"), accented: false)
+        configure(cancelButton, title: String(localized: "Cancel"))
         cancelButton.addAction(UIAction { [weak self] _ in
             guard let self, source.snapshot()?.isCancellable == true else { return }
             // Before the card leaves, not after: work that ends during the
@@ -194,15 +183,8 @@ final class OperationCoverViewController: UIViewController {
             close()
         }, for: .touchUpInside)
 
-        actionStack.do {
-            $0.axis = .horizontal
-            $0.spacing = 8
-            $0.distribution = .fillEqually
-            $0.addArrangedSubview(cancelButton)
-            $0.addArrangedSubview(backgroundButton)
-        }
         let stack = UIStackView(arrangedSubviews: [
-            artwork, titleLabel, subtitleLabel, separator, gauge, countLabel, actionStack,
+            artwork, titleLabel, subtitleLabel, separator, gauge, countLabel, cancelButton,
         ]).then {
             $0.axis = .vertical
             $0.alignment = .center
@@ -225,24 +207,21 @@ final class OperationCoverViewController: UIViewController {
         }
     }
 
-    /// Match the library's accent/normal actions with accessible UIKit buttons.
+    /// Match the library's normal action with an accessible UIKit button.
     /// The alert library owns the card's width, corner radius and presentation.
-    private func configure(_ button: UIButton, title: String, accented: Bool) {
+    private func configure(_ button: UIButton, title: String) {
         button.do {
             $0.configuration = UIButton.Configuration.plain().with {
                 $0.title = title
-                $0.baseForegroundColor = accented
-                    ? AlertControllerConfiguration.accentForegroundColor
-                    : AlertControllerConfiguration.accentColor
-                $0.background.backgroundColor = accented ? AlertControllerConfiguration.accentColor : .clear
+                $0.baseForegroundColor = AlertControllerConfiguration.accentColor
+                $0.background.backgroundColor = .clear
                 $0.background.strokeColor = AlertControllerConfiguration.accentColor
                 $0.background.strokeWidth = 1
                 $0.background.cornerRadius = 12
                 $0.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
                 $0.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
                     var outgoing = incoming
-                    outgoing.font = UIFontMetrics(forTextStyle: .body)
-                        .scaledFont(for: .systemFont(ofSize: 17, weight: accented ? .semibold : .regular))
+                    outgoing.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17))
                     return outgoing
                 }
             }
@@ -251,28 +230,6 @@ final class OperationCoverViewController: UIViewController {
             $0.setContentCompressionResistancePriority(.required, for: .vertical)
         }
         button.snp.makeConstraints { $0.height.greaterThanOrEqualTo(FilaUI.minimumTapTarget) }
-    }
-
-    /// The library places two actions side by side unless either title wraps.
-    /// Its layout policy is internal, so apply the same measurement to these
-    /// UIKit controls using their dynamically scaled action fonts.
-    private func updateActionAxis() {
-        let textWidth = (view.bounds.width - 32 - 8) / 2 - 16
-        guard textWidth > 0 else { return }
-        let needsWrapping = [
-            (cancelButton, UIFont.Weight.regular), (backgroundButton, .semibold),
-        ].contains { button, weight in
-            let font = UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17, weight: weight))
-            let height = (button.configuration?.title ?? "").boundingRect(
-                with: CGSize(width: textWidth, height: .greatestFiniteMagnitude),
-                options: [.usesLineFragmentOrigin, .usesFontLeading],
-                attributes: [.font: font], context: nil
-            ).height
-            return ceil(height) > ceil(font.lineHeight)
-        }
-        guard (actionStack.axis == .vertical) != needsWrapping else { return }
-        actionStack.axis = needsWrapping ? .vertical : .horizontal
-        actionStack.distribution = needsWrapping ? .fill : .fillEqually
     }
 
     private func update() {
@@ -312,7 +269,6 @@ final class OperationCoverViewController: UIViewController {
         isClosing = true
         observation = nil
         stopProgressAnimation()
-        backgroundButton.isEnabled = false
         cancelButton.isEnabled = false
         alert.dismiss(animated: true, completion: completion)
     }
