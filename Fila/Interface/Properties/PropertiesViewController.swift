@@ -191,7 +191,8 @@ final class PropertiesViewController: TabContentViewController {
             case let .icon(icon)?:
                 image = icon
             case let .thumbnail(thumbnail)?:
-                image = thumbnail
+                // A white page on the white cell has no edge of its own.
+                image = FilePresentation.edged(thumbnail)
                 maximumSide = 512
             case nil:
                 if node.isNavigable {

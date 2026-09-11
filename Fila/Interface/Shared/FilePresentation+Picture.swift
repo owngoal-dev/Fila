@@ -117,6 +117,22 @@ extension FilePresentation {
     }
 }
 
+extension FilePresentation {
+    /// A whole thumbnail for the properties page, with the hairline edge drawn
+    /// into it. The page shows it at its own aspect inside a square box, so a
+    /// view's border would frame the box rather than the picture.
+    static func edged(_ thumbnail: UIImage) -> UIImage {
+        let bounds = CGRect(origin: .zero, size: thumbnail.size)
+        let format = UIGraphicsImageRendererFormat.preferred().with { $0.scale = thumbnail.scale }
+        return UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
+            thumbnail.draw(in: bounds)
+            UIColor(white: 0, alpha: 0.15).setStroke()
+            context.cgContext.setLineWidth(1 / thumbnail.scale)
+            context.stroke(bounds.insetBy(dx: 0.5 / thumbnail.scale, dy: 0.5 / thumbnail.scale))
+        }.withRenderingMode(.alwaysOriginal)
+    }
+}
+
 extension UIImageView {
     /// Draws a file's picture the way every cell draws one: an icon whole, a
     /// thumbnail filling its square with rounded corners and a hairline edge —

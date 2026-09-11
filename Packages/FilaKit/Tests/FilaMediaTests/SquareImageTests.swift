@@ -32,6 +32,20 @@ struct SquareImageTests {
         #expect(square.height == 64)
     }
 
+    @Test("An icon is fitted whole into its square, never cut")
+    func fitted() throws {
+        let icon = try banded(width: 120, height: 40, vertical: false)
+        let square = try #require(SquareImage.fit(icon, maxSide: 60))
+        #expect(square.width == 60)
+        #expect(square.height == 60)
+        // All three bands survive, side by side across the middle row.
+        #expect(try band(square, x: 5, y: 30) == 0)
+        #expect(try band(square, x: 30, y: 30) == 1)
+        #expect(try band(square, x: 55, y: 30) == 2)
+        // Above and below the picture is transparent, not stretched picture.
+        #expect(try alpha(square, x: 30, y: 2) == 0)
+    }
+
     /// `vertical` stacks the bands top to bottom; otherwise left to right.
     private func banded(width: Int, height: Int, vertical: Bool) throws -> CGImage {
         let context = try #require(CGContext(
@@ -58,6 +72,15 @@ struct SquareImageTests {
     /// Which band pixel (x, y) of `image`, counted from the top, belongs to:
     /// its strongest channel, so a colour-space conversion cannot move it.
     private func band(_ image: CGImage, x: Int, y: Int) throws -> Int {
+        let channels = try pixel(image, x: x, y: y).prefix(3)
+        return try #require(channels.firstIndex(of: channels.max()!))
+    }
+
+    private func alpha(_ image: CGImage, x: Int, y: Int) throws -> UInt8 {
+        try pixel(image, x: x, y: y)[3]
+    }
+
+    private func pixel(_ image: CGImage, x: Int, y: Int) throws -> [UInt8] {
         var bytes = [UInt8](repeating: 0, count: 4)
         let context = try #require(CGContext(
             data: &bytes,
@@ -70,7 +93,6 @@ struct SquareImageTests {
         ))
         // Draw the image so that pixel (x, y) lands on the context's only pixel.
         context.draw(image, in: CGRect(x: -x, y: y - image.height + 1, width: image.width, height: image.height))
-        let channels = bytes.prefix(3)
-        return try #require(channels.firstIndex(of: channels.max()!))
+        return bytes
     }
 }

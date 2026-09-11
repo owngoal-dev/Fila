@@ -1,6 +1,7 @@
 import CoreGraphics
 
-/// The square a picture is shown in, cut out of the picture itself.
+/// The square a picture is shown in: cut out of a thumbnail (`make`), or
+/// fitted around an icon (`fit`).
 ///
 /// Every cell draws a file's picture in a square slot, so a picture of any
 /// other shape is either letterboxed there or cropped by the view. Cutting the
@@ -30,19 +31,35 @@ public enum SquareImage {
             width: source,
             height: source
         )
-        guard let square = image.cropping(to: crop),
-              let context = CGContext(
-                  data: nil,
-                  width: side,
-                  height: side,
-                  bitsPerComponent: 8,
-                  bytesPerRow: 0,
-                  space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
-                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-              )
-        else { return nil }
+        guard let square = image.cropping(to: crop) else { return nil }
+        return draw(square, side: side, in: CGRect(x: 0, y: 0, width: side, height: side))
+    }
+
+    /// All of `image`, fitted into a transparent square no larger than
+    /// `maxSide`: an icon, whose every edge is part of the picture.
+    public static func fit(_ image: CGImage, maxSide: Int) -> CGImage? {
+        let long = max(image.width, image.height)
+        let side = min(long, maxSide)
+        guard long > 0, side > 0 else { return nil }
+        let scale = CGFloat(side) / CGFloat(long)
+        let width = CGFloat(image.width) * scale
+        let height = CGFloat(image.height) * scale
+        let box = CGRect(x: (CGFloat(side) - width) / 2, y: (CGFloat(side) - height) / 2, width: width, height: height)
+        return draw(image, side: side, in: box)
+    }
+
+    private static func draw(_ image: CGImage, side: Int, in box: CGRect) -> CGImage? {
+        guard let context = CGContext(
+            data: nil,
+            width: side,
+            height: side,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return nil }
         context.interpolationQuality = .high
-        context.draw(square, in: CGRect(x: 0, y: 0, width: side, height: side))
+        context.draw(image, in: box)
         return context.makeImage()
     }
 }

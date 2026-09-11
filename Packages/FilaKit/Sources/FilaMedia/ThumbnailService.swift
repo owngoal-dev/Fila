@@ -214,7 +214,9 @@ public actor ThumbnailService {
                     types: .icon,
                     contentType: contentType
                 )
-                return icon.flatMap { SquareImage.make($0, anchor: .center, maxSide: maxPixelSize) }
+                // Fitted, never cropped: QuickLook may keep a page icon's own
+                // aspect, and the folded corner is part of the picture.
+                return icon.flatMap { SquareImage.fit($0, maxSide: maxPixelSize) }
             }
         #else
             return nil
