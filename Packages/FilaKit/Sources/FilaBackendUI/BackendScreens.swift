@@ -1,6 +1,7 @@
 #if canImport(UIKit)
 import FilaBackendKit
 import UIKit
+import UniformTypeIdentifiers
 
 /// Application artwork as the applications module renders it, for every
 /// row that shows an app: the module's own list, the browser's `.app`
@@ -66,10 +67,14 @@ public protocol BackendShell: AnyObject {
     func rootArtwork(for root: BackendRoot) -> UIImage?
     /// Runs `operation` under the app's progress card: shown only once the
     /// work has taken a moment, its message changed through `update`, and
-    /// gone before this returns. Cancelling the calling task cancels it.
+    /// gone before this returns. Continue closes the card and lets the work
+    /// finish. `cancellable` offers Cancel too — only for work that can stop
+    /// part-way without leaving anything half done; it then throws
+    /// `CancellationError`. Cancelling the calling task cancels the work.
     func withProgress<T: Sendable>(
         title: String,
         message: String,
+        cancellable: Bool,
         from presenter: UIViewController,
         operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T
     ) async throws -> T
@@ -88,6 +93,26 @@ public protocol BackendShell: AnyObject {
     /// Pastes the clipboard into `destination` through the app's operation
     /// centre, asking `presenter` about replacements and reporting to it.
     func paste(into destination: FileLocation, from presenter: UIViewController)
+
+    /// A drop onto a folder: files dragged inside Fila are copied or moved
+    /// there after one question, files from another app are copied in — the
+    /// same handling the app's own folders give a drop.
+    func drop(_ items: [UIDragItem], into destination: FileLocation, from presenter: UIViewController)
+    /// A drop onto a screen that takes files rather than a folder, such as
+    /// the music library: `receive` gets the dropped files that are one of
+    /// `types` as local paths. A share's file, or another app's, is copied
+    /// behind the progress card into a workspace that is removed once
+    /// `receive` returns. Nothing is called when no file is one of `types` or
+    /// the user cancels; a failure to fetch is reported by the shell. Call it
+    /// from `performDrop` itself: another app's files are asked for before
+    /// it returns. Propose the drop with `FileReference.proposal` and the
+    /// same `types`.
+    func receiveFiles(
+        _ items: [UIDragItem],
+        conformingTo types: [UTType],
+        from presenter: UIViewController,
+        _ receive: @escaping @MainActor ([String]) async -> Void
+    )
 }
 
 /// What a module screen needs to offer Paste: how many items wait, whether

@@ -450,16 +450,36 @@ to offset). Do not revive `addTextField` to set `keyboardType`. It comes
 from the AlertController package, not from this repository — grepping the
 tree for it finds call sites and no definition.
 
-Work that makes the user wait runs under `ProgressCard.run` (a module's
-under `BackendShell.withProgress`, which is the same card). It reveals the
-package's `AlertProgressIndicatorViewController` only after
-`StatusView.revealDelay`, so work that finishes in a blink shows nothing,
-passes the work an `update` for the message, and returns only once its own
-card is gone — the next alert is never presented into a dismissal. Cancelling
-the calling task cancels the work. `Scripts/check-ui-libraries.sh` fails on
-the progress alert constructed anywhere else. A job in `OperationCenter`
-uses `JobCover` instead: its card carries the counts, Cancel and Continue, and
-`settle` holds an alert of the caller's own until the card has left.
+There is one progress card, `OperationCoverViewController`, hosted by
+`AlertViewController(contentViewController:)`: the package's own progress
+alert has no buttons and its content controller is internal, so it cannot be
+subclassed into one, and `Scripts/check-ui-libraries.sh` fails on
+`AlertProgressIndicatorViewController` anywhere. The card renders a
+`Source` — a job's row in `OperationCenter`, or work run under
+`ProgressCard.run` (a module's under `BackendShell.withProgress`) — so both
+look and behave alike: revealed only after `StatusView.revealDelay`,
+Continue always (the card closes, the work finishes), Cancel only where the
+work can stop part-way without leaving anything half done. `ProgressCard.run`
+and `BackendShell.withProgress` take `cancellable:` explicitly at every call
+site; installd, and music-library imports, saves and deletes, are not.
+Cancel makes `run` throw `CancellationError` once the work has stopped, and
+`run` returns only once its card is gone — the next alert is never presented
+into a dismissal. `JobCover` is the wait for that: `settle`/`settled()`.
+Blocking descriptor copies go through `DescriptorIO.blocking`, which carries
+the caller's cancellation into the copy loop.
+
+Copying or moving into a folder — Paste, a drop, an import from another app —
+is `FileDelivery.deliver` over `FileReference`s (a local path, or a location
+on a share): the native job between local folders, `OperationCenter.transfer`
+when a share is involved, one replacement question and one failure report
+for all of them. Local files go to a share by path, through the local layer
+rooted at their folder, because a sandboxed local root (Documents) contains
+neither the Inbox nor the app's workspace. A drag between Fila's screens
+carries a `FileReference` as its local object; every screen proposes a drop
+with `FileReference.proposal` and hands it to `FileDrop` (modules:
+`BackendShell.drop` for a folder, `droppedFiles` for a screen that takes
+files, like the music library). Do not add a second copy path for a new
+screen.
 
 A message with nothing to decide — a result, a refusal — is
 `presentMessage(_:message:)`, one OK; do not build the same card by hand.

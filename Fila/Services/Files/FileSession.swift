@@ -41,6 +41,8 @@ final class FileSession {
     private var handshake: Task<LocalHello, Never>?
     private let temporaryIdentifier = UUID().uuidString
     private var temporaryPreparation: Task<URL, Error>?
+    /// Set once `temporaryPreparation` has succeeded.
+    private var temporaryWorkspace: URL?
 
     private init() {
         let registry = BackendComposition.registry
@@ -192,8 +194,20 @@ final class FileSession {
     /// Each consumer owns one directory until its download, preview or share
     /// finishes. The process workspace also catches leftovers after a crash.
     func makeTemporaryDirectory() async throws -> URL {
-        let workspace = try await prepareTemporaryFiles()
+        try await prepareTemporaryFiles()
         try Task.checkCancellation()
+        return try makeTemporaryDirectoryNow()
+    }
+
+    /// The same, without waiting: a drop's files must be asked for before
+    /// `performDrop` returns. `EAGAIN` until launch has prepared the
+    /// workspace, which takes a moment at most; a preparation that failed is
+    /// started again, so the next attempt can succeed.
+    func makeTemporaryDirectoryNow() throws -> URL {
+        guard let workspace = temporaryWorkspace else {
+            Task { try? await prepareTemporaryFiles() }
+            throw FilaFailure(errno: EAGAIN)
+        }
         let directory = workspace.appendingPathComponent(UUID().uuidString, isDirectory: true)
         guard mkdir(directory.path, 0o700) == 0 else { throw FilaFailure(errno: errno, path: directory.path) }
         return directory
@@ -205,8 +219,11 @@ final class FileSession {
     func prepareTemporaryFiles() async throws -> URL {
         if temporaryPreparation == nil {
             temporaryPreparation = Task {
-                do { return try await prepareTemporaryWorkspace() }
-                catch {
+                do {
+                    let workspace = try await prepareTemporaryWorkspace()
+                    temporaryWorkspace = workspace
+                    return workspace
+                } catch {
                     temporaryPreparation = nil
                     throw error
                 }
@@ -219,6 +236,7 @@ final class FileSession {
     /// call this; the next workspace preparation removes old UUID directories.
     func cleanupTemporaryFiles() {
         temporaryPreparation?.cancel()
+        temporaryWorkspace = nil
         let workspace = Self.temporaryParent.appendingPathComponent(temporaryIdentifier, isDirectory: true)
         do { try FileManager.default.removeItem(at: workspace) }
         catch let error as CocoaError where error.code == .fileNoSuchFile || error.code == .fileReadNoSuchFile {}
@@ -303,7 +321,7 @@ final class FileSession {
             let descriptor = try await perform(retryOnDisconnect: true) {
                 try await $0.open(path, flags: O_RDONLY | O_NONBLOCK)
             }
-            try await Task.detached { try DescriptorIO.copyAndClose(descriptor, to: target) }.value
+            try await DescriptorIO.blocking { try DescriptorIO.copyAndClose(descriptor, to: target, isCancelled: $0) }
             return target
         } catch {
             try? FileManager.default.removeItem(at: directory)

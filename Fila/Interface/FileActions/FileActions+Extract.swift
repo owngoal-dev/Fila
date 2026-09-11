@@ -98,7 +98,7 @@ extension FileActions {
                         }
                     }
                 }
-                cover.show(identifier)
+                cover.show(job: identifier, in: center)
             } catch {
                 Self.extracting.remove(extraction)
                 report(error)

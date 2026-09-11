@@ -144,6 +144,13 @@ public class LocalFileBackend: FileBackend {
         service.servicePath(forAbsolute: absolute)
     }
 
+    /// The same local file layer rooted at `directory` instead: an app
+    /// workspace a transfer reads from, which a sandboxed root (Documents)
+    /// does not contain. Same access, same guard.
+    public func service(rootedAt directory: String) -> any FileService {
+        LocalFileServiceAdapter(access: access, rootPath: directory, observation: observation)
+    }
+
     /// Records that the app knows which side answers. Republishes places,
     /// which depend on it.
     public func handshakeLanded(_ hello: LocalHello) {

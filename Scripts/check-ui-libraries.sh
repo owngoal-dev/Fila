@@ -53,12 +53,12 @@ if [[ -n "$alert_hits" ]]; then
     echo "$alert_hits" >&2
 fi
 
-# One progress card: it waits out the reveal delay, runs the work in a task a
-# caller can cancel, and is gone before the caller shows what came of it.
-# A second card built by hand gets none of that. Modules reach it through
-# `BackendShell.withProgress`.
-progress_hits="$(search 'AlertProgressIndicatorViewController\(' "${ui_roots[@]}" \
-    | grep -v 'Fila/Interface/Feedback/ProgressCard.swift' || true)"
+# One progress card, OperationCoverViewController: it waits out the reveal
+# delay, offers Cancel where the work can stop and Continue everywhere, and
+# is gone before the caller shows what came of it. The package's own
+# progress alert has no buttons, so nothing constructs it. Work reaches the
+# card through `ProgressCard.run` (modules: `BackendShell.withProgress`).
+progress_hits="$(search 'AlertProgressIndicatorViewController' "${ui_roots[@]}" || true)"
 if [[ -n "$progress_hits" ]]; then
     error "progress cards must go through ProgressCard.run (or BackendShell.withProgress); found:"
     echo "$progress_hits" >&2

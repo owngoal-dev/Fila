@@ -12,8 +12,8 @@ import UIKit
 /// backend's bookmarks and history. A file opens as a snapshot — a bounded
 /// download into an app-owned workspace, shown by the app's own viewer and
 /// removed when the viewer lets go — and can be saved into the local
-/// filesystem through the app's operation centre. Nothing here writes to
-/// the server: mutation through this contract is a later phase.
+/// filesystem through the app's operation centre. The server is written only
+/// through the shell: Paste and a drop go to the app's operation centre.
 ///
 /// Not protocol-specific: the backend is `any FileBackend` and every request
 /// is one the contract names. An SMB share and an FTP root would share this
@@ -157,6 +157,9 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
     override public func viewDidLoad() {
         super.viewDidLoad()
         collectionView.delegate = self
+        collectionView.dragDelegate = self
+        collectionView.dropDelegate = self
+        collectionView.dragInteractionEnabled = true
         sidebarTask = Task { [weak self] in
             guard let self else { return }
             for await snapshot in backend.sidebarUpdates() {
@@ -296,6 +299,7 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
                 try await shell.withProgress(
                     title: String(localized: "Downloading…", bundle: bundle),
                     message: String(localized: "Downloading “\(entry.name)” from the server.", bundle: bundle),
+                    cancellable: true,
                     from: self
                 ) { update in
                     let service = try await backend.fileService()
@@ -445,6 +449,40 @@ extension FileServiceBrowserViewController: UICollectionViewDelegate {
         _: UICollectionView, willEndContextMenuInteraction _: UIContextMenuConfiguration, animator _: UIContextMenuInteractionAnimating?
     ) {
         holdsReloads = false
+    }
+}
+
+// MARK: - Drag and drop
+
+/// A share's files and folders drag to any of Fila's screens — a local
+/// folder downloads them, the music library imports them — and a drop here
+/// uploads, all through the shell's one drop handling. A link is not carried
+/// across backends, the same rule Copy and Move keep.
+extension FileServiceBrowserViewController: UICollectionViewDragDelegate, UICollectionViewDropDelegate {
+    public func collectionView(_: UICollectionView, itemsForBeginning _: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        guard let entry = dataSource.itemIdentifier(for: indexPath), entry.kind == .file || entry.kind == .directory,
+              let child = try? path.appending(entry.name) else { return [] }
+        return [FileReference.remote(FileLocation(backend: backend.id, path: child)).dragItem()]
+    }
+
+    public func collectionView(
+        _: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath indexPath: IndexPath?
+    ) -> UICollectionViewDropProposal {
+        let operation = FileReference.proposal(for: session, into: .remote(dropTarget(at: indexPath)))
+        return UICollectionViewDropProposal(operation: operation, intent: .insertIntoDestinationIndexPath)
+    }
+
+    public func collectionView(_: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
+        BackendScreens.shell?.drop(coordinator.items.map(\.dragItem), into: dropTarget(at: coordinator.destinationIndexPath), from: self)
+    }
+
+    /// The folder under the pointer, or this one.
+    private func dropTarget(at indexPath: IndexPath?) -> FileLocation {
+        if let indexPath, let entry = dataSource.itemIdentifier(for: indexPath), entry.entersDirectory,
+           let child = try? path.appending(entry.name) {
+            return FileLocation(backend: backend.id, path: child)
+        }
+        return FileLocation(backend: backend.id, path: path)
     }
 }
 #endif

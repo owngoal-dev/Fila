@@ -110,9 +110,15 @@ extension FileActions {
             let staged: URL
             let manifest: PackageManifest
             do {
-                (staged, manifest) = try await withInstallProgress(String(localized: "Reading App…")) {
+                (staged, manifest) = try await withInstallProgress(String(localized: "Reading App…"), cancellable: true) {
                     let staged = try await self.session.stage(path)
-                    do { return try await (staged, applications.manifest(ofPackageAt: staged)) } catch {
+                    do {
+                        let manifest = try await applications.manifest(ofPackageAt: staged)
+                        // A Cancel that came while the manifest was read still
+                        // cancels, and the staged copy must not outlive it.
+                        try Task.checkCancellation()
+                        return (staged, manifest)
+                    } catch {
                         try? FileManager.default.removeItem(at: staged.deletingLastPathComponent())
                         throw error
                     }
@@ -154,8 +160,9 @@ extension FileActions {
         _ path: String, staged: URL, manifest: PackageManifest, applications: any ApplicationCapability
     ) async {
         // Only a cancelled wait comes back empty, and installd may still be
-        // reading the package then: that is the unanswered case.
-        let outcome = (try? await withInstallProgress(String(localized: "Installing App…")) {
+        // reading the package then: that is the unanswered case. installd
+        // cannot be stopped, so the card offers Continue and no Cancel.
+        let outcome = (try? await withInstallProgress(String(localized: "Installing App…"), cancellable: false) {
             await applications.install(packageAt: staged)
         }) ?? .timedOut
         // An unanswered request may still be reading its source. Preserve the
@@ -199,12 +206,14 @@ extension FileActions {
     /// The work runs whether or not there is a screen left to put the card on.
     private func withInstallProgress<T: Sendable>(
         _ title: String,
+        cancellable: Bool,
         _ operation: @escaping @MainActor () async throws -> T
     ) async throws -> T {
         guard let presenter = activePresenter else { return try await operation() }
         return try await ProgressCard.run(
             title: title,
             message: String(localized: "Keep Fila open until this finishes."),
+            cancellable: cancellable,
             from: presenter
         ) { _ in try await operation() }
     }

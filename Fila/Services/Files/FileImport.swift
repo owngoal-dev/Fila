@@ -1,11 +1,13 @@
+import FilaBackendUI
 import FilaFileOps
 import FilaLog
 import FilaProtocol
 import Foundation
 import UniformTypeIdentifiers
 
-/// Takes ownership of a system picker's file before its temporary URL expires.
-/// Only regular files are accepted; publication uses the ordinary copy job.
+/// Takes ownership of a file another app hands over — a picker's, a drop's —
+/// before its temporary URL expires. Only regular files are accepted;
+/// publication is the caller's, through `FileDelivery`.
 enum FileImport {
     static func document(_ source: URL, into directory: URL) async throws -> URL {
         try await Task.detached {
@@ -28,14 +30,19 @@ enum FileImport {
         }.value
     }
 
-    static func photo(_ provider: NSItemProvider, into directory: URL) async throws -> URL {
-        guard let identifier = provider.registeredTypeIdentifiers.first(where: {
-            UTType($0)?.conforms(to: .image) == true
-        }) else { throw FilaFailure(errno: ENOTSUP) }
-        let suggestedName = provider.suggestedName
-        return try await withCheckedThrowingContinuation { continuation in
-            provider.loadFileRepresentation(forTypeIdentifier: identifier) { url, error in
-                do {
+    /// The provider's file of one of `types` — an image from the photo
+    /// picker, any file from a drop.
+    ///
+    /// The load starts before this returns, because a drop's providers must
+    /// be asked before `performDrop` does; the closure waits for its arrival.
+    /// Cancelling the waiting task, or dropping the closure unused, stops
+    /// the load.
+    static func item(_ provider: NSItemProvider, conformingTo types: [UTType], into directory: URL) -> @Sendable () async throws -> URL {
+        let (arrival, continuation) = AsyncThrowingStream.makeStream(of: URL.self)
+        if let identifier = provider.fileTypeIdentifier(conformingTo: types) {
+            let suggestedName = provider.suggestedName
+            let load = provider.loadFileRepresentation(forTypeIdentifier: identifier) { url, error in
+                continuation.yield(with: Result {
                     if let error {
                         throw error
                     }
@@ -50,10 +57,22 @@ enum FileImport {
                         }
                     }
                     // The provider deletes its URL when this callback returns.
-                    // Finish the clone/copy here, before resuming the caller.
-                    try continuation.resume(returning: copy(url, named: name, into: directory))
-                } catch { continuation.resume(throwing: error) }
+                    // Finish the clone/copy here, before the caller hears of it.
+                    return try copy(url, named: name, into: directory)
+                })
+                continuation.finish()
             }
+            continuation.onTermination = { ending in
+                if case .cancelled = ending { load.cancel() }
+            }
+        } else {
+            continuation.finish(throwing: FilaFailure(errno: ENOTSUP))
+        }
+        return {
+            for try await url in arrival {
+                return url
+            }
+            throw CancellationError()
         }
     }
 

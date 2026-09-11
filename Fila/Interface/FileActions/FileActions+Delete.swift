@@ -48,7 +48,7 @@ extension FileActions {
                         return try await session.operations.trash(
                             paths,
                             feedback: .successOnly,
-                            started: cover.show
+                            started: { cover.show(job: $0, in: self.session.operations) }
                         )
                     }
                     return try await session.operations.awaitJob(
@@ -56,7 +56,7 @@ extension FileActions {
                         kind: kind,
                         subtitle: description,
                         feedback: .successOnly,
-                        started: cover.show
+                        started: { cover.show(job: $0, in: self.session.operations) }
                     )
                 }
                 result = .success(outcome)

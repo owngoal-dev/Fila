@@ -276,25 +276,9 @@ extension FileBrowserViewController {
     func paste() {
         // Nothing is created in the trash, by any route: a pasted item would
         // sit there with no origin to put it back to.
-        guard !isTrash, let paste = FileClipboard.shared.beginPaste() else { return }
+        guard !isTrash, !FileClipboard.shared.isEmpty else { return }
         recordDirectoryUse()
-        // Local items take the native job — copyfile, clonefile, one rename
-        // for a same-volume move. Anything from a share is a transfer.
-        guard paste.isLocalOnly else {
-            guard let path = session.local.servicePath(forAbsolute: directory) else {
-                FileClipboard.shared.finishPaste(paste, succeeded: false)
-                return
-            }
-            let destination = FileLocation(backend: session.local.id, path: path)
-            Task { await ClipboardPaste.transfer(paste, into: destination, from: self) }
-            return
-        }
-        let request = JobRequest(
-            kind: paste.isCut ? .move : .copy,
-            sources: paste.localPaths,
-            destination: directory
-        )
-        transfer(request, paste: paste)
+        ClipboardPaste.paste(into: .local(directory), from: self)
     }
 
     func delete(_ paths: [String], permanently: Bool = false) {
@@ -374,7 +358,7 @@ extension FileBrowserViewController {
             let operationID = center.download(url, into: directory)
             // Use the extraction card's delayed presentation and cancellation;
             // the returned identity also keeps simultaneous downloads separate.
-            OperationCoverViewController.present(for: operationID, from: self, center: center)
+            OperationCoverViewController.present(.operation(operationID, in: center), from: self)
         }
     }
 
@@ -389,28 +373,6 @@ extension FileBrowserViewController {
             guard let self, path.hasPrefix("/") else { return }
             open(directory: path)
         }
-    }
-
-    func promptDrop(sources: [String], target: String) {
-        let alert = AlertViewController(
-            title: (target as NSString).lastPathComponent,
-            message: String(localized: "Copy keeps the originals. Move takes them out of their current folder.")
-        ) { [weak self] context in
-            context.allowSimpleDispose()
-            context.addAction(title: String.LocalizationValue("Cancel")) { context.dispose() }
-            context.addAction(title: String.LocalizationValue("Copy Here")) {
-                context.dispose {
-                    self?.transfer(JobRequest(kind: .copy, sources: sources, destination: target))
-                }
-            }
-            context.addAction(title: String.LocalizationValue("Move Here"), attribute: .accent) {
-                context.dispose {
-                    self?.transfer(JobRequest(kind: .move, sources: sources, destination: target))
-                }
-            }
-        }
-        alert.shouldDismissWhenTappedAround = true
-        present(alert, animated: true)
     }
 
     private func prompt(
@@ -433,77 +395,6 @@ extension FileBrowserViewController {
     }
 
     // MARK: - Plumbing
-
-    private func transfer(_ request: JobRequest, paste: FileClipboard.Paste? = nil) {
-        Task { [self] in
-            var outcome: FilaFailure
-            do {
-                outcome = try await performTransfer(request)
-            } catch let failure as FilaFailure {
-                outcome = failure
-            } catch {
-                outcome = FilaFailure(code: .operationFailed)
-            }
-
-            if let paste {
-                // The result covers the batch, not individual roots. A failed
-                // move retains the selection; disappearance alone cannot prove
-                // which items this operation moved.
-                FileClipboard.shared.finishPaste(paste, succeeded: outcome.code == .success)
-            }
-            if outcome.code != .success, outcome.code != .cancelled {
-                var message = FailureMessage.text(for: outcome)
-                if let path = outcome.path {
-                    message += "\n\n" + path
-                }
-                if paste != nil {
-                    message += "\n\n" + String(localized: "Check the source and destination folders before trying again. Some items may already have been transferred.")
-                }
-                FeedbackAlert.show(
-                    request.kind == .move
-                        ? String(localized: "Unable to Move Items")
-                        : String(localized: "Unable to Copy Items"),
-                    message: message
-                )
-            }
-        }
-    }
-
-    /// Importers keep their staged sources alive through the actual job result,
-    /// including a replacement retry, before removing their workspace.
-    func performTransfer(_ request: JobRequest) async throws -> FilaFailure {
-        let kind: OperationCenter.Kind = request.kind == .move ? .move : .copy
-        let subtitle = OperationCenter.describe(request.sources, destination: request.destination)
-        let outcome = try await session.operations.awaitJob(request, kind: kind, subtitle: subtitle, feedback: .silent)
-        guard outcome.systemError == EEXIST, !request.overwrite else { return outcome }
-        guard await confirmTransferReplacement() else { return FilaFailure(code: .cancelled) }
-        var replacement = request
-        replacement.overwrite = true
-        return try await session.operations.awaitJob(replacement, kind: kind, subtitle: subtitle, feedback: .silent)
-    }
-
-    private func confirmTransferReplacement() async -> Bool {
-        guard viewIfLoaded?.window != nil, navigationController?.topViewController === self else { return false }
-        var presenter: UIViewController? = self
-        while let controller = presenter {
-            guard controller.presentedViewController == nil, !controller.isBeingDismissed else { return false }
-            presenter = controller.parent
-        }
-        return await withCheckedContinuation { continuation in
-            let alert = AlertViewController(
-                title: String.LocalizationValue("Replace Existing Items?"),
-                message: String.LocalizationValue("Items with the same names will be replaced, not moved to the trash. This cannot be undone. Non-empty folders cannot be replaced.")
-            ) { context in
-                context.addAction(title: String.LocalizationValue("Cancel")) {
-                    context.dispose { continuation.resume(returning: false) }
-                }
-                context.addAction(title: String.LocalizationValue("Replace"), attribute: .accent) {
-                    context.dispose { continuation.resume(returning: true) }
-                }
-            }
-            present(alert, animated: true)
-        }
-    }
 
     private func run(_ body: @escaping (any LocalFileAccess) async throws -> Void) {
         Task { [weak self] in

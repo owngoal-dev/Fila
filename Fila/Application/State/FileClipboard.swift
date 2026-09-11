@@ -39,18 +39,6 @@ final class FileClipboard {
         fileprivate let revision: UUID
         let items: [FileLocation]
         let isCut: Bool
-
-        /// Every item is on the local backend: the native job carries it.
-        @MainActor var isLocalOnly: Bool {
-            items.allSatisfy { $0.backend == FileSession.shared.local.id }
-        }
-
-        /// The absolute local paths, for the native job. Empty unless
-        /// `isLocalOnly`.
-        @MainActor var localPaths: [String] {
-            let local = FileSession.shared.local
-            return items.compactMap { $0.backend == local.id ? local.absolutePath($0.path) : nil }
-        }
     }
 
     private var revision = UUID()

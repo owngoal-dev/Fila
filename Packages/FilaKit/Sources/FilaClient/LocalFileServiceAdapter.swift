@@ -96,30 +96,10 @@ final class LocalFileServiceAdapter: FileService, @unchecked Sendable {
             throw FilaFailure(errno: status.st_mode & S_IFMT == S_IFDIR ? EISDIR : EINVAL, path: source)
         }
         let expected = Int64(status.st_size)
-        // The pump blocks in `read`/`write`, so it runs on a plain queue
-        // rather than the cooperative pool — and a detached task would not
-        // see the caller's cancellation, so that travels through a flag the
-        // handler sets and every chunk checks.
-        let cancelled = CancelFlag()
-        try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                LocalFileServiceAdapter.copyQueue.async {
-                    continuation.resume(with: Result {
-                        try LocalFileServiceAdapter.pump(
-                            from: input, to: descriptor, expected: expected,
-                            isCancelled: { cancelled.isSet }, progress: progress
-                        )
-                    })
-                }
-            }
-        } onCancel: {
-            cancelled.set()
+        try await DescriptorIO.blocking { isCancelled in
+            try Self.pump(from: input, to: descriptor, expected: expected, isCancelled: isCancelled, progress: progress)
         }
     }
-
-    private static let copyQueue = DispatchQueue(
-        label: "wiki.qaq.fila.local.copy", qos: .userInitiated, attributes: .concurrent
-    )
 
     /// Blocking: runs off the cooperative pool.
     private static func pump(
@@ -154,13 +134,6 @@ final class LocalFileServiceAdapter: FileService, @unchecked Sendable {
             completed += Int64(count)
             progress(TransferProgress(completed: completed, expected: expected))
         }
-    }
-
-    private final class CancelFlag: @unchecked Sendable {
-        private let lock = NSLock()
-        private var flag = false
-        var isSet: Bool { lock.lock(); defer { lock.unlock() }; return flag }
-        func set() { lock.lock(); flag = true; lock.unlock() }
     }
 
     /// One iteration's place in a directory: zero before the first page,
@@ -231,21 +204,9 @@ extension LocalFileServiceAdapter: WritableFileService, DescriptorFileService {
         // the attributes, the publication — so a folder the user is looking
         // at never keeps a `.fila-transfer-…` holding half the bytes.
         do {
-            let cancelled = CancelFlag()
             do {
-                try await withTaskCancellationHandler {
-                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                        Self.copyQueue.async {
-                            continuation.resume(with: Result {
-                                try Self.pump(
-                                    from: descriptor, to: output, expected: size,
-                                    isCancelled: { cancelled.isSet }, progress: progress
-                                )
-                            })
-                        }
-                    }
-                } onCancel: {
-                    cancelled.set()
+                try await DescriptorIO.blocking { isCancelled in
+                    try Self.pump(from: descriptor, to: output, expected: size, isCancelled: isCancelled, progress: progress)
                 }
             } catch {
                 close(output)

@@ -109,6 +109,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                 try await shell.withProgress(
                     title: String(localized: "Exporting…", bundle: bundle),
                     message: String(localized: "Keep Fila open until the export finishes.", bundle: bundle),
+                    cancellable: false,
                     from: self
                 ) { _ in
                     let staged = try await shell.stage(path)
@@ -228,6 +229,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                 let result = try await shell.withProgress(
                     title: String(localized: "Saving…", bundle: bundle),
                     message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle),
+                    cancellable: false,
                     from: self
                 ) { [track] _ in
                     try await MusicLibraryEditor.shared.save(id: track.id, field: field, original: original, value: value)

@@ -36,7 +36,7 @@ public enum DescriptorIO {
         return data
     }
 
-    public static func copyAndClose(_ descriptor: Int32, to url: URL) throws {
+    public static func copyAndClose(_ descriptor: Int32, to url: URL, isCancelled: () -> Bool) throws {
         defer { close(descriptor) }
         var original = stat()
         guard fstat(descriptor, &original) == 0 else { throw FilaFailure(errno: errno) }
@@ -52,6 +52,7 @@ public enum DescriptorIO {
         var buffer = [UInt8](repeating: 0, count: chunkByteCount)
         var remaining = original.st_size
         while remaining > 0 {
+            if isCancelled() { throw CancellationError() }
             let count = Int(min(remaining, off_t(buffer.count)))
             let got = buffer.withUnsafeMutableBytes { read(descriptor, $0.baseAddress, count) }
             if got < 0 {
@@ -80,14 +81,41 @@ public enum DescriptorIO {
 }
 
 extension DescriptorIO {
+    /// Runs blocking descriptor work on a plain queue, off the cooperative
+    /// pool, and carries the caller's cancellation into it. A detached task
+    /// would not see that cancellation, so it travels through a flag the
+    /// handler sets, and `work` checks it between chunks.
+    public static func blocking<T: Sendable>(
+        _ work: @escaping @Sendable (_ isCancelled: @Sendable () -> Bool) throws -> T
+    ) async throws -> T {
+        let cancelled = CancelFlag()
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                queue.async { continuation.resume(with: Result { try work { cancelled.isSet } }) }
+            }
+        } onCancel: {
+            cancelled.set()
+        }
+    }
+
+    private static let queue = DispatchQueue(label: "wiki.qaq.fila.descriptor-io", qos: .userInitiated, attributes: .concurrent)
+
+    private final class CancelFlag: @unchecked Sendable {
+        private let lock = NSLock()
+        private var flag = false
+        var isSet: Bool { lock.lock(); defer { lock.unlock() }; return flag }
+        func set() { lock.lock(); flag = true; lock.unlock() }
+    }
+
     /// Streams a file from the app's container into a descriptor `filad` opened,
     /// and **closes** it. The reverse of copying a descriptor to a URL, and chunked for the same
     /// reason: a download is as large as the user's connection allows.
-    public static func copyAndClose(_ descriptor: Int32, from url: URL) throws {
+    public static func copyAndClose(_ descriptor: Int32, from url: URL, isCancelled: () -> Bool) throws {
         defer { close(descriptor) }
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         while true {
+            if isCancelled() { throw CancellationError() }
             let chunk = try handle.read(upToCount: chunkByteCount) ?? Data()
             if chunk.isEmpty {
                 while fsync(descriptor) != 0 {

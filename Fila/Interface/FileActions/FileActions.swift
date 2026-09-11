@@ -206,7 +206,7 @@ final class FileActions {
         Task {
             let outcome: Error?
             do {
-                try await session.operations.putBack(trashed: paths, started: cover.show)
+                try await session.operations.putBack(trashed: paths) { cover.show(job: $0, in: self.session.operations) }
                 outcome = nil
             } catch { outcome = error }
             cover.settle { [self] in
@@ -390,12 +390,12 @@ final class FileActions {
                     in: directory
                 )
                 let request = JobRequest(kind: .compress, sources: paths, destination: destination, archive: options)
-                try await jobCover().show(center.startJob(
+                try await jobCover().show(job: center.startJob(
                     request,
                     kind: .compress,
                     title: OperationCenter.Kind.compress.runningTitle,
                     subtitle: OperationCenter.describe(paths, destination: directory)
-                ))
+                ), in: center)
             } catch { report(error) }
         }
     }
@@ -440,7 +440,7 @@ final class FileActions {
     /// The delayed progress card for whatever job this action is about to
     /// start. It reads `activePresenter` at the moment the job exists, not now.
     func jobCover() -> JobCover {
-        JobCover(center: session.operations) { [weak self] in self?.activePresenter }
+        JobCover { [weak self] in self?.activePresenter }
     }
 
     var activePresenter: UIViewController? {

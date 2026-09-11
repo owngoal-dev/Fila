@@ -4,6 +4,7 @@ import FilaBackendUI
 import FilaClient
 import FilaProtocol
 import UIKit
+import UniformTypeIdentifiers
 
 /// What module screens borrow from the app: a browser for a location, the
 /// destination pickers, staging and jobs through the one operation centre,
@@ -97,10 +98,11 @@ final class AppBackendShell: BackendShell {
     func withProgress<T: Sendable>(
         title: String,
         message: String,
+        cancellable: Bool,
         from presenter: UIViewController,
         operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T
     ) async throws -> T {
-        try await ProgressCard.run(title: title, message: message, from: presenter, operation: operation)
+        try await ProgressCard.run(title: title, message: message, cancellable: cancellable, from: presenter, operation: operation)
     }
 
     /// The app's own viewer over the snapshot, chosen by format like any
@@ -151,7 +153,20 @@ final class AppBackendShell: BackendShell {
     }
 
     func paste(into destination: FileLocation, from presenter: UIViewController) {
-        ClipboardPaste.paste(into: destination, from: presenter)
+        ClipboardPaste.paste(into: FileReference(destination), from: presenter)
+    }
+
+    func drop(_ items: [UIDragItem], into destination: FileLocation, from presenter: UIViewController) {
+        FileDrop.receive(items, into: FileReference(destination), from: presenter)
+    }
+
+    func receiveFiles(
+        _ items: [UIDragItem],
+        conformingTo types: [UTType],
+        from presenter: UIViewController,
+        _ receive: @escaping @MainActor ([String]) async -> Void
+    ) {
+        FileDrop.receiveFiles(items, conformingTo: types, from: presenter, receive)
     }
 }
 

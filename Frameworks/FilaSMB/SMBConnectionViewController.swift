@@ -332,6 +332,7 @@ final class SMBConnectionViewController: UITableViewController {
                 let shares = try await shell.withProgress(
                     title: String(localized: "Listing Shares…", bundle: bundle),
                     message: String(localized: "Looking up shares on \(profile.host).", bundle: bundle),
+                    cancellable: true,
                     from: self
                 ) { _ in
                     try await SMBShares.list(profile: profile, password: candidatePassword)
@@ -406,6 +407,7 @@ final class SMBConnectionViewController: UITableViewController {
                 try await shell.withProgress(
                     title: String(localized: "Connecting…", bundle: bundle),
                     message: String(localized: "Connecting to \(saving.share) on \(saving.host).", bundle: bundle),
+                    cancellable: true,
                     from: self
                 ) { _ in
                     _ = try await probe.details(.root)

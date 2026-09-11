@@ -43,48 +43,13 @@ extension FileBrowserViewController: UIDocumentPickerDelegate, PHPickerViewContr
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true) { [self] in
             importSelection(count: results.count) { index, staging in
-                try await FileImport.photo(results[index].itemProvider, into: staging)
+                try await FileImport.item(results[index].itemProvider, conformingTo: [.image], into: staging)()
             }
         }
     }
 
-    private func importSelection(count: Int, prepare: @escaping (Int, URL) async throws -> URL) {
+    private func importSelection(count: Int, prepare: @escaping @MainActor (Int, URL) async throws -> URL) {
         guard count > 0, !isTrash else { return }
-        Task {
-            do {
-                // Import one at a time so identical names in the selection use
-                // the same replacement choice as a collision on disk.
-                for index in 0 ..< count {
-                    let staging = try await session.makeTemporaryDirectory()
-                    do {
-                        let file = try await ProgressCard.run(
-                            title: String(localized: "Preparing…"),
-                            message: String(localized: "Loading the selected file for import."),
-                            from: self
-                        ) { _ in try await prepare(index, staging) }
-                        let outcome = try await performTransfer(
-                            JobRequest(kind: .copy, sources: [file.path], destination: directory)
-                        )
-                        if outcome.code != .success {
-                            throw outcome
-                        }
-                    } catch {
-                        try FileManager.default.removeItem(at: staging)
-                        throw error
-                    }
-                    try FileManager.default.removeItem(at: staging)
-                }
-            } catch {
-                if (error as? FilaFailure)?.code == .cancelled || error is CancellationError {
-                    return
-                }
-                let message = FailureMessage.text(for: error)
-                guard viewIfLoaded?.window != nil, presentedViewController == nil else {
-                    FeedbackAlert.show(String(localized: "Import Failed"), message: message)
-                    return
-                }
-                presentMessage(String(localized: "Import Failed"), message: message)
-            }
-        }
+        Task { await FileDelivery.importFiles(count: count, into: .local(directory), from: self, prepare: prepare) }
     }
 }

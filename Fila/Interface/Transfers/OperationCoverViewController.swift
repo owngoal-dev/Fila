@@ -6,11 +6,45 @@ import SnapKit
 import Then
 import UIKit
 
-/// Progress content hosted by AlertViewController. OperationCenter owns the
-/// result announcement; dismissing this card never announces the job again.
+/// The one progress card, hosted by AlertViewController: a job in the
+/// operation centre, or the work a caller runs under `ProgressCard`. Cancel
+/// stops the work where it can stop; Continue closes the card and lets it
+/// finish. Whoever runs the work owns the result announcement; dismissing
+/// this card never announces it again.
 final class OperationCoverViewController: UIViewController {
-    private let center: OperationCenter
-    private let operationID: UUID
+    /// What the card shows and how it stops the work. The card renders
+    /// nothing else, so both kinds of work look and behave the same.
+    struct Source {
+        struct Snapshot {
+            var title: String
+            var subtitle: String
+            var progress: JobProgress?
+            var isCancellable: Bool
+        }
+
+        /// Nil once the work is over; the card then closes itself.
+        let snapshot: @MainActor () -> Snapshot?
+        let changes: AnyPublisher<Void, Never>
+        let cancel: @MainActor () -> Void
+
+        /// A job's row in `center`.
+        @MainActor
+        static func operation(_ id: UUID, in center: OperationCenter) -> Source {
+            let running = { center.operations.first { $0.id == id && $0.isRunning } }
+            return Source(
+                snapshot: {
+                    running().map { Snapshot(title: $0.title, subtitle: $0.subtitle, progress: $0.progress, isCancellable: $0.isCancellable) }
+                },
+                changes: center.$operations.map { _ in }.eraseToAnyPublisher(),
+                cancel: {
+                    guard let operation = running(), operation.isCancellable else { return }
+                    center.cancel(operation)
+                }
+            )
+        }
+    }
+
+    private let source: Source
     private var observation: AnyCancellable?
     private var isClosing = false
     /// Fires when this card has finished leaving the screen, exactly once.
@@ -33,9 +67,8 @@ final class OperationCoverViewController: UIViewController {
     /// of its own needs both: one presented into this card's presentation or
     /// dismissal never appears.
     static func present(
-        for operationID: UUID,
+        _ source: Source,
         from presenter: UIViewController,
-        center: OperationCenter,
         shown: @escaping () -> Void = {},
         dismissed: @escaping () -> Void = {}
     ) {
@@ -43,8 +76,8 @@ final class OperationCoverViewController: UIViewController {
             try? await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000))
             guard let presenter, presenter.viewIfLoaded?.window != nil,
                   presenter.presentedViewController == nil, !presenter.isBeingDismissed,
-                  center.operations.first(where: { $0.id == operationID })?.isRunning == true else { return }
-            let content = OperationCoverViewController(center: center, operationID: operationID)
+                  source.snapshot() != nil else { return }
+            let content = OperationCoverViewController(source: source)
             content.onDismiss = dismissed
             let alert = AlertViewController(contentViewController: content)
             presenter.present(alert, animated: true) { content.update() }
@@ -55,9 +88,8 @@ final class OperationCoverViewController: UIViewController {
         }
     }
 
-    private init(center: OperationCenter, operationID: UUID) {
-        self.center = center
-        self.operationID = operationID
+    private init(source: Source) {
+        self.source = source
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -70,7 +102,7 @@ final class OperationCoverViewController: UIViewController {
         super.viewDidLoad()
         build()
         update()
-        observation = center.$operations
+        observation = source.changes
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.update() }
     }
@@ -154,9 +186,12 @@ final class OperationCoverViewController: UIViewController {
         backgroundButton.addAction(UIAction { [weak self] _ in self?.close() }, for: .touchUpInside)
         configure(cancelButton, title: String(localized: "Cancel"), accented: false)
         cancelButton.addAction(UIAction { [weak self] _ in
-            guard let self, let operation = center.operations.first(where: { $0.id == self.operationID }),
-                  operation.isCancellable else { return }
-            close { self.center.cancel(operation) }
+            guard let self, source.snapshot()?.isCancellable == true else { return }
+            // Before the card leaves, not after: work that ends during the
+            // dismissal was still cancelled, and the callers wait for the
+            // card to be gone before presenting anything.
+            source.cancel()
+            close()
         }, for: .touchUpInside)
 
         actionStack.do {
@@ -242,20 +277,20 @@ final class OperationCoverViewController: UIViewController {
 
     private func update() {
         guard !isClosing else { return }
-        guard let operation = center.operations.first(where: { $0.id == operationID }), operation.isRunning else {
+        guard let snapshot = source.snapshot() else {
             // The first observation can arrive while the card is presenting.
             if parent?.presentingViewController != nil, parent?.isBeingPresented == false {
                 close()
             }
             return
         }
-        titleLabel.text = operation.title
+        titleLabel.text = snapshot.title
         // One description, not two: the item being worked on now, falling back
         // to what the job is about before the first progress report names one.
-        let current = operation.progress.map { ($0.currentPath as NSString).lastPathComponent } ?? ""
-        let description = current.isEmpty ? operation.subtitle : current
+        let current = snapshot.progress.map { ($0.currentPath as NSString).lastPathComponent } ?? ""
+        let description = current.isEmpty ? snapshot.subtitle : current
         subtitleLabel.text = description.isEmpty ? String(localized: "Preparing…") : description
-        if let fraction = operation.progress?.fraction {
+        if let fraction = snapshot.progress?.fraction {
             updateProgress(Float(fraction))
             bar.isHidden = false
             spinner.stopAnimating()
@@ -267,9 +302,9 @@ final class OperationCoverViewController: UIViewController {
         // A rule above a spinner divides the card into nothing. It earns its
         // place only when there is a bar under it.
         separator.isHidden = bar.isHidden
-        countLabel.text = operation.progress.map(Self.count(for:))
+        countLabel.text = snapshot.progress.map(Self.count(for:))
         countLabel.isHidden = countLabel.text?.isEmpty != false
-        cancelButton.isEnabled = operation.isCancellable
+        cancelButton.isEnabled = snapshot.isCancellable
     }
 
     private func close(completion: @escaping () -> Void = {}) {

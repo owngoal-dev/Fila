@@ -2,6 +2,7 @@ import FilaCore
 import MediaPlayer
 import Then
 import UIKit
+import UniformTypeIdentifiers
 
 /// The songs in the device's music library, with import, delete and the
 /// jump into the library's own folder.
@@ -82,6 +83,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         super.viewDidLoad()
         definesPresentationContext = true
         collectionView.delegate = self
+        collectionView.dropDelegate = self
         collectionView.keyboardDismissMode = .onDrag
         let search = UISearchController(searchResultsController: nil).then {
             $0.searchResultsUpdater = self
@@ -224,33 +226,47 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
     private func chooseMusic() {
         guard let shell = BackendScreens.shell, backend.files != nil else { return }
         let picker = shell.filePicker(fileTypes: MusicLibraryEditor.audioExtensions) { [weak self] file in
-            self?.importMusic(file)
+            Task { await self?.importMusic([file.path]) }
         }
         shell.presentSheet(picker, from: self)
     }
 
-    private func importMusic(_ file: URL) {
-        guard !isChangingLibrary, let files = backend.files, let shell = BackendScreens.shell else { return }
+    /// Audio dropped from a folder, a share or another app: fetched to local
+    /// paths by the shell, then imported like a picked file.
+    private func importDropped(_ items: [UIDragItem]) {
+        guard !isChangingLibrary, let shell = BackendScreens.shell else { return }
+        shell.receiveFiles(items, conformingTo: Self.importedTypes, from: self) { [weak self] paths in
+            await self?.importMusic(paths)
+        }
+    }
+
+    /// What Import Music takes, as a drop sees it.
+    private static let importedTypes = MusicLibraryEditor.audioExtensions.compactMap { UTType(filenameExtension: $0) }
+
+    private func importMusic(_ paths: [String]) async {
+        guard !paths.isEmpty, !isChangingLibrary, let files = backend.files, let shell = BackendScreens.shell else { return }
         beginChange()
-        Task {
-            var failure: Error?
-            do {
-                // Resolved against this framework's catalogue; the app would
-                // look a key up in its own bundle.
-                try await shell.withProgress(
-                    title: String(localized: "Importing Music…", bundle: bundle),
-                    message: String(localized: "Keep Fila open until the import finishes.", bundle: bundle),
-                    from: self
-                ) { _ in
-                    _ = try await MusicLibraryEditor.shared.importTrack(from: file.path, files: files)
+        var failure: Error?
+        do {
+            // Resolved against this framework's catalogue; the app would
+            // look a key up in its own bundle.
+            try await shell.withProgress(
+                title: String(localized: "Importing Music…", bundle: bundle),
+                message: String(localized: "Keep Fila open until the import finishes.", bundle: bundle),
+                // Half an import is a file in the library with no row.
+                cancellable: false,
+                from: self
+            ) { _ in
+                for path in paths {
+                    _ = try await MusicLibraryEditor.shared.importTrack(from: path, files: files)
                 }
-            } catch { failure = error }
-            endChange()
-            if let failure {
-                shell.alert(title: String(localized: "Unable to Import Music", bundle: bundle), message: shell.failureText(for: failure))
-            } else {
-                shell.toast(String(localized: "Music imported", bundle: bundle))
             }
+        } catch { failure = error }
+        endChange()
+        if let failure {
+            shell.alert(title: String(localized: "Unable to Import Music", bundle: bundle), message: shell.failureText(for: failure))
+        } else {
+            shell.toast(String(localized: "Music imported", bundle: bundle))
         }
     }
 
@@ -278,6 +294,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
                 try await shell.withProgress(
                     title: String(localized: "Deleting…", bundle: bundle),
                     message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle),
+                    cancellable: false,
                     from: presenter
                 ) { _ in
                     _ = try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
@@ -306,5 +323,22 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         refresher.endRefreshing()
         backend.libraryChanged()
         holdsReloads = false
+    }
+}
+
+// MARK: - Drop
+
+/// Audio dropped anywhere on the list is imported, the way Import Music
+/// imports a picked file.
+extension MusicLibraryViewController: UICollectionViewDropDelegate {
+    func collectionView(
+        _: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath _: IndexPath?
+    ) -> UICollectionViewDropProposal {
+        guard !isChangingLibrary, backend.files != nil else { return UICollectionViewDropProposal(operation: .forbidden) }
+        return UICollectionViewDropProposal(operation: FileReference.proposal(for: session, into: nil, types: Self.importedTypes))
+    }
+
+    func collectionView(_: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
+        importDropped(coordinator.items.map(\.dragItem))
     }
 }
