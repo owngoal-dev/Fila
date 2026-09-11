@@ -7,6 +7,12 @@ public enum TransferMode: Sendable, Equatable {
     case move
 }
 
+public extension Notification.Name {
+    /// Posted by the app whenever its clipboard of locations changes: taken,
+    /// pasted, cleared, or a paste started or ended.
+    static let filaClipboardChanged = Notification.Name("wiki.qaq.fila.clipboard")
+}
+
 /// Where a transfer reads from: one backend, one service, the roots to
 /// carry. Every root is a direct child of some directory on that backend;
 /// the transfer carries it, and everything under it, by name.

@@ -38,7 +38,6 @@ final class SidebarViewController: UIViewController {
     }
 
     private let session = FileSession.shared
-    private let settingsShown: Bool
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, Item>!
     /// Only the current eight rows' presentation; thumbnail reuse stays in ThumbnailService.
@@ -85,8 +84,7 @@ final class SidebarViewController: UIViewController {
         return item
     }()
 
-    init(settingsShown: Bool = true) {
-        self.settingsShown = settingsShown
+    init() {
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -104,9 +102,8 @@ final class SidebarViewController: UIViewController {
     private func updateBarButtons(animated: Bool = false) {
         let running = session.operations.operations.filter(\.isRunning).count
         tasksItem.accessibilityValue = running > 0 ? String(localized: "\(running) in progress") : nil
-        let settings = settingsShown ? settingsItem : nil
-        if navigationItem.leftBarButtonItem !== settings {
-            navigationItem.leftBarButtonItem = settings
+        if navigationItem.leftBarButtonItem !== settingsItem {
+            navigationItem.leftBarButtonItem = settingsItem
         }
         let dismissItem = presentingViewController != nil ? doneItem : nil
         let items = [columnToggle ?? dismissItem, running > 0 ? tasksItem : nil].compactMap(\.self)
@@ -335,14 +332,10 @@ final class SidebarViewController: UIViewController {
         }
     }
 
-    /// Every remote file backend's root, in the order they were registered
-    /// or saved. Only destinations: adding, editing and removing a server
-    /// is Settings › Servers, so the jump list is never a form.
+    /// Only destinations: adding, editing and removing a server is
+    /// Settings › Servers, so the jump list is never a form.
     private var connections: [Item] {
-        let local = session.local.id
-        return BackendComposition.registry.backends
-            .filter { $0 is any FileBackend && $0.root.kind == .filesystem && $0.id != local }
-            .map { Item.connection($0.id) }
+        SidebarLocation.servers.map { Item.connection($0.location.backend) }
     }
 
     @objc private func rebuild() {

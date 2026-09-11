@@ -44,7 +44,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     override var maximumItemCount: Int { DirectoryReader.maximumEntryCount }
     override var traceName: String { directory }
 
-    private let clipboardBar = ClipboardBarView()
+    private lazy var clipboardItem = makeClipboardItem { [weak self] mode in self?.paste(mode: mode) }
     /// The list's own footer, once one has been dequeued. Weak because the
     /// collection view owns it and may recycle it; nil simply means there is
     /// nothing on screen to write the volume into yet.
@@ -100,6 +100,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         navigationItem.title = folderTitle
         configureNavigationItem()
         buildRegistrations()
+        // From here, not the view's load: a paste that lands while this page
+        // is being prepared must already be in the items the push shows.
+        NotificationCenter.default.addObserver(self, selector: #selector(clipboardChanged), name: .filaClipboardChanged, object: nil)
     }
 
     @available(*, unavailable)
@@ -143,28 +146,10 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
 
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(refreshClipboardBar),
-            name: .filaClipboardChanged,
-            object: nil
-        )
-
-        NotificationCenter.default.addObserver(
-            self,
             selector: #selector(sceneDidEnterBackground(_:)),
             name: UIScene.didEnterBackgroundNotification,
             object: nil
         )
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        // The path is part of the native toolbar. Only the clipboard floats
-        // above that safe area and needs an additional scrolling inset.
-        let clipboardHeight = clipboardBar.isHidden ? 0 : clipboardBar.bounds.height
-        if collectionView.contentInset.bottom != clipboardHeight {
-            collectionView.contentInset.bottom = clipboardHeight
-            collectionView.verticalScrollIndicatorInsets.bottom = clipboardHeight
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -310,20 +295,18 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             $0.dragInteractionEnabled = true
             $0.allowsMultipleSelectionDuringEditing = true
         }
-
-        clipboardBar.onShow = { [weak self] in self?.presentClipboard() }
-        clipboardBar.onPaste = { [weak self] in self?.paste() }
-        clipboardBar.onClear = { FileClipboard.shared.clear() }
-
-        view.addSubview(clipboardBar)
-        clipboardBar.snp.makeConstraints { make in
-            make.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
-        }
     }
 
     private func configureNavigationItem() {
-        trailingNavigationItems = [moreItem()]
+        trailingNavigationItems = barItems
         wantsSearchButton = true
+    }
+
+    /// The ellipsis, and the clipboard beside it while something is held —
+    /// never in the trash, where nothing is pasted, nor during selection.
+    private var barItems: [UIBarButtonItem] {
+        let showsClipboard = !isEditing && !isTrash && !FileClipboard.shared.isEmpty
+        return [moreItem()] + (showsClipboard ? [clipboardItem] : [])
     }
 
     /// The bottom bar's Search: the search screen for this folder.
@@ -726,8 +709,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         // Selection has one exit, Cancel. Outside selection UIKit supplies
         // Back from the real stack, alongside the iPad's sidebar control.
         navigationItem.setHidesBackButton(isEditing, animated: animated)
-        clipboardBar.isHidden = isEditing || isTrash || FileClipboard.shared.isEmpty
-        clipboardBar.configure(FileClipboard.shared)
 
         guard isEditing else {
             navigationItem.title = folderTitle
@@ -737,7 +718,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 // The split view may have collapsed or expanded meanwhile.
                 shell?.configureSidebarButton(for: self)
             }
-            trailingNavigationItems = [moreItem()]
+            trailingNavigationItems = barItems
             setToolbarOverride(nil, animated: animated)
             updateFooter()
             return
@@ -921,25 +902,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         return moreButton
     }
 
-    @objc private func refreshClipboardBar() {
-        guard isViewLoaded else { return }
-        clipboardBar.isHidden = isEditing || isTrash || FileClipboard.shared.isEmpty
-        clipboardBar.configure(FileClipboard.shared)
-    }
-
-    func presentClipboard() {
-        let controller = ClipboardViewController(clipboard: .shared)
-        controller.onReveal = { [weak self] item in
-            guard let self else { return }
-            if item.backend == session.local.id {
-                shell?.follow(.reveal(session.local.absolutePath(item.path)))
-            } else if let parent = item.path.parent {
-                // A share's browser has no selection to land on; its folder
-                // is the nearest thing to revealing the entry.
-                BackendScreens.shell?.open(BackendLocation(backend: item.backend, item: parent.description))
-            }
-        }
-        presentAsSheet(UINavigationController(rootViewController: controller))
+    @objc private func clipboardChanged() {
+        guard !isEditing else { return }
+        trailingNavigationItems = barItems
     }
 
     func select(_ node: FileNode) {
@@ -1036,8 +1001,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         presentSearch()
     }
 
+    /// ⌘V pastes the way the items were taken.
     @objc private func commandPaste() {
-        paste()
+        paste(mode: FileClipboard.shared.isCut ? .move : .copy)
     }
 
     @objc private func commandToggleHidden() {

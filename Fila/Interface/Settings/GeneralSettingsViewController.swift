@@ -159,7 +159,7 @@ final class GeneralSettingsViewController: UITableViewController {
 
     /// A pull-down button rather than a pushed list of radio rows. The three
     /// fixed answers sit above the same Favorites / Mount Points / Recents
-    /// submenus the browser's Places menu draws — a folder the user already
+    /// submenus every Go menu draws — a folder the user already
     /// bookmarked is the likeliest fourth answer, and building it out of
     /// `FilaMenu.collections` means it stays the same list in both places.
     private func launchLocationCell(_ cell: UITableViewCell) -> UITableViewCell {

@@ -21,7 +21,8 @@ import UIKit
 /// is never dropped silently — a clipboard that quietly shrinks is worse than
 /// one that is wrong, because the user has no way to notice either.
 ///
-/// The browser presents this in a navigation controller from its pending bar or menu.
+/// The shell presents this in a navigation controller from a folder's
+/// clipboard button (`BackendShell.presentClipboard`).
 final class ClipboardViewController: TabContentViewController {
     /// Where an entry goes when it is tapped. Set by whoever presents this: the
     /// browser owns navigation and this screen knows nothing about it.

@@ -83,6 +83,15 @@ enum SidebarLocation {
         }
     }
 
+    /// Every remote file backend's root — a saved share — in the order they
+    /// were registered or saved.
+    @MainActor static var servers: [BackendRoot] {
+        let local = FileSession.shared.local.id
+        return BackendComposition.registry.backends
+            .filter { $0 is any FileBackend && $0.root.kind == .filesystem && $0.id != local }
+            .map(\.root)
+    }
+
     /// The root of a catalogue backend, when it is registered and currently
     /// offers its root row.
     @MainActor private static func catalog(_ id: BackendID) -> Destination? {

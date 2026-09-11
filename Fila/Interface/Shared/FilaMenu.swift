@@ -8,29 +8,55 @@ enum FilaMenu {
         groups.filter { !$0.isEmpty }.map { UIMenu(options: .displayInline, children: $0) }
     }
 
-    /// Navigation uses the same ordered folder destinations and previews as Places.
+    /// A Go menu: the sidebar's destinations, then Go to Path.
     static func destinations(
         goToPath: @escaping () -> Void,
-        open: @escaping (String) -> Void
+        open: @escaping (String) -> Void,
+        openLocation: ((BackendLocation) -> Void)?
     ) -> [UIMenuElement] {
-        let directories = SidebarLocation.orderedDestinations.compactMap { destination -> SidebarPlace? in
-            guard case let .directory(place) = destination else { return nil }
-            return place
-        }
-        let places = directories.map { place in
-            UIAction(title: place.title, image: preview(for: place)) { _ in open(place.path) }
-        }
-        let locations = [UIMenu(
-            title: String(localized: "Places"),
-            image: compositeIcon(directories.compactMap(preview(for:))) ?? FilePresentation.image(for: .device(.folder)),
-            children: places
-        )]
-            + collections(open: open)
         let path = UIAction(title: String(localized: "Go to Path…")) { _ in goToPath() }
-        return groups(locations, [path])
+        return groups(sidebar(open: open, openLocation: openLocation), [path])
     }
 
-    static func preview(for place: SidebarPlace) -> UIImage? {
+    /// The sidebar's sections as submenus, in its order and with its
+    /// pictures — Places, Servers, Favorites, Mount Points, Recents — so no
+    /// menu that jumps somewhere offers less than the sidebar does.
+    /// `openLocation` nil leaves out what is not a folder: a catalogue and
+    /// a server, for a picker that can only choose a folder.
+    static func sidebar(
+        attributes: UIMenuElement.Attributes = [],
+        open: @escaping (String) -> Void,
+        openLocation: ((BackendLocation) -> Void)?
+    ) -> [UIMenuElement] {
+        func root(_ root: BackendRoot) -> UIAction? {
+            openLocation.map { openLocation in
+                UIAction(title: root.displayName, image: SidebarLocation.image(for: root), attributes: attributes) { _ in
+                    openLocation(root.location)
+                }
+            }
+        }
+        let places: [UIAction] = SidebarLocation.orderedDestinations.compactMap { destination in
+            switch destination {
+            case let .directory(place):
+                UIAction(title: place.title, image: preview(for: place), attributes: attributes) { _ in open(place.path) }
+            case let .catalog(catalog):
+                root(catalog)
+            }
+        }
+        let servers = SidebarLocation.servers.compactMap(root)
+        func submenu(_ title: String, _ actions: [UIAction]) -> [UIMenu] {
+            actions.isEmpty ? [] : [UIMenu(
+                title: title,
+                image: compositeIcon(actions.compactMap(\.image)) ?? FilePresentation.image(for: .device(.folder)),
+                children: actions
+            )]
+        }
+        return submenu(String(localized: "Places"), places)
+            + submenu(String(localized: "Servers"), servers)
+            + collections(attributes: attributes, open: open)
+    }
+
+    private static func preview(for place: SidebarPlace) -> UIImage? {
         FilePresentation.image(for: place.icon)
     }
 
@@ -47,7 +73,7 @@ enum FilaMenu {
     /// pictures the remaining cells stay empty, because a 2×1 or a 3×2 is
     /// a different tile beside its siblings. Nil for an empty list, and the
     /// caller falls back to the plain folder.
-    static func compositeIcon(_ pictures: [UIImage]) -> UIImage? {
+    private static func compositeIcon(_ pictures: [UIImage]) -> UIImage? {
         guard !pictures.isEmpty else { return nil }
         let columns = pictures.count == 1 ? 1 : pictures.count >= 9 ? 3 : 2
         let pictures = Array(pictures.prefix(columns * columns))
@@ -86,7 +112,7 @@ enum FilaMenu {
 
     static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
         let session = FileSession.shared
-        func folders(_ paths: [String], limit: Int? = nil) -> UIDeferredMenuElement {
+        func folders(_ paths: [String]) -> UIDeferredMenuElement {
             UIDeferredMenuElement.uncached { completion in
                 Task { @MainActor in
                     let session = FileSession.shared
@@ -109,7 +135,6 @@ enum FilaMenu {
                             image: image,
                             attributes: attributes
                         ) { _ in open(path) })
-                        if let limit, actions.count == limit { break }
                     }
                     completion(actions)
                 }
@@ -135,25 +160,33 @@ enum FilaMenu {
         let drive = FilePresentation.image(for: .artwork("drive-internal"))
         let favorites = session.favoritePaths
         let recents = session.recentPaths(limit: 8)
-        return [
-            UIMenu(
+        // As the sidebar: an empty list is no row, and a sandboxed process
+        // has no mount table to show.
+        var menus: [UIMenu] = []
+        if !favorites.isEmpty {
+            menus.append(UIMenu(
                 title: String(localized: "Favorites"),
                 image: compositeIcon(favorites.compactMap(folderIcon(named:))) ?? folder,
                 children: [folders(favorites)]
-            ),
-            UIMenu(
+            ))
+        }
+        if let backend = session.hello?.backend, backend != .local(reach: .container) {
+            menus.append(UIMenu(
                 // The mounts are listed when the menu opens; the tile says
                 // "volumes" with the drive picture, four up.
                 title: String(localized: "Mount Points"),
                 image: compositeIcon(Array(repeating: drive, count: 4).compactMap(\.self)) ?? drive,
                 children: [mounts]
-            ),
-            UIMenu(
+            ))
+        }
+        if !recents.isEmpty {
+            menus.append(UIMenu(
                 title: String(localized: "Recents"),
                 image: compositeIcon(recents.compactMap(folderIcon(named:))) ?? folder,
                 children: [folders(recents)]
-            ),
-        ]
+            ))
+        }
+        return menus
     }
 
     /// Palettes suit a small set of mutually exclusive, recognizable icons.

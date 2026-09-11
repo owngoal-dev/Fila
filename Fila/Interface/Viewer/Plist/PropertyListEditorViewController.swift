@@ -195,6 +195,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             let owner = document.rootController?.parent as? ViewerContainerViewController
             let elements = FilaMenu.groups(menuElements())
                 + (owner?.fileMenuElements(presenting: self) ?? [])
+                + [settingsMenuElement]
             menuItem.menu = UIMenu(children: elements)
             menuItem.isEnabled = !document.isSaving
             trailingNavigationItems = [menuItem]

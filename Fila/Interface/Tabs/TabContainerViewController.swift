@@ -341,9 +341,6 @@ final class TabContainerViewController: UIViewController {
         let overview = UINavigationController(
             rootViewController: TabSwitcherViewController(content: self, deferring: deferring)
         )
-        // Only the tab navigations have this container as their delegate, which
-        // is what unhides a toolbar; the overview's Close All bar is unhidden here.
-        overview.isToolbarHidden = false
         display(overview)
     }
 

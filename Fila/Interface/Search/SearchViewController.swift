@@ -177,6 +177,7 @@ final class SearchViewController: TabContentViewController {
         }
         navigationItem.rightBarButtonItem?.menu = UIMenu(children: [
             FilaMenu.selection(title: String(localized: "Search In"), actions: actions),
+            settingsMenuElement,
         ])
     }
 

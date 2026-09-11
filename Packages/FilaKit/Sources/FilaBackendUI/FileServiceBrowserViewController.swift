@@ -47,7 +47,24 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         self.path = path
         super.init()
         title = path.name ?? backend.root.displayName
-        trailingNavigationItems = [actionsItem]
+        trailingNavigationItems = barItems
+        NotificationCenter.default.addObserver(self, selector: #selector(clipboardChanged), name: .filaClipboardChanged, object: nil)
+    }
+
+    /// The ellipsis, and the clipboard beside it while something is held.
+    private var barItems: [UIBarButtonItem] {
+        [actionsItem] + (BackendScreens.shell?.clipboard == nil ? [] : [clipboardItem])
+    }
+
+    @objc private func clipboardChanged() {
+        trailingNavigationItems = barItems
+    }
+
+    /// Paste lands here through the app's operation centre: the items may be
+    /// local files or another share's, and the transfer decides how they travel.
+    private lazy var clipboardItem = makeClipboardItem { [weak self] mode in
+        guard let self else { return }
+        BackendScreens.shell?.paste(into: FileLocation(backend: backend.id, path: path), mode: mode, from: self)
     }
 
     // MARK: - Decoration
@@ -125,26 +142,11 @@ public final class FileServiceBrowserViewController: BackendListViewController<F
         ) { [weak self] _ in
             self?.reload()
         }
-        var groups: [UIMenuElement] = [UIMenu(options: .displayInline, children: [toggle])]
-        // Paste lands here, through the app's operation centre: the items on
-        // the clipboard may be local files or another share's, and the
-        // transfer decides how they travel. Offered only while something is
-        // held, and disabled while a paste is already under way.
-        if let clipboard = BackendScreens.shell?.clipboard {
-            let paste = UIAction(
-                title: clipboard.isCut
-                    ? String(localized: "Move Here", bundle: bundle)
-                    : String(localized: "Copy Here", bundle: bundle),
-                image: UIImage(systemName: "doc.on.clipboard"),
-                attributes: clipboard.isPasting ? .disabled : []
-            ) { [weak self] _ in
-                guard let self else { return }
-                BackendScreens.shell?.paste(into: FileLocation(backend: backend.id, path: path), from: self)
-            }
-            groups.append(UIMenu(options: .displayInline, children: [paste]))
-        }
-        groups.append(UIMenu(options: .displayInline, children: [refresh]))
-        return groups
+        return [
+            UIMenu(options: .displayInline, children: [toggle]),
+            UIMenu(options: .displayInline, children: [refresh]),
+            settingsMenuElement,
+        ]
     }
 
     /// The backend's sidebar contribution is its authority on favourites;

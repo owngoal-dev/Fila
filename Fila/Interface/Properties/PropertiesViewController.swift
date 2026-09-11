@@ -240,6 +240,7 @@ final class PropertiesViewController: TabContentViewController {
             UIDeferredMenuElement.uncached { complete in
                 complete(actions.menuElements(for: path, node: node, includesProperties: false))
             },
+            settingsMenuElement,
         ]))
         more.accessibilityLabel = String(localized: "More")
         trailingNavigationItems = [more]

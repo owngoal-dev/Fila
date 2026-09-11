@@ -47,11 +47,13 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
     func tabContent(_: TabContentViewController, didSelectDecorationCrumb _: PathBarView.Crumb) {}
 
     /// The menu that orders and narrows the list: by name or identifier, all
-    /// apps or only the user's or the system's.
+    /// apps or only the user's or the system's. The page's only menu, so it
+    /// also ends with Settings.
     private lazy var arrangementItem = UIBarButtonItem(
         image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
         menu: UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] done in done(self?.arrangementElements() ?? []) },
+            settingsMenuElement,
         ])
     ).then {
         $0.accessibilityLabel = String(localized: "Sort and Filter", bundle: bundle)

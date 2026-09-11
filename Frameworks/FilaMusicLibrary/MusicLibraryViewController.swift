@@ -33,6 +33,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         title = String(localized: "Music", bundle: bundle)
         trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] done in done(self?.menuElements() ?? []) },
+            settingsMenuElement,
         ]))]
     }
 

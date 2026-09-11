@@ -45,6 +45,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                         delete(self)
                     },
                 ]),
+                settingsMenuElement,
             ]))]
     }
 

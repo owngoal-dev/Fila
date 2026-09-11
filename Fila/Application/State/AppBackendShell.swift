@@ -142,6 +142,21 @@ final class AppBackendShell: BackendShell {
             .windows.first { $0.isKeyWindow }?.rootViewController?.shell?.replace(screen)
     }
 
+    /// Over whatever is on top of the page's window: a page's More can be on
+    /// a sheet (Properties), and an iPad can have two windows.
+    func presentSettings(from presenter: UIViewController) {
+        TopPresenter.whenReady(from: presenter.view.window?.rootViewController) { top in
+            guard !Self.shows(SettingsViewController.self, top) else { return }
+            top.presentSettings()
+        }
+    }
+
+    /// Whether `top` is already the sheet of that screen: a second tap while
+    /// it was on its way must not stack another.
+    private static func shows(_ screen: UIViewController.Type, _ top: UIViewController) -> Bool {
+        (top as? UINavigationController)?.viewControllers.first.map { type(of: $0) == screen } == true
+    }
+
     var clipboard: BackendClipboardSummary? {
         let clipboard = FileClipboard.shared
         guard !clipboard.isEmpty else { return nil }
@@ -152,8 +167,32 @@ final class AppBackendShell: BackendShell {
         FileClipboard.shared.take(items, cut: cut)
     }
 
-    func paste(into destination: FileLocation, from presenter: UIViewController) {
-        ClipboardPaste.paste(into: FileReference(destination), from: presenter)
+    func paste(into destination: FileLocation, mode: TransferMode, from presenter: UIViewController) {
+        ClipboardPaste.paste(into: FileReference(destination), mode: mode, from: presenter)
+    }
+
+    func presentClipboard(from presenter: UIViewController) {
+        let session = session
+        TopPresenter.whenReady(from: presenter.view.window?.rootViewController) { top in
+            guard !Self.shows(ClipboardViewController.self, top) else { return }
+            let controller = ClipboardViewController(clipboard: .shared)
+            controller.onReveal = { [weak top] item in
+                if item.backend == session.local.id {
+                    top?.shell?.follow(.reveal(session.local.absolutePath(item.path)))
+                } else if let parent = item.path.parent,
+                          let screen = SidebarLocation.screen(for: BackendLocation(backend: item.backend, item: parent.description))
+                {
+                    // A share's browser has no selection to land on; its
+                    // folder is the nearest thing to revealing the entry.
+                    top?.shell?.replace(screen)
+                }
+            }
+            top.presentAsSheet(UINavigationController(rootViewController: controller))
+        }
+    }
+
+    func clearClipboard() {
+        FileClipboard.shared.clear()
     }
 
     func drop(_ items: [UIDragItem], into destination: FileLocation, from presenter: UIViewController) {

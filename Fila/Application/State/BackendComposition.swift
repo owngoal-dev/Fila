@@ -25,8 +25,8 @@ enum BackendComposition {
         backends.compactMap { $0 as? any FileBackend }
     }
 
-    /// The merged sidebar over every backend. Built on first use, which is
-    /// after bootstrap: nothing asks for a sidebar before a window exists.
+    /// The merged sidebar over every backend. Built when a window's shell
+    /// loads, which is after bootstrap: nothing asks for a sidebar before.
     static let sidebar = SidebarModel(backends: backends, registry: registry)
 
     /// What modules get from the app; also what the fallback backend gets.

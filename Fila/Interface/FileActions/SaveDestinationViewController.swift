@@ -258,11 +258,12 @@ final class SaveDestinationViewController: UIViewController {
             UIMenu(
                 title: String(localized: "Go"),
                 image: UIImage(systemName: "arrow.right.circle"),
-                children: FilaMenu.destinations { [weak self] in
-                    self?.promptGoToPath()
-                } open: { [weak self] path in
-                    self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true))
-                }
+                // Folders only: a picker cannot choose a catalogue or a share.
+                children: FilaMenu.destinations(
+                    goToPath: { [weak self] in self?.promptGoToPath() },
+                    open: { [weak self] path in self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true)) },
+                    openLocation: nil
+                )
             ),
             UIAction(
                 title: String(localized: "New Folder"),

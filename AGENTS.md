@@ -798,7 +798,18 @@ Do not wrap titles or ordinary content in extra Liquid Glass capsules. Do not us
 it adds a second row and shifts the content during navigation. Put necessary
 status in the screen's content or the existing settings section. File actions
 belong in the shared `ellipsis` menu (not `ellipsis.circle`); preserve the same
-file operations in previews and editors as in the browser.
+file operations in previews and editors as in the browser. Every page's ellipsis
+ends with the page's `settingsMenuElement` (the browser's inside More), because
+the tab overview has no bar to hold Settings; a sheet's own menu (the
+clipboard's) does not. Settings and the clipboard sheet open over the tapping
+page's window, never twice. A menu that jumps somewhere — Go, the overview's
+plus — is `FilaMenu.sidebar`: the sidebar's own sections, empty ones left out.
+
+While the clipboard holds something, a folder's page shows
+`makeClipboardItem(paste:)` beside its ellipsis, in its own
+glass: Copy Here and Move Here (chosen at the paste, the taken one first),
+Show Clipboard and Clear Clipboard. It is the only clipboard chrome — no
+banner over the list. Only a move that landed empties the clipboard.
 
 Use the shared Save To folder panel for destinations rather than a sheet with
 only a raw path field. Unsupported plist leaves must not make readable siblings
@@ -806,8 +817,7 @@ disappear; disable editing when the complete document cannot round-trip safely.
 
 Use `FilaUI` tokens for spacing, type and icon sizes. Breadcrumbs size each
 label from its actual text width, with equal text-to-chevron gaps; never give
-short and long names equal-width slots. Locations uses `bookmark`; the tabs
-control has no count. On iOS 26, group only the related bottom actions. On
+short and long names equal-width slots. The tabs control has no count. On iOS 26, group only the related bottom actions. On
 older systems, use five ordinary buttons separated by equal flexible spaces.
 
 **Every form sheet is `FilaUI.formSheetSize` (555 × 555).** Present through
@@ -873,7 +883,9 @@ directory the user was in; before that it put Music back at `iTunes_Control`.
 
 Each tab retains its full navigation subtree, including preview/editor content
 and unsaved work. The tab overview lives in the content area and captures the
-actual page. Switching tabs does not close documents; closing or replacing
+actual page. It has two buttons and no bottom bar: a card opens its tab, the X
+is a menu holding Close All, and the plus opens the sidebar's destinations in
+a new tab. Switching tabs does not close documents; closing or replacing
 them goes through the existing save guard. Hide the split view's outer
 navigation bars so only the active tab owns visible chrome. Hidden controllers
 must not update the visible navigation bar or toolbar on model notifications.

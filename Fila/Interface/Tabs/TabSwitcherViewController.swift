@@ -1,5 +1,4 @@
 import FilaBackendKit
-import AlertController
 import FilaBackendUI
 import SnapKit
 import Then
@@ -111,104 +110,29 @@ final class TabSwitcherViewController: UIViewController {
         }
     }
 
+    /// Two buttons and no bottom bar. A card opens its tab, so the X is not
+    /// a way back but the menu of what closes them all — a second tap, where
+    /// a lone button under the thumb used to ask first. The plus is the
+    /// sidebar's destinations, each in a new tab; Settings is in every
+    /// page's More.
     private func buildBars() {
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "xmark"),
-            primaryAction: UIAction { [weak self] _ in
-                // Closing without choosing lands back on this window's page.
-                self?.content?.showInstalledTab()
-            }
-        )
-        navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
-        // A new tab starts somewhere chosen: the plus offers the same folders
-        // the sidebar does, and the tab opens and is shown at once.
+        let closeAll = UIAction(title: String(localized: "Close All"), attributes: .destructive) { [weak self] _ in
+            self?.shell?.closeAllTabs()
+        }
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), menu: UIMenu(children: [closeAll]))
+        navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close All")
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "plus"), menu: UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] complete in complete(self?.newTabMenuElements() ?? []) },
         ]))
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "New Tab")
-        updateToolbar(sidebarVisible: false)
-    }
-
-    func updateToolbar(sidebarVisible: Bool) {
-        let closeAll = UIBarButtonItem(title: String(localized: "Close All"), primaryAction: UIAction { [weak self] _ in
-            self?.confirmCloseAll()
-        })
-        closeAll.tintColor = .systemRed
-        let settings = UIBarButtonItem(
-            image: UIImage(systemName: "gearshape"),
-            primaryAction: UIAction { [weak self] _ in
-                self?.shell?.presentSettings()
-            }
-        ).then {
-            $0.accessibilityLabel = String(localized: "Settings")
-        }
-        let places = UIBarButtonItem(image: UIImage(systemName: "bookmark"), primaryAction: UIAction { [weak self] _ in
-            self?.shell?.presentSidebar(settingsShown: false)
-        }).then {
-            $0.accessibilityLabel = String(localized: "Places")
-        }
-        if #available(iOS 26.0, *) {
-            settings.sharesBackground = false
-            closeAll.sharesBackground = false
-            places.sharesBackground = false
-        }
-        toolbarItems = sidebarVisible ? [.flexibleSpace(), closeAll, .flexibleSpace()] : [
-            .flexibleSpace(), settings, .fixedSpace(FilaUI.Spacing.medium),
-            closeAll, .fixedSpace(FilaUI.Spacing.medium), places, .flexibleSpace(),
-        ]
-    }
-
-    /// The bar button sits where a thumb rests during one-handed browsing, so
-    /// more than one tab asks first. A lone tab closes without ceremony.
-    private func confirmCloseAll() {
-        guard store.tabs.count > 1 else {
-            shell?.closeAllTabs()
-            return
-        }
-        let alert = AlertViewController(
-            title: String(localized: "Close All Tabs?"),
-            message: String(localized: "All open tabs will close. You will be asked about unsaved changes first.")
-        ) { context in
-            context.addAction(title: String.LocalizationValue("Cancel")) {
-                context.dispose()
-            }
-            context.addAction(title: String.LocalizationValue("Close All"), attribute: .accent) {
-                context.dispose { self.shell?.closeAllTabs() }
-            }
-        }
-        present(alert, animated: true)
     }
 
     private func newTabMenuElements() -> [UIMenuElement] {
-        let full = store.isFull
-        func open(_ path: String, title: String, image: UIImage?, subtitle: String? = nil) -> UIAction {
-            UIAction(
-                title: title,
-                subtitle: subtitle,
-                image: image,
-                attributes: full ? .disabled : []
-            ) { [weak self] _ in
-                self?.shell?.openInNewTab(path)
-            }
+        FilaMenu.sidebar(attributes: store.isFull ? .disabled : []) { [weak self] path in
+            self?.shell?.openInNewTab(path)
+        } openLocation: { [weak self] location in
+            self?.shell?.openInNewTab(location: location)
         }
-        let places = SidebarLocation.orderedDestinations.map { destination -> UIMenuElement in
-            switch destination {
-            case let .directory(place):
-                return open(place.path, title: place.title, image: FilaMenu.preview(for: place))
-            case let .catalog(root):
-                return UIAction(
-                    title: root.displayName,
-                    image: SidebarLocation.image(for: root),
-                    attributes: full ? .disabled : []
-                ) { [weak self] _ in
-                    self?.shell?.openInNewTab(location: root.location)
-                }
-            }
-        }
-        return [UIMenu(title: String(localized: "Places"), options: .displayInline, children: places)]
-            + FilaMenu.collections(attributes: full ? .disabled : []) { [weak self] path in
-                self?.shell?.openInNewTab(path)
-            }
     }
 
     static let cardCornerRadius = FilaUI.Spacing.large

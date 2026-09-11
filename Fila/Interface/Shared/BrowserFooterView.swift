@@ -34,4 +34,22 @@ final class BrowserFooterView: UICollectionReusableView {
     required init?(coder _: NSCoder) {
         fatalError("not supported")
     }
+
+    /// The layout slides a new footer in from the top of the list with the
+    /// rows' first diff; the line fades in a second later, once it has
+    /// landed. The label rather than the view, because the collection view
+    /// sets the view's alpha from its layout attributes.
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(reveal), object: nil)
+        label.layer.removeAllAnimations()
+        label.alpha = 0
+        if window != nil {
+            perform(#selector(reveal), with: nil, afterDelay: 1)
+        }
+    }
+
+    @objc private func reveal() {
+        UIView.animate(withDuration: 0.25) { self.label.alpha = 1 }
+    }
 }

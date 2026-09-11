@@ -16,8 +16,8 @@ import UIKit
 /// off screen, it is a sheet, and the browser is the root of the app rather
 /// than something you reach past a list of places.
 final class RootSplitViewController: UISplitViewController {
-    /// The primary column, and only ever that. A phone reaches the same rows
-    /// through `presentSidebar()`.
+    /// The primary column, and only ever that. A phone reaches the same
+    /// destinations through every page's Go menu and the tab overview's plus.
     let sidebar = SidebarViewController()
 
     /// This window's tabs. One list per window scene, keyed by the scene
@@ -47,6 +47,10 @@ final class RootSplitViewController: UISplitViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Now, not on first use: the menus read it synchronously, and on a
+        // phone the sidebar column never loads — a Go menu that built the
+        // model itself showed it before any backend had reported, without Places.
+        _ = BackendComposition.sidebar
         delegate = self
         displayModeButtonVisibility = .never
         preferredDisplayMode = .oneBesideSecondary
@@ -183,7 +187,6 @@ final class RootSplitViewController: UISplitViewController {
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
-        (controller as? TabSwitcherViewController)?.updateToolbar(sidebarVisible: inSidebar)
         var buttons = (leadingItems ?? item.leftBarButtonItems ?? [])
             .filter { $0 !== toggle && $0 !== back }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
@@ -208,8 +211,9 @@ final class RootSplitViewController: UISplitViewController {
             // Custom leading items suppress UIKit's default Back control.
             // Keep its native edge transition, subject to editor guards.
             navigation.interactivePopGestureRecognizer?.delegate = self
-            // On a phone, Places lives in the tab overview's bottom toolbar.
-            // Wide layouts keep the control that restores the sidebar column.
+            // On a phone, the sidebar's destinations are every page's Go menu
+            // and the tab overview's plus. Wide layouts keep the control that
+            // restores the sidebar column.
             if !isCollapsed, !inSidebar {
                 buttons.append(toggle)
             }
@@ -462,12 +466,12 @@ final class RootSplitViewController: UISplitViewController {
     /// navigation controller and moving a view controller out of a container to
     /// present it and back again is a great deal of ceremony for a list that
     /// rebuilds itself from `UserDefaults` in a millisecond.
-    func presentSidebar(settingsShown: Bool = true) {
+    func presentSidebar() {
         guard isCollapsed else {
             show(.primary)
             return
         }
-        presentAsSheet(UINavigationController(rootViewController: SidebarViewController(settingsShown: settingsShown)))
+        presentAsSheet(UINavigationController(rootViewController: SidebarViewController()))
     }
 
     /// The shell's own sheets — Places on a phone, Settings anywhere —

@@ -231,7 +231,7 @@ final class ViewerContainerViewController: TabContentViewController {
             }
         )
         menuItem.menu = UIMenu(
-            children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs])
+            children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs]) + [settingsMenuElement]
         )
     }
 

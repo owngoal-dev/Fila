@@ -260,6 +260,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
             menuItem.menu = UIMenu(
                 children: FilaMenu.groups([select, extract, extractTo])
                     + (fileActionsOwner?.fileMenuElements(presenting: self) ?? [])
+                    + [settingsMenuElement]
             )
             trailingNavigationItems = [menuItem]
         }

@@ -85,14 +85,24 @@ public protocol BackendShell: AnyObject {
     /// Shows the screen a module routes for `location` in the current
     /// tab, the way the sidebar's rows do.
     func open(_ location: BackendLocation)
+    /// The app's Settings, over whatever is on top of `presenter`'s window;
+    /// nothing when they are already open there.
+    func presentSettings(from presenter: UIViewController)
 
     /// The app's clipboard as a module screen sees it: nil while empty.
+    /// `Notification.Name.filaClipboardChanged` says when to ask again.
     var clipboard: BackendClipboardSummary? { get }
     /// Puts `items` on the app's clipboard, replacing what was there.
     func takeToClipboard(_ items: [FileLocation], cut: Bool)
-    /// Pastes the clipboard into `destination` through the app's operation
-    /// centre, asking `presenter` about replacements and reporting to it.
-    func paste(into destination: FileLocation, from presenter: UIViewController)
+    /// Copies or moves the clipboard's items into `destination` through the
+    /// app's operation centre, asking `presenter` about replacements and
+    /// reporting to it — as `mode` says, whatever the items were taken as. A
+    /// move that lands empties the clipboard; a copy leaves it for another.
+    func paste(into destination: FileLocation, mode: TransferMode, from presenter: UIViewController)
+    /// The clipboard's items, over whatever is on top of `presenter`'s
+    /// window; nothing when they are already shown there.
+    func presentClipboard(from presenter: UIViewController)
+    func clearClipboard()
 
     /// A drop onto a folder: files dragged inside Fila are copied or moved
     /// there after one question, files from another app are copied in — the

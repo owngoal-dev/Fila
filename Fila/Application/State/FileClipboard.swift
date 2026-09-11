@@ -2,10 +2,6 @@ import FilaBackendKit
 import FilaLog
 import Foundation
 
-extension Notification.Name {
-    static let filaClipboardChanged = Notification.Name("wiki.qaq.fila.clipboard")
-}
-
 /// What Copy and Move put aside for Paste.
 ///
 /// Deliberately not `UIPasteboard`: these are root-owned paths and server
@@ -38,7 +34,6 @@ final class FileClipboard {
         let id = UUID()
         fileprivate let revision: UUID
         let items: [FileLocation]
-        let isCut: Bool
     }
 
     private var revision = UUID()
@@ -114,18 +109,19 @@ final class FileClipboard {
     /// A later Copy can replace the clipboard without an old completion clearing it.
     func beginPaste() -> Paste? {
         guard !isEmpty, !isPasting else { return nil }
-        let paste = Paste(revision: revision, items: items, isCut: isCut)
+        let paste = Paste(revision: revision, items: items)
         activePaste = paste
         NotificationCenter.default.post(name: .filaClipboardChanged, object: self)
         return paste
     }
 
-    /// Copy remains reusable. Only a successful move consumes its selection;
-    /// a failed or partial batch does not say which individual roots moved.
-    func finishPaste(_ paste: Paste, succeeded: Bool) {
+    /// Copy remains reusable, whatever the items were taken as. Only a move
+    /// that succeeded consumes its selection; a failed or partial batch does
+    /// not say which individual roots moved.
+    func finishPaste(_ paste: Paste, moved: Bool) {
         guard let active = activePaste, active.id == paste.id else { return }
         activePaste = nil
-        if revision == paste.revision, paste.isCut, succeeded {
+        if revision == paste.revision, moved {
             clear()
             return
         }

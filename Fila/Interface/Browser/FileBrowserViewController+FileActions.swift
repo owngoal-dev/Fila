@@ -167,6 +167,7 @@ extension FileBrowserViewController {
                 guard let self else { return }
                 shell?.openInNewTab(directory)
             },
+            settingsMenuElement,
         ]
         // The browser's Go menu changes the current location; More acts on
         // the current folder. Keep these separate from the overview's new-tab menu.
@@ -186,6 +187,10 @@ extension FileBrowserViewController {
             self?.promptGoToPath()
         } open: { [weak self] path in
             self?.open(directory: path)
+        } openLocation: { [weak self] location in
+            // A catalogue or a share replaces the tab's page, as its sidebar row does.
+            guard let screen = SidebarLocation.screen(for: location) else { return }
+            self?.shell?.replace(screen)
         }
     }
 
@@ -273,12 +278,12 @@ extension FileBrowserViewController {
         setEditing(false, animated: true)
     }
 
-    func paste() {
+    func paste(mode: TransferMode) {
         // Nothing is created in the trash, by any route: a pasted item would
         // sit there with no origin to put it back to.
         guard !isTrash, !FileClipboard.shared.isEmpty else { return }
         recordDirectoryUse()
-        ClipboardPaste.paste(into: .local(directory), from: self)
+        ClipboardPaste.paste(into: .local(directory), mode: mode, from: self)
     }
 
     func delete(_ paths: [String], permanently: Bool = false) {

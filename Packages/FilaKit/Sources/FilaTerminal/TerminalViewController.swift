@@ -52,17 +52,21 @@
             self.onProcessExit = onProcessExit.map(TerminalExitHandler.init(run:))
             super.init(nibName: nil, bundle: nil)
             title = Self.name(of: program)
-            // Ending the session remains available in the screen's action menu.
+            // Ending the session remains available in the screen's action
+            // menu, disabled rather than the whole menu while nothing runs:
+            // Settings is in it too.
             trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
-                UIAction(
-                    title: String(localized: "End Session", bundle: .module),
-                    image: UIImage(systemName: "stop"),
-                    attributes: .destructive
-                ) { [weak self] _ in
-                    self?.endSession()
+                UIDeferredMenuElement.uncached { [weak self] done in
+                    done([UIAction(
+                        title: String(localized: "End Session", bundle: .module),
+                        image: UIImage(systemName: "stop"),
+                        attributes: self?.canEndSession == true ? .destructive : [.destructive, .disabled]
+                    ) { [weak self] _ in
+                        self?.endSession()
+                    }])
                 },
+                settingsMenuElement,
             ]))]
-            navigationItem.rightBarButtonItem?.isEnabled = false
         }
 
         @available(*, unavailable)
@@ -70,6 +74,8 @@
             fatalError("init(coder:) is not used")
         }
 
+        /// Whether a session is running for End Session to end.
+        private var canEndSession = false
         private let program: TerminalProgram
         private let redirectsScriptInterpreter: Bool
         private let link: any TerminalAccess
@@ -198,7 +204,7 @@
         private func start() {
             hasStarted = true
             statusLabel.text = String(localized: "Starting…", bundle: .module)
-            navigationItem.rightBarButtonItem?.isEnabled = true
+            canEndSession = true
             authenticateAndOpen()
         }
 
@@ -235,7 +241,7 @@
 
         private func authenticationFailed(_ error: Error?) {
             isFinished = true
-            navigationItem.rightBarButtonItem?.isEnabled = false
+            canEndSession = false
             statusLabel.text = error?.localizedDescription
                 ?? String(localized: "Authentication failed.", bundle: .module)
             // No launch request was sent, so staged input can be released now.
@@ -404,7 +410,7 @@
             terminalView.resignFirstResponder()
             statusLabel.text = nil
             showSessionNotice(String(localized: "Session ended", bundle: .module))
-            navigationItem.rightBarButtonItem?.isEnabled = false
+            canEndSession = false
             // The terminal keeps what the program printed on screen — the last
             // lines are usually the reason it ended.
             //
@@ -428,7 +434,7 @@
             terminalView.resignFirstResponder()
             statusLabel.text = nil
             showSessionNotice(String(localized: "Session ended", bundle: .module))
-            navigationItem.rightBarButtonItem?.isEnabled = false
+            canEndSession = false
         }
 
         private func teardown() {
@@ -476,7 +482,7 @@
 
         private func present(failure: Error) {
             isFinished = true
-            navigationItem.rightBarButtonItem?.isEnabled = false
+            canEndSession = false
             statusLabel.text = Self.message(for: failure)
         }
 

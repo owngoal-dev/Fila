@@ -1,4 +1,5 @@
 #if canImport(UIKit)
+import FilaBackendKit
 import SnapKit
 import Then
 import UIKit
@@ -137,6 +138,62 @@ open class TabContentViewController: UIViewController {
         UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: menu).then {
             $0.accessibilityLabel = String(localized: "More", bundle: .module)
         }
+    }
+
+    /// The clipboard on a folder's page, beside the ellipsis while something
+    /// is held: what can be done with it here. `paste` copies or moves the
+    /// items into the page's folder — chosen now, whatever they were taken
+    /// as, with that one first. The page shows the item only while
+    /// `BackendShell.clipboard` is not nil.
+    public func makeClipboardItem(paste: @escaping @MainActor (TransferMode) -> Void) -> UIBarButtonItem {
+        let menu = UIMenu(children: [UIDeferredMenuElement.uncached { [weak self] done in
+            guard let self, let shell = BackendScreens.shell, let clipboard = shell.clipboard else { return done([]) }
+            let busy: UIMenuElement.Attributes = clipboard.isPasting ? .disabled : []
+            let copy = UIAction(title: String(localized: "Copy Here", bundle: .module), image: UIImage(systemName: "doc.on.doc"), attributes: busy) { _ in
+                paste(.copy)
+            }
+            let move = UIAction(title: String(localized: "Move Here", bundle: .module), image: UIImage(systemName: "scissors"), attributes: busy) { _ in
+                paste(.move)
+            }
+            done([
+                UIMenu(
+                    title: String(localized: "\(clipboard.count) items", bundle: .module),
+                    options: .displayInline,
+                    children: clipboard.isCut ? [move, copy] : [copy, move]
+                ),
+                UIMenu(options: .displayInline, children: [
+                    UIAction(title: String(localized: "Show Clipboard", bundle: .module), image: UIImage(systemName: "list.bullet")) { [weak self] _ in
+                        guard let self else { return }
+                        shell.presentClipboard(from: self)
+                    },
+                    UIAction(title: String(localized: "Clear Clipboard", bundle: .module), image: UIImage(systemName: "xmark.circle"), attributes: .destructive) { _ in
+                        shell.clearClipboard()
+                    },
+                ]),
+            ])
+        }])
+        return UIBarButtonItem(image: UIImage(systemName: "doc.on.clipboard"), menu: menu).then {
+            $0.accessibilityLabel = String(localized: "Clipboard", bundle: .module)
+            // Its own capsule, apart from the ellipsis: two glasses fused
+            // into one read as a single control. Identified so a push
+            // between two folders keeps it standing.
+            if #available(iOS 26.0, *) {
+                $0.sharesBackground = false
+                $0.identifier = "clipboard"
+            }
+        }
+    }
+
+    /// Settings, last in every page's More: each page's menu ends with it,
+    /// so Settings is one menu away wherever the user is — the tab overview
+    /// has no bar to hold it. Opened over this page's window.
+    public var settingsMenuElement: UIMenuElement {
+        UIMenu(options: .displayInline, children: [
+            UIAction(title: String(localized: "Settings", bundle: .module), image: UIImage(systemName: "gearshape")) { [weak self] _ in
+                guard let self else { return }
+                BackendScreens.shell?.presentSettings(from: self)
+            },
+        ])
     }
 
     /// Installs the screen's search controller where the OS puts one: in
