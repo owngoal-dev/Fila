@@ -17,7 +17,6 @@ final class BrowserGridCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        image.contentMode = .scaleAspectFit
         appBadge.do {
             $0.contentMode = .scaleAspectFit
             $0.backgroundColor = .systemBackground
@@ -79,8 +78,7 @@ final class BrowserGridCell: UICollectionViewCell {
         accessibilityLabel = [presentation?.name, presentation?.detail, node.name]
             .compactMap(\.self)
             .joined(separator: ", ")
-        image.image = FilePresentation.image(for: node)
-        image.contentMode = .scaleAspectFit
+        image.showIcon(FilePresentation.image(for: node))
         image.alpha = node.isHidden ? 0.5 : 1
         contentView.layer.cornerRadius = 8
         contentView.clipsToBounds = true
@@ -108,14 +106,7 @@ final class BrowserGridCell: UICollectionViewCell {
         thumbnailTask = Task { [weak self] in
             let picture = await FilePresentation.picture(for: path, node: node, session: session)
             guard let self, self.token == token, let picture else { return }
-            switch picture {
-            case let .icon(icon):
-                image.image = icon
-            case let .thumbnail(thumbnail):
-                image.image = thumbnail
-                image.contentMode = .scaleAspectFill
-                image.clipsToBounds = true
-            }
+            image.show(picture)
         }
     }
 }

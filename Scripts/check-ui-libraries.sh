@@ -136,12 +136,13 @@ fi
 
 # A file, a folder, an archive entry or an app is never drawn with an SF Symbol:
 # a glyph among pictures reads as a control. These files exist only to draw
-# those pictures, so any symbol in one of them is a file drawn as a glyph. A
-# type with no picture gets artwork from Scripts/make-file-icons.swift.
+# those pictures, so any symbol in one of them is a file drawn as a glyph.
+# Files, folders and types are the OS's own pictures (DeviceIcons); what the OS
+# has no picture of is artwork from Scripts/make-file-icons.swift.
 file_picture_hits="$(search 'systemName' "${ui_roots[@]}" \
-    | grep -E 'Shared/FilePresentation[^/]*\.swift|Shared/IconRowCell\.swift|Browser/BrowserGridCell\.swift|FilaMusicLibrary/MusicArtworkView\.swift|FilaApplications/ApplicationArtworkCache\.swift' || true)"
+    | grep -E 'Shared/FilePresentation[^/]*\.swift|Shared/DeviceIcons\.swift|Shared/IconRowCell\.swift|Browser/BrowserGridCell\.swift|FilaMusicLibrary/MusicArtworkView\.swift|FilaApplications/ApplicationArtworkCache\.swift' || true)"
 if [[ -n "$file_picture_hits" ]]; then
-    error "files are drawn with FileIcons artwork, never an SF Symbol; found systemName in a file-picture source:"
+    error "files are drawn with the OS's pictures or FileIcons artwork, never an SF Symbol; found systemName in a file-picture source:"
     echo "$file_picture_hits" >&2
 fi
 

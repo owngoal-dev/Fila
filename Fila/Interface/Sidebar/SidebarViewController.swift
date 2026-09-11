@@ -295,8 +295,8 @@ final class SidebarViewController: UIViewController {
         case .header: return
         case let .place(place):
             name = place.title
-            let artwork = FileActions.isTrash(place.path) && !trashHasItems ? "trash-empty" : place.icon.name
-            image = UIImage(named: "FileIcons/\(artwork)")?.withRenderingMode(.alwaysOriginal)
+            let icon = FileActions.isTrash(place.path) && !trashHasItems ? .artwork("trash-empty") : place.icon
+            image = FilePresentation.image(for: icon)
         case let .favorite(path), let .recent(path):
             name = path == "/" ? "/" : URL(fileURLWithPath: path).lastPathComponent
             image = recentItems[path]?.image ?? FilePresentation.image(kind: .directory, name: name)

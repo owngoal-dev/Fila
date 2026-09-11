@@ -114,6 +114,9 @@ extension WebDAVHandler {
     /// Only the types a build emits are served; `index.html` is reachable
     /// solely through a directory GET, where it gets its CSP.
     func asset(named name: String, on http: HTTPConnection, includeBody: Bool) async throws -> Int {
+        if let item = Self.typeIconRequest(name) {
+            return try await typeIcon(for: item, on: http, includeBody: includeBody)
+        }
         let types = [
             "js": "text/javascript; charset=utf-8",
             "css": "text/css; charset=utf-8",

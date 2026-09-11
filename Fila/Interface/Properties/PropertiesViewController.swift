@@ -175,7 +175,8 @@ final class PropertiesViewController: TabContentViewController {
         }
     }
 
-    /// The file's own picture, or a navigable bundle's app artwork.
+    /// The file's own picture, a navigable bundle's app artwork, or the OS's
+    /// picture of its type at the page's size — the row's is too small here.
     /// A stale or cancelled preview never updates a reused/closed page.
     private func loadPreview() {
         previewTask?.cancel()
@@ -190,15 +191,20 @@ final class PropertiesViewController: TabContentViewController {
             case let .icon(icon)?:
                 image = icon
             case let .thumbnail(thumbnail)?:
-                image = thumbnail
+                // A white page on the white cell has no edge of its own.
+                image = FilePresentation.edged(thumbnail)
                 maximumSide = 512
             case nil:
-                guard node.isNavigable else { break }
-                let decoration = await SystemCapabilities.applications?.decorationLookup()
-                if let identifier = decoration?(path)?.applicationIdentifier,
-                   let artwork = SystemCapabilities.applicationArtwork
-                {
-                    image = await artwork.icon(for: identifier)
+                if node.isNavigable {
+                    let decoration = await SystemCapabilities.applications?.decorationLookup()
+                    if let identifier = decoration?(path)?.applicationIdentifier,
+                       let artwork = SystemCapabilities.applicationArtwork
+                    {
+                        image = await artwork.icon(for: identifier)
+                    }
+                }
+                if image == nil, case let .device(subject) = FilePresentation.icon(for: node) {
+                    image = await DeviceIcons.largeImage(for: subject)
                 }
             }
             guard !Task.isCancelled, let self, details.path == path, let image else { return }
@@ -258,7 +264,7 @@ final class PropertiesViewController: TabContentViewController {
                     for: indexPath
                 ) as! PropertiesPreviewCell
                 preview.show(
-                    image: previewImage ?? FilePresentation.largeImage(for: details.node),
+                    image: previewImage ?? FilePresentation.image(for: details.node),
                     title: URL(fileURLWithPath: details.path).lastPathComponent,
                     kind: Self.name(of: details.node.kind),
                     maximumSide: previewMaximumSide

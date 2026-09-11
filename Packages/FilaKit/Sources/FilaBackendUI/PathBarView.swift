@@ -106,10 +106,19 @@ public final class PathBarView: UIScrollView {
         var actions: [UIAccessibilityCustomAction] = []
         for (index, crumb) in crumbs.enumerated() {
             let isCurrent = index == crumbs.count - 1
-            if let image = crumb.icon {
+            if let image = crumb.icon, image.size.width > 0, image.size.height > 0 {
                 let attachment = NSTextAttachment(image: image)
+                // Fitted into a line-high square, never stretched to it: a
+                // crumb can be a symbol, and a symbol is rarely square.
                 let side = Self.font.lineHeight
-                attachment.bounds = CGRect(x: 0, y: Self.font.descender, width: side, height: side)
+                let scale = min(side / image.size.width, side / image.size.height)
+                let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+                attachment.bounds = CGRect(
+                    x: 0,
+                    y: Self.font.descender + (side - size.height) / 2,
+                    width: size.width,
+                    height: size.height
+                )
                 let token = NSMutableAttributedString(attachment: attachment)
                 token.append(NSAttributedString(string: " ", attributes: [.font: Self.font]))
                 token.addAttribute(Self.component, value: index, range: NSRange(location: 0, length: token.length))
