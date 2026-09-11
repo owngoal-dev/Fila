@@ -2,6 +2,7 @@ import FilaFormats
 import FilaProtocol
 import Foundation
 import UIKit
+import UniformTypeIdentifiers
 
 /// How a node reads in a list: its icon, its kind, its size and its date.
 ///
@@ -87,8 +88,14 @@ enum FilePresentation {
             // only under one of them. Permissions do not identify content:
             // new user files default to 0777.
             switch ext {
-            case "ips", "panic", "hang", "spin", "diag": return .device(.file("crash"))
-            default: return .device(.file(ext))
+            case "ips", "panic", "hang", "spin", "diag":
+                return .device(.file("crash"))
+            default:
+                // An extension the OS declares no type for draws what no
+                // extension draws, so `backup.1 … backup.99999` is one
+                // picture to make and keep, not a hundred thousand.
+                let declared = UTType(filenameExtension: ext).map { !$0.isDynamic } ?? false
+                return .device(.file(declared ? ext : ""))
             }
         }
     }
