@@ -33,7 +33,7 @@ final class TabNavigationController: UINavigationController {
 
     /// An animated transition to a screen that fetches on the way in — a
     /// push of a new screen, or a pop back to one that has never listed —
-    /// waits for its first rows, up to `preparationBudget`, about three
+    /// waits for its first rows, up to `preparationBudget`, about twelve
     /// frames, so the transition lands on content rather than on a wait
     /// that turns into content a moment later. Past the budget the screen
     /// goes up with its loading status and the rows animate in. A pop goes

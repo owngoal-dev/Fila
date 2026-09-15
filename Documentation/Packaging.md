@@ -80,7 +80,8 @@ changed-input failure, not silently stamped as current.
 It carries the client entitlement `wiki.qaq.fila.client` that the daemon
 checks before it will serve a peer, the Mach lookup for
 `wiki.qaq.fila.service` and IconServices, `platform-application`,
-`com.apple.private.security.no-sandbox`, the two private storage entitlements,
+`com.apple.private.security.no-sandbox`, every `com.apple.private.security.storage.<Class>`
+data-vault class the daemon also carries (`Filad.entitlements` explains them),
 the InstallCoordination pair that IPA installation needs, the user-assigned
 device name, and the `com.apple.security.iokit-user-client-class` list the
 terminal needs to reach the GPU. `Packaging/Filad.entitlements` signs both

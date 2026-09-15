@@ -14,7 +14,7 @@ dominated; nothing overlapped, and the listing did not even start until the
 push animation had finished.
 
 **One sentence, after:** the listing starts before the push, the push waits
-at most 50 ms for the first rows and lands on them, the app reads the
+at most 200 ms for the first rows and lands on them, the app reads the
 directory itself over a descriptor the daemon opened as root, and no apply
 holds the main thread for more than the budget a push waits for.
 
@@ -112,7 +112,8 @@ Five commits, in order, each measured on the device and reviewed by Opus 5.
 2. **Fetch before the push** (`ce41e75`, fixes in `7341e74`): the push site
    owns the wait. `TabNavigationController` gives a screen that fetches on the
    way in — any `PreparableContent` — up to `FilaUI.preparationBudget`
-   (50 ms) to put its first rows up before the transition starts; whatever
+   (200 ms; it was 50 ms when the numbers below were taken) to put its first
+   rows up before the transition starts; whatever
    lands inside half the budget goes up together, so the rows the transition
    shows are not reordered by the batch after it. Past the budget the screen
    goes up with its loading status and the rows animate in. A jump gets the

@@ -131,9 +131,20 @@ require_true() {
     }
 }
 
-# The daemon admits a client only if the kernel says it carries these, so a
-# build that lost one would ship an app the daemon silently refuses to serve.
-for entitlement in platform-application com.apple.private.security.no-sandbox com.apple.private.security.storage.AppBundles com.apple.private.security.storage.AppDataContainers wiki.qaq.fila.client com.apple.private.InstallCoordination.allowed com.apple.private.InstallCoordination.uninstall; do
+# Every `com.apple.private.security.storage.<Class>` the daemon declares. A
+# data vault — `/var/mobile/Library/Photos` is one — refuses even root
+# without its class, as EPERM, so a build that lost one would ship a file
+# manager that cannot list that folder and calls it a permission problem.
+# The app and the helper carry the same set; the app reads the directory
+# over the daemon's descriptor, the helper walks archives itself.
+storage_classes="$(sed -n 's|.*<key>\(com\.apple\.private\.security\.storage\.[^<]*\)</key>.*|\1|p' "$daemon_entitlements" | sort -u)"
+[[ -n "$storage_classes" ]] || { echo "error: $daemon_entitlements declares no storage class" >&2; exit 65; }
+
+# The daemon admits a client only if the kernel says it carries the client,
+# platform and no-sandbox entitlements (`PeerAuthenticator`), so a build that
+# lost one would ship an app the daemon silently refuses to serve; the rest
+# fail quieter still, as one screen or one folder that does not work.
+for entitlement in platform-application com.apple.private.security.no-sandbox $storage_classes wiki.qaq.fila.client com.apple.private.InstallCoordination.allowed com.apple.private.InstallCoordination.uninstall; do
     require_true "$app_signed_entitlements" "$entitlement"
 done
 python3 "$(dirname "$0")/verify-icon-entitlements.py" "$app_signed_entitlements"
@@ -141,7 +152,7 @@ python3 "$(dirname "$0")/verify-icon-entitlements.py" "$app_signed_entitlements"
     echo "error: app is missing the daemon mach lookup entitlement" >&2
     exit 65
 }
-for entitlement in platform-application com.apple.private.security.no-sandbox com.apple.private.security.storage.AppBundles com.apple.private.security.storage.AppDataContainers; do
+for entitlement in platform-application com.apple.private.security.no-sandbox $storage_classes; do
     require_true "$daemon_signed_entitlements" "$entitlement"
     require_true "$helper_signed_entitlements" "$entitlement"
 done
