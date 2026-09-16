@@ -41,6 +41,7 @@ extension RootSplitViewController {
                 return
             }
             FilaLog.info("following link \(url)")
+            if link == .activate { return }
             await FileSession.shared.ready()
             self.follow(link)
         }
@@ -53,6 +54,24 @@ extension RootSplitViewController {
     /// apart. Everything else still arrives as a URL.
     func follow(_ link: FilaLink) {
         switch link {
+        case .activate:
+            return
+        case let .locate(path):
+            let navigation = content.navigation
+            Task {
+                let session = FileSession.shared
+                do {
+                    let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
+                    guard self.content.navigation === navigation, self.viewIfLoaded?.window != nil else { return }
+                    if details.node.isNavigable {
+                        self.open(path)
+                    } else {
+                        self.open(self.parent(of: path), select: (path as NSString).lastPathComponent)
+                    }
+                } catch let failure as FilaFailure {
+                    self.report(failure)
+                } catch {}
+            }
         case let .directory(path):
             open(path)
         case let .newTab(path):

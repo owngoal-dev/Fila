@@ -62,6 +62,8 @@
 
 | 链接 | 打开 |
 | --- | --- |
+| `fila://` | 唤起 Fila，保留当前页面或在冷启动时恢复状态 |
+| `fila://view/var/mobile/Documents` | 直接进入目录；文件则在父目录中选中，不打开预览 |
 | `fila:///var/mobile/Documents` | 文稿文件夹 |
 | `fila://open?path=/var/mobile` | 指定文件夹 |
 | `fila://open?path=/var/mobile&tab=new` | 在新标签页中打开该文件夹 |
@@ -74,6 +76,8 @@
 | `fila://app?bundle=com.example.thing&container=data` | 该应用的数据文件夹 |
 | `fila://apps` | 应用程序 |
 | `fila://settings` | 设置 |
+
+`fila://view/…` 同时提供 `path` 查询参数时，以查询参数为准，并沿用原来的查看器行为。URL 路径只解码一次。
 
 Fila 还为“快捷指令”提供十二项操作。其中七项用于读取：在 Fila 中打开、在 Fila 中显示、打开 App 容器、获取文件信息、列出文件夹、查找文件和获取文件文本。另外五项用于写入：新建文件夹、拷贝项目、移动项目、删除项目和向文件写入文本。
 

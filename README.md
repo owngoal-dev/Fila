@@ -60,6 +60,8 @@ Use `fila://` links in Shortcuts or other apps to open a folder, file, or screen
 
 | Link | Opens |
 | --- | --- |
+| `fila://` | Fila, keeping the current screen or restoring it on launch |
+| `fila://view/var/mobile/Documents` | A folder directly; a file is selected in its parent folder without preview |
 | `fila:///var/mobile/Documents` | The Documents folder |
 | `fila://open?path=/var/mobile` | The specified folder |
 | `fila://open?path=/var/mobile&tab=new` | The folder in a new tab |
@@ -72,6 +74,8 @@ Use `fila://` links in Shortcuts or other apps to open a folder, file, or screen
 | `fila://app?bundle=com.example.thing&container=data` | The app’s data folder |
 | `fila://apps` | Applications |
 | `fila://settings` | Settings |
+
+For `fila://view/…`, an explicit `path` query parameter takes precedence and keeps the existing viewer behavior. URL paths are decoded once.
 
 Fila also adds twelve actions to Shortcuts. Seven of them read: Open in Fila, Reveal in Fila, Open App Container, Get File Info, List Folder, Find Files, and Get Text from File. Five of them write: Create Folder, Copy Item, Move Item, Delete Item, and Write Text to File.
 

@@ -26,6 +26,9 @@ import Foundation
 /// calls `realpath(3)` and runs `FilaGuard` again on whatever finally reaches
 /// it. That is defence in depth, not an excuse for the first layer.
 enum FilaLink: Equatable {
+    case activate
+    /// Filza-compatible path form: show a directory or select a file.
+    case locate(String)
     /// `fila:///var/mobile/Documents` — and `fila://open?path=…`.
     case directory(String)
     /// `fila://open?path=…&tab=new`.
@@ -88,7 +91,11 @@ extension FilaLink {
         // teaches the third slash.
         let verb = components.host?.lowercased() ?? ""
         guard !verb.isEmpty else {
-            guard let path = Self.canonical(url.path) else { return nil }
+            if components.path.isEmpty, components.query == nil, components.fragment == nil {
+                self = .activate
+                return
+            }
+            guard let path = Self.canonical(components.path) else { return nil }
             self = wantsNewTab ? .newTab(path) : .directory(path)
             return
         }
@@ -101,8 +108,13 @@ extension FilaLink {
             guard let path = Self.path(values) else { return nil }
             self = .reveal(path)
         case "view":
-            guard let path = Self.path(values) else { return nil }
-            self = .view(path)
+            if components.queryItems?.contains(where: { $0.name.lowercased() == "path" }) == true {
+                guard let path = Self.path(values) else { return nil }
+                self = .view(path)
+            } else {
+                guard let path = Self.canonical(components.path) else { return nil }
+                self = .locate(path)
+            }
         case "info":
             guard let path = Self.path(values) else { return nil }
             self = .info(path)
