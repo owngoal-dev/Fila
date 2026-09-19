@@ -36,6 +36,8 @@ public struct SidebarRow: Sendable, Hashable {
         case bootstrap
         /// The user's home (`/var/mobile`, or the container).
         case home
+        /// The jailbreak's own `mobile`, inside its bootstrap.
+        case bootstrapHome
         case pictures
         /// The shared Inbox other apps save into.
         case inbox

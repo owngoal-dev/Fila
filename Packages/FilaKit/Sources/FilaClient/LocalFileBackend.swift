@@ -322,7 +322,21 @@ public class LocalFileBackend: FileBackend {
     func places() -> [SidebarRow] {
         guard let backend = hello?.backend else { return [] }
         let available = availablePlaces(backend: backend)
-        return orderedPresets.filter(isPresetEnabled).compactMap { available[$0] }
+        return orderedPresets.filter(isPresetEnabled).flatMap { preset in
+            [available[preset], preset == .mobile ? bootstrapHome(backend: backend) : nil].compactMap { $0 }
+        }
+    }
+
+    /// A jailbreak keeps a second `mobile` inside its bootstrap
+    /// (`<install root>/var/mobile`), where its own tools put their files.
+    /// It rides the Mobile preset — one switch, one position, directly under
+    /// the system's — and the app words the two apart.
+    func bootstrapHome(backend: LocalBackend) -> SidebarRow? {
+        guard case let .daemon(installRoot) = backend, !installRoot.isEmpty else { return nil }
+        let absolute = installRoot + "/var/mobile"
+        guard let path = servicePath(forAbsolute: absolute),
+              FileManager.default.fileExists(atPath: absolute) else { return nil }
+        return SidebarRow(id: LocalFileBackend.bootstrapHomeID, location: location(path), path: path, kind: .bootstrapHome)
     }
 
     /// Whether this root has a place for `preset`, hidden or not: what a
@@ -362,6 +376,9 @@ public class LocalFileBackend: FileBackend {
     public static func placeID(_ preset: LocalPreset) -> String {
         "\(preset)"
     }
+
+    /// The row id of the bootstrap's own `mobile`, beside the Mobile place.
+    public static let bootstrapHomeID = placeID(.mobile) + ".bootstrap"
 
     /// Matches the backend's trash: under a relocated bootstrap, otherwise
     /// under the configured volume.

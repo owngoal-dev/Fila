@@ -14,7 +14,9 @@ struct SidebarPlace: Hashable {
     let icon: FilePresentation.Icon
 
     @MainActor
-    init(_ row: SidebarRow, in backend: LocalFileBackend) {
+    /// `besideBootstrapHome`: the bootstrap's own `mobile` is listed too, so
+    /// the system's says which of the two it is.
+    init(_ row: SidebarRow, in backend: LocalFileBackend, besideBootstrapHome: Bool = false) {
         self.backend = backend.id
         id = row.id
         path = row.path.map(backend.absolutePath) ?? backend.rootPath
@@ -25,7 +27,16 @@ struct SidebarPlace: Hashable {
         case .home:
             // The container's Documents in a sandboxed process, the user's
             // home on a device that can see it.
-            title = row.id == LocalFileBackend.placeID(.root) ? String(localized: "Home") : String(localized: "Mobile")
+            if row.id == LocalFileBackend.placeID(.root) {
+                title = String(localized: "Home")
+            } else if besideBootstrapHome {
+                title = String(localized: "Mobile (System)")
+            } else {
+                title = String(localized: "Mobile")
+            }
+            icon = .artwork("home")
+        case .bootstrapHome:
+            title = String(localized: "Mobile (Bootstrap)")
             icon = .artwork("home")
         case .bootstrap:
             title = String(localized: "Bootstrap")
@@ -71,14 +82,26 @@ enum SidebarLocation {
         let rows = Dictionary(
             uniqueKeysWithValues: BackendComposition.sidebar.contribution(of: local.id).places.map { ($0.id, $0) }
         )
-        return local.orderedPresets.filter(local.isPresetEnabled).compactMap { preset in
+        let bootstrapHome = rows[LocalFileBackend.bootstrapHomeID]
+        return local.orderedPresets.filter(local.isPresetEnabled).flatMap { preset -> [Destination] in
             switch preset {
             case .applications:
-                return catalog(.applications)
+                return [catalog(.applications)].compactMap { $0 }
             case .music:
-                return catalog(.musicLibrary)
+                return [catalog(.musicLibrary)].compactMap { $0 }
+            case .mobile:
+                // The bootstrap's own `mobile` rides this preset, directly
+                // under the system's, and the two are worded apart.
+                let system = rows[LocalFileBackend.placeID(preset)].map {
+                    SidebarPlace($0, in: local, besideBootstrapHome: bootstrapHome != nil)
+                }
+                return [system, bootstrapHome.map { SidebarPlace($0, in: local) }]
+                    .compactMap { $0 }
+                    .map(Destination.directory)
             default:
-                return rows[LocalFileBackend.placeID(preset)].map { .directory(SidebarPlace($0, in: local)) }
+                return [rows[LocalFileBackend.placeID(preset)]]
+                    .compactMap { $0 }
+                    .map { .directory(SidebarPlace($0, in: local)) }
             }
         }
     }

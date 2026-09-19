@@ -256,6 +256,17 @@ struct LocalFileBackendPreferencesTests {
         #expect(rows[.bootstrap]?.path?.description == "jb")
         #expect(backend.trashDirectory(backend: .daemon(installRoot: scratch.path("jb"))).hasPrefix(scratch.path("jb")))
 
+        // The bootstrap's own mobile: only under a relocated daemon, and
+        // only once the folder exists.
+        #expect(backend.bootstrapHome(backend: .daemon(installRoot: scratch.path("jb"))) == nil)
+        scratch.directory("jb/var/mobile")
+        let bootstrapHome = backend.bootstrapHome(backend: .daemon(installRoot: scratch.path("jb")))
+        #expect(bootstrapHome?.path?.description == "jb/var/mobile")
+        #expect(bootstrapHome?.kind == .bootstrapHome)
+        #expect(bootstrapHome?.id == LocalFileBackend.bootstrapHomeID)
+        #expect(backend.bootstrapHome(backend: .daemon(installRoot: "")) == nil)
+        #expect(backend.bootstrapHome(backend: .local(reach: .user)) == nil)
+
         // A sandboxed process: home and inbox only.
         rows = backend.availablePlaces(backend: .local(reach: .container))
         #expect(Set(rows.keys) == [.root, .inbox])

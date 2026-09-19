@@ -207,24 +207,27 @@ final class OperationCoverViewController: UIViewController {
         }
     }
 
-    /// Match the library's normal action with an accessible UIKit button.
+    /// Match the library's accent action with an accessible UIKit button: the
+    /// library fills a card's only action, so the card's only button is filled.
     /// The alert library owns the card's width, corner radius and presentation.
     private func configure(_ button: UIButton, title: String) {
         button.do {
             $0.configuration = UIButton.Configuration.plain().with {
                 $0.title = title
-                $0.baseForegroundColor = AlertControllerConfiguration.accentColor
-                $0.background.backgroundColor = .clear
-                $0.background.strokeColor = AlertControllerConfiguration.accentColor
-                $0.background.strokeWidth = 1
+                $0.baseForegroundColor = AlertControllerConfiguration.accentForegroundColor
+                $0.background.backgroundColor = AlertControllerConfiguration.accentColor
                 $0.background.cornerRadius = 12
                 $0.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
                 $0.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
                     var outgoing = incoming
-                    outgoing.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: .systemFont(ofSize: 17))
+                    outgoing.font = UIFontMetrics(forTextStyle: .body)
+                        .scaledFont(for: .systemFont(ofSize: 17, weight: .semibold))
                     return outgoing
                 }
             }
+            // A fill does not dim with its title; work that cannot stop
+            // part-way must not look pressable.
+            $0.configurationUpdateHandler = { $0.alpha = $0.isEnabled ? 1 : 0.4 }
             $0.titleLabel?.numberOfLines = 0
             $0.titleLabel?.adjustsFontForContentSizeCategory = true
             $0.setContentCompressionResistancePriority(.required, for: .vertical)

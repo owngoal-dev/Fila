@@ -145,7 +145,7 @@ open class TabContentViewController: UIViewController {
     /// items into the page's folder — chosen now, whatever they were taken
     /// as, with that one first. The page shows the item only while
     /// `BackendShell.clipboard` is not nil.
-    public func makeClipboardItem(paste: @escaping @MainActor (TransferMode) -> Void) -> UIBarButtonItem {
+    public final func makeClipboardItem(paste: @escaping @MainActor (TransferMode) -> Void) -> UIBarButtonItem {
         let menu = UIMenu(children: [UIDeferredMenuElement.uncached { [weak self] done in
             guard let self, let shell = BackendScreens.shell, let clipboard = shell.clipboard else { return done([]) }
             let busy: UIMenuElement.Attributes = clipboard.isPasting ? .disabled : []
