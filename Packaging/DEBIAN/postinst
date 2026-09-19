@@ -19,8 +19,4 @@ if launchctl="$(find_tool launchctl)"; then
     "$launchctl" bootstrap system "$launch_plist"
 fi
 
-if uicache="$(find_tool uicache)"; then
-    "$uicache" -p @PREFIX@/Applications/Fila.app || true
-fi
-
 exit 0

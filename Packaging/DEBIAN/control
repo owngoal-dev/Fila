@@ -10,6 +10,8 @@ Description: Root file manager for @FLAVOR@ bootstraps
  over WebDAV. Deleted files go to a trash you can restore from, and the files
  your device needs in order to boot cannot be deleted by mistake.
 Icon: https://owngoal-dev.github.io/Fila/icon.png
+Depiction: https://owngoal-dev.github.io/Fila/
+SileoDepiction: https://owngoal-dev.github.io/Fila/depiction.json
 Maintainer: OwnGoal Studio <not-gonna-reply@owngoal.dev>
 Author: OwnGoal Studio <not-gonna-reply@owngoal.dev>
 Section: Utilities

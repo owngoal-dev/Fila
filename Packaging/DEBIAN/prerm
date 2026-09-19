@@ -16,9 +16,6 @@ if [ "${1:-}" = remove ] || [ "${1:-}" = deconfigure ]; then
     if launchctl="$(find_tool launchctl)"; then
         "$launchctl" bootout system/wiki.qaq.filad 2>/dev/null || true
     fi
-    if uicache="$(find_tool uicache)"; then
-        "$uicache" -u wiki.qaq.fila || true
-    fi
 fi
 
 exit 0

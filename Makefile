@@ -363,8 +363,8 @@ _packages-sandboxed:
 	"$(IPA_PACKAGER)" "$(SANDBOX_APP_BUNDLE)" ipa "$(IPA_OUTPUT)" "$(APP_VERSION)"
 
 # Build for FLAVOR and install it on the device behind `iproxy $(DEVICE_PORT) 22`.
-# The package's own postinst boots the daemon and runs uicache; nothing is
-# duplicated here.
+# The package's postinst boots the daemon; uikittools triggers register the app.
+# Neither step is duplicated here.
 install: deb
 	DEVICE_HOST="$(DEVICE_HOST)" DEVICE_PORT="$(DEVICE_PORT)" DEVICE_USER="$(DEVICE_USER)" \
 	DEVICE_PASSWORD="$(DEVICE_PASSWORD)" "$(DEVICE_INSTALLER)" "$(DEB_OUTPUT)"

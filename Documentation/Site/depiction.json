@@ -1,0 +1,661 @@
+{
+    "class": "DepictionTabView",
+    "minVersion": "0.4",
+    "headerImage": "https://raw.githubusercontent.com/owngoal-dev/Fila/main/Documentation/screenshots.png",
+    "tabs": [
+        {
+            "class": "DepictionStackView",
+            "tabname": "Details",
+            "views": [
+                {
+                    "class": "DepictionSubheaderView",
+                    "title": "Manage Your Files",
+                    "useBoldText": true
+                },
+                {
+                    "class": "DepictionHeaderView",
+                    "title": "Description"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Browse, organize, and edit files on your iPhone or iPad, with root access on supported roothide and rootless bootstraps.\n\n## Features\n\n- **Organize files:** Copy, move, rename, and search by name. Keep folders open in tabs and restore deleted items from Trash.\n- **View and edit:** Edit text and property lists, preview images and PDFs, play media, and inspect files in hex.\n- **Manage archives:** Create ZIP and TAR archives, and browse or extract formats including ZIP, TAR, 7z, and RAR.\n- **Connect and share:** Browse SMB shares, download files, and share folders through a browser or WebDAV client.\n- **Work with apps:** Browse app folders and install packages when your installation allows it.\n- **Use a terminal:** Open a shell in the current folder with the Debian package. Root sessions require Face ID, Touch ID, or your passcode.\n\n## Compatibility\n\nRequires iOS 15 or later. The Debian packages support roothide and rootless bootstraps and include root access. TrollStore and sideloaded versions are also available on [GitHub Releases](https://github.com/owngoal-dev/Fila/releases), with different file access and no terminal.\n\nAvailable in 13 languages. [Read the guide](https://github.com/owngoal-dev/Fila#using-fila) or [join the community](https://discord.gg/vqhDEep2mN).",
+                    "useSpacing": true
+                },
+                {
+                    "class": "DepictionHeaderView",
+                    "title": "Information"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionTableTextView",
+                    "title": "Version",
+                    "text": "0.5.8"
+                },
+                {
+                    "class": "DepictionTableTextView",
+                    "title": "iOS Versions",
+                    "text": "15 or later"
+                },
+                {
+                    "class": "DepictionTableTextView",
+                    "title": "Updated",
+                    "text": "September 20, 2026"
+                },
+                {
+                    "class": "DepictionTableTextView",
+                    "title": "Developer",
+                    "text": "OwnGoal Studio"
+                }
+            ]
+        },
+        {
+            "class": "DepictionStackView",
+            "tabname": "Changelog",
+            "views": [
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.7",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-19",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "- Fila stays in portrait on iPhone. iPad still rotates freely.\n- The Cancel button on a progress card is now a filled button, like the single button on other alerts, and dims when the work cannot be stopped part-way.\n- On a jailbreak whose bootstrap has its own `mobile` folder, the sidebar lists both: Mobile (System) and Mobile (Bootstrap).\n\nIncludes RootHide and rootless Debian packages, TrollStore TIPA, standard IPA, and SHA-256 checksums.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.6",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-19",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "- `fila://` by itself now opens Fila without changing the current screen.\n- `fila://view/path` matches Filza: a folder opens; a file is selected in its parent without preview. `fila://view?path=` still opens the viewer.\n\nIncludes RootHide and rootless Debian packages, TrollStore TIPA, standard IPA, and SHA-256 checksums.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.5",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-15",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.4",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-11",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.3",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-11",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.1",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-11",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.5.0",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-10",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.4.7",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-10",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.4.6",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-10",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.4.4",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-09",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.4.3",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "- Remove speculative directory prefetching and its shared cache after reports of navigation and tab-switching stutter in 0.4.2.\n- Remove eager browser loading before navigation. Load the visible directory and retain an existing tab's contents during refresh.\n- Cancel directory reads when leaving a page, discard late results, and release abandoned paginated listing handles.\n- Prevent hidden browser tabs from starting refreshes in response to file-operation notifications.\n\nIncludes RootHide and rootless Debian packages, TrollStore TIPA, standard IPA, and SHA-256 checksums.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.4.2",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "- Add album artwork, clearer song rows, and a large artwork preview in song details.\n- Add song export through Save To, with an editable filename based on the song title, plus deletion in the details menu.\n- Refresh populated music lists in the background and keep mutation progress visible through the confirmed list update.\n- Use the native single-entity deletion API instead of a batch import session.\n- Hide settings and bookmarks in the tab overview when the sidebar is visible. Close All opens a new tab at the configured launch location, which now defaults to the last visited folder.\n- Include directory prefetching and automatic keyboard focus when search opens.\n\nValidation: host tests and project/localization checks passed; the combined iOS build passed before the version update. The revised music deletion path still needs iPad runtime regression testing. An iOS 18.5 MusicLibrary I/O failure was investigated and its database was backed up; system recovery rebuilt that test library empty, which the owner chose to retain. This release does not claim that incident's underlying cause is fully resolved.\n\nIncludes RootHide and rootless Debian packages, TrollStore TIPA, standard IPA, and SHA-256 checksums.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.4.0",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.3.7",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.3.6",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.3.2",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both bootstrap layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.2.2",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-08",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both jailbreak layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.2.1",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-07",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both jailbreak layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.2.0",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-07",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both jailbreak layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.1.6",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-06",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both jailbreak layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.1.4",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-06",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both jailbreak layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.1.3",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-06",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "## 更新内容\n\n- 修复 iOS 18 下从收藏、书签跳转目录时闪退的问题。\n- 支持双指滑动进入文件多选。\n- 为错误弹窗补齐关闭按钮；批量移入废纸篓失败时可关闭或永久删除原路径上剩余的项目。\n- 永久删除确认统一使用红色按钮，删除图标统一使用标准垃圾桶图标。\n- 成功提示简化为单行勾选样式，保留撤销；错误改用可关闭的弹窗。\n- 侧边栏新增可折叠的“挂载点”分区，由后端提供挂载路径和只读状态。\n\n## 安装包\n\n- `iphoneos-arm64e.deb`：RootHide\n- `iphoneos-arm64.deb`：rootless\n- `.tipa`：TrollStore\n- `.ipa`：常规重签名安装，包含标准 App Group entitlement\n\n314 项核心测试通过；已验证 iOS 18 模拟器导航回归与界面，并完成 iOS 构建和安装包校验。本版未新增真机或 vphone 的特权 XPC 验证。\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                },
+                {
+                    "class": "DepictionLayerView",
+                    "views": [
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "Fila 0.1.2",
+                            "fontWeight": "bold",
+                            "fontSize": 16
+                        },
+                        {
+                            "class": "DepictionLabelView",
+                            "text": "2026-09-06",
+                            "fontWeight": "semibold",
+                            "fontSize": 16,
+                            "textColor": "#696969",
+                            "alignment": 2
+                        }
+                    ]
+                },
+                {
+                    "class": "DepictionMarkdownView",
+                    "markdown": "Fila file manager for iOS. Includes RootHide and rootless Debian packages,\na TrollStore TIPA, and a standard IPA with its App Group entitlement.\n\nNative app and daemon retain physical filesystem paths. Destructive\noperations are protected by FilaGuard on both jailbreak layouts. RootHide device\nvalidation remains pending; CI verifies builds, host tests and archives.\n"
+                },
+                {
+                    "class": "DepictionSeparatorView"
+                }
+            ]
+        }
+    ]
+}

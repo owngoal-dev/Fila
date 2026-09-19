@@ -641,9 +641,10 @@ sentence. The same script fails on a missing or `""` message.
 - `make install` — build for `FLAVOR` and update an existing installation
   through `Scripts/install-device.sh`. Its default transport is `iproxy 2333 22`;
   `DEVICE_HOST`, `DEVICE_PORT`, `DEVICE_USER` and `DEVICE_PASSWORD` support an
-  explicitly authorized device. The package's postinst boots the daemon and
-  runs `uicache`. The updater derives the real bootstrap from the installed
-  package, so first installation still uses the device's package installer.
+  explicitly authorized device. The package's postinst boots the daemon;
+  uikittools triggers register the app. The updater derives the real bootstrap
+  from the installed package, so first installation still uses the device's
+  package installer.
   The script's optional `--launch` argument closes the old Fila before installation
   and asks iOS to open the new one afterward. Confirm the installed payload and actual launch: a locked
   iPad can accept installation while refusing to launch the app. Without it, a

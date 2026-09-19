@@ -54,7 +54,7 @@ shell_quote() {
 }
 
 # A non-login ssh shell on a jailbroken guest can come up with nothing but
-# /usr/bin:/bin — the vphone's does — and sudo, dpkg and uicache all live in
+# /usr/bin:/bin — the vphone's does — and sudo and dpkg live in
 # the bootstrap. Added rather than substituted, and inside the remote shell as
 # well because sudo may impose its own secure_path. A relocated roothide
 # bootstrap is not guessable from here; its own profile puts it on PATH.
@@ -128,10 +128,9 @@ if [[ "${2:-}" == --launch ]]; then
     fi'
 fi
 
-# `dpkg -i` runs the package's own postinst, which is what boots the daemon
-# (`launchctl bootstrap system`) and registers the app with SpringBoard
-# (`uicache`). Nothing here duplicates that — a second copy of those steps is a
-# second place for them to drift.
+# `dpkg -i` runs the package's postinst to boot the daemon
+# (`launchctl bootstrap system`); uikittools triggers register the app with
+# SpringBoard. Neither step is duplicated here.
 #
 # The password reaches `sudo -S` down the ssh session's own stdin and is never
 # written into the remote command line. Spelling it into a quoted string there
