@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Lakr233/Runestone.xcframework.git",
       "state" : {
-        "revision" : "9d52056235eab6ae5dc294f42b1743f4b3d5fc76",
-        "version" : "0.3.1"
+        "revision" : "90576ae5769b1e0ba49b8616cf2de045a8dc36af",
+        "version" : "0.3.2"
       }
     },
     {

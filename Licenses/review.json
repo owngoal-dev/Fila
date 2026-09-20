@@ -2,7 +2,7 @@
   "binaryRevisions": {
     "libarchive.xcframework": "3bda868f1868790de2dd246a9eff76eeecba3537",
     "libghostty-spm": "7e45d27160f9b34aca9ca5c9820e9207482f9f04",
-    "runestone.xcframework": "9d52056235eab6ae5dc294f42b1743f4b3d5fc76"
+    "runestone.xcframework": "90576ae5769b1e0ba49b8616cf2de045a8dc36af"
   },
   "notices": {
     "app/Fila": {
