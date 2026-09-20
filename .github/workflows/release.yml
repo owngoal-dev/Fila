@@ -60,6 +60,12 @@ jobs:
         run: make compile DERIVED_DATA="$RUNNER_TEMP/fila-derived"
       - name: Package and verify both .deb flavours and the .tipa
         run: make _packages-full DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      # Signing with ldid leaves LC_UUID alone, so these match what ships.
+      - name: Archive dSYMs
+        run: |
+          version="$(make --no-print-directory print-version)"
+          cd "$RUNNER_TEMP/fila-derived/Build/Products/Release-iphoneos"
+          zip -qry "$GITHUB_WORKSPACE/build/Packages/Fila_${version}_dSYMs.zip" *.dSYM
       - name: Write exact release checksums
         run: |
           version="$(make --no-print-directory print-version)"
@@ -67,7 +73,8 @@ jobs:
           shasum -a 256 \
             "wiki.qaq.fila_${version}_iphoneos-arm64.deb" \
             "wiki.qaq.fila_${version}_iphoneos-arm64e.deb" \
-            "Fila_${version}.tipa" > SHA256SUMS.full
+            "Fila_${version}.tipa" \
+            "Fila_${version}_dSYMs.zip" > SHA256SUMS.full
       - uses: actions/upload-artifact@v4
         with:
           name: fila-packages-full
@@ -96,11 +103,19 @@ jobs:
         run: make compile-sandboxed DERIVED_DATA="$RUNNER_TEMP/fila-derived"
       - name: Package and verify the .ipa
         run: make _packages-sandboxed DERIVED_DATA="$RUNNER_TEMP/fila-derived"
+      # The sandboxed composition builds into DERIVED_DATA-sandboxed.
+      - name: Archive dSYMs
+        run: |
+          version="$(make --no-print-directory print-version)"
+          cd "$RUNNER_TEMP/fila-derived-sandboxed/Build/Products/Release-iphoneos"
+          zip -qry "$GITHUB_WORKSPACE/build/Packages/Fila_${version}_sandboxed_dSYMs.zip" *.dSYM
       - name: Write exact release checksums
         run: |
           version="$(make --no-print-directory print-version)"
           cd build/Packages
-          shasum -a 256 "Fila_${version}.ipa" > SHA256SUMS.sandboxed
+          shasum -a 256 \
+            "Fila_${version}.ipa" \
+            "Fila_${version}_sandboxed_dSYMs.zip" > SHA256SUMS.sandboxed
       - uses: actions/upload-artifact@v4
         with:
           name: fila-packages-sandboxed
@@ -148,6 +163,8 @@ jobs:
           files=("build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64.deb"
                  "build/Packages/wiki.qaq.fila_${version}_iphoneos-arm64e.deb"
                  "build/Packages/Fila_${version}.ipa" "build/Packages/Fila_${version}.tipa"
+                 "build/Packages/Fila_${version}_dSYMs.zip"
+                 "build/Packages/Fila_${version}_sandboxed_dSYMs.zip"
                  "build/Packages/SHA256SUMS")
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" --clobber "${files[@]}"
