@@ -8,7 +8,7 @@ set -euo pipefail
 
 root="${SRCROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
-command -v npm >/dev/null || { echo "error: npm is required to build the web UI (brew install node)" >&2; exit 69; }
+command -v npm >/dev/null || { echo "error: npm is required to build the web UI (install Node.js with your preferred package manager)" >&2; exit 69; }
 
 cd "$root/WebUI"
 if [[ ! -d node_modules || package-lock.json -nt node_modules/.package-lock.json ]]; then

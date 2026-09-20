@@ -656,11 +656,11 @@ sentence. The same script fails on a missing or `""` message.
   from a dedicated temporary directory over HTTP. No SSH and no VM restart.
   The running VM's native socket places the download URL in its clipboard;
   in Safari, paste and download. Open Files → Recents, tap `Fila.deb`, then
-  install it in Sileo. Close the old Fila in the App Switcher and reopen it;
+  install it in your preferred package manager. Close the old Fila in the App Switcher and reopen it;
   check the changed features.
   The script neither installs nor claims a test result. Ctrl-C
   stops the server and removes its temporary copy. Same-version rebuilds may
-  reuse Sileo's old APT cache: remove only the previous Fila `.deb` inside the
+  reuse the package manager's old APT cache: remove only the previous Fila `.deb` inside the
   writable bootstrap via Fila before reinstalling. `VPHONE_HTTP_HOST` defaults
   to `192.168.64.1` and `VPHONE_HTTP_PORT` to `8765`; the server requires a specific host IPv4
   address, never `0.0.0.0`. `VPHONE_SOCKET`, `FLAVOR` (default `rootless`),

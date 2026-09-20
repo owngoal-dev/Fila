@@ -11,9 +11,9 @@
 
 ## 安装
 
-在受支持的设备上，在 Sileo、Zebra 或其他包管理器中添加 OwnGoal Studio 软件源：
+在受支持的设备上，在你常用的包管理器中添加 OwnGoal Studio 软件源：
 
-**[添加到 Sileo](sileo://source/https://apt.owngoal.dev)** · [apt.owngoal.dev](https://apt.owngoal.dev/)
+**[apt.owngoal.dev](https://apt.owngoal.dev/)**
 
 也可从 [GitHub Releases](https://github.com/owngoal-dev/Fila/releases) 下载。请选择与安装方式匹配的文件。
 

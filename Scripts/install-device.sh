@@ -35,7 +35,7 @@ ssh_options=(
 )
 
 if [ -n "$password" ]; then
-    command -v sshpass >/dev/null || { echo "error: DEVICE_PASSWORD is set but sshpass is not installed (brew install sshpass)" >&2; exit 69; }
+    command -v sshpass >/dev/null || { echo "error: DEVICE_PASSWORD is set but sshpass is not installed (install it with your preferred package manager)" >&2; exit 69; }
     run_ssh() { sshpass -p "$password" ssh "${ssh_options[@]}" -p "$port" "$user@$host" "$@"; }
 else
     run_ssh() { ssh "${ssh_options[@]}" -p "$port" "$user@$host" "$@"; }

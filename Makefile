@@ -142,7 +142,7 @@ help:
 	@echo "  ipa         Package the sandboxed composition for AltStore/SideStore/Sideloadly"
 	@echo "  packages    All four: both .deb flavours, the .tipa and the .ipa"
 	@echo "  install     Build for FLAVOR and install it on the device via iproxy"
-	@echo "  vphone      Incremental Debug build and serve one .deb for Safari/Sileo (no SSH)"
+	@echo "  vphone      Incremental Debug build and serve one .deb for Safari and your preferred package manager (no SSH)"
 	@echo "              Install and check features in the VM; Ctrl-C stops the server"
 	@echo "              Defaults: rootless, HTTP 192.168.64.1:8765; VPHONE_HTTP_HOST and VPHONE_HTTP_PORT override"
 	@echo "  set-version Write VERSION=x.y.z [BUILD=n] into Configuration/Version.xcconfig"
@@ -372,7 +372,7 @@ install: deb
 # Development only: Xcode owns incremental rebuilds; package signing and its
 # entitlement checks still run. `build`, `deb`, and `install` retain all gates.
 # Environment / command-line overrides are exported by make; file defaults
-# remain private. Safari/Sileo handle installation; runtime checks are separate.
+# remain private. Safari and the package manager handle installation; runtime checks are separate.
 vphone:
 	@"$(ROOT_DIR)/Scripts/vphone.sh"
 

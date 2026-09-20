@@ -146,9 +146,9 @@ The remaining verifiers, one line each:
 ## Same-version updates
 
 `make vphone` uses a SHA-256-derived download filename and prints the full hash.
-This distinguishes Safari downloads, but does not replace Sileo's package-version
-identity. Same-version updates can still need removal of only the previous Fila
-package from Sileo's APT cache. Close and reopen Fila after updating.
+This distinguishes Safari downloads, but does not replace the package manager's
+package-version identity. Same-version updates can still need removal of only
+the previous Fila package from its APT cache. Close and reopen Fila after updating.
 
 ## Regression tests
 

@@ -11,9 +11,9 @@ Browse, organize, and edit files on your iPhone or iPad. Install Fila on a suppo
 
 ## Install
 
-On a supported device, add the OwnGoal Studio repository in Sileo, Zebra, or another package manager:
+On a supported device, add the OwnGoal Studio repository in your preferred package manager:
 
-**[Add to Sileo](sileo://source/https://apt.owngoal.dev)** · [apt.owngoal.dev](https://apt.owngoal.dev/)
+**[apt.owngoal.dev](https://apt.owngoal.dev/)**
 
 Packages are also on [GitHub Releases](https://github.com/owngoal-dev/Fila/releases). Choose the file that matches how you install apps.
 
