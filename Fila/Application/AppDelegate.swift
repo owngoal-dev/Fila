@@ -93,8 +93,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 }
                 context.addAction(title: String.LocalizationValue("Quit Fila"), attribute: .accent) {
                     context.dispose {
-                        self.applicationWillTerminate(.shared)
-                        exit(0)
+                        QuietExit.run { self.applicationWillTerminate(.shared) }
                     }
                 }
             }
