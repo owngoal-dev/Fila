@@ -5,5 +5,5 @@
 // silently shadows these and ships the wrong build number — `make check`
 // rejects that, keep it that way.
 
-MARKETING_VERSION = 0.5.10
-CURRENT_PROJECT_VERSION = 171
+MARKETING_VERSION = 0.5.11
+CURRENT_PROJECT_VERSION = 172

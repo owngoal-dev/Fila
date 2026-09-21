@@ -669,7 +669,7 @@ sentence. The same script fails on a missing or `""` message.
   confirmation. This development target skips release gates; run
   `make harness` and `make check` before shipping.
 - Packaging inputs are templates: `@PREFIX@` in
-  `Packaging/wiki.qaq.filad.plist`, `DEBIAN/postinst` and `DEBIAN/prerm` is
+  `Packaging/wiki.qaq.filad.plist`, `DEBIAN/postinst`, `DEBIAN/prerm` and `DEBIAN/postrm` is
   substituted at package time, `@FLAVOR@` and friends in `DEBIAN/control`.
   `Packaging/Fila-Info.plist` is merged into the generated Info.plist and holds
   only the keys Xcode has no `INFOPLIST_KEY_*` setting for.
@@ -1013,7 +1013,9 @@ these and check for them by name:
   points at the product its comment names — `make check` does not.
 - **DerivedData is shared.** `DERIVED_DATA` defaults to one path, so concurrent
   builds cross-contaminate and hand out false greens and false reds. Give every
-  parallel worker its own (`make build DERIVED_DATA=/tmp/fila-dd-<name>`).
+  parallel worker its own (`make build DERIVED_DATA=/private/tmp/fila-dd-<name>` — spelled
+  `/private/tmp`, never `/tmp`, or a package manifest that strips its own
+  checkout path finds no headers).
 - **Worktrees are cut from an older base.** Verify the intended base before
   creating an isolated checkout, and pin it in the brief. Never reset a shared
   working tree containing another contributor's changes.

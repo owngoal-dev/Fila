@@ -169,11 +169,11 @@ sed \
     "$control_template" >"$debian/control"
 
 packaging_root="$(cd "$(dirname "$control_template")/.." && pwd -P)"
-for script in postinst prerm; do
+for script in postinst prerm postrm; do
     sed -e "s|@PREFIX@|$install_prefix|g" "$packaging_root/DEBIAN/$script" >"$debian/$script"
 done
 chmod 0644 "$debian/control"
-chmod 0755 "$debian/postinst" "$debian/prerm"
+chmod 0755 "$debian/postinst" "$debian/prerm" "$debian/postrm"
 
 dpkg-deb --root-owner-group -Zzstd -b "$staging" "$temporary_deb"
 bash "$scripts/verify-deb.sh" "$temporary_deb" "$package_id" "$version" "$architecture" "$install_prefix"

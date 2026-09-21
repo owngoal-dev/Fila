@@ -13,9 +13,20 @@ find_tool() {
     return 1
 }
 
-launch_plist=@PREFIX@/Library/LaunchDaemons/wiki.qaq.filad.plist
+# The daemon id is named once, alone on its line. A rename that swallows the
+# space before a redirect turns `system/<id> 2>/dev/null` into
+# `system/<id>2>/dev/null`: still valid sh, so `sh -n` passes, but launchctl is
+# handed the wrong label and its errors are no longer silenced.
+label=wiki.qaq.filad
+launch_plist="@PREFIX@/Library/LaunchDaemons/$label.plist"
 if launchctl="$(find_tool launchctl)"; then
-    "$launchctl" bootout system/wiki.qaq.filad 2>/dev/null || true
+    # Roothide's launchctl can land a jbroot daemon in the per-user domain
+    # even when asked for system. An upgrade that only boots out system/
+    # leaves the old instance holding the Mach service.
+    "$launchctl" bootout "system/$label" 2>/dev/null || true
+    "$launchctl" bootout "user/501/$label" 2>/dev/null || true
+    "$launchctl" bootout "gui/501/$label" 2>/dev/null || true
+    "$launchctl" enable "system/$label" 2>/dev/null || true
     "$launchctl" bootstrap system "$launch_plist"
 fi
 

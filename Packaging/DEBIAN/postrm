@@ -1,6 +1,7 @@
 #!/bin/sh
-# Scripts/package-deb.sh substitutes the install prefix below: empty for
-# roothide, /var/jb for rootless.
+# dpkg runs postrm even when prerm was skipped or failed (--force-remove, a
+# broken earlier state). Everything here has to be safe to repeat and safe
+# when nothing is left to clean.
 
 find_tool() {
     for candidate in "@PREFIX@/usr/bin/$1" "/usr/bin/$1" "/bin/$1"; do
@@ -15,7 +16,7 @@ find_tool() {
 # Named once, alone on its line: see postinst for why the id never sits next
 # to a redirect.
 label=wiki.qaq.filad
-if [ "${1:-}" = remove ] || [ "${1:-}" = deconfigure ]; then
+if [ "${1:-}" = remove ] || [ "${1:-}" = purge ]; then
     if launchctl="$(find_tool launchctl)"; then
         "$launchctl" bootout "system/$label" 2>/dev/null || true
         "$launchctl" bootout "user/501/$label" 2>/dev/null || true

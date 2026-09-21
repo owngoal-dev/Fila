@@ -210,6 +210,17 @@ check:
 	@objver="$$(sed -n 's/^[[:space:]]*objectVersion = \([0-9]*\);.*/\1/p' "$(PROJECT)/project.pbxproj")"; \
 		[[ "$$objver" == "$(PROJECT_OBJECT_VERSION)" ]] || { echo "error: project.pbxproj objectVersion must stay $(PROJECT_OBJECT_VERSION) so Xcode 16+ can read it, got '$$objver' (newer Xcode rewrites it on save)" >&2; exit 65; }
 	@plutil -lint "$(ENTITLEMENTS)" "$(DAEMON_ENTITLEMENTS)" "$(LAUNCH_DAEMON)" "$(INFO_PLIST_SUPPLEMENT)"
+	@for key in KeepAlive RunAtLoad; do \
+		/usr/libexec/PlistBuddy -c "Print :$$key" "$(LAUNCH_DAEMON)" >/dev/null 2>&1 \
+			&& { echo "error: filad is on-demand; the launchd plist must not set $$key" >&2; exit 65; } || true; \
+	done
+	@for hook in postinst prerm postrm; do \
+		sh -n "$(ROOT_DIR)/Packaging/DEBIAN/$$hook" || exit 65; \
+		grep -nE '[A-Za-z0-9_@]2>' "$(ROOT_DIR)/Packaging/DEBIAN/$$hook" \
+			&& { echo "error: $$hook has a word glued to a redirect" >&2; exit 65; } || true; \
+		grep -q 'uicache' "$(ROOT_DIR)/Packaging/DEBIAN/$$hook" \
+			&& { echo "error: $$hook must not call uicache; uikittools triggers register the app" >&2; exit 65; } || true; \
+	done
 	@targets="$$(xcodebuild -project "$(PROJECT)" -list)" || exit $$?; \
 	for target in Filad FilaArchive Fila FilaSandboxed FilaCore FilaLocal FilaPrivileged FilaApplications FilaMusicLibrary FilaSMB; do \
 		grep -Eq "^[[:space:]]*$$target[[:space:]]*$$" <<<"$$targets" \

@@ -92,16 +92,35 @@ expect "App icon" \
     "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName' "$installed_app/Info.plist" 2>/dev/null || true)" \
     "AppIcon"
 
-for script in postinst prerm; do
+expect "LaunchDaemon label" \
+    "$(/usr/libexec/PlistBuddy -c 'Print :Label' "$installed_launchd")" \
+    "wiki.qaq.filad"
+
+for script in postinst prerm postrm; do
     body="$(dpkg-deb -I "$deb" "$script")"
     if grep -F '@PREFIX@' <<<"$body" >/dev/null; then
         echo "error: $script kept an unsubstituted install prefix" >&2
         exit 65
     fi
+    # `<id>2>/dev/null` is valid sh with the wrong launchctl label.
+    if grep -E '[A-Za-z0-9_@]2>' <<<"$body" >/dev/null; then
+        echo "error: $script has a word glued to a redirect" >&2
+        exit 65
+    fi
+    expect "$script daemon label" "$(grep -c '^label=wiki.qaq.filad$' <<<"$body")" "1"
 done
 
-dpkg-deb -I "$deb" postinst \
-    | grep -F "$install_prefix/Library/LaunchDaemons/wiki.qaq.filad.plist" >/dev/null || {
+# Every domain the old instance can live in is booted out before bootstrap:
+# roothide's launchctl can land the daemon in the per-user domain.
+postinst_body="$(dpkg-deb -I "$deb" postinst)"
+for domain in system user/501 gui/501; do
+    grep -F "bootout \"$domain/\$label\"" <<<"$postinst_body" >/dev/null || {
+        echo "error: postinst does not boot out $domain" >&2
+        exit 65
+    }
+done
+
+grep -F "launch_plist=\"$install_prefix/Library/LaunchDaemons/\$label.plist\"" <<<"$postinst_body" >/dev/null || {
     echo "error: postinst does not bootstrap the installed LaunchDaemon plist" >&2
     exit 65
 }

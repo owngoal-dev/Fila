@@ -32,6 +32,12 @@ if [[ "$xcode_status" -ne 0 || "$errors_in_log" -ne 0 ]]; then
     if [[ "$errors_in_log" -ne 0 ]]; then
         grep -En "$error_pattern" "$log" | head -40 >&2 || true
     fi
+    # A compiler killed by the system or a failing script phase reports no
+    # "error:" line at all; the failed command and the raw tail are the only
+    # trace, and the raw log is gone once this script exits.
+    grep -En 'failed with a nonzero exit code|The following build commands failed' -A 12 "$log" | head -60 >&2 || true
+    echo "--- last 80 lines of the raw log ---" >&2
+    tail -n 80 "$log" >&2
     if [[ "$xcode_status" -ne 0 ]]; then
         exit "$xcode_status"
     fi

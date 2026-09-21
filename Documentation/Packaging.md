@@ -15,7 +15,7 @@ the paths differ, and the daemon works out at runtime which layout it landed
 in through `InstallRoot`. No prefix is written in Swift.
 
 `Scripts/package-deb.sh` substitutes `@PREFIX@` into the LaunchDaemon plist and
-into `postinst` and `prerm` as it stages the payload. `Scripts/verify-deb.sh`
+into `postinst`, `prerm` and `postrm` as it stages the payload. `Scripts/verify-deb.sh`
 then walks the archive's whole file list and fails on any path outside the
 prefix: on rootless a stray rootful path would install onto the sealed system
 volume, and nothing downstream would notice. Everything else in this document
@@ -34,14 +34,27 @@ left out of the copy is a packaging failure rather than a missing feature on
 the device.
 
 `postinst` boots the daemon: it looks `launchctl` up under the prefix and then
-in `/usr/bin` and `/bin`, boots the job out if it is already loaded, bootstraps
-the installed plist into `system`, and runs `uicache -p` on the installed app
-so SpringBoard shows it. `prerm` reverses that on `remove` and `deconfigure` —
-`bootout` and `uicache -u wiki.qaq.fila`. Both are templates, and
-`verify-deb.sh` fails if either kept an unsubstituted `@PREFIX@`, and again if
-`postinst` does not name the installed LaunchDaemon plist: a maintainer script
-that installs cleanly and boots nothing looks exactly like a daemon that has
-not spawned yet.
+in `/usr/bin` and `/bin`, boots the job out of `system`, `user/501` and
+`gui/501` (roothide's launchctl can land a jbroot daemon in the per-user
+domain, and an instance left there keeps the Mach service across an upgrade),
+clears a leftover disable with `enable`, and bootstraps the installed plist
+into `system`. `prerm` boots the job out of the same three domains on `remove`
+and `deconfigure`, and `postrm` repeats that on `remove` and `purge`, because
+dpkg runs it even when `prerm` was skipped. The hooks manage the daemon only:
+uikittools' triggers register and unregister the app, and `make check` fails
+on a hook that calls `uicache`. Each hook names the daemon once, as
+`label=wiki.qaq.filad` alone on its line, so a rename can never glue the id to
+a redirect. All three are templates, and `verify-deb.sh` fails if one kept an
+unsubstituted `@PREFIX@`, lost its label, or has a word glued to a redirect,
+and again if `postinst` does not boot out all three domains or does not name
+the installed LaunchDaemon plist: a maintainer script that installs cleanly
+and boots nothing looks exactly like a daemon that has not spawned yet.
+
+The plist ships `@PREFIX@/usr/libexec/filad` — a rootful path on roothide,
+never an absolute jbroot path. roothide renames the jbroot at every
+re-jailbreak and its launchctl rewrites the plists under
+`Library/LaunchDaemons` to match; a rootful path loaded by the bootstrap's own
+launchctl is what survives that.
 
 ## Two compositions
 
