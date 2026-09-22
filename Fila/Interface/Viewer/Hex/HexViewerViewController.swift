@@ -238,6 +238,7 @@ final class HexRowCell: UITableViewCell {
             $0.lineBreakMode = .byCharWrapping
         }
         contentView.addSubview(line)
+        isAccessibilityElement = true
         line.snp.makeConstraints { make in
             make.leading.trailing.equalTo(contentView.layoutMarginsGuide)
             make.top.equalToSuperview().offset(FilaUI.Spacing.small)
@@ -273,5 +274,12 @@ final class HexRowCell: UITableViewCell {
         )
         text.append(NSAttributedString(string: hex + " |" + ascii + "|", attributes: [.foregroundColor: UIColor.label]))
         line.attributedText = text
+        // One element: the row is "offset, bytes, text". Read as drawn it is a
+        // line break, column padding and two pipes spoken out loud.
+        accessibilityLabel = [
+            String(format: "%08llx", offset),
+            hex.trimmingCharacters(in: .whitespaces),
+            ascii,
+        ].joined(separator: ", ")
     }
 }

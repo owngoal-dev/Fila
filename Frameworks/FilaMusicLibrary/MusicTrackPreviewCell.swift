@@ -41,6 +41,9 @@ final class MusicTrackPreviewCell: UITableViewCell {
             make.leading.trailing.equalTo(contentView.safeAreaLayoutGuide).inset(FilaUI.Spacing.large)
             make.bottom.equalToSuperview().inset(FilaUI.Spacing.large)
         }
+        // One element: the song's name and who made it are one sentence,
+        // and the artwork above them is already switched off.
+        isAccessibilityElement = true
     }
 
     @available(*, unavailable)
@@ -58,5 +61,7 @@ final class MusicTrackPreviewCell: UITableViewCell {
         titleLabel.text = title.isEmpty ? String(localized: "Untitled", bundle: MusicLibraryBackend.bundle) : title
         subtitleLabel.text = [artist, album].filter { !$0.isEmpty }.joined(separator: " · ")
         artwork.show(id: track.id, pixelSize: 512)
+        accessibilityLabel = [titleLabel.text, artist, album]
+            .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
     }
 }

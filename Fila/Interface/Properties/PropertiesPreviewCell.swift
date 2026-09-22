@@ -59,5 +59,9 @@ final class PropertiesPreviewCell: UITableViewCell {
         preview.image = image
         nameLabel.text = title
         kindLabel.text = kind
+        // One element: the artwork is decorative and the two lines under it
+        // are one sentence, not two stops at the top of the page.
+        isAccessibilityElement = true
+        accessibilityLabel = [title, kind].joined(separator: ", ")
     }
 }

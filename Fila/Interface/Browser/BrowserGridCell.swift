@@ -24,6 +24,8 @@ final class BrowserGridCell: UICollectionViewCell {
             $0.clipsToBounds = true
         }
         image.addSubview(appBadge)
+        image.isAccessibilityElement = false
+        appBadge.isAccessibilityElement = false
         label.do {
             $0.font = .preferredFont(forTextStyle: .footnote)
             $0.adjustsFontForContentSizeCategory = true
@@ -49,6 +51,11 @@ final class BrowserGridCell: UICollectionViewCell {
             make.leading.equalToSuperview().offset(2)
             make.trailing.equalToSuperview().offset(-2)
         }
+        // One element: the tile is a picture and its name, and `configure`
+        // writes the sentence. Without this the cell's own label is never
+        // read — the name label under the icon is what VoiceOver stops on.
+        isAccessibilityElement = true
+        accessibilityTraits = .button
     }
 
     @available(*, unavailable)
@@ -65,7 +72,12 @@ final class BrowserGridCell: UICollectionViewCell {
     deinit { thumbnailTask?.cancel() }
 
     override var isSelected: Bool {
-        didSet { contentView.backgroundColor = isSelected ? .systemFill : nil }
+        didSet {
+            contentView.backgroundColor = isSelected ? .systemFill : nil
+            // The fill is the only thing that says "picked" in the grid, and
+            // a custom element gets no selected state from UIKit.
+            accessibilityTraits = isSelected ? [.button, .selected] : [.button]
+        }
     }
 
     func configure(node: FileNode, path: String, session: FileSession, decoration: FolderDecoration? = nil) {

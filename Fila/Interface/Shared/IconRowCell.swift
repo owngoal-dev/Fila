@@ -67,6 +67,9 @@ final class IconRowCell: UICollectionViewListCell {
             $0.tintColor = .secondaryLabel
             $0.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: FilaUI.IconSize.inline)
             $0.setContentHuggingPriority(.required, for: .horizontal)
+            // The picture and its corner marks are what the row's label
+            // already says in words; VoiceOver never stops on them.
+            $0.isAccessibilityElement = false
         }
 
         linkBadge.do {
@@ -88,6 +91,10 @@ final class IconRowCell: UICollectionViewListCell {
             $0.clipsToBounds = true
         }
         iconView.addSubview(appBadge)
+
+        for badge in [linkBadge, appBadge, favoriteBadge] {
+            badge.isAccessibilityElement = false
+        }
 
         nameLabel.do {
             $0.font = .preferredFont(forTextStyle: .body)
@@ -290,10 +297,18 @@ final class IconRowCell: UICollectionViewListCell {
             accessories.append(.disclosureIndicator(displayed: .whenNotEditing))
         }
 
-        accessibilityLabel = [nameLabel.text, sizeLabel.text, detailLabel.text]
-            .compactMap(\.self)
-            .filter { !$0.isEmpty }
-            .joined(separator: ", ")
+        // The alias mark is the one thing the row shows that the words do not:
+        // a link wears its target's picture, so without this a link to a PNG
+        // and the PNG itself read identically.
+        accessibilityLabel = [
+            nameLabel.text,
+            node.kind == .symbolicLink ? String(localized: "Symbolic Link") : nil,
+            sizeLabel.text,
+            detailLabel.text,
+        ]
+        .compactMap(\.self)
+        .filter { !$0.isEmpty }
+        .joined(separator: ", ")
     }
 
     /// The second line: where a link points, or when the item last changed.

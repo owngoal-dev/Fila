@@ -34,6 +34,8 @@ final class SaveActionViewController: UIViewController {
             $0.adjustsFontForContentSizeCategory = true
             $0.textAlignment = .center
         }
+        // The status line below it already says the work is running.
+        activity.isAccessibilityElement = false
         activity.startAnimating()
         let stack = UIStackView(arrangedSubviews: [title, activity, status, done]).then {
             $0.axis = .vertical

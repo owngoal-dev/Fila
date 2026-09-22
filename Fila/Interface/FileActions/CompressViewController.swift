@@ -122,23 +122,32 @@ final class CompressViewController: UIViewController {
             case .format:
                 content.text = String(localized: "Format")
                 cell.accessories = [
-                    menuAccessory(ArchiveFormat.allCases, selected: format, title: Self.title(for:)) {
-                        self.format = $0
-                    },
+                    menuAccessory(
+                        ArchiveFormat.allCases,
+                        selected: format,
+                        title: Self.title(for:),
+                        label: content.text
+                    ) { self.format = $0 },
                 ]
             case .level:
                 content.text = String(localized: "Compression")
                 cell.accessories = [
-                    menuAccessory(ZipCompression.allCases, selected: level, title: Self.title(for:)) {
-                        self.level = $0
-                    },
+                    menuAccessory(
+                        ZipCompression.allCases,
+                        selected: level,
+                        title: Self.title(for:),
+                        label: content.text
+                    ) { self.level = $0 },
                 ]
             case .encryption:
                 content.text = String(localized: "Encryption")
                 cell.accessories = [
-                    menuAccessory(ZipEncryption.allCases, selected: encryption, title: Self.title(for:)) {
-                        self.encryption = $0
-                    },
+                    menuAccessory(
+                        ZipEncryption.allCases,
+                        selected: encryption,
+                        title: Self.title(for:),
+                        label: content.text
+                    ) { self.encryption = $0 },
                 ]
             case .password:
                 content.text = String(localized: "Password")
@@ -188,6 +197,7 @@ final class CompressViewController: UIViewController {
         _ values: [Value],
         selected: Value,
         title: @escaping (Value) -> String,
+        label: String?,
         choose: @escaping (Value) -> Void
     ) -> UICellAccessory {
         let button = UIButton(configuration: .plain()).then {
@@ -200,6 +210,10 @@ final class CompressViewController: UIViewController {
             $0.showsMenuAsPrimaryAction = true
             $0.changesSelectionAsPrimaryAction = true
             $0.configuration?.baseForegroundColor = .secondaryLabel
+            // The button draws only its chosen value; the row's title is the
+            // name of the setting, so the choice has to move into the value.
+            $0.accessibilityLabel = label
+            $0.accessibilityValue = title(selected)
         }
         return .customView(configuration: .init(customView: button, placement: .trailing()))
     }

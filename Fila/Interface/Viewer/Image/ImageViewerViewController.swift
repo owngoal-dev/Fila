@@ -89,6 +89,11 @@ final class ImageViewerViewController: TabContentViewController {
             }
             let image = UIImage(cgImage: raster)
             imageView.image = image
+            // Without a label the whole screen is one unnamed image. The file
+            // name is what the title bar already says this is.
+            imageView.isAccessibilityElement = true
+            imageView.accessibilityLabel = URL(fileURLWithPath: details.path).lastPathComponent
+            imageView.accessibilityTraits = .image
             metadata = Self.describe(data, details: details)
         } catch {
             let label = UILabel().then {
