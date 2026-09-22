@@ -68,6 +68,11 @@ public final class BackendRowCell: UICollectionViewListCell {
         separatorLayoutGuide.snp.makeConstraints { make in
             make.leading.equalTo(nameLabel)
         }
+        // One element: the whole row is one sentence, and the icon says
+        // nothing the name does not. Without this the label set in
+        // `configure` is never read and the two labels are two stops.
+        isAccessibilityElement = true
+        accessibilityTraits = .button
     }
 
     public func configure(name: String, detail: String?, image: UIImage?) {

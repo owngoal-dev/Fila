@@ -35,7 +35,10 @@ final class SearchViewController: TabContentViewController {
     private var dataSource: UICollectionViewDiffableDataSource<Int, FileSearchResult>!
     /// Stands in for the search field's magnifier while a walk is still
     /// running behind rows that are already on screen.
-    private let spinner = UIActivityIndicatorView(style: .medium)
+    private let spinner = UIActivityIndicatorView(style: .medium).then {
+        $0.isAccessibilityElement = false
+    }
+
     private var magnifier: UIView?
 
     init(root: String, query: String? = nil, scope: Scope = .subfolders) {

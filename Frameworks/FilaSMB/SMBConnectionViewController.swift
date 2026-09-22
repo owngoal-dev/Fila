@@ -172,6 +172,7 @@ final class SMBConnectionViewController: UITableViewController {
             cell.contentConfiguration = content
             cell.accessoryView = UISwitch().then {
                 $0.isOn = profile.isGuest
+                $0.accessibilityLabel = content.text
                 $0.addAction(UIAction { [weak self] action in
                     guard let self, let toggle = action.sender as? UISwitch else { return }
                     setGuest(toggle.isOn)

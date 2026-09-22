@@ -101,6 +101,9 @@ final class TransfersViewController: UIViewController {
                 ? String(localized: "In Progress")
                 : String(localized: "Recent")
             view.contentConfiguration = content
+            // So the rotor can jump between the two sections; a grouped
+            // header cell is plain static text without this.
+            view.accessibilityTraits = .header
         }
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
             elementKind: UICollectionView.elementKindSectionFooter

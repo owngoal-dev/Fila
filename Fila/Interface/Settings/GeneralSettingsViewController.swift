@@ -175,6 +175,9 @@ final class GeneralSettingsViewController: UITableViewController {
             $0.titleLabel?.font = .preferredFont(forTextStyle: .body)
             $0.titleLabel?.adjustsFontForContentSizeCategory = true
             $0.accessibilityLabel = title
+            // The label names the setting, so the chosen folder has to be the
+            // value or it is lost behind it.
+            $0.accessibilityValue = Self.name(of: selected)
             $0.showsMenuAsPrimaryAction = true
         }
         let choose: (LaunchLocation) -> Void = { [weak self] location in

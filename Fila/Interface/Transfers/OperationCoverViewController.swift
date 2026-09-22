@@ -140,6 +140,7 @@ final class OperationCoverViewController: UIViewController {
             $0.layer.cornerRadius = 12
             $0.layer.cornerCurve = .continuous
             $0.clipsToBounds = true
+            $0.isAccessibilityElement = false
         }
         artwork.snp.makeConstraints { $0.size.equalTo(64) }
         titleLabel.do {
