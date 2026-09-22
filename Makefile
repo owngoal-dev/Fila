@@ -78,7 +78,16 @@ UI_LIBRARY_CHECK    := $(ROOT_DIR)/Scripts/check-ui-libraries.sh
 LOCALIZATION_CHECK  := $(ROOT_DIR)/Scripts/check-localization.sh
 STALE_STRINGS       := $(ROOT_DIR)/Scripts/remove-stale-strings.py
 EXTRACTED_STRINGS   := $(ROOT_DIR)/Scripts/check-extracted-strings.py
+ACCESSIBILITY_CHECK := $(ROOT_DIR)/Scripts/check-accessibility.py
 WEBUI_BUILDER       := $(ROOT_DIR)/Scripts/build-webui.sh
+
+# Every Swift source this repo writes: the two app compositions, the shared
+# module frameworks, the daemon, the two helpers and the package. The
+# vendored SMBClient is upstream's, and tests ship to nobody, so neither is
+# gated. Scripts that find their own roots take none of this.
+SWIFT_SOURCE_ROOTS  := $(ROOT_DIR)/Fila $(ROOT_DIR)/Frameworks $(ROOT_DIR)/Filad \
+	$(ROOT_DIR)/FilaArchive $(ROOT_DIR)/FilaSaveAction \
+	$(ROOT_DIR)/Packages/FilaKit/Sources
 
 # `make install` talks to the device over a usbmuxd forward (`iproxy 2333 22`),
 # not over the network. Password auth is the jailbreak default; leave
@@ -192,7 +201,7 @@ check:
 	@test -f "$(CONTROL_TEMPLATE)" || { echo "error: Debian control template is missing" >&2; exit 66; }
 	@command -v zip >/dev/null || { echo "error: zip is required" >&2; exit 69; }
 	@test -f "$(PACKAGE_DIR)/Package.swift" || { echo "error: Packages/FilaKit/Package.swift is missing" >&2; exit 66; }
-	@for script in "$(DEB_PACKAGER)" "$(DEB_VERIFIER)" "$(IPA_PACKAGER)" "$(IPA_VERIFIER)" "$(VERSION_APPLIER)" "$(XCODEBUILD_WRAPPER)" "$(DEVICE_INSTALLER)" "$(UI_LIBRARY_CHECK)" "$(LOCALIZATION_CHECK)" "$(STALE_STRINGS)" "$(WEBUI_BUILDER)"; do \
+	@for script in "$(DEB_PACKAGER)" "$(DEB_VERIFIER)" "$(IPA_PACKAGER)" "$(IPA_VERIFIER)" "$(VERSION_APPLIER)" "$(XCODEBUILD_WRAPPER)" "$(DEVICE_INSTALLER)" "$(UI_LIBRARY_CHECK)" "$(LOCALIZATION_CHECK)" "$(STALE_STRINGS)" "$(ACCESSIBILITY_CHECK)" "$(WEBUI_BUILDER)"; do \
 		test -x "$$script" || { echo "error: $$script is not executable" >&2; exit 66; }; \
 	done
 	@for xcconfig in Version Base Development Release; do \
@@ -229,6 +238,7 @@ check:
 	@"$(UI_LIBRARY_CHECK)"
 	@if [ -n "$${CI:-}" ]; then "$(STALE_STRINGS)" --check; else "$(STALE_STRINGS)"; fi
 	@"$(LOCALIZATION_CHECK)"
+	@"$(ACCESSIBILITY_CHECK)" $(SWIFT_SOURCE_ROOTS)
 	@Scripts/check-process-launch.sh
 
 # The FilaKit tests, on the Mac, against a real filesystem. This is where a

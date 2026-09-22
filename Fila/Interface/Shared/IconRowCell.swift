@@ -163,6 +163,14 @@ final class IconRowCell: UICollectionViewListCell {
         separatorLayoutGuide.snp.makeConstraints { make in
             make.leading.equalTo(nameLabel)
         }
+        // One element: the row is one sentence — name, then what the second
+        // line and the size column say — and `configure` writes it. Without
+        // this the sentence is walked past and each label is a stop of its
+        // own, the size read twice over once it joins the sentence. The
+        // Properties accessory goes under this too, so `showProperties`
+        // hands that button back as a custom action.
+        isAccessibilityElement = true
+        accessibilityTraits = .button
     }
 
     // MARK: - Content
@@ -201,12 +209,16 @@ final class IconRowCell: UICollectionViewListCell {
         thumbnailTask?.cancel()
         iconToken = UUID()
         accessories = [.disclosureIndicator()]
+        // The accessories are rebuilt here, so the actions that stand in for
+        // them go too: a reused cell must not keep the previous row's.
+        accessibilityCustomActions = nil
         accessibilityLabel = [name, detail].compactMap(\.self).joined(separator: ", ")
     }
 
     func showProperties(action: @escaping () -> Void) {
+        let title = String(localized: "Properties")
         let button = UIButton(type: .infoLight).then {
-            $0.accessibilityLabel = String(localized: "Properties")
+            $0.accessibilityLabel = title
             $0.addAction(UIAction { _ in action() }, for: .touchUpInside)
         }
         // UIKit positions the accessory container itself; constraints belong
@@ -223,6 +235,16 @@ final class IconRowCell: UICollectionViewListCell {
             reservedLayoutWidth: .custom(FilaUI.minimumTapTarget)
         ))
         accessories.insert(info, at: 1)
+        // The row is a single accessibility element, so nothing inside it can
+        // be focused: the button would be unreachable. The rotor carries it
+        // instead, which is also the only way to reach it under Switch
+        // Control on a row that is otherwise one target.
+        accessibilityCustomActions = [
+            UIAccessibilityCustomAction(name: title) { _ in
+                action()
+                return true
+            },
+        ]
     }
 
     func showFavoriteBadge() {
