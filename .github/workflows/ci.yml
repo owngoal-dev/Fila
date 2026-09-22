@@ -1,0 +1,198 @@
+# Pushes and pull requests: run the host tests and, beside them, compile,
+# package and verify both compositions, keeping the packages for thirty days.
+# Nothing is published from here: a tag publishes, through `release.yml`, the
+# packages of its commit's run, once that run has passed.
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A pull request's new push cancels the run of its old one. A push to main
+# keeps its own run however soon the next one follows, since a tag on that
+# commit publishes what that run built — cancelling it would destroy the
+# artifact the tag needs.
+concurrency:
+  group: fila-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Host tests
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+      - name: Test localization build checks
+        run: python3 -m unittest discover -s Scripts/Tests -v
+      - name: Run host tests
+        run: make harness
+
+  # The two compositions are two cold builds of the same sources into two
+  # DerivedData directories — neither reuses anything of the other's — so
+  # running them one after the other on one runner cost the sum of both for
+  # no shared work. They are two jobs, and each packages only the wrappers
+  # made from the bundle it built: the heavy bundles never travel between
+  # runners, and no runner archives a product it did not compile.
+  compile:
+    name: compile (full composition)
+    runs-on: macos-26
+    timeout-minutes: 120
+    steps:
+      # Keyed on the run and the attempt, and named apart from the sandboxed
+      # job's directory: both compositions build Fila.app, and a shared
+      # products directory would let one build's frameworks and receipt be
+      # packaged as the other's.
+      - name: Configure build paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "DERIVED_DATA=$RUNNER_TEMP/fila-full-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+      - name: Install packaging tools
+        run: brew install ldid dpkg
+      # No tag reaches a compile any more, so the version is the commit's own,
+      # out of Configuration/Version.xcconfig; only the build number is
+      # pinned, and both compositions pin it to the same run, so the two still
+      # ship one number even though nothing else is shared. `bump-build` does
+      # nothing under CI for exactly this reason.
+      - name: Pin the build number to this run
+        shell: bash
+        run: |
+          set -euo pipefail
+          make set-version VERSION="$(make --no-print-directory print-version)" BUILD="$GITHUB_RUN_NUMBER"
+      - name: Compile and check localization
+        run: make compile DERIVED_DATA="$DERIVED_DATA"
+      - name: Package and verify both .deb flavours and the .tipa
+        run: make _packages-full DERIVED_DATA="$DERIVED_DATA"
+      # Signing with ldid leaves LC_UUID alone, so these match what ships.
+      - name: Archive dSYMs
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(make --no-print-directory print-version)"
+          cd "$DERIVED_DATA/Build/Products/Release-iphoneos"
+          zip -qry "$GITHUB_WORKSPACE/build/Packages/Fila_${version}_dSYMs.zip" *.dSYM
+      - name: Write exact checksums for what this job built
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(make --no-print-directory print-version)"
+          cd build/Packages
+          shasum -a 256 \
+            "wiki.qaq.fila_${version}_iphoneos-arm64.deb" \
+            "wiki.qaq.fila_${version}_iphoneos-arm64e.deb" \
+            "Fila_${version}.tipa" \
+            "Fila_${version}_dSYMs.zip" > SHA256SUMS.full
+          cat SHA256SUMS.full
+      # Half of the release, kept only long enough to reach the job below:
+      # what a tag downloads is the one merged artifact, and that one is kept
+      # for thirty days.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fila-${{ github.sha }}-full
+          path: build/Packages/
+          if-no-files-found: error
+          retention-days: 1
+
+  compile-sandboxed:
+    name: compile (sandboxed composition)
+    runs-on: macos-26
+    timeout-minutes: 120
+    steps:
+      # The sandboxed composition builds into SANDBOX_DERIVED_DATA, which the
+      # Makefile derives from DERIVED_DATA unless it is given one. It is given
+      # one here, so the path says which composition made what is in it.
+      - name: Configure build paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "SANDBOX_DERIVED_DATA=$RUNNER_TEMP/fila-sandboxed-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+      - name: Install packaging tools
+        run: brew install ldid dpkg
+      - name: Pin the build number to this run
+        shell: bash
+        run: |
+          set -euo pipefail
+          make set-version VERSION="$(make --no-print-directory print-version)" BUILD="$GITHUB_RUN_NUMBER"
+      - name: Compile the sandboxed composition
+        run: make compile-sandboxed SANDBOX_DERIVED_DATA="$SANDBOX_DERIVED_DATA"
+      - name: Package and verify the .ipa
+        run: make _packages-sandboxed SANDBOX_DERIVED_DATA="$SANDBOX_DERIVED_DATA"
+      - name: Archive dSYMs
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(make --no-print-directory print-version)"
+          cd "$SANDBOX_DERIVED_DATA/Build/Products/Release-iphoneos"
+          zip -qry "$GITHUB_WORKSPACE/build/Packages/Fila_${version}_sandboxed_dSYMs.zip" *.dSYM
+      - name: Write exact checksums for what this job built
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(make --no-print-directory print-version)"
+          cd build/Packages
+          shasum -a 256 \
+            "Fila_${version}.ipa" \
+            "Fila_${version}_sandboxed_dSYMs.zip" > SHA256SUMS.sandboxed
+          cat SHA256SUMS.sandboxed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fila-${{ github.sha }}-sandboxed
+          path: build/Packages/
+          if-no-files-found: error
+          retention-days: 1
+
+  # One commit, one artifact: a tag names `fila-<sha>` and finds everything
+  # the release carries in it. Two jobs cannot write one artifact, so the two
+  # halves are merged here, and each composition's own list is checked on the
+  # way in — the runner that hashed a wrapper is not the one that uploaded it
+  # to this job.
+  packages:
+    name: Collect the run's packages
+    needs: [compile, compile-sandboxed]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fila-${{ github.sha }}-*
+          merge-multiple: true
+          path: build/Packages/
+      - name: Verify both lists and write the one list CI keeps
+        working-directory: build/Packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat SHA256SUMS.full SHA256SUMS.sandboxed > SHA256SUMS
+          rm SHA256SUMS.full SHA256SUMS.sandboxed
+          sha256sum --check SHA256SUMS
+          cat SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fila-${{ github.sha }}
+          path: build/Packages/
+          if-no-files-found: error
+          retention-days: 30

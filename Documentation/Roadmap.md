@@ -48,9 +48,11 @@ Shipped with that slice, and no longer future work:
   operations the browser uses.
 - Thirteen languages, one catalogue per target that shows a sentence.
 
-A version tag runs `.github/workflows/release.yml` and publishes the four
-packages. Local `make check`, `make harness` and `make packages` remain the
-gate a change has to pass before it is called done.
+Every push runs `.github/workflows/ci.yml`, which compiles, packages and
+verifies both compositions; a version tag runs `.github/workflows/release.yml`,
+which compiles nothing and publishes the four packages that run built. Local
+`make check`, `make harness` and `make packages` remain the gate a change has
+to pass before it is called done.
 
 ## Next
 

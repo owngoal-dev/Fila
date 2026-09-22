@@ -282,8 +282,11 @@ between the app and the kernel with nothing in between.
 - `Configuration/`, `Packaging/`, `Scripts/` — build inputs; see below.
   `Scripts/` is larger than the few names this document quotes: everything
   `make check`, `make deb`, `make ipa` and the release workflow enforce lives
-  there, and `.github/workflows/` (`release.yml`, `pages.yml`) is what runs
-  them. Read the script before assuming a rule is only advice.
+  there, and `.github/workflows/` is what runs them: `ci.yml` compiles,
+  packages and verifies every push and pull request and keeps the packages as
+  `fila-<sha>`, `release.yml` publishes that artifact when a tag arrives and
+  compiles nothing, and `pages.yml` deploys the site. Read the script before
+  assuming a rule is only advice.
 - `Documentation/Architecture.md` for the design in full,
   `Documentation/Roadmap.md` for what was deliberately deferred and why,
   `Documentation/Packaging.md` for the four wrappers, and
