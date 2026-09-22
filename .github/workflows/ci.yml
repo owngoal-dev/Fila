@@ -22,6 +22,16 @@ concurrency:
   group: fila-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: true
 
+env:
+  # `CURRENT_PROJECT_VERSION` has always been the publishing workflow's run
+  # number, and 0.5.12 shipped build 48 from `release.yml`'s 48th run. This
+  # file is new, so `github.run_number` starts again at 1 and the shipped
+  # build number would go backwards — LaunchServices keeps the record of the
+  # higher one, which is the failure the packaging notes describe as "a plist
+  # change that does not take". The floor carries the counter past the old
+  # workflow's last run. Raise it, never lower it.
+  BUILD_NUMBER_FLOOR: "100"
+
 jobs:
   test:
     name: Host tests
@@ -76,7 +86,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make set-version VERSION="$(make --no-print-directory print-version)" BUILD="$GITHUB_RUN_NUMBER"
+          make set-version VERSION="$(make --no-print-directory print-version)" \
+            BUILD="$(( GITHUB_RUN_NUMBER + BUILD_NUMBER_FLOOR ))"
       - name: Compile and check localization
         run: make compile DERIVED_DATA="$DERIVED_DATA"
       - name: Package and verify both .deb flavours and the .tipa
@@ -136,7 +147,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make set-version VERSION="$(make --no-print-directory print-version)" BUILD="$GITHUB_RUN_NUMBER"
+          make set-version VERSION="$(make --no-print-directory print-version)" \
+            BUILD="$(( GITHUB_RUN_NUMBER + BUILD_NUMBER_FLOOR ))"
       - name: Compile the sandboxed composition
         run: make compile-sandboxed SANDBOX_DERIVED_DATA="$SANDBOX_DERIVED_DATA"
       - name: Package and verify the .ipa
