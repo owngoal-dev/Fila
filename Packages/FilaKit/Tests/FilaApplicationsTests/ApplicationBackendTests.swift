@@ -98,13 +98,16 @@ struct ApplicationBackendTests {
         let sidebar = backend.sidebarUpdates()
         files.handshakeLanded(LocalHello(protocolVersion: 1, backend: .local(reach: .user)))
         // Bounded: a lost publish fails the test rather than hanging the suite.
+        // The bound is a hang guard, not a latency budget: on a loaded CI
+        // runner the main actor was starved past five seconds while the
+        // publish was still on its way.
         let landed = await withTaskGroup(of: Bool.self) { group in
             group.addTask {
                 for await snapshot in sidebar where !snapshot.places.isEmpty { return true }
                 return false
             }
             group.addTask {
-                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                try? await Task.sleep(nanoseconds: 60_000_000_000)
                 return false
             }
             let first = await group.next() ?? false
