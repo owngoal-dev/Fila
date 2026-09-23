@@ -30,6 +30,7 @@ final class SearchViewController: TabContentViewController {
     private var skippedLinks = 0
     private var currentDirectory = ""
     private var lastProgressDraw = Date.distantPast
+    private var lastHitsDraw = Date.distantPast
 
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Int, FileSearchResult>!
@@ -108,7 +109,7 @@ final class SearchViewController: TabContentViewController {
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, hit in
             collection.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: hit)
         }
-        // The list stops at `FileSearch.resultLimit`, and never enters a link;
+        // The walk stops at `FileSearch.resultLimit`, and never enters a link;
         // a page that looked complete would be a lie the user cannot detect.
         // The footer exists only while there is something to confess (see
         // `layout(footer:)`).
@@ -243,9 +244,12 @@ final class SearchViewController: TabContentViewController {
                 } onHit: { hit in
                     guard !Task.isCancelled, self.searchID == searchID else { return }
                     self.hits.append(hit)
-                    if self.hits.count % 20 == 0 {
-                        self.apply()
-                    }
+                    // By time, not by count: an apply costs by the rows already
+                    // listed, and thousands of hits a few at a time would spend
+                    // the main thread diffing the same list over and over.
+                    guard self.hits.count == 1 || Date().timeIntervalSince(self.lastHitsDraw) > 0.25 else { return }
+                    self.lastHitsDraw = Date()
+                    self.apply()
                 }
                 guard !Task.isCancelled, self.searchID == searchID else { return }
                 skippedLinks = skipped

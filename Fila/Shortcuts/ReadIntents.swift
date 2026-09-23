@@ -206,9 +206,10 @@ struct FindFilesIntent: AppIntent {
     @Parameter(title: "Starting Folder", default: "/")
     var path: String
 
-    /// The bound has to be a literal here, and `FileSearch.resultLimit` is the
-    /// real ceiling — `perform` clamps to it, so the two cannot drift into a
-    /// shortcut asking for more than the walk will ever produce.
+    /// The bound has to be a literal here, and stays under
+    /// `FileSearch.resultLimit` — `perform` clamps to it as well, so the two
+    /// cannot drift into a shortcut asking for more than the walk will ever
+    /// produce.
     @Parameter(title: "Maximum Results", default: 100, inclusiveRange: (1, 100))
     var limit: Int
 
@@ -226,19 +227,12 @@ struct FindFilesIntent: AppIntent {
         let session = try await IntentSupport.session()
 
         // The same walk the search screen runs — breadth-first, in the app,
-        // over listings the daemon paged out. Its own ceilings apply and the
-        // parameter cannot exceed them, so the number the shortcut asked for is
-        // the number it can actually be given.
-        //
-        // ponytail: the limit caps what is *collected*, not what is walked —
-        // `FileSearch.run` has no way to be stopped short of cancelling its
-        // task, so "find one thing below `/`" still costs a full search. Same
-        // cost the search screen pays for every query. Give `FileSearch` a
-        // result limit of its own the day that is too slow to live with.
+        // over listings the daemon paged out — stopped as soon as it has found
+        // what the shortcut asked for, so "find one thing below `/`" does not
+        // cost a full search.
         let wanted = min(limit, FileSearch.resultLimit)
         var found: [FileEntity] = []
-        await FileSearch.run(root: root, needle: needle, session: session) { _ in } onHit: { hit in
-            guard found.count < wanted else { return }
+        await FileSearch.run(root: root, needle: needle, session: session, limit: wanted) { _ in } onHit: { hit in
             found.append(FileEntity(directory: hit.directory, node: hit.node))
         }
         return .result(value: found)

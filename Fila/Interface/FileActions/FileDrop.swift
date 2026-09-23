@@ -107,9 +107,10 @@ enum FileDrop {
                 message: String(localized: "Copy keeps the originals. Move takes them out of their current folder.")
             ) { context in
                 context.allowSimpleDispose()
-                context.addAction(title: String.LocalizationValue("Cancel")) { reply(context, nil) }
-                context.addAction(title: String.LocalizationValue("Copy Here")) { reply(context, TransferMode.copy) }
+                // Three actions stack: the choices first, Cancel last and plain.
                 context.addAction(title: String.LocalizationValue("Move Here"), attribute: .accent) { reply(context, TransferMode.move) }
+                context.addAction(title: String.LocalizationValue("Copy Here"), attribute: .accent) { reply(context, TransferMode.copy) }
+                context.addAction(title: String.LocalizationValue("Cancel")) { reply(context, nil) }
             }
             alert.shouldDismissWhenTappedAround = true
             return alert

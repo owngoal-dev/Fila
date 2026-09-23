@@ -444,6 +444,11 @@ purpose — it is not a catalogue key.
 The package has `.normal` and `.accent`, not `.destructive`. Permanent
 file deletion uses `PermanentDeleteConfirmation`, which constructs the standard
 package alert under a temporary system-red accent and restores the default.
+Two actions sit side by side in the order added: Cancel first, the action
+`.accent`. Three or more stack top to bottom in the order added, so the
+choices come first — the primary on top, every choice `.accent` — and
+Cancel last, `.normal`. A card with no `.accent` action has its last one
+promoted by the package, which on a stack is Cancel.
 Every alert has a visible Close/Cancel/OK action;
 `context.allowSimpleDispose()` only enables Escape and does not add a button.
 Deletion icons use the standard `trash` symbol, never `trash.slash`.

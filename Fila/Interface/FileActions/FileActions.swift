@@ -6,19 +6,36 @@ import FilaProtocol
 import FilaTerminal
 import UIKit
 
+/// A list that takes rows away the moment their delete or Put Back starts,
+/// rather than when a listing after the job finally leaves them out — and
+/// that is told when the job is over, whatever it did, so the next listing
+/// can show what is really there.
+@MainActor
+protocol RemovalTracking: AnyObject {
+    func removalWillStart(_ paths: [String])
+    func removalDidEnd(_ paths: [String])
+}
+
 /// File menus share one implementation; the presenting screen owns navigation.
 @MainActor
 final class FileActions {
     weak var presenter: UIViewController?
     private let directory: String
     let didRemove: () -> Void
+    weak var removals: RemovalTracking?
     var session: FileSession {
         .shared
     }
 
-    init(presenter: UIViewController, directory: String, didRemove: @escaping () -> Void = {}) {
+    init(
+        presenter: UIViewController,
+        directory: String,
+        removals: RemovalTracking? = nil,
+        didRemove: @escaping () -> Void = {}
+    ) {
         self.presenter = presenter
         self.directory = directory
+        self.removals = removals
         self.didRemove = didRemove
     }
 
@@ -203,12 +220,14 @@ final class FileActions {
         // A put back off the trash volume copies the whole file back, which is
         // as long as the delete that put it there. Same card, same reasons.
         let cover = jobCover()
+        removals?.removalWillStart(paths)
         Task {
             let outcome: Error?
             do {
                 try await session.operations.putBack(trashed: paths) { cover.show(job: $0, in: self.session.operations) }
                 outcome = nil
             } catch { outcome = error }
+            removals?.removalDidEnd(paths)
             cover.settle { [self] in
                 switch outcome {
                 case let failure as FilaFailure where failure.systemError == ENOATTR:

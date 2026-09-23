@@ -35,6 +35,7 @@ extension FileActions {
             }
         }
         presenter?.setEditing(false, animated: true)
+        removals?.removalWillStart(paths)
         Task {
             let kind: OperationCenter.Kind = useTrash ? .trash : .delete
             let description = OperationCenter.describe(paths, destination: nil)
@@ -61,6 +62,10 @@ extension FileActions {
                 }
                 result = .success(outcome)
             } catch { result = .failure(error) }
+            // Now, not once the card is gone: the list re-reads the folder
+            // while the card closes, and a failed item is back by the time
+            // its failure is reported.
+            removals?.removalDidEnd(paths)
 
             let complete = {
                 switch result {

@@ -360,12 +360,23 @@ final class SMBConnectionViewController: UITableViewController {
                 )
                 : String(localized: "Shared folders available to this account.", bundle: bundle)
         ) { [weak self] context in
-            for share in shares.prefix(24) {
+            let choices = Array(shares.prefix(24))
+            let cancel = {
+                context.addAction(title: String(localized: "Cancel", bundle: SMBBackend.bundle)) {
+                    context.dispose()
+                }
+            }
+            // Two actions sit side by side, Cancel leading; more stack, the
+            // choices first and Cancel last. Either way Cancel stays plain.
+            if choices.count < 2 {
+                cancel()
+            }
+            for share in choices {
                 // The card looks a plain string up as a key; a share the
                 // server happened to call "Cancel" would be rendered as the
                 // app's word for it. Cosmetic, and the package offers no
                 // way around it.
-                context.addAction(title: share) {
+                context.addAction(title: share, attribute: .accent) {
                     context.dispose {
                         self?.profile.share = share
                         self?.tableView.reloadData()
@@ -373,8 +384,8 @@ final class SMBConnectionViewController: UITableViewController {
                     }
                 }
             }
-            context.addAction(title: String(localized: "Cancel", bundle: SMBBackend.bundle)) {
-                context.dispose()
+            if choices.count >= 2 {
+                cancel()
             }
         }
     }

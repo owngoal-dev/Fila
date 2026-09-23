@@ -17,7 +17,7 @@ extension FileBrowserViewController {
     }
 
     private var fileActions: FileActions {
-        FileActions(presenter: self, directory: directory)
+        FileActions(presenter: self, directory: directory, removals: self)
     }
 
     // MARK: - Menus
@@ -87,9 +87,9 @@ extension FileBrowserViewController {
     }
 
     /// Put Back is not a job, so nothing tells this list to reload but the
-    /// action itself.
+    /// action itself — which `removalDidEnd` does.
     func putBack(_ paths: [String]) {
-        FileActions(presenter: self, directory: directory, didRemove: { [weak self] in self?.reload() }).putBack(paths)
+        fileActions.putBack(paths)
     }
 
     /// Where a symlink actually points, as a path something can be asked for.

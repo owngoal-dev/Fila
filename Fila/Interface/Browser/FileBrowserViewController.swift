@@ -41,6 +41,19 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     /// not wait on it; owned so leaving the screen cancels it.
     private var volumeTask: Task<Void, Never>?
 
+    /// Rows whose delete or Put Back is still running: out of the list from
+    /// the tap, whatever a listing says meanwhile. See `RemovalTracking`.
+    var removingNames: Set<String> = []
+    /// Rows whose job has ended, by how many listings had started by then.
+    /// Kept out until a listing that started after the job completes — the
+    /// ones before it may have read the folder while the item was there.
+    var removedNames: [String: Int] = [:]
+    /// Listings started so far; `load()` counts them.
+    var listingGeneration = 0
+    /// A removal that began while a context menu was closing, put off until
+    /// the menu is gone so the row is not pulled out from under it.
+    var rearrangesWhenMenuCloses = false
+
     override var maximumItemCount: Int { DirectoryReader.maximumEntryCount }
     override var traceName: String { directory }
 
@@ -521,7 +534,8 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     /// when the list wants the next. Dropping the stream — a listing cut
     /// short, a screen gone — ends the read and closes the directory.
     override func load() -> AsyncThrowingStream<[FileNode], Error> {
-        DirectoryReader.stream(in: directory, session: session)
+        listingGeneration += 1
+        return DirectoryReader.stream(in: directory, session: session)
     }
 
     override func willStartInitialLoad() {
@@ -544,6 +558,11 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     }
 
     override func loadDidComplete(received: Int, elapsed: TimeInterval, failed: Bool) async {
+        // Before anything is awaited: the listing completing is the newest
+        // one started, and a later one would have cancelled it.
+        if !failed {
+            listingDidComplete(generation: listingGeneration)
+        }
         // What the user is looking at, and how long it took to get there.
         // Verbose, because it is one line per folder opened and browsing is
         // what this app mostly does — but it is also the first thing anyone
@@ -644,7 +663,12 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     }
 
     private var arrangement: FileArrangement {
-        FileArrangement(showsHidden: session.showsHidden, sortKey: session.sortKey, ascending: session.sortAscending)
+        FileArrangement(
+            showsHidden: session.showsHidden,
+            sortKey: session.sortKey,
+            ascending: session.sortAscending,
+            excluded: removingNames.union(removedNames.keys)
+        )
     }
 
     /// How many items, and what is left on the volume they are on.

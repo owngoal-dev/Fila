@@ -39,7 +39,8 @@ extension FileBrowserViewController: UICollectionViewDelegate {
         guard let node = dataSource.itemIdentifier(for: indexPath) else { return nil }
         let path = path(of: node)
         let decoration = node.kind == .directory ? appFolders[node.name] : nil
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: {
+        // Named, so the dismissal can tell whether its row is being deleted.
+        return UIContextMenuConfiguration(identifier: node.name as NSString, previewProvider: {
             decoration.map { FolderDecorationPreviewViewController(path: path, decoration: $0) }
         }) { [weak self] _ in
             self?.contextMenu(for: node)
@@ -58,7 +59,8 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     /// returns on the main thread, the delete is still an XPC round trip away —
     /// and a listing replaced while the menu is animating shut takes the row
     /// out from under the animation. It looks like the delete did nothing and
-    /// left a glitch behind. Hold the reload until the menu is gone.
+    /// left a glitch behind. Hold the reload until the menu is gone; a delete
+    /// chosen from the menu takes its row away then (see `RemovalTracking`).
     func collectionView(
         _: UICollectionView,
         willEndContextMenuInteraction _: UIContextMenuConfiguration,
@@ -66,10 +68,20 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     ) {
         holdsReloads = true
         guard let animator else {
-            holdsReloads = false
+            contextMenuDidClose()
             return
         }
-        animator.addCompletion { [weak self] in self?.holdsReloads = false }
+        animator.addCompletion { [weak self] in self?.contextMenuDidClose() }
+    }
+
+    /// The deprecated form, because the menu itself is still made by the
+    /// deprecated `contextMenuConfigurationForItemAt`: UIKit stops calling
+    /// all of them once any of their iOS 16 replacements is implemented.
+    func collectionView(
+        _: UICollectionView,
+        previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+    ) -> UITargetedPreview? {
+        removalDismissalPreview(for: configuration)
     }
 
     func collectionView(

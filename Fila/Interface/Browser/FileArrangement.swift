@@ -9,12 +9,15 @@ struct FileArrangement: Sendable {
     var showsHidden: Bool
     var sortKey: FileSortKey
     var ascending: Bool
+    /// Names being deleted or put back: gone from the list from the tap on,
+    /// whatever a listing read while the job ran.
+    var excluded: Set<String> = []
 
     func arrange(_ nodes: [FileNode]) -> [FileNode] {
         // Deduplicated by name: pages are read from a directory that is live,
         // and one name arriving twice would put two rows with the same identity
         // into the snapshot, which is a crash rather than a glitch.
-        var seen = Set<String>()
+        var seen = excluded
         var items = nodes.filter { seen.insert($0.name).inserted }
         if !showsHidden {
             items.removeAll(where: \.isHidden)

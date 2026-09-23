@@ -81,6 +81,11 @@ final class PropertiesViewController: TabContentViewController {
     private var checksums: FileChecksums?
     private var mediaTask: Task<Void, Never>?
     private var mediaInformation: FileMediaInformation?
+    /// Folders only: what is inside, counted while the page is up. A folder's
+    /// own `st_size` says nothing about its contents, so the Size section
+    /// shows the running totals and says it is still counting.
+    private var folderTask: Task<Void, Never>?
+    private var folderTotals: FolderSize.Totals?
     private var previewImage: UIImage?
     private var previewMaximumSide: CGFloat = 192
     /// Directories only. Owner and mode changes across a tree are the one bulk
@@ -123,6 +128,9 @@ final class PropertiesViewController: TabContentViewController {
 
         installModalDoneButton()
 
+        if !showsAdvanced {
+            countFolder()
+        }
         rebuild()
         if !showsAdvanced {
             loadPreview()
@@ -149,7 +157,13 @@ final class PropertiesViewController: TabContentViewController {
                     mediaInformation = nil
                     previewImage = nil
                 }
+                // A folder's modification date moves with every entry made or
+                // removed in it, so only a different item restarts the count.
+                let restartsCount = previous.inode != current.inode || previous.kind != current.kind
                 details = updated
+                if restartsCount, !showsAdvanced {
+                    countFolder()
+                }
                 rebuild()
                 if !showsAdvanced {
                     loadPreview(); loadMediaInformation()
@@ -164,7 +178,9 @@ final class PropertiesViewController: TabContentViewController {
         }
     }
 
-    deinit { previewTask?.cancel(); refreshTask?.cancel(); checksumTask?.cancel(); mediaTask?.cancel() }
+    deinit {
+        previewTask?.cancel(); refreshTask?.cancel(); checksumTask?.cancel(); mediaTask?.cancel(); folderTask?.cancel()
+    }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
@@ -172,6 +188,29 @@ final class PropertiesViewController: TabContentViewController {
             checksumTask?.cancel()
             mediaTask?.cancel()
             previewTask?.cancel()
+            folderTask?.cancel()
+        }
+    }
+
+    /// Walks the folder in the background and redraws the Size section as the
+    /// totals grow — without animation, since only the numbers change. Not
+    /// for anything but a real directory: a link's page describes the link.
+    private func countFolder() {
+        folderTask?.cancel()
+        folderTask = nil
+        folderTotals = nil
+        guard details.node.kind == .directory else { return }
+        let path = details.path
+        folderTask = Task { [weak self] in
+            let totals = await FolderSize.count(path, session: .shared) { totals in
+                guard let self, !Task.isCancelled, details.path == path else { return }
+                folderTotals = totals
+                rebuild(animated: false)
+            }
+            guard let self, !Task.isCancelled, details.path == path, let totals else { return }
+            folderTotals = totals
+            folderTask = nil
+            rebuild(animated: false)
         }
     }
 
@@ -340,7 +379,7 @@ final class PropertiesViewController: TabContentViewController {
     /// A row's identity is everything it draws, so an edit that changed one
     /// value replaces one row and leaves the rest of the screen — and the
     /// scroll position — where it was.
-    private func rebuild() {
+    private func rebuild(animated: Bool = true) {
         let result: [(Section, [Row])]
         if showsAdvanced {
             result = [(.flags, flagRows()), (.extendedAttributes, extendedAttributeRows()), (.identity, identityRows())]
@@ -419,7 +458,7 @@ final class PropertiesViewController: TabContentViewController {
            dataSource.snapshot().sectionIdentifiers.contains(.checksums) {
             snapshot.reloadSections([.checksums])
         }
-        dataSource.apply(snapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: animated)
     }
 
     private func itemRows() -> [Row] {
@@ -438,6 +477,41 @@ final class PropertiesViewController: TabContentViewController {
     }
 
     private func sizeRows() -> [Row] {
+        guard details.node.kind == .directory else { return fileSizeRows() }
+        let counting = folderTask != nil
+        guard let totals = folderTotals else {
+            let placeholder = String(localized: "Counting…")
+            return [
+                .fact(label: String(localized: "Size"), value: placeholder, isMonospaced: false),
+                .fact(label: String(localized: "On Disk"), value: placeholder, isMonospaced: false),
+            ]
+        }
+        // While the walk runs, the short label and the word that says it is
+        // not final; the exact byte count only once it is.
+        func value(_ bytes: Int64) -> String {
+            counting
+                ? String(localized: "\(FilePresentation.byteLabel(bytes)) (Counting…)")
+                : Self.bytes(bytes)
+        }
+        let count = totals.items.formatted()
+        var rows: [Row] = [
+            .fact(label: String(localized: "Size"), value: value(totals.size), isMonospaced: false),
+            .fact(label: String(localized: "On Disk"), value: value(totals.allocatedSize), isMonospaced: false),
+            .fact(
+                label: String(localized: "Items"),
+                value: counting ? String(localized: "\(count) (Counting…)") : count,
+                isMonospaced: false
+            ),
+        ]
+        if !counting, totals.unreadableFolders > 0 {
+            rows.append(.note(String(
+                localized: "Some folders inside could not be read, so these totals leave out what they contain."
+            )))
+        }
+        return rows
+    }
+
+    private func fileSizeRows() -> [Row] {
         [
             .fact(
                 label: String(localized: "Size"),
