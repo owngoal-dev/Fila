@@ -1,4 +1,5 @@
 import FilaBackendKit
+import FilaFileOps
 import FilaLog
 import FilaProtocol
 import Foundation
@@ -206,10 +207,23 @@ public class LocalFileBackend: FileBackend {
 
     private func bookmark(for path: ServicePath) -> ServicePath {
         guard rootPath == "/", path.components.first != "jbroot",
-              let root = currentBootstrapRoot,
-              path.components.starts(with: root.components)
+              let root = currentBootstrapRoot
         else { return path }
-        return (try? ServicePath(components: ["jbroot"] + Array(path.components.dropFirst(root.components.count)))) ?? path
+        let components = Self.bookmarkComponents(path)
+        let rootComponents = Self.bookmarkComponents(root)
+        guard components.starts(with: rootComponents) else { return path }
+        return (try? ServicePath(components: ["jbroot"] + Array(components.dropFirst(rootComponents.count)))) ?? path
+    }
+
+    /// Resolve the filesystem's top-level alias (`/var` -> `/private/var`)
+    /// on both sides. Keep the suffix lexical: bootstrap children may be
+    /// symlinks out of the bootstrap, and a bookmark must keep that route.
+    private static func bookmarkComponents(_ path: ServicePath) -> [String] {
+        guard let first = path.components.first,
+              let resolved = try? FilaPath.resolve("/" + first),
+              let prefix = try? ServicePath(resolved)
+        else { return path.components }
+        return prefix.components + path.components.dropFirst()
     }
 
     public func isFavorite(_ path: ServicePath) -> Bool {
