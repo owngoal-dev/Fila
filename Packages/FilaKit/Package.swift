@@ -42,7 +42,7 @@ let package = Package(
         // Linked into FilaFormats alone. libarchive reads and writes a dozen
         // formats correctly, including the ones — 7z, rar, iso, xar — that were
         // never going to be hand-written here.
-        .package(url: "https://github.com/Lakr233/libarchive.xcframework.git", from: "0.1.1"),
+        .package(url: "https://github.com/Lakr233/libarchive.xcframework.git", from: "1.0.0"),
         // The terminal emulator, including host-owned generated configuration
         // storage. Its iOS 15 floor matches this project's deployment target.
         .package(url: "https://github.com/Lakr233/libghostty-spm.git", from: "1.5.20260906"),
@@ -201,13 +201,7 @@ let package = Package(
             dependencies: [
                 "CArchiveLocale",
                 "FilaProtocol", "FilaFileOps",
-                // The Swift wrapper and its C framework differ only by case.
-                // Give the wrapper a distinct module name for Xcode's loader.
-                .product(
-                    name: "LibArchive",
-                    package: "libarchive.xcframework",
-                    moduleAliases: ["LibArchive": "FilaLibArchive"]
-                ),
+                .product(name: "ArchiveKit", package: "libarchive.xcframework"),
                 .product(name: "MachOKit", package: "MachOKit"),
             ],
             resources: [.process("Resources")],

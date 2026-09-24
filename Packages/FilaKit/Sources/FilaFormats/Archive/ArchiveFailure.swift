@@ -1,5 +1,5 @@
+import ArchiveKit
 import Foundation
-import LibArchive
 
 /// libarchive's own message, carried through rather than flattened into
 /// something this module made up. *Truncated ZIP file data* and *Unsupported ZIP

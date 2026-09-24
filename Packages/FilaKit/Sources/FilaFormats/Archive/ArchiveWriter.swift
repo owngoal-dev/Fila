@@ -1,7 +1,7 @@
+import ArchiveKit
 import FilaFileOps
 import FilaProtocol
 import Foundation
-import LibArchive
 
 private extension ArchiveFormat {
     func configure(

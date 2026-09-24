@@ -1,7 +1,7 @@
+import ArchiveKit
 import FilaFileOps
 import FilaProtocol
 import Foundation
-import LibArchive
 
 /// An archive read through a descriptor `filad` opened as root.
 ///
