@@ -76,6 +76,14 @@ open class TabContentViewController: UIViewController {
     /// screen itself. Empty draws nothing.
     public private(set) var crumbs: [PathBarView.Crumb] = []
 
+    /// A menu for the current crumb, when this screen gives it an action.
+    /// Earlier crumbs keep their ordinary navigation behavior.
+    open var currentCrumbMenu: UIMenu? { nil }
+
+    /// The current crumb's long-press menu. Ordinary taps keep
+    /// `currentCrumbMenu`; ancestors remain navigation targets.
+    open var currentCrumbLongPressMenu: UIMenu? { nil }
+
     /// The tab's shared bar controls — set by the shell that put this
     /// screen in a tab, and by nothing else. Nil means the screen is not in
     /// a tab: no Tabs control, and its own Search and breadcrumb if it
@@ -106,6 +114,8 @@ open class TabContentViewController: UIViewController {
 
     private lazy var ownPathBar = PathBarView().then {
         $0.onSelect = { [weak self] crumb in self?.selectDecorationCrumb(crumb) }
+        $0.currentMenu = currentCrumbMenu
+        $0.currentLongPressMenu = currentCrumbLongPressMenu
     }
 
     private lazy var ownPathBarItem: UIBarButtonItem = {

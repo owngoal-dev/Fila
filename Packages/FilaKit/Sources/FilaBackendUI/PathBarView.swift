@@ -3,6 +3,41 @@ import SnapKit
 import Then
 import UIKit
 
+/// Hold the button's touch-down until a tap ends. Its context-menu gesture
+/// can then recognize a hold first; a finished tap delivers the delayed
+/// touch-down and still uses UIButton's ordinary primary menu on iOS 15.
+private final class DelayCurrentCrumbTouch: UIGestureRecognizer {
+    private(set) var touchEnded = false
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) { touchEnded = false }
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {}
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        touchEnded = true
+        state = .failed
+    }
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        touchEnded = false
+        state = .failed
+    }
+}
+
+private final class CurrentCrumbButton: UIButton {
+    var longPressMenu: UIMenu?
+    weak var delayedTouch: DelayCurrentCrumbTouch?
+
+    override func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        configurationForMenuAtLocation location: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        // UIKit requests the tap menu after the delayed touch ends; its hold
+        // interaction requests a menu while that touch is still down.
+        guard delayedTouch?.touchEnded == false, let longPressMenu else {
+            return super.contextMenuInteraction(interaction, configurationForMenuAtLocation: location)
+        }
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in longPressMenu }
+    }
+}
+
 /// The breadcrumb.
 ///
 /// A horizontal scroller rather than a truncated label: paths on a jailbroken
@@ -18,7 +53,7 @@ import UIKit
 /// What a crumb *is* — a folder, a share, a catalogue, an app — is the
 /// caller's: the bar draws titles and icons and reports which crumb was
 /// tapped. The last crumb is where the screen is, drawn as the one dark name
-/// in a row of grey ones, and never a target.
+/// in a row of grey ones. A screen may give that current crumb a menu.
 public final class PathBarView: UIScrollView {
     /// One step of the path: what it says, what it looks like, and the
     /// opaque value the caller wants back when it is tapped.
@@ -36,7 +71,20 @@ public final class PathBarView: UIScrollView {
 
     public var onSelect: ((Crumb) -> Void)?
 
+    var currentMenu: UIMenu? {
+        didSet {
+            guard oldValue !== currentMenu else { return }
+            currentButton.menu = currentMenu
+            if !shown.isEmpty { setCrumbs(shown) }
+        }
+    }
+
+    var currentLongPressMenu: UIMenu? {
+        didSet { currentButton.longPressMenu = currentLongPressMenu }
+    }
+
     private let text = UITextView()
+    private let currentButton = CurrentCrumbButton(type: .custom)
     private var textWidth: Constraint?
     private var revealsCurrentComponent = true
     private var lastViewportWidth: CGFloat = 0
@@ -44,6 +92,7 @@ public final class PathBarView: UIScrollView {
     /// short thick band in a wash of the accent colour, not a text underline.
     private let marker = UIView()
     private var currentRange = NSRange(location: 0, length: 0)
+    private var currentTapRange = NSRange(location: 0, length: 0)
     private var shown: [Crumb] = []
     private static let markerHeight: CGFloat = 3
     private static let markerAlpha: CGFloat = 0.2
@@ -81,6 +130,19 @@ public final class PathBarView: UIScrollView {
             $0.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(tapped)))
         }
         addSubview(text)
+        // A transparent menu button covers only the current crumb. Ancestors
+        // remain text targets, and the scroll view still owns horizontal pans.
+        currentButton.do {
+            $0.showsMenuAsPrimaryAction = true
+            $0.backgroundColor = .clear
+            $0.isHidden = true
+        }
+        let delay = DelayCurrentCrumbTouch(target: nil, action: nil)
+        delay.delaysTouchesBegan = true
+        delay.cancelsTouchesInView = false
+        currentButton.addGestureRecognizer(delay)
+        currentButton.delayedTouch = delay
+        addSubview(currentButton)
         text.snp.makeConstraints { make in
             make.leading.equalTo(contentLayoutGuide).offset(FilaUI.Spacing.large)
             make.trailing.equalTo(contentLayoutGuide).offset(-FilaUI.Spacing.large)
@@ -104,8 +166,11 @@ public final class PathBarView: UIScrollView {
         shown = crumbs
         let line = NSMutableAttributedString()
         var actions: [UIAccessibilityCustomAction] = []
+        currentRange = NSRange(location: 0, length: 0)
+        currentTapRange = currentRange
         for (index, crumb) in crumbs.enumerated() {
             let isCurrent = index == crumbs.count - 1
+            let componentStart = line.length
             if let image = crumb.icon, image.size.width > 0, image.size.height > 0 {
                 let attachment = NSTextAttachment(image: image)
                 // Fitted into a line-high square, never stretched to it: a
@@ -135,7 +200,20 @@ public final class PathBarView: UIScrollView {
                 .foregroundColor: isCurrent ? UIColor.label : UIColor.secondaryLabel,
                 Self.component: index,
             ]))
-            guard !isCurrent else { break }
+            if isCurrent {
+                if currentMenu != nil {
+                    let arrow = UIImage(
+                        systemName: "star",
+                        withConfiguration: UIImage.SymbolConfiguration(font: Self.font, scale: .small)
+                    )?.withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
+                    if let arrow {
+                        line.append(NSAttributedString(string: " ", attributes: [.font: Self.font]))
+                        line.append(NSAttributedString(attachment: NSTextAttachment(image: arrow)))
+                    }
+                }
+                currentTapRange = NSRange(location: componentStart, length: line.length - componentStart)
+                break
+            }
             let separator = NSMutableAttributedString(attributedString: Self.separator)
             separator.addAttribute(Self.component, value: index, range: NSRange(location: 0, length: separator.length))
             line.append(separator)
@@ -147,6 +225,8 @@ public final class PathBarView: UIScrollView {
         text.attributedText = line
         text.accessibilityLabel = crumbs.map(\.title).joined(separator: " › ")
         text.accessibilityCustomActions = actions
+        currentButton.accessibilityLabel = crumbs.last?.title
+        currentButton.isHidden = currentMenu == nil || crumbs.isEmpty
         textWidth?.update(offset: ceil(text.sizeThatFits(CGSize(
             width: CGFloat.greatestFiniteMagnitude,
             height: CGFloat.greatestFiniteMagnitude
@@ -220,6 +300,17 @@ public final class PathBarView: UIScrollView {
             )
         }
         marker.isHidden = marker.frame.isEmpty || marker.frame.isInfinite
+        if currentMenu != nil,
+           let start = text.position(from: text.beginningOfDocument, offset: currentTapRange.location),
+           let end = text.position(from: start, offset: currentTapRange.length),
+           let range = text.textRange(from: start, to: end)
+        {
+            let glyphs = text.convert(text.firstRect(for: range), to: self)
+            currentButton.frame = CGRect(x: glyphs.minX - 6, y: 0, width: glyphs.width + 12, height: bounds.height)
+            currentButton.isHidden = glyphs.isEmpty || glyphs.isInfinite
+        } else {
+            currentButton.isHidden = true
+        }
         if abs(bounds.width - lastViewportWidth) > 0.5 {
             lastViewportWidth = bounds.width
             revealsCurrentComponent = true

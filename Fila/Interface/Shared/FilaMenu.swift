@@ -28,22 +28,14 @@ enum FilaMenu {
         open: @escaping (String) -> Void,
         openLocation: ((BackendLocation) -> Void)?
     ) -> [UIMenuElement] {
-        func root(_ root: BackendRoot) -> UIAction? {
+        let places = placeActions(attributes: attributes, open: open, openLocation: openLocation)
+        let servers = SidebarLocation.servers.compactMap { root -> UIAction? in
             openLocation.map { openLocation in
                 UIAction(title: root.displayName, image: SidebarLocation.image(for: root), attributes: attributes) { _ in
                     openLocation(root.location)
                 }
             }
         }
-        let places: [UIAction] = SidebarLocation.orderedDestinations.compactMap { destination in
-            switch destination {
-            case let .directory(place):
-                UIAction(title: place.title, image: preview(for: place), attributes: attributes) { _ in open(place.path) }
-            case let .catalog(catalog):
-                root(catalog)
-            }
-        }
-        let servers = SidebarLocation.servers.compactMap(root)
         func submenu(_ title: String, _ actions: [UIAction]) -> [UIMenu] {
             actions.isEmpty ? [] : [UIMenu(
                 title: title,
@@ -54,6 +46,27 @@ enum FilaMenu {
         return submenu(String(localized: "Places"), places)
             + submenu(String(localized: "Servers"), servers)
             + collections(attributes: attributes, open: open)
+    }
+
+    /// The exact rows in Go > Places, also used by a long press on the
+    /// current breadcrumb. Build at menu-open time so capabilities are fresh.
+    static func placeActions(
+        attributes: UIMenuElement.Attributes = [],
+        open: @escaping (String) -> Void,
+        openLocation: ((BackendLocation) -> Void)?
+    ) -> [UIAction] {
+        SidebarLocation.orderedDestinations.compactMap { destination in
+            switch destination {
+            case let .directory(place):
+                UIAction(title: place.title, image: preview(for: place), attributes: attributes) { _ in open(place.path) }
+            case let .catalog(catalog):
+                openLocation.map { openLocation in
+                    UIAction(title: catalog.displayName, image: SidebarLocation.image(for: catalog), attributes: attributes) { _ in
+                        openLocation(catalog.location)
+                    }
+                }
+            }
+        }
     }
 
     private static func preview(for place: SidebarPlace) -> UIImage? {
@@ -110,36 +123,55 @@ enum FilaMenu {
         FilePresentation.image(kind: .directory, name: (name as NSString).lastPathComponent)
     }
 
-    static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
-        let session = FileSession.shared
-        func folders(_ paths: [String]) -> UIDeferredMenuElement {
-            UIDeferredMenuElement.uncached { completion in
-                Task { @MainActor in
-                    let session = FileSession.shared
-                    let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
-                    var actions: [UIMenuElement] = []
-                    for path in paths {
-                        guard let details = try? await session.perform({ try await $0.details(of: path) }),
-                              details.node.isNavigable else { continue }
-                        let presentation = decoration(path)
-                        var image = FilePresentation.image(for: details.node)
-                        if let identifier = presentation?.applicationIdentifier,
-                           let artwork = SystemCapabilities.applicationArtwork
-                        {
-                            image = await artwork.icon(for: identifier) ?? image
-                        }
-                        let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
-                        actions.append(UIAction(
-                            title: name,
-                            subtitle: path,
-                            image: image,
-                            attributes: attributes
-                        ) { _ in open(path) })
+    /// The same checked folder rows used by Go > Favorites and the browser title.
+    /// Read the paths when the menu opens so a saved change is visible at once.
+    static func favoriteItems(open: @escaping (String) -> Void) -> UIDeferredMenuElement {
+        folders(
+            { FileSession.shared.favoritePaths },
+            emptyTitle: String(localized: "Favorites"), open: open
+        )
+    }
+
+    private static func folders(
+        _ paths: @escaping @MainActor () -> [String],
+        attributes: UIMenuElement.Attributes = [],
+        emptyTitle: String? = nil,
+        open: @escaping (String) -> Void
+    ) -> UIDeferredMenuElement {
+        UIDeferredMenuElement.uncached { completion in
+            Task { @MainActor in
+                let session = FileSession.shared
+                await session.ready()
+                let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
+                var actions: [UIMenuElement] = []
+                for path in paths() {
+                    guard let details = try? await session.perform({ try await $0.details(of: path) }),
+                          details.node.isNavigable else { continue }
+                    let presentation = decoration(path)
+                    var image = FilePresentation.image(for: details.node)
+                    if let identifier = presentation?.applicationIdentifier,
+                       let artwork = SystemCapabilities.applicationArtwork
+                    {
+                        image = await artwork.icon(for: identifier) ?? image
                     }
-                    completion(actions)
+                    let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
+                    actions.append(UIAction(
+                        title: name,
+                        subtitle: path,
+                        image: image,
+                        attributes: attributes
+                    ) { _ in open(path) })
                 }
+                if actions.isEmpty, let emptyTitle {
+                    actions.append(UIAction(title: emptyTitle, attributes: .disabled) { _ in })
+                }
+                completion(actions)
             }
         }
+    }
+
+    static func collections(attributes: UIMenuElement.Attributes = [], open: @escaping (String) -> Void) -> [UIMenu] {
+        let session = FileSession.shared
         let mounts = UIDeferredMenuElement.uncached { completion in
             Task { @MainActor in
                 let mounts = (try? await FileSession.shared.perform { try await $0.mountPoints() }) ?? []
@@ -167,7 +199,10 @@ enum FilaMenu {
             menus.append(UIMenu(
                 title: String(localized: "Favorites"),
                 image: compositeIcon(favorites.compactMap(folderIcon(named:))) ?? folder,
-                children: [folders(favorites)]
+                children: [folders(
+                    { FileSession.shared.favoritePaths },
+                    attributes: attributes, open: open
+                )]
             ))
         }
         if let backend = session.hello?.backend, backend != .local(reach: .container) {
@@ -183,7 +218,7 @@ enum FilaMenu {
             menus.append(UIMenu(
                 title: String(localized: "Recents"),
                 image: compositeIcon(recents.compactMap(folderIcon(named:))) ?? folder,
-                children: [folders(recents)]
+                children: [folders({ recents }, attributes: attributes, open: open)]
             ))
         }
         return menus

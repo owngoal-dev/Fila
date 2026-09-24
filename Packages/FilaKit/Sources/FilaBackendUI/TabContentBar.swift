@@ -70,6 +70,8 @@ public final class TabContentBar {
     /// Shows `page` on the bar: its crumbs, and its search behind the button.
     func adopt(_ page: TabContentViewController) {
         current = page
+        pathBar.currentMenu = page.currentCrumbMenu
+        pathBar.currentLongPressMenu = page.currentCrumbLongPressMenu
         pathBar.setCrumbs(page.crumbs)
     }
 }
