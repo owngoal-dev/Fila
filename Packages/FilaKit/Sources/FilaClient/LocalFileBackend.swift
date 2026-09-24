@@ -179,22 +179,52 @@ public class LocalFileBackend: FileBackend {
 
     /// Absent means the user never touched them and the defaults apply;
     /// an empty list means they removed every one, and stays empty.
-    public var favorites: [ServicePath] {
+    public var favoriteBookmarks: [ServicePath] {
         preferences.files.favorites ?? defaultFavorites
     }
 
+    /// Browser and sidebar callers use real paths. The saved bookmark remains
+    /// `/jbroot/...` and is resolved against the daemon's current root.
+    public var favorites: [ServicePath] {
+        favoriteBookmarks.compactMap(resolveFavoriteBookmark)
+    }
+
+    public func resolveFavoriteBookmark(_ bookmark: ServicePath) -> ServicePath? {
+        guard rootPath == "/", bookmark.components.first == "jbroot" else { return bookmark }
+        guard let currentRoot = currentBootstrapRoot else { return nil }
+        let suffix = try? ServicePath(components: Array(bookmark.components.dropFirst()))
+        return suffix.map(currentRoot.appending)
+    }
+
+    private var currentBootstrapRoot: ServicePath? {
+        guard case let .daemon(installRoot) = hello?.backend,
+              !installRoot.isEmpty,
+              let root = try? ServicePath(installRoot), !root.isRoot
+        else { return nil }
+        return root
+    }
+
+    private func bookmark(for path: ServicePath) -> ServicePath {
+        guard rootPath == "/", path.components.first != "jbroot",
+              let root = currentBootstrapRoot,
+              path.components.starts(with: root.components)
+        else { return path }
+        return (try? ServicePath(components: ["jbroot"] + Array(path.components.dropFirst(root.components.count)))) ?? path
+    }
+
     public func isFavorite(_ path: ServicePath) -> Bool {
-        favorites.contains(path)
+        favoriteBookmarks.contains(path) || favoriteBookmarks.contains(bookmark(for: path))
     }
 
     public func setFavorite(_ path: ServicePath, included: Bool) throws {
-        var list = favorites
+        let saved = bookmark(for: path)
+        var list = favoriteBookmarks
         if included {
-            guard !list.contains(path) else { return }
-            list.append(path)
+            guard !list.contains(path), !list.contains(saved) else { return }
+            list.append(saved)
         } else {
-            guard list.contains(path) else { return }
-            list.removeAll { $0 == path }
+            guard list.contains(path) || list.contains(saved) else { return }
+            list.removeAll { $0 == path || $0 == saved }
         }
         try update { $0.files.favorites = list }
     }

@@ -128,12 +128,14 @@ enum FilaMenu {
     static func favoriteItems(open: @escaping (String) -> Void) -> UIDeferredMenuElement {
         folders(
             { FileSession.shared.favoritePaths },
+            resolve: { FileSession.shared.resolveFavoritePath($0) },
             emptyTitle: String(localized: "Favorites"), open: open
         )
     }
 
     private static func folders(
         _ paths: @escaping @MainActor () -> [String],
+        resolve: @escaping @MainActor (String) -> String? = { $0 },
         attributes: UIMenuElement.Attributes = [],
         emptyTitle: String? = nil,
         open: @escaping (String) -> Void
@@ -145,9 +147,10 @@ enum FilaMenu {
                 let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
                 var actions: [UIMenuElement] = []
                 for path in paths() {
-                    guard let details = try? await session.perform({ try await $0.details(of: path) }),
+                    guard let actual = resolve(path),
+                          let details = try? await session.perform({ try await $0.details(of: actual) }),
                           details.node.isNavigable else { continue }
-                    let presentation = decoration(path)
+                    let presentation = decoration(actual)
                     var image = FilePresentation.image(for: details.node)
                     if let identifier = presentation?.applicationIdentifier,
                        let artwork = SystemCapabilities.applicationArtwork
@@ -160,7 +163,9 @@ enum FilaMenu {
                         subtitle: path,
                         image: image,
                         attributes: attributes
-                    ) { _ in open(path) })
+                    ) { _ in
+                        if let actual = resolve(path) { open(actual) }
+                    })
                 }
                 if actions.isEmpty, let emptyTitle {
                     actions.append(UIAction(title: emptyTitle, attributes: .disabled) { _ in })
@@ -201,6 +206,7 @@ enum FilaMenu {
                 image: compositeIcon(favorites.compactMap(folderIcon(named:))) ?? folder,
                 children: [folders(
                     { FileSession.shared.favoritePaths },
+                    resolve: { FileSession.shared.resolveFavoritePath($0) },
                     attributes: attributes, open: open
                 )]
             ))

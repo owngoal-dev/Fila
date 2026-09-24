@@ -11,6 +11,7 @@ import Foundation
 /// as before, and read back as paths relative to `/`. Visit times are the
 /// one addition, under `recentVisits`, beside the path array rather than in
 /// place of it: an older build reading these defaults still finds its list.
+/// Bootstrap favourites use stable `/jbroot/...` paths in the same array.
 ///
 /// Only the full root uses this. The sandboxed backend is a different
 /// namespace and stores its own record under its own key, so an old absolute
