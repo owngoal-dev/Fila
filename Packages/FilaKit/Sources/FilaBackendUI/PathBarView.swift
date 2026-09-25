@@ -92,9 +92,8 @@
 
         public var onSelect: ((Crumb) -> Void)?
 
-        /// The current crumb's tap menu. Whether it has one changes how the
-        /// crumb is drawn, which the next `setCrumbs` does: every caller sets
-        /// the menus and then the crumbs they belong with.
+        /// The current crumb's tap menu. The crumb is drawn the same with or
+        /// without one.
         var currentMenu: UIMenu? {
             didSet { currentButton.menu = currentMenu }
         }
@@ -222,16 +221,6 @@
                     Self.component: index,
                 ]))
                 if isCurrent {
-                    if currentMenu != nil {
-                        let star = UIImage(
-                            systemName: "star",
-                            withConfiguration: UIImage.SymbolConfiguration(font: Self.font, scale: .small),
-                        )?.withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
-                        if let star {
-                            line.append(NSAttributedString(string: " ", attributes: [.font: Self.font]))
-                            line.append(NSAttributedString(attachment: NSTextAttachment(image: star)))
-                        }
-                    }
                     currentTapRange = NSRange(location: componentStart, length: line.length - componentStart)
                     break
                 }
