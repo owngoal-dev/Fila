@@ -27,7 +27,7 @@ final class FolderDecorationPreviewViewController: UIViewController {
         view.backgroundColor = .systemBackground
         let artwork = SystemCapabilities.applicationArtwork
         let image = UIImageView(
-            image: artwork?.cachedIcon(for: decoration.applicationIdentifier) ?? artwork?.placeholder
+            image: artwork?.cachedIcon(for: decoration.applicationIdentifier) ?? artwork?.placeholder,
         ).then {
             $0.contentMode = .scaleAspectFit
             $0.tintColor = .systemBrown
@@ -77,7 +77,7 @@ final class FolderDecorationPreviewViewController: UIViewController {
         }
         let size = stack.systemLayoutSizeFitting(
             CGSize(width: 320 - 2 * FilaUI.Spacing.large, height: 0),
-            withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel
+            withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel,
         )
         preferredContentSize = CGSize(width: 320, height: size.height + 2 * FilaUI.Spacing.large)
     }

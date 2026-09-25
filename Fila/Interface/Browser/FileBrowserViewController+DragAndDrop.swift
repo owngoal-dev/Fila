@@ -8,7 +8,7 @@ extension FileBrowserViewController: UICollectionViewDragDelegate {
     func collectionView(
         _: UICollectionView,
         itemsForBeginning _: UIDragSession,
-        at indexPath: IndexPath
+        at indexPath: IndexPath,
     ) -> [UIDragItem] {
         // A trashed item leaves the trash by Put Back, which knows where it
         // belongs; a drag would carry its origin note along as junk.
@@ -25,7 +25,7 @@ extension FileBrowserViewController: UICollectionViewDropDelegate {
     func collectionView(
         _: UICollectionView,
         dropSessionDidUpdate session: UIDropSession,
-        withDestinationIndexPath indexPath: IndexPath?
+        withDestinationIndexPath indexPath: IndexPath?,
     ) -> UICollectionViewDropProposal {
         // Nothing enters the trash but a delete: a dropped item would have no
         // origin to be put back to.

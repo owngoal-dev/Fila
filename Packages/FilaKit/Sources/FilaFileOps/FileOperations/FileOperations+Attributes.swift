@@ -126,6 +126,6 @@ func filaTimeValue(_ seconds: Double) -> timeval {
     let whole = seconds.rounded(.down)
     return timeval(
         tv_sec: __darwin_time_t(whole),
-        tv_usec: __darwin_suseconds_t((seconds - whole) * 1_000_000)
+        tv_usec: __darwin_suseconds_t((seconds - whole) * 1_000_000),
     )
 }

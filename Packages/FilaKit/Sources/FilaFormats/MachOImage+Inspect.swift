@@ -77,7 +77,7 @@ extension MachOImage {
                 var iterator = MachOFile.LoadCommands.Iterator(
                     data: bytes,
                     numberOfCommands: 1,
-                    isSwapped: slice.isBigEndian
+                    isSwapped: slice.isBigEndian,
                 )
                 guard let decoded = iterator.next() else {
                     throw FormatFailure.damaged("a load command could not be read")
@@ -103,7 +103,7 @@ extension MachOImage {
         _ command: MachOKit.LoadCommand,
         bytes: Data,
         slice: Slice,
-        into result: inout Inspection
+        into result: inout Inspection,
     ) throws {
         switch command {
         case let .segment64(segment):
@@ -118,7 +118,7 @@ extension MachOImage {
                 bytes: bytes,
                 headerSize: 72,
                 sectionSize: 80,
-                slice: slice
+                slice: slice,
             ))
         case let .segment(segment):
             try result.segments.append(segmentSummary(
@@ -132,7 +132,7 @@ extension MachOImage {
                 bytes: bytes,
                 headerSize: 56,
                 sectionSize: 68,
-                slice: slice
+                slice: slice,
             ))
         case let .buildVersion(version):
             guard UInt64(version.layout.ntools) * 8 <= bytes.count - 24 else {
@@ -190,7 +190,7 @@ extension MachOImage {
         bytes: Data,
         headerSize: Int,
         sectionSize: Int,
-        slice: Slice
+        slice: Slice,
     ) throws -> Segment {
         guard offset <= slice.byteCount, fileSize <= UInt64(slice.byteCount) - offset,
               UInt64(sections) * UInt64(sectionSize) <= bytes.count - headerSize
@@ -207,7 +207,7 @@ extension MachOImage {
             fileOffset: offset,
             fileSize: fileSize,
             protections: permissions,
-            sections: names
+            sections: names,
         )
     }
 
@@ -263,7 +263,7 @@ extension MachOImage {
                 }
                 let bytes = try reader.read(
                     at: signature.offset + offset + relative,
-                    count: Int(min(4096, blobLength - relative))
+                    count: Int(min(4096, blobLength - relative)),
                 )
                 return try Self.terminatedString(bytes, at: 0, limit: bytes.count)
             }

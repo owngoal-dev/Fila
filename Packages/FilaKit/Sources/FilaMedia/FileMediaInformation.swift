@@ -21,7 +21,7 @@ public struct FileMediaInformation: Sendable {
         if format == .image {
             guard let provider = DescriptorImage.provider(descriptor: descriptor, byteCount: Int64(status.st_size)),
                   let source = CGImageSourceCreateWithDataProvider(
-                      provider, [kCGImageSourceShouldCache: false] as CFDictionary
+                      provider, [kCGImageSourceShouldCache: false] as CFDictionary,
                   ),
                   let values = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
             else { return result }

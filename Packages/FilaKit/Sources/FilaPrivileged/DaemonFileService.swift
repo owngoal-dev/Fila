@@ -24,8 +24,13 @@ final class DaemonFileService: LocalFileAccess, @unchecked Sendable {
     /// starts reading the streams before either service has been chosen.
     private let streams: FileEventStreams
 
-    var jobEvents: AsyncStream<JobUpdate> { streams.jobEvents }
-    var searchResults: AsyncStream<SearchUpdate> { streams.searchResults }
+    var jobEvents: AsyncStream<JobUpdate> {
+        streams.jobEvents
+    }
+
+    var searchResults: AsyncStream<SearchUpdate> {
+        streams.searchResults
+    }
 
     /// Called when the connection goes away. Set once, before the first
     /// request; it fires on the connection's own queue and may fire more than
@@ -47,7 +52,7 @@ final class DaemonFileService: LocalFileAccess, @unchecked Sendable {
         }
         return LocalHello(
             protocolVersion: xpc_dictionary_get_uint64(reply, FilaWireKey.version),
-            backend: .daemon(installRoot: String(cString: root))
+            backend: .daemon(installRoot: String(cString: root)),
         )
     }
 
@@ -195,7 +200,7 @@ final class DaemonFileService: LocalFileAccess, @unchecked Sendable {
 
     func fetchLog(
         since sequence: UInt64,
-        level: FilaLog.Level
+        level: FilaLog.Level,
     ) async throws -> (records: [FilaLog.Record], dropped: UInt64) {
         let reply = try await send(.fetchLog) { request in
             FilaLog.Record.encodeRequest(since: sequence, level: level, into: request)
@@ -226,7 +231,7 @@ final class DaemonFileService: LocalFileAccess, @unchecked Sendable {
     /// refuse.
     func send(
         _ operation: FilaOperation,
-        fill: (xpc_object_t) -> Void
+        fill: (xpc_object_t) -> Void,
     ) async throws -> xpc_object_t {
         let request = xpc_dictionary_create(nil, nil, 0)
         xpc_dictionary_set_uint64(request, FilaWireKey.operation, operation.rawValue)

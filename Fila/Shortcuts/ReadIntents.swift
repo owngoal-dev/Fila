@@ -94,7 +94,7 @@ enum AppContainerKind: String, AppEnum {
 struct OpenAppContainerIntent: AppIntent {
     static var title: LocalizedStringResource = "Open App Container"
     static var description = IntentDescription(
-        "Opens an installed app's bundle or data container in Fila, by bundle identifier."
+        "Opens an installed app's bundle or data container in Fila, by bundle identifier.",
     )
     static var openAppWhenRun: Bool {
         true
@@ -138,7 +138,7 @@ struct OpenAppContainerIntent: AppIntent {
 struct GetItemPropertiesIntent: AppIntent {
     static var title: LocalizedStringResource = "Get File Info"
     static var description = IntentDescription(
-        "Reads an item's size, dates, permissions and owner, as root."
+        "Reads an item's size, dates, permissions and owner, as root.",
     )
 
     @Parameter(title: "Path")
@@ -197,7 +197,7 @@ struct ListDirectoryIntent: AppIntent {
 struct FindFilesIntent: AppIntent {
     static var title: LocalizedStringResource = "Find Files"
     static var description = IntentDescription(
-        "Searches a folder and its subfolders for names containing the text you enter."
+        "Searches a folder and its subfolders for names containing the text you enter.",
     )
 
     @Parameter(title: "Name Contains")
@@ -243,7 +243,7 @@ struct FindFilesIntent: AppIntent {
 struct ReadTextFileIntent: AppIntent {
     static var title: LocalizedStringResource = "Get Text from File"
     static var description = IntentDescription(
-        "Reads a text file as root and returns its contents."
+        "Reads a text file as root and returns its contents.",
     )
 
     @Parameter(title: "Path")

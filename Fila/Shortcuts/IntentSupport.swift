@@ -97,7 +97,7 @@ enum IntentSupport {
     @MainActor
     static func daemon<T>(
         retryOnDisconnect: Bool = false,
-        _ body: (any LocalFileAccess) async throws -> T
+        _ body: (any LocalFileAccess) async throws -> T,
     ) async throws -> T {
         let session = try await session()
         do {
@@ -153,7 +153,7 @@ enum IntentSupport {
         _ request: JobRequest,
         kind: OperationCenter.Kind,
         subtitle: String,
-        announcing directories: [String]
+        announcing directories: [String],
     ) async throws {
         let session = try await session()
         let outcome = try await mapping {
@@ -263,19 +263,19 @@ struct IntentFailure: LocalizedError {
 
     static func invalidPath(_ path: String) -> IntentFailure {
         IntentFailure(errorDescription: String(
-            localized: "“\(path)” is not an absolute path. Enter a path that starts with /."
+            localized: "“\(path)” is not an absolute path. Enter a path that starts with /.",
         ))
     }
 
     static func invalidName(_ name: String) -> IntentFailure {
         IntentFailure(errorDescription: String(
-            localized: "“\(name)” is not a valid name. Enter a name without slashes, and do not use “.” or “..”."
+            localized: "“\(name)” is not a valid name. Enter a name without slashes, and do not use “.” or “..”.",
         ))
     }
 
     static func invalidBundleIdentifier(_ bundleIdentifier: String) -> IntentFailure {
         IntentFailure(errorDescription: String(
-            localized: "“\(bundleIdentifier)” is not a valid bundle identifier. Enter a different identifier."
+            localized: "“\(bundleIdentifier)” is not a valid bundle identifier. Enter a different identifier.",
         ))
     }
 
@@ -287,7 +287,7 @@ struct IntentFailure: LocalizedError {
     /// is permanent, not a hiccup, and the user needs to know which Fila they
     /// are holding.
     static let noDaemon = IntentFailure(errorDescription: String(
-        localized: "Fila could not get root access. Install the Fila package on a jailbroken device."
+        localized: "Fila could not get root access. Install the Fila package on a jailbroken device.",
     ))
 
     static func notAFile(_ path: String) -> IntentFailure {
@@ -304,13 +304,13 @@ struct IntentFailure: LocalizedError {
 
     static func tooLarge(_ path: String) -> IntentFailure {
         IntentFailure(errorDescription: String(
-            localized: "“\(path)” is too large to read as text. Choose a smaller file."
+            localized: "“\(path)” is too large to read as text. Choose a smaller file.",
         ))
     }
 
     static func tooManyEntries(_ path: String) -> IntentFailure {
         IntentFailure(errorDescription: String(
-            localized: "“\(path)” holds too many items to list. Use the Find Files action instead."
+            localized: "“\(path)” holds too many items to list. Use the Find Files action instead.",
         ))
     }
 

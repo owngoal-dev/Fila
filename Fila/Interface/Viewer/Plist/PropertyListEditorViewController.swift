@@ -61,7 +61,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             image: UIImage(systemName: "xmark"),
             style: .plain,
             target: self,
-            action: #selector(cancelEditing)
+            action: #selector(cancelEditing),
         )
         item.accessibilityLabel = String(localized: "Cancel")
         return item
@@ -72,7 +72,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             image: UIImage(systemName: "chevron.backward"),
             style: .plain,
             target: self,
-            action: #selector(goBackOneLevel)
+            action: #selector(goBackOneLevel),
         )
         item.accessibilityLabel = String(localized: "Back")
         return item
@@ -148,7 +148,7 @@ final class PropertyListEditorViewController: TabContentViewController {
                 table.backgroundView = StatusView(content: .message(
                     symbol: "exclamationmark.triangle",
                     title: String(localized: "Unable to Read This File"),
-                    detail: FailureMessage.text(for: error)
+                    detail: FailureMessage.text(for: error),
                 ))
             }
         }
@@ -212,7 +212,7 @@ final class PropertyListEditorViewController: TabContentViewController {
         let save = UIAction(
             title: String(localized: "Save"),
             image: UIImage(systemName: "checkmark"),
-            attributes: document.hasUnsavedChanges && !document.isSaving ? [] : .disabled
+            attributes: document.hasUnsavedChanges && !document.isSaving ? [] : .disabled,
         ) { [weak self] _ in self?.save() }
         let actions = [
             (String(localized: "Save as Binary"), PropertyListSerialization.PropertyListFormat.binary),
@@ -221,7 +221,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             UIAction(
                 title: title,
                 attributes: document.isSaving ? .disabled : [],
-                state: document.format == format ? .on : .off
+                state: document.format == format ? .on : .off,
             ) { [weak self] _ in
                 guard let self, !self.document.isSaving, document.format != format else { return }
                 document.format = format
@@ -232,7 +232,7 @@ final class PropertyListEditorViewController: TabContentViewController {
         let format = UIMenu(
             title: String(localized: "Format"),
             image: UIImage(systemName: "doc.badge.gearshape"),
-            children: actions
+            children: actions,
         )
         return [save, format]
     }
@@ -254,7 +254,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             table.backgroundView = StatusView(content: .message(
                 symbol: "list.bullet",
                 title: String(localized: "No Entries"),
-                detail: nil
+                detail: nil,
             ))
         } else {
             table.backgroundView = nil
@@ -298,7 +298,7 @@ final class PropertyListEditorViewController: TabContentViewController {
         prepareToPresent()
         let alert = AlertViewController(
             title: String.LocalizationValue("Unsaved Changes"),
-            message: String.LocalizationValue("Leaving now discards your changes. The file on disk is unchanged.")
+            message: String.LocalizationValue("Leaving now discards your changes. The file on disk is unchanged."),
         ) { [weak self] context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
@@ -347,7 +347,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             // extractor.
             placeholder: String(localized: "Value"),
             text: row.value.editableText ?? "",
-            doneButtonText: String(localized: "Done")
+            doneButtonText: String(localized: "Done"),
         ) { [weak self] text in
             guard let self else { return }
             guard let value = Self.reinterpret(text, like: row.value) else {
@@ -376,7 +376,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             message: String.LocalizationValue("Keys in the same dictionary must be unique."),
             placeholder: String.LocalizationValue("Key"),
             text: row.label,
-            doneButtonText: String.LocalizationValue("Done")
+            doneButtonText: String.LocalizationValue("Done"),
         ) { [weak self] name in
             guard let self, !name.isEmpty, name != row.label else { return }
             let sibling = Array(row.path.dropLast()) + [.key(name)]
@@ -406,7 +406,7 @@ final class PropertyListEditorViewController: TabContentViewController {
                 UIAction(title: value.typeName, image: UIImage(systemName: symbol)) { [weak self] _ in
                     self?.addEntry(value, to: row)
                 }
-            }
+            },
         )
     }
 
@@ -422,7 +422,7 @@ final class PropertyListEditorViewController: TabContentViewController {
             title: String.LocalizationValue("Add Entry"),
             message: String.LocalizationValue("Keys in the same dictionary must be unique."),
             placeholder: String.LocalizationValue("Key"),
-            text: ""
+            text: "",
         ) { [weak self] key in
             guard let self, !key.isEmpty else { return }
             guard document.root?.value(at: row.path + [.key(key)]) == nil else {
@@ -535,7 +535,7 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
     func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         let row = rows[indexPath.row]
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -553,14 +553,14 @@ extension PropertyListEditorViewController: UITableViewDataSource, UITableViewDe
                     actions.append(
                         UIAction(title: String(localized: "Rename Key"), image: UIImage(systemName: "pencil")) { _ in
                             self.rename(row)
-                        }
+                        },
                     )
                 }
                 if !row.path.isEmpty {
                     actions.append(UIAction(
                         title: String(localized: "Delete"),
                         image: UIImage(systemName: "trash"),
-                        attributes: .destructive
+                        attributes: .destructive,
                     ) { _ in
                         self.apply { $0.replacing(row.path, with: nil) }
                     })

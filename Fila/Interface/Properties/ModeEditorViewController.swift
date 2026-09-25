@@ -74,7 +74,7 @@ final class ModeEditorViewController: TabContentViewController {
             image: UIImage(systemName: "checkmark"),
             style: .done,
             target: self,
-            action: #selector(commit)
+            action: #selector(commit),
         )
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "Apply")
     }
@@ -112,7 +112,7 @@ final class ModeEditorViewController: TabContentViewController {
                 let group = Self.bits[index]
                 cell.configure(
                     title: group.section,
-                    permissions: group.entries.map { ($0.label, self.mode & $0.mask != 0) }
+                    permissions: group.entries.map { ($0.label, self.mode & $0.mask != 0) },
                 ) { [weak self] bitIndex in
                     guard let self else { return }
                     mode ^= group.entries[bitIndex].mask
@@ -191,7 +191,7 @@ final class ModeEditorViewController: TabContentViewController {
             message: String.LocalizationValue("Enter three or four octal digits (0–7)."),
             placeholder: String.LocalizationValue("Octal digits"),
             text: String(format: "%04o", mode),
-            doneButtonText: String.LocalizationValue("Set")
+            doneButtonText: String.LocalizationValue("Set"),
         ) { [weak self] text in
             guard let self, let value = UInt32(text, radix: 8),
                   (3 ... 4).contains(text.count), value <= 0o7777 else { return }
@@ -272,7 +272,7 @@ private final class PermissionGroupCell: UITableViewCell {
                 top: FilaUI.Spacing.small,
                 leading: 0,
                 bottom: FilaUI.Spacing.small,
-                trailing: 0
+                trailing: 0,
             )
             configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
                 var attributes = attributes
@@ -285,7 +285,7 @@ private final class PermissionGroupCell: UITableViewCell {
             button.removeAction(identifiedBy: UIAction.Identifier("permission"), for: .touchUpInside)
             button.addAction(
                 UIAction(identifier: UIAction.Identifier("permission")) { _ in change(index) },
-                for: .touchUpInside
+                for: .touchUpInside,
             )
         }
     }

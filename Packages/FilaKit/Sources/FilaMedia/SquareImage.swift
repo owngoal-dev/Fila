@@ -29,7 +29,7 @@ public enum SquareImage {
             x: (image.width - source) / 2,
             y: anchor == .top ? 0 : (image.height - source) / 2,
             width: source,
-            height: source
+            height: source,
         )
         guard let square = image.cropping(to: crop) else { return nil }
         return draw(square, side: side, in: CGRect(x: 0, y: 0, width: side, height: side))
@@ -56,7 +56,7 @@ public enum SquareImage {
             bitsPerComponent: 8,
             bytesPerRow: 0,
             space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
         ) else { return nil }
         context.interpolationQuality = .high
         context.draw(image, in: box)

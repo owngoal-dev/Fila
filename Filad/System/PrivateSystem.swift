@@ -11,13 +11,13 @@ func filaProcPIDPath(_ pid: Int32, _ buffer: UnsafeMutableRawPointer, _ size: UI
 @_silgen_name("xpc_connection_get_audit_token")
 func filaXPCConnectionGetAuditToken(
     _ connection: xpc_connection_t,
-    _ token: UnsafeMutablePointer<audit_token_t>
+    _ token: UnsafeMutablePointer<audit_token_t>,
 )
 
 @_silgen_name("xpc_copy_entitlement_for_token")
 func filaXPCCopyEntitlement(
     _ name: UnsafePointer<CChar>,
-    _ token: UnsafeMutablePointer<audit_token_t>
+    _ token: UnsafeMutablePointer<audit_token_t>,
 ) -> xpc_object_t?
 
 /// `realpath(3)`, or nil when the path does not resolve.

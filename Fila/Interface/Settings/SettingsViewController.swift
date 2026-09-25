@@ -74,7 +74,7 @@ final class SettingsViewController: UIViewController {
         }
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
+            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration),
         )
         collectionView.delegate = self
         if page != .main {
@@ -104,14 +104,14 @@ final class SettingsViewController: UIViewController {
             self?.configure(cell, for: row)
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionHeader
+            elementKind: UICollectionView.elementKindSectionHeader,
         ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedHeader()
             content.text = self?.dataSource.sectionIdentifier(for: indexPath.section).flatMap(Self.header)
             view.contentConfiguration = content
         }
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedFooter()
             // An instance method, not a static one: the About footer depends on
@@ -162,7 +162,7 @@ final class SettingsViewController: UIViewController {
             snapshot.appendItems([.daemon, .protocolVersion, .installRoot], toSection: .about)
             snapshot.appendItems(
                 BackendComposition.registry.modules.map { Row.backend($0.bundleIdentifier) },
-                toSection: .backends
+                toSection: .backends,
             )
         }
         // Reload rather than apply: the item identifiers never change, so a
@@ -198,7 +198,7 @@ final class SettingsViewController: UIViewController {
             configureFact(
                 cell,
                 title: String(localized: "Protocol Version"),
-                value: privileged.map { String($0.protocolVersion) } ?? "—"
+                value: privileged.map { String($0.protocolVersion) } ?? "—",
             )
         case .installRoot:
             // Likewise the bootstrap prefix: `InstallRoot` derives it from the
@@ -206,7 +206,7 @@ final class SettingsViewController: UIViewController {
             configureFact(
                 cell,
                 title: String(localized: "Install Root"),
-                value: privileged.map { $0.installRoot.isEmpty ? "/" : $0.installRoot } ?? "—"
+                value: privileged.map { $0.installRoot.isEmpty ? "/" : $0.installRoot } ?? "—",
             )
         case .license:
             configureDisclosure(cell, title: String(localized: "Open Source Licenses"))
@@ -218,7 +218,7 @@ final class SettingsViewController: UIViewController {
             configureFact(
                 cell,
                 title: module?.frameworkName ?? identifier,
-                value: Self.version(of: Bundle(identifier: identifier))
+                value: Self.version(of: Bundle(identifier: identifier)),
             )
         }
     }
@@ -361,7 +361,7 @@ extension UIViewController {
         let navigation = UINavigationController(rootViewController: settings)
         settings.navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
-            primaryAction: UIAction { [weak navigation] _ in navigation?.dismiss(animated: true) }
+            primaryAction: UIAction { [weak navigation] _ in navigation?.dismiss(animated: true) },
         )
         settings.navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "Close")
         if (presentedViewController as? UINavigationController)?.viewControllers.first is SidebarViewController {

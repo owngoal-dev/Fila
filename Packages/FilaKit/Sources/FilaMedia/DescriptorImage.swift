@@ -20,7 +20,7 @@ enum DescriptorImage {
         guard let provider = provider(descriptor: descriptor, byteCount: byteCount, reads: reads),
               let source = CGImageSourceCreateWithDataProvider(
                   provider,
-                  [kCGImageSourceShouldCache: false] as CFDictionary
+                  [kCGImageSourceShouldCache: false] as CFDictionary,
               )
         else { return nil }
         guard ImagePreview.hasSupportedDimensions(source) else { return nil }
@@ -61,7 +61,7 @@ enum DescriptorImage {
             bitsPerComponent: 8,
             bytesPerRow: 0,
             space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue,
         ) else { return nil }
         context.setFillColor(gray: 1, alpha: 1)
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
@@ -69,7 +69,7 @@ enum DescriptorImage {
             .cropBox,
             rect: CGRect(x: 0, y: 0, width: width, height: height),
             rotate: 0,
-            preserveAspectRatio: true
+            preserveAspectRatio: true,
         ))
         context.drawPDFPage(page)
         return reads.failed ? nil : context.makeImage()
@@ -119,7 +119,7 @@ enum DescriptorImage {
             releaseInfo: { info in
                 guard let info else { return }
                 Unmanaged<DescriptorBox>.fromOpaque(info).release()
-            }
+            },
         )
         let box = Unmanaged.passRetained(DescriptorBox(descriptor: copy, reads: reads)).toOpaque()
         guard let provider = CGDataProvider(directInfo: box, size: off_t(byteCount), callbacks: &callbacks) else {

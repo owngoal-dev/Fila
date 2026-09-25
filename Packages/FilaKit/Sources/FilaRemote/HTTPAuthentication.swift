@@ -34,7 +34,7 @@ enum HTTPAuthentication {
         _ request: HTTPRequest,
         username: String,
         password: String,
-        nonces: DigestNonces
+        nonces: DigestNonces,
     ) -> Bool {
         guard let header = request.header("authorization") else { return false }
         if header.lowercased().hasPrefix("digest ") {
@@ -44,7 +44,7 @@ enum HTTPAuthentication {
                 target: request.target,
                 username: username,
                 password: password,
-                nonces: nonces
+                nonces: nonces,
             )
         }
         return verifyBasic(header, username: username, password: password)
@@ -80,7 +80,7 @@ enum HTTPAuthentication {
         target: String,
         username: String,
         password: String,
-        nonces: DigestNonces
+        nonces: DigestNonces,
     ) -> Bool {
         let fields = parse(header)
         guard fields["username"] == username,

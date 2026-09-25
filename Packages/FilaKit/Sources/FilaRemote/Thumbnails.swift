@@ -34,7 +34,7 @@ extension WebDAVHandler {
         side: Int,
         node: FileNode,
         on http: HTTPConnection,
-        includeBody: Bool
+        includeBody: Bool,
     ) async throws -> Int {
         guard let png = await Thumbnailer.png(for: path, side: side) else {
             try await respond(http, 404)
@@ -100,7 +100,7 @@ enum Thumbnailer {
                 fileAt: URL(fileURLWithPath: path),
                 size: CGSize(width: side, height: side),
                 scale: 1,
-                representationTypes: .thumbnail
+                representationTypes: .thumbnail,
             )
             guard
                 let representation = try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)

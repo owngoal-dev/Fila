@@ -26,7 +26,7 @@
                 text: String(cString: text),
                 isCaseSensitive: xpc_dictionary_get_bool(request, FilaWireKey.searchCaseSensitive),
                 includesHidden: xpc_dictionary_get_bool(request, FilaWireKey.searchHidden),
-                isGlob: xpc_dictionary_get_bool(request, FilaWireKey.searchGlob)
+                isGlob: xpc_dictionary_get_bool(request, FilaWireKey.searchGlob),
             )
         }
     }
@@ -75,8 +75,8 @@
                 xpc_dictionary_get_uint64(message, FilaWireKey.jobIdentifier),
                 SearchBatch(
                     matches: matches,
-                    limits: SearchLimits(rawValue: xpc_dictionary_get_uint64(message, FilaWireKey.searchLimits))
-                )
+                    limits: SearchLimits(rawValue: xpc_dictionary_get_uint64(message, FilaWireKey.searchLimits)),
+                ),
             )
         }
     }

@@ -48,7 +48,7 @@ final class FileSharingViewController: UIViewController {
         }
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
+            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration),
         )
         collectionView.delegate = self
         collectionView.contentInset.bottom = FilaUI.Spacing.settingsTail
@@ -62,7 +62,7 @@ final class FileSharingViewController: UIViewController {
             self,
             selector: #selector(serverChanged),
             name: .filaRemoteServerChanged,
-            object: nil
+            object: nil,
         )
     }
 
@@ -79,14 +79,14 @@ final class FileSharingViewController: UIViewController {
             cell.show(address)
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionHeader
+            elementKind: UICollectionView.elementKindSectionHeader,
         ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedHeader()
             content.text = self?.dataSource.sectionIdentifier(for: indexPath.section).flatMap(Self.header)
             view.contentConfiguration = content
         }
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedFooter()
             content.text = self?.dataSource.sectionIdentifier(for: indexPath.section).flatMap(Self.footer)
@@ -110,7 +110,7 @@ final class FileSharingViewController: UIViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Row>()
         let addresses = center.addresses
         snapshot.appendSections(
-            addresses.isEmpty ? [.server, .credentials, .background, .connections] : Section.allCases
+            addresses.isEmpty ? [.server, .credentials, .background, .connections] : Section.allCases,
         )
         var server: [Row] = [.status]
         if let failure = center.startFailure {
@@ -122,7 +122,7 @@ final class FileSharingViewController: UIViewController {
         let entries = center.log.prefix(Self.visibleConnectionCount)
         snapshot.appendItems(
             entries.isEmpty ? [.noConnections] : entries.map { .connection($0.id) } + [.clearConnections],
-            toSection: .connections
+            toSection: .connections,
         )
         if let first = addresses.first {
             // The first address is the first non-cellular, non-VPN interface —
@@ -131,7 +131,7 @@ final class FileSharingViewController: UIViewController {
         }
         let previous = Set(dataSource.snapshot().itemIdentifiers)
         snapshot.reconfigureItems(
-            [.status, .userName, .password, .port, .sharedFolder].filter { previous.contains($0) }
+            [.status, .userName, .password, .port, .sharedFolder].filter { previous.contains($0) },
         )
         dataSource.apply(snapshot, animatingDifferences: false)
     }
@@ -264,7 +264,7 @@ final class FileSharingViewController: UIViewController {
             message: message,
             placeholder: placeholder,
             text: value,
-            doneButtonText: String.LocalizationValue("Save")
+            doneButtonText: String.LocalizationValue("Save"),
         ) { [weak self] text in
             switch row {
             case .userName: AppPreferences.shared.serverUsername = text
@@ -284,7 +284,7 @@ final class FileSharingViewController: UIViewController {
     private func chooseSharedFolder() {
         let picker = SaveDestinationViewController(
             message: String(localized: "Devices on the network see only what is inside this folder."),
-            link: FileSession.shared.link
+            link: FileSession.shared.link,
         ) { [weak self] url in
             AppPreferences.shared.serverRoot = url.path
             self?.apply()
@@ -394,7 +394,7 @@ private final class QRCodeCell: UICollectionViewListCell {
         let padded = output.extent.insetBy(dx: -4, dy: -4)
         let transform = CGAffineTransform(
             scaleX: side * UIScreen.main.scale / padded.width,
-            y: side * UIScreen.main.scale / padded.height
+            y: side * UIScreen.main.scale / padded.height,
         )
         // Nearest sampling keeps module edges hard at a fractional scale.
         let scaled = output.samplingNearest().transformed(by: transform)

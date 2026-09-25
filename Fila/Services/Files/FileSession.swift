@@ -57,7 +57,7 @@ final class FileSession {
             local = LocalFileBackend(
                 access: LocalFileService(),
                 storage: LocalPreferencesDefaults(),
-                environment: .init(inboxDirectory: BackendComposition.host.inboxDirectory)
+                environment: .init(inboxDirectory: BackendComposition.host.inboxDirectory),
             )
         }
         link = local.access
@@ -137,7 +137,7 @@ final class FileSession {
             answer.isPrivileged
                 ? "daemon reached, protocol \(answer.protocolVersion),"
                 + " root \"\(answer.installRoot)\""
-                : "no daemon installed; file operations run in this process"
+                : "no daemon installed; file operations run in this process",
         )
         // Recorded before returning, so it is set before *any* caller resumes:
         // several may be waiting on one handshake and the order they wake in is
@@ -276,7 +276,7 @@ final class FileSession {
                 JobRequest(kind: .delete, sources: stale),
                 kind: .delete,
                 subtitle: parent.path,
-                feedback: .silent
+                feedback: .silent,
             )
             guard outcome.code == .success else { throw outcome }
         }
@@ -294,7 +294,7 @@ final class FileSession {
                 JobRequest(kind: .delete, sources: [path]),
                 kind: .delete,
                 subtitle: path,
-                feedback: .silent
+                feedback: .silent,
             )
             if outcome.code != .success, outcome.code != .notFound {
                 throw outcome

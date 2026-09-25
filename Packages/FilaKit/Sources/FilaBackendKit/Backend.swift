@@ -14,7 +14,9 @@ public struct BackendID: Hashable, Codable, Sendable, CustomStringConvertible {
         self.rawValue = rawValue
     }
 
-    public var description: String { rawValue }
+    public var description: String {
+        rawValue
+    }
 }
 
 /// A place inside a backend: the backend plus an opaque, backend-owned item
@@ -35,7 +37,9 @@ public struct BackendLocation: Hashable, Codable, Sendable {
         BackendLocation(backend: backend, item: "")
     }
 
-    public var isRoot: Bool { item.isEmpty }
+    public var isRoot: Bool {
+        item.isEmpty
+    }
 }
 
 /// What a backend is rooted at, with the display metadata the sidebar needs

@@ -12,6 +12,6 @@ MainActor.assumeIsolated {
         CommandLine.argc,
         CommandLine.unsafeArgv,
         nil,
-        NSStringFromClass(AppDelegate.self)
+        NSStringFromClass(AppDelegate.self),
     )
 }

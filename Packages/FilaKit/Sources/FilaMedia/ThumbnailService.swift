@@ -122,7 +122,7 @@ public actor ThumbnailService {
         byteCount: Int64,
         maxPixelSize: Int = 160,
         square: Bool = false,
-        open: @escaping @Sendable () async throws -> Int32
+        open: @escaping @Sendable () async throws -> Int32,
     ) async -> CGImage? {
         guard byteCount > 0, maxPixelSize > 0, maxPixelSize <= 512 else { return nil }
         let key = "\(path)@\(modified.bitPattern)@\(byteCount)@\(maxPixelSize)\(square ? "@square" : "")" as NSString
@@ -165,7 +165,7 @@ public actor ThumbnailService {
         maxPixelSize: Int = 160,
         square: Bool = false,
         workspace: @escaping @Sendable () async throws -> URL,
-        open: @escaping @Sendable () async throws -> Int32
+        open: @escaping @Sendable () async throws -> Int32,
     ) async -> CGImage? {
         #if canImport(QuickLookThumbnailing)
             guard byteCount > 0, byteCount <= PreviewLimits.fileByteCount, maxPixelSize > 0, maxPixelSize <= 512 else { return nil }
@@ -224,14 +224,14 @@ public actor ThumbnailService {
         private static func quickLook(
             _ url: URL,
             maxPixelSize: Int,
-            types: QLThumbnailGenerator.Request.RepresentationTypes
+            types: QLThumbnailGenerator.Request.RepresentationTypes,
         ) async -> CGImage? {
             await Task.detached(priority: .utility) {
                 let request = QLThumbnailGenerator.Request(
                     fileAt: url,
                     size: CGSize(width: maxPixelSize, height: maxPixelSize),
                     scale: 1,
-                    representationTypes: types
+                    representationTypes: types,
                 )
                 return try? await QLThumbnailGenerator.shared.generateBestRepresentation(for: request).cgImage
             }.value
@@ -254,7 +254,9 @@ public actor ThumbnailService {
         var offset: off_t = 0
         while true {
             let count = buffer.withUnsafeMutableBytes { pread(descriptor, $0.baseAddress, $0.count, offset) }
-            if count < 0, errno == EINTR { continue }
+            if count < 0, errno == EINTR {
+                continue
+            }
             guard count >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
             guard count > 0 else { return }
             offset += off_t(count)
@@ -262,7 +264,9 @@ public actor ThumbnailService {
             var written = 0
             while written < count {
                 let result = buffer.withUnsafeBytes { write(output, $0.baseAddress! + written, count - written) }
-                if result < 0, errno == EINTR { continue }
+                if result < 0, errno == EINTR {
+                    continue
+                }
                 guard result > 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
                 written += result
             }

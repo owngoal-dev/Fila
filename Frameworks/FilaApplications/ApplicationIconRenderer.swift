@@ -23,7 +23,7 @@ enum ApplicationIconRenderer {
     /// Keep the framework loaded for the lifetime of its Objective-C objects.
     private static let isAvailable = dlopen(
         "/System/Library/PrivateFrameworks/IconServices.framework/IconServices",
-        RTLD_NOW
+        RTLD_NOW,
     ) != nil
 
     /// Called off the main actor; IconServices may contact its rendering agent.

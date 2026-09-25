@@ -34,7 +34,7 @@ extension WebDAVHandler {
             try await respond(
                 http, 403,
                 headers: [("Content-Type", "application/xml; charset=\"utf-8\"")],
-                body: Data(DAVXML.finiteDepthError.utf8)
+                body: Data(DAVXML.finiteDepthError.utf8),
             )
             return 403
         }
@@ -54,7 +54,7 @@ extension WebDAVHandler {
             try await http.write(Data(DAVXML.response(
                 href: RemotePath.href(for: path, root: configuration.root, isCollection: isCollection),
                 node: details.node,
-                isCollection: isCollection
+                isCollection: isCollection,
             ).utf8))
 
             // Batched rather than one chunk per entry, and flushed rather than
@@ -67,10 +67,10 @@ extension WebDAVHandler {
                     href: RemotePath.href(
                         for: RemotePath.join(path, entry.name),
                         root: configuration.root,
-                        isCollection: entry.isNavigable
+                        isCollection: entry.isNavigable,
                     ),
                     node: entry,
-                    isCollection: entry.isNavigable
+                    isCollection: entry.isNavigable,
                 )
                 if batch.utf8.count >= 64 * 1024 {
                     try await http.write(Data(batch.utf8))
@@ -132,7 +132,7 @@ extension WebDAVHandler {
         let descriptor = try await service.open(
             temporary,
             flags: O_CREAT | O_EXCL | O_WRONLY,
-            mode: 0o600
+            mode: 0o600,
         )
 
         // Two `do` blocks, and the split is not cosmetic. The descriptor has to
@@ -314,7 +314,7 @@ extension WebDAVHandler {
         _ kind: FilaJobKind,
         from source: String,
         to destination: String,
-        overwrite: Bool
+        overwrite: Bool,
     ) async throws {
         let staging = RemotePath.join(RemotePath.parent(of: destination), ".fila-dav-\(UUID().uuidString)")
         let staged = RemotePath.join(staging, RemotePath.name(of: source))

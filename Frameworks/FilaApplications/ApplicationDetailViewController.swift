@@ -9,7 +9,9 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
     private let app: InstalledApp
     private let backend: ApplicationBackend
     private let root: PathBarView.Crumb
-    private var bundle: Bundle { ApplicationBackend.bundle }
+    private var bundle: Bundle {
+        ApplicationBackend.bundle
+    }
 
     private enum Section: Int { case header, details }
 
@@ -29,11 +31,11 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
                         title: String(localized: "Unable to Open App", bundle: bundle),
                         message: String(
                             localized: "iOS could not open this app. It may be unavailable or may not have an interface.",
-                            bundle: bundle
-                        )
+                            bundle: bundle,
+                        ),
                     )
                 }
-            }
+            },
         )]
     }
 
@@ -140,7 +142,7 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
                     $0.imageProperties.maximumSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
                     $0.imageProperties.reservedLayoutSize = CGSize(
                         width: FilaUI.IconSize.file,
-                        height: FilaUI.IconSize.file
+                        height: FilaUI.IconSize.file,
                     )
                     $0.textProperties.numberOfLines = 0
                 }
@@ -157,7 +159,7 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
         let path = app.locations[indexPath.section - 2].path
         guard let location = backend.local.servicePath(forAbsolute: path),
               let browser = BackendScreens.shell?.browser(
-                  for: BackendLocation(backend: backend.local.id, item: location.description)
+                  for: BackendLocation(backend: backend.local.id, item: location.description),
               ) else { return }
         navigationController?.pushViewController(browser, animated: true)
     }
@@ -167,7 +169,7 @@ final class ApplicationDetailViewController: TabContentTableViewController, TabC
     func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         let (title, text): (String, String) = switch Section(rawValue: indexPath.section) {
         case .header: (String(localized: "Copy Bundle Identifier", bundle: bundle), app.bundleIdentifier)

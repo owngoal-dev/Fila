@@ -31,7 +31,7 @@ public final class DirectoryListing {
 
     /// The next page, and whether the directory is exhausted.
     public func nextPage(
-        limit: Int = FilaProtocol.directoryPageEntryCount
+        limit: Int = FilaProtocol.directoryPageEntryCount,
     ) throws -> (entries: [FileNode], isFinal: Bool) {
         lastUsed = Date()
         guard let handle else { return ([], true) }
@@ -108,7 +108,7 @@ public final class ListingRegistry {
     public func page(
         directory: String,
         cursor: UInt64,
-        limit: Int = FilaProtocol.directoryPageEntryCount
+        limit: Int = FilaProtocol.directoryPageEntryCount,
     ) throws -> (entries: [FileNode], cursor: UInt64) {
         closeIdleListings()
         let resolved = try FilaPath.canonical(directory)

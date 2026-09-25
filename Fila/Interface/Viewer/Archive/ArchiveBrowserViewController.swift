@@ -88,7 +88,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
             link: link,
             destinationHint: (path as NSString).deletingLastPathComponent,
             staged: nil,
-            openArchive: { try await link.open(path, flags: O_RDONLY) }
+            openArchive: { try await link.open(path, flags: O_RDONLY) },
         )
     }
 
@@ -101,7 +101,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         directory: String = "",
         members: [Row]? = nil,
         fileActionsOwner: ViewerContainerViewController? = nil,
-        openArchive: @escaping @Sendable () async throws -> Int32
+        openArchive: @escaping @Sendable () async throws -> Int32,
     ) {
         title_ = title
         self.archivePath = archivePath
@@ -141,7 +141,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         }
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
+            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration),
         ).then {
             $0.delegate = self
             $0.allowsMultipleSelectionDuringEditing = true
@@ -181,7 +181,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
             collection.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: row)
         }
         let footer = UICollectionView.SupplementaryRegistration<BrowserFooterView>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] footer, _, _ in
             let count = self?.members?.count ?? 0
             footer.label.text = count == ArchiveReader.maximumEntryCount
@@ -225,7 +225,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         let select = UIAction(
             title: isEditing ? String(localized: "Done") : String(localized: "Select"),
             image: UIImage(systemName: "checklist"),
-            attributes: canSelect ? [] : .disabled
+            attributes: canSelect ? [] : .disabled,
         ) { [weak self] _ in
             guard let self else { return }
             setEditing(!isEditing, animated: true)
@@ -238,7 +238,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         let extract = UIAction(
             title: extractTitle,
             image: UIImage(systemName: "archivebox"),
-            attributes: canExtract ? [] : .disabled
+            attributes: canExtract ? [] : .disabled,
         ) { [weak self] _ in
             guard let self else { return }
             self.extract(chosenRows)
@@ -246,7 +246,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         let extractTo = UIAction(
             title: String(localized: "Extract To…"),
             image: UIImage(systemName: "folder"),
-            attributes: canExtract ? [] : .disabled
+            attributes: canExtract ? [] : .disabled,
         ) { [weak self] _ in
             guard let self else { return }
             self.extract(chosenRows, choosingDestination: true)
@@ -260,7 +260,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
             menuItem.menu = UIMenu(
                 children: FilaMenu.groups([select, extract, extractTo])
                     + (fileActionsOwner?.fileMenuElements(presenting: self) ?? [])
-                    + [settingsMenuElement]
+                    + [settingsMenuElement],
             )
             trailingNavigationItems = [menuItem]
         }
@@ -294,7 +294,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
         snapshot.appendItems(items)
         dataSource.apply(snapshot, animatingDifferences: false)
         collectionView.showStatus(
-            items.isEmpty ? .message(symbol: "archivebox", title: String(localized: "No Items")) : nil
+            items.isEmpty ? .message(symbol: "archivebox", title: String(localized: "No Items")) : nil,
         )
         refreshActions()
     }
@@ -401,9 +401,9 @@ final class ArchiveBrowserViewController: TabContentViewController {
             directory: URL(fileURLWithPath: destinationHint, isDirectory: true),
             message: String(
                 format: String(localized: "%lld items will be extracted here without replacing existing items."),
-                Int64(rows.count)
+                Int64(rows.count),
             ),
-            link: link
+            link: link,
         ) { [weak self] destination in
             self?.extract(rows, into: destination.path)
         }
@@ -421,7 +421,7 @@ final class ArchiveBrowserViewController: TabContentViewController {
             members: rows.map { ArchiveSelection(index: Int64($0.index), declaredPath: $0.entry.declaredPath) },
             into: destination,
             estimate: ArchiveSpaceEstimate(entries: rows.map(\.entry)),
-            encrypted: rows.contains(where: \.entry.isEncrypted)
+            encrypted: rows.contains(where: \.entry.isEncrypted),
         )
     }
 }
@@ -442,7 +442,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                 directory: path,
                 members: members,
                 fileActionsOwner: fileActionsOwner,
-                openArchive: openArchive
+                openArchive: openArchive,
             ))
         case let .member(row):
             if Self.isNested(row.entry) {
@@ -461,7 +461,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let item = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -511,7 +511,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
                     let descriptor = open(staged.path, O_RDONLY)
                     guard descriptor >= 0 else { throw ViewerFailure.readFailed(errno) }
                     return descriptor
-                }
+                },
             ))
         }
     }
@@ -594,7 +594,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
         from openArchive: @Sendable () async throws -> Int32,
         archiveName: String,
         password: String?,
-        into directory: URL
+        into directory: URL,
     ) async throws -> URL {
         let descriptor = try await openArchive()
         defer { close(descriptor) }
@@ -606,7 +606,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
             guard index == row.index else { continue }
             guard candidate.declaredPath == row.entry.declaredPath else {
                 throw ViewerFailure.unsupportedContent(
-                    String(localized: "The archive changed while it was open. Open it again.")
+                    String(localized: "The archive changed while it was open. Open it again."),
                 )
             }
             // The name the archive declared is untrusted; `..` would climb out.
@@ -623,7 +623,7 @@ extension ArchiveBrowserViewController: UICollectionViewDelegate {
             return target
         }
         throw ViewerFailure.unsupportedContent(
-            String(localized: "This item is no longer in the archive. Open it again.")
+            String(localized: "This item is no longer in the archive. Open it again."),
         )
     }
 

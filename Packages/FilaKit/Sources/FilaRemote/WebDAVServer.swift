@@ -66,7 +66,7 @@ public final class WebDAVServer: @unchecked Sendable {
             advertisesBonjour: Bool = true,
             serviceName: String = "Fila",
             webRoot: URL? = nil,
-            typeIcon: (@Sendable (_ name: String, _ isDirectory: Bool) async -> Data?)? = nil
+            typeIcon: (@Sendable (_ name: String, _ isDirectory: Bool) async -> Data?)? = nil,
         ) {
             self.port = port
             self.username = username
@@ -218,7 +218,7 @@ public final class WebDAVServer: @unchecked Sendable {
             .childChannelOption(NIOTSChannelOptions.maximumReceiveLength, value: HTTPConnection.chunkByteCount)
             .childChannelOption(
                 ChannelOptions.writeBufferWaterMark,
-                value: .init(low: HTTPConnection.chunkByteCount, high: 2 * HTTPConnection.chunkByteCount)
+                value: .init(low: HTTPConnection.chunkByteCount, high: 2 * HTTPConnection.chunkByteCount),
             )
             .childChannelInitializer { [weak self] channel in
                 guard let self else { return channel.eventLoop.makeFailedFuture(HTTPFailure.closed) }
@@ -323,11 +323,11 @@ public final class WebDAVServer: @unchecked Sendable {
         try channel.pipeline.syncOperations.configureHTTPServerPipeline(
             withPipeliningAssistance: false,
             withEncoderConfiguration: .init(),
-            withDecoderLimitConfiguration: limits
+            withDecoderLimitConfiguration: limits,
         )
         let conversation = try NIOAsyncChannel<HTTPServerRequestPart, Never>(
             wrappingChannelSynchronously: channel,
-            configuration: .init(backPressureStrategy: .init(lowWatermark: 2, highWatermark: 4))
+            configuration: .init(backPressureStrategy: .init(lowWatermark: 2, highWatermark: 4)),
         )
         let peer = channel.remoteAddress?.ipAddress ?? "A device"
         note("\(peer) connected.")
@@ -335,7 +335,7 @@ public final class WebDAVServer: @unchecked Sendable {
             service: service,
             configuration: configuration,
             nonces: nonces,
-            log: { [weak self] line in self?.note("\(peer) \(line)") }
+            log: { [weak self] line in self?.note("\(peer) \(line)") },
         )
         let ioTimeout = ioTimeout
         Task {

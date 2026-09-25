@@ -187,7 +187,9 @@ final class BrowserTabStore {
 
     private var loaded: State {
         get {
-            if let state { return state }
+            if let state {
+                return state
+            }
             let state = load()
             self.state = state
             return state
@@ -197,11 +199,15 @@ final class BrowserTabStore {
 
     // MARK: - Reading
 
-    var tabs: [BrowserTab] { loaded.tabs }
+    var tabs: [BrowserTab] {
+        loaded.tabs
+    }
 
     /// The tab in front of this window. Persisted so a relaunch lands where
     /// the person was.
-    var currentID: UUID { loaded.currentID }
+    var currentID: UUID {
+        loaded.currentID
+    }
 
     var current: BrowserTab {
         // `currentID` is only ever set to a tab that exists, and `tabs` is
@@ -332,12 +338,14 @@ final class BrowserTabStore {
         static let legacyList = "tabs"
 
         /// One of the three, for one window.
-        static func of(_ base: String, _ session: String) -> String { "\(base).\(session)" }
+        static func of(_ base: String, _ session: String) -> String {
+            "\(base).\(session)"
+        }
     }
 
     private func load() -> State {
         var stored = Self.read(
-            Key.of(Key.tabs, sessionIdentifier), current: Key.of(Key.current, sessionIdentifier), from: defaults
+            Key.of(Key.tabs, sessionIdentifier), current: Key.of(Key.current, sessionIdentifier), from: defaults,
         )
         var adoption: Adoption?
         if stored == nil, Date().timeIntervalSince(Self.launchedAt) < Self.restorationWindow {

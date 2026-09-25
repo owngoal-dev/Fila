@@ -49,7 +49,7 @@ final class AudioNowPlayingSession {
                 notifications.append(NotificationCenter.default.addObserver(
                     forName: name,
                     object: item,
-                    queue: .main
+                    queue: .main,
                 ) { [weak self] _ in
                     Task { @MainActor [weak self] in self?.publish() }
                 })
@@ -59,7 +59,7 @@ final class AudioNowPlayingSession {
             notifications.append(NotificationCenter.default.addObserver(
                 forName: name,
                 object: AVAudioSession.sharedInstance(),
-                queue: .main
+                queue: .main,
             ) { [weak self] notification in
                 Task { @MainActor [weak self] in self?.audioSessionChanged(notification) }
             })
@@ -232,7 +232,7 @@ final class AudioNowPlayingSession {
         }
         Self.skipIntervals = (
             center.skipForwardCommand.preferredIntervals,
-            center.skipBackwardCommand.preferredIntervals
+            center.skipBackwardCommand.preferredIntervals,
         )
         center.skipForwardCommand.preferredIntervals = [15]
         center.skipBackwardCommand.preferredIntervals = [15]

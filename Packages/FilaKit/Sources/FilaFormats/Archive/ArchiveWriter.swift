@@ -7,7 +7,7 @@ private extension ArchiveFormat {
     func configure(
         _ handle: OpaquePointer,
         zipCompression: ZipCompression,
-        encryption: ZipEncryption?
+        encryption: ZipEncryption?,
     ) -> Int32 {
         if self == .zip {
             let status = archive_write_set_format_zip(handle)
@@ -99,7 +99,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         format: ArchiveFormat = .zip,
         zipCompression: ZipCompression = .balanced,
         encryption: ZipEncryption = .aes256,
-        password: String? = nil
+        password: String? = nil,
     ) throws {
         var status = stat()
         guard fstat(descriptor, &status) == 0 else { throw FormatFailure.system(errno: errno) }
@@ -115,7 +115,7 @@ public final class ArchiveWriter: @unchecked Sendable {
             }
             guard configuration == ARCHIVE_OK else {
                 throw FormatFailure.damaged(
-                    archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created"
+                    archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created",
                 )
             }
             try Self.check(handle, archive_write_set_bytes_in_last_block(handle, 1))
@@ -131,7 +131,7 @@ public final class ArchiveWriter: @unchecked Sendable {
                     return Unmanaged<ArchiveOutput>.fromOpaque(context).takeUnretainedValue()
                         .write(buffer, count: count)
                 },
-                nil
+                nil,
             ), output: output)
         } catch {
             _ = withExtendedLifetime(output) { archive_write_free(handle) }
@@ -155,7 +155,7 @@ public final class ArchiveWriter: @unchecked Sendable {
             modified: modified,
             byteCount: 0,
             linkTarget: nil,
-            progress: nil
+            progress: nil,
         ) { nil }
     }
 
@@ -163,7 +163,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         _ path: String,
         target: String,
         mode: mode_t = 0o777,
-        modified: Date = Date()
+        modified: Date = Date(),
     ) throws {
         try append(
             path,
@@ -172,7 +172,7 @@ public final class ArchiveWriter: @unchecked Sendable {
             modified: modified,
             byteCount: 0,
             linkTarget: target,
-            progress: nil
+            progress: nil,
         ) { nil }
     }
 
@@ -187,7 +187,7 @@ public final class ArchiveWriter: @unchecked Sendable {
             modified: modified,
             byteCount: Int64(data.count),
             linkTarget: nil,
-            progress: nil
+            progress: nil,
         ) {
             defer { sent = true }
             return sent ? nil : data
@@ -202,7 +202,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         from source: Int32,
         mode: mode_t? = nil,
         modified: Date? = nil,
-        progress: ProgressHandler? = nil
+        progress: ProgressHandler? = nil,
     ) throws {
         var status = stat()
         guard fstat(source, &status) == 0 else { throw FormatFailure.system(errno: errno) }
@@ -216,7 +216,7 @@ public final class ArchiveWriter: @unchecked Sendable {
             modified: modified ?? Date(timeIntervalSince1970: Double(status.st_mtimespec.tv_sec)),
             byteCount: reader.byteCount,
             linkTarget: nil,
-            progress: progress
+            progress: progress,
         ) {
             guard offset < reader.byteCount else { return nil }
             let chunk = try reader.readUpTo(at: offset, count: chunkByteCount)
@@ -241,7 +241,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         byteCount: Int64,
         linkTarget: String?,
         progress: ProgressHandler?,
-        chunks: () throws -> Data?
+        chunks: () throws -> Data?,
     ) throws {
         guard !isFinished else { throw FormatFailure.damaged("the archive is already finished") }
         // The names this writer is handed are the app's own — a tree walk over

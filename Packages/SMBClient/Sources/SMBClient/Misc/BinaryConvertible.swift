@@ -1,18 +1,18 @@
 import Foundation
 
 protocol BinaryConvertible {
-  static func +(lhs: Data, rhs: Self) -> Data
-  static func +=(lhs: inout Data, rhs: Self)
+    static func + (lhs: Data, rhs: Self) -> Data
+    static func += (lhs: inout Data, rhs: Self)
 }
 
 extension BinaryConvertible {
-  static func +(lhs: Data, rhs: Self) -> Data {
-    lhs + Data(from: rhs)
-  }
+    static func + (lhs: Data, rhs: Self) -> Data {
+        lhs + Data(from: rhs)
+    }
 
-  static func +=(lhs: inout Data, rhs: Self) {
-    lhs = lhs + rhs
-  }
+    static func += (lhs: inout Data, rhs: Self) {
+        lhs = lhs + rhs
+    }
 }
 
 extension UInt8: BinaryConvertible {}

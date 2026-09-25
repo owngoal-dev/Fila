@@ -25,7 +25,7 @@ final class SaveDestinationViewController: UIViewController {
             message: String?,
             picksFiles: Bool,
             fileTypes: Set<String>? = nil,
-            confirm: @escaping (URL) -> Void
+            confirm: @escaping (URL) -> Void,
         ) {
             precondition(folderName == nil || fileName == nil)
             name = fileName ?? folderName
@@ -46,8 +46,8 @@ final class SaveDestinationViewController: UIViewController {
     private let list = UICollectionView(
         frame: .zero,
         collectionViewLayout: UICollectionViewCompositionalLayout.list(
-            using: UICollectionLayoutListConfiguration(appearance: .plain)
-        )
+            using: UICollectionLayoutListConfiguration(appearance: .plain),
+        ),
     )
     private let rowCell = UICollectionView.CellRegistration<IconRowCell, FileNode> { cell, _, node in
         cell.configure(node)
@@ -56,11 +56,12 @@ final class SaveDestinationViewController: UIViewController {
     private let nameField = UITextField()
     private var folders: [FileNode] = []
     private lazy var dataSource = UICollectionViewDiffableDataSource<Int, String>(
-        collectionView: list
+        collectionView: list,
     ) { [weak self] list, indexPath, name in
         guard let self, let node = folders.first(where: { $0.name == name }) else { return nil }
         return list.dequeueConfiguredReusableCell(using: rowCell, for: indexPath, item: node)
     }
+
     private var work: Task<Void, Never>?
     private var availability: Availability = .unavailable
 
@@ -69,7 +70,7 @@ final class SaveDestinationViewController: UIViewController {
             image: UIImage(systemName: "xmark"),
             style: .plain,
             target: self,
-            action: #selector(cancel)
+            action: #selector(cancel),
         )
         item.accessibilityLabel = String(localized: "Cancel")
         return item
@@ -80,7 +81,7 @@ final class SaveDestinationViewController: UIViewController {
             image: UIImage(systemName: "checkmark"),
             style: .done,
             target: self,
-            action: #selector(commit)
+            action: #selector(commit),
         )
         item.accessibilityLabel = selection.picksFiles
             ? String(localized: "Choose This Folder")
@@ -102,7 +103,7 @@ final class SaveDestinationViewController: UIViewController {
         picksFiles: Bool = false,
         fileTypes: Set<String>? = nil,
         link: any LocalFileAccess,
-        confirm: @escaping (URL) -> Void
+        confirm: @escaping (URL) -> Void,
     ) {
         self.init(
             directory: directory ?? URL(fileURLWithPath: FileSession.shared.lastDirectoryPath, isDirectory: true),
@@ -113,9 +114,9 @@ final class SaveDestinationViewController: UIViewController {
                 message: message,
                 picksFiles: picksFiles || fileTypes != nil,
                 fileTypes: fileTypes,
-                confirm: confirm
+                confirm: confirm,
             ),
-            isRoot: true
+            isRoot: true,
         )
     }
 
@@ -145,7 +146,7 @@ final class SaveDestinationViewController: UIViewController {
             self,
             selector: #selector(filesChanged),
             name: .filaJobFinished,
-            object: nil
+            object: nil,
         )
         list.refreshControl = UIRefreshControl()
         list.refreshControl?.addTarget(self, action: #selector(filesChanged), for: .valueChanged)
@@ -175,7 +176,7 @@ final class SaveDestinationViewController: UIViewController {
                     top: FilaUI.Spacing.medium,
                     leading: FilaUI.Spacing.large,
                     bottom: FilaUI.Spacing.medium,
-                    trailing: FilaUI.Spacing.large
+                    trailing: FilaUI.Spacing.large,
                 )
                 $0.backgroundColor = .secondarySystemBackground
             }
@@ -262,13 +263,13 @@ final class SaveDestinationViewController: UIViewController {
                 children: FilaMenu.destinations(
                     goToPath: { [weak self] in self?.promptGoToPath() },
                     open: { [weak self] path in self?.showAncestor(URL(fileURLWithPath: path, isDirectory: true)) },
-                    openLocation: nil
-                )
+                    openLocation: nil,
+                ),
             ),
             UIAction(
                 title: String(localized: "New Folder"),
                 image: UIImage(systemName: "folder.badge.plus"),
-                attributes: availability == .ready ? [] : .disabled
+                attributes: availability == .ready ? [] : .disabled,
             ) { [weak self] _ in
                 self?.promptNewFolder()
             },
@@ -317,7 +318,9 @@ final class SaveDestinationViewController: UIViewController {
                     })
                     cursor = page.cursor
                 } while cursor != 0
-                guard let self, !Task.isCancelled else { return }
+                guard let self, !Task.isCancelled else {
+                    return
+                }
                 folders = received.sorted {
                     $0.isNavigable != $1.isNavigable
                         ? $0.isNavigable
@@ -352,7 +355,7 @@ final class SaveDestinationViewController: UIViewController {
                 list.backgroundView = StatusView(content: .message(
                     symbol: "exclamationmark.triangle",
                     title: String(localized: "Unable to Read Folder"),
-                    detail: FailureMessage.text(for: error)
+                    detail: FailureMessage.text(for: error),
                 ))
                 refreshActions()
             }
@@ -369,7 +372,7 @@ final class SaveDestinationViewController: UIViewController {
         } else {
             navigation.setViewControllers(
                 [SaveDestinationViewController(directory: url, link: link, selection: selection, isRoot: true)],
-                animated: false
+                animated: false,
             )
         }
     }
@@ -378,7 +381,7 @@ final class SaveDestinationViewController: UIViewController {
         view.endEditing(true)
         navigationController?.pushViewController(
             SaveDestinationViewController(directory: url, link: link, selection: selection),
-            animated: true
+            animated: true,
         )
     }
 
@@ -397,7 +400,7 @@ final class SaveDestinationViewController: UIViewController {
             message: String.LocalizationValue("The folder is created in the current location."),
             placeholder: String.LocalizationValue("Folder name"),
             text: "",
-            doneButtonText: String.LocalizationValue("Create")
+            doneButtonText: String.LocalizationValue("Create"),
         ) { [weak self] name in
             guard let self else { return }
             guard Self.isValidName(name) else {
@@ -415,7 +418,7 @@ final class SaveDestinationViewController: UIViewController {
             message: String.LocalizationValue("Enter an absolute path, starting with a slash."),
             placeholder: String.LocalizationValue("Absolute path"),
             text: directory.path,
-            doneButtonText: String.LocalizationValue("Go")
+            doneButtonText: String.LocalizationValue("Go"),
         ) { [weak self] path in
             guard let self, path.hasPrefix("/") else { return }
             showAncestor(URL(fileURLWithPath: path, isDirectory: true))

@@ -12,7 +12,7 @@ public extension FileOperations {
         removefile_state_set(
             state,
             UInt32(REMOVEFILE_STATE_CONFIRM_CALLBACK),
-            unsafeBitCast(filaDiscardCopy, to: UnsafeRawPointer.self)
+            unsafeBitCast(filaDiscardCopy, to: UnsafeRawPointer.self),
         )
         guard removefile(path, state, removefile_flags_t(REMOVEFILE_RECURSIVE)) == 0 || Darwin.errno == ENOENT else {
             throw FilaFailure(errno: Darwin.errno, path: path)

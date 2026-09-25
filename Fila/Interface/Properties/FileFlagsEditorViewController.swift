@@ -23,7 +23,7 @@ final class FileFlagsEditorViewController: TabContentTableViewController {
                 guard let self else { return }
                 apply(flags)
                 navigationController?.popViewController(animated: true)
-            }
+            },
         )]
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "Apply")
     }

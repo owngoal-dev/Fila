@@ -29,7 +29,7 @@ final class TransfersViewController: UIViewController {
         image: UIImage(named: "broom"),
         primaryAction: UIAction { [weak self] _ in
             self?.center.clearFinished()
-        }
+        },
     ).then {
         $0.accessibilityLabel = String(localized: "Clear")
     }
@@ -61,7 +61,7 @@ final class TransfersViewController: UIViewController {
         }
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
+            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration),
         )
         collectionView.delegate = self
         view.addSubview(collectionView)
@@ -92,7 +92,7 @@ final class TransfersViewController: UIViewController {
             cell.configure(operation)
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionHeader
+            elementKind: UICollectionView.elementKindSectionHeader,
         ) { [weak self] view, _, indexPath in
             guard let self else { return }
             var content = UIListContentConfiguration.groupedHeader()
@@ -106,7 +106,7 @@ final class TransfersViewController: UIViewController {
             view.accessibilityTraits = .header
         }
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedFooter()
             // The honest part. `filad` runs a job for the connection that asked
@@ -162,7 +162,7 @@ final class TransfersViewController: UIViewController {
             ? .message(
                 symbol: "tray.and.arrow.down.fill",
                 title: String(localized: "No Tasks"),
-                detail: String(localized: "Copy, move, delete, and other tasks appear here.")
+                detail: String(localized: "Copy, move, delete, and other tasks appear here."),
             )
             : nil)
     }
@@ -187,7 +187,7 @@ final class TransfersViewController: UIViewController {
         controller.navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
             primaryAction: UIAction { [weak navigation] _ in navigation?.dismiss(animated: true) },
-            menu: nil
+            menu: nil,
         )
         controller.navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
         top.presentAsSheet(navigation)

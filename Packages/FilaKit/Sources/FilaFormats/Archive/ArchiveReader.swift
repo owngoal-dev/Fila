@@ -153,7 +153,7 @@ public final class ArchiveReader: @unchecked Sendable {
     /// anything kept.
     public func read(
         progress: ProgressHandler? = nil,
-        into sink: (_ offset: Int64, _ bytes: UnsafeRawBufferPointer) throws -> Void
+        into sink: (_ offset: Int64, _ bytes: UnsafeRawBufferPointer) throws -> Void,
     ) throws {
         guard current != nil else { throw FormatFailure.damaged("its contents could not be read") }
         let total = currentByteCount ?? 0
@@ -192,7 +192,7 @@ public final class ArchiveReader: @unchecked Sendable {
     public func read(
         into destination: Int32,
         maximumByteCount: Int64 = .max,
-        progress: ProgressHandler? = nil
+        progress: ProgressHandler? = nil,
     ) throws -> Int64 {
         if let size = currentByteCount, size > maximumByteCount {
             throw FormatFailure.tooLarge(byteCount: size, limit: maximumByteCount)
@@ -257,7 +257,7 @@ public final class ArchiveReader: @unchecked Sendable {
     public static func list(
         descriptor: Int32,
         name: String? = nil,
-        progress: ProgressHandler? = nil
+        progress: ProgressHandler? = nil,
     ) throws -> [ArchiveEntry] {
         let reader = try ArchiveReader(descriptor: descriptor, name: name)
         var entries: [ArchiveEntry] = []
@@ -269,7 +269,7 @@ public final class ArchiveReader: @unchecked Sendable {
             guard bytes <= remainingBytes else {
                 throw FormatFailure.tooLarge(
                     byteCount: Int64(maximumListingByteCount) + 1,
-                    limit: Int64(maximumListingByteCount)
+                    limit: Int64(maximumListingByteCount),
                 )
             }
             remainingBytes -= bytes
@@ -328,7 +328,7 @@ public final class ArchiveReader: @unchecked Sendable {
             linkTarget: Self.string(archive_entry_symlink_utf8(entry)) ?? Self.string(archive_entry_symlink(entry)),
             hardLinkTarget: Self.string(archive_entry_hardlink_utf8(entry))
                 ?? Self.string(archive_entry_hardlink(entry)),
-            isEncrypted: archive_entry_is_data_encrypted(entry) != 0
+            isEncrypted: archive_entry_is_data_encrypted(entry) != 0,
         )
     }
 

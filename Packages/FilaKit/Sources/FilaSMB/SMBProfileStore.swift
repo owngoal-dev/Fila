@@ -40,7 +40,9 @@ public final class SMBProfileStore {
     /// refuses the password puts the record back as it was, so a share is
     /// never saved without the password it was given.
     public func save(_ profile: SMBProfile, password: String?? = nil) throws {
-        if let loadFailure { throw loadFailure }
+        if let loadFailure {
+            throw loadFailure
+        }
         let previous = profiles
         var next = profiles
         if let index = next.firstIndex(where: { $0.id == profile.id }) {
@@ -67,7 +69,9 @@ public final class SMBProfileStore {
     /// record that outlives a failed password removal is not, which is why
     /// the order is this one.
     public func remove(_ id: UUID) throws {
-        if let loadFailure { throw loadFailure }
+        if let loadFailure {
+            throw loadFailure
+        }
         guard let profile = profile(id) else { return }
         let next = profiles.filter { $0.id != id }
         try storage.save(SMBProfileList(profiles: next))

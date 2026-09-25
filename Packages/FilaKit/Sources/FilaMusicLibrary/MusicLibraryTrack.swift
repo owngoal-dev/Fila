@@ -23,7 +23,9 @@ public enum MusicExportNaming {
         let cleaned = title.components(separatedBy: CharacterSet.controlCharacters.union(CharacterSet(charactersIn: "/:")))
             .filter { !$0.isEmpty }.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
         var stem = cleaned.isEmpty || cleaned == "." || cleaned == ".." ? untitled : cleaned
-        while stem.utf8.count > 180 { stem.removeLast() }
+        while stem.utf8.count > 180 {
+            stem.removeLast()
+        }
         let suffix = (sourcePath as NSString).pathExtension
         return suffix.isEmpty ? stem : stem + "." + suffix
     }

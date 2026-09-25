@@ -22,7 +22,7 @@ extension RootSplitViewController {
             let picker = SaveDestinationViewController(
                 directory: URL(fileURLWithPath: FileSession.shared.local.environment.inboxDirectory ?? FileSession.shared.local.rootPath, isDirectory: true),
                 message: String(localized: "\(listed) will be moved into the folder you choose."),
-                link: session.link
+                link: session.link,
             ) { destination in
                 // A file already in the chosen folder stays there.
                 let home = destination.resolvingSymlinksInPath().path

@@ -91,7 +91,7 @@ public extension PropertyListValue {
 
     private static func value(
         at path: ArraySlice<PropertyListPathComponent>,
-        in value: PropertyListValue
+        in value: PropertyListValue,
     ) -> PropertyListValue? {
         guard let head = path.first else { return value }
         switch (head, value) {
@@ -108,7 +108,7 @@ public extension PropertyListValue {
     private static func replacing(
         _ path: ArraySlice<PropertyListPathComponent>,
         in value: PropertyListValue,
-        with replacement: PropertyListValue?
+        with replacement: PropertyListValue?,
     ) -> PropertyListValue {
         guard let head = path.first else { return replacement ?? value }
         let rest = path.dropFirst()

@@ -24,7 +24,7 @@ final class HTTPConnection {
     init(
         inbound: NIOAsyncChannelInboundStream<HTTPServerRequestPart>,
         channel: Channel,
-        ioTimeout: TimeAmount = .seconds(readTimeoutSeconds)
+        ioTimeout: TimeAmount = .seconds(readTimeoutSeconds),
     ) {
         self.inbound = inbound.makeAsyncIterator()
         self.channel = channel

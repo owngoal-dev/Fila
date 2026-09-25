@@ -19,7 +19,10 @@ final class ServersSettingsViewController: UITableViewController {
         case add
     }
 
-    private var setups: [BackendConnectionSetup] { BackendComposition.registry.connectionSetups }
+    private var setups: [BackendConnectionSetup] {
+        BackendComposition.registry.connectionSetups
+    }
+
     private var updates: Task<Void, Never>?
 
     init() {
@@ -138,7 +141,7 @@ final class ServersSettingsViewController: UITableViewController {
         let name = root.displayName
         let alert = AlertViewController(
             title: String.LocalizationValue("Remove “\(name)”?"),
-            message: String.LocalizationValue("Its saved password and favorites are forgotten. Nothing on the server is changed.")
+            message: String.LocalizationValue("Its saved password and favorites are forgotten. Nothing on the server is changed."),
         ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()

@@ -72,7 +72,7 @@ extension FileBrowserViewController: RemovalTracking {
         let target = UIPreviewTarget(
             container: collectionView,
             center: cell.center,
-            transform: CGAffineTransform(scaleX: 0.2, y: 0.2)
+            transform: CGAffineTransform(scaleX: 0.2, y: 0.2),
         )
         return UITargetedPreview(view: UIView(frame: cell.bounds), parameters: parameters, target: target)
     }

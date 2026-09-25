@@ -191,7 +191,7 @@ final class AppPreferences {
             for: .documentDirectory,
             in: .userDomainMask,
             appropriateFor: nil,
-            create: true
+            create: true,
         ).path)
             ?? NSHomeDirectory() + "/Documents"
     }

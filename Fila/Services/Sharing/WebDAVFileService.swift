@@ -65,7 +65,7 @@ final class WebDAVFileService: RemoteFileService {
             job,
             kind: kind,
             subtitle: OperationCenter.describe(job.sources, destination: job.destination),
-            feedback: .silent
+            feedback: .silent,
         )
         guard failure.code == .success else { throw failure }
     }

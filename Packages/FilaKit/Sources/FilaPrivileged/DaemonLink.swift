@@ -20,11 +20,15 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
     /// Progress and completion for every running job, in arrival order —
     /// owned here rather than by either service, because the app starts
     /// reading it before the handshake has chosen one. See `FileEventStreams`.
-    public var jobEvents: AsyncStream<JobUpdate> { streams.jobEvents }
+    public var jobEvents: AsyncStream<JobUpdate> {
+        streams.jobEvents
+    }
 
     /// Matches from every running search job, in arrival order. See
     /// `FileEventStreams`.
-    public var searchResults: AsyncStream<SearchUpdate> { streams.searchResults }
+    public var searchResults: AsyncStream<SearchUpdate> {
+        streams.searchResults
+    }
 
     private let daemon: DaemonFileService
     private let daemonIsInstalled: Bool
@@ -245,7 +249,7 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
         _ source: String,
         to destination: String,
         exclusive: Bool,
-        overrideGuard: Bool
+        overrideGuard: Bool,
     ) async throws {
         try await service().rename(source, to: destination, exclusive: exclusive, overrideGuard: overrideGuard)
     }
@@ -308,7 +312,7 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
         redirectsScriptInterpreter: Bool,
         workingDirectory: String?,
         columns: UInt16,
-        rows: UInt16
+        rows: UInt16,
     ) async throws -> Terminal {
         // Straight to the daemon, and only when the daemon is what answers.
         // Without one there is no terminal to open: a session spawned in this process
@@ -343,7 +347,7 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
         }
         let identifier = TerminalIdentifier(
             value: xpc_dictionary_get_uint64(reply, FilaWireKey.terminalIdentifier),
-            owner: xpc_dictionary_get_string(reply, FilaWireKey.terminalOwner).map { String(cString: $0) }
+            owner: xpc_dictionary_get_string(reply, FilaWireKey.terminalOwner).map { String(cString: $0) },
         )
         let descriptor = xpc_dictionary_dup_fd(reply, FilaWireKey.descriptor)
         guard descriptor >= 0, identifier.value != 0,
@@ -367,7 +371,7 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
             identifier: identifier,
             descriptor: descriptor,
             executable: String(cString: program),
-            userIdentifier: userIdentifier
+            userIdentifier: userIdentifier,
         )
     }
 
@@ -404,7 +408,7 @@ public final class DaemonLink: PrivilegedFileAccess, @unchecked Sendable {
     /// `FilaLog` and the log screen reads them from there.
     public func fetchLog(
         since sequence: UInt64,
-        level: FilaLog.Level
+        level: FilaLog.Level,
     ) async throws -> (records: [FilaLog.Record], dropped: UInt64) {
         try await service().fetchLog(since: sequence, level: level)
     }

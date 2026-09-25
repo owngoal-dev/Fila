@@ -26,13 +26,17 @@ public final class MemoryCredentialStore: CredentialStore, @unchecked Sendable {
 
     public func secret(for key: String) throws -> String? {
         lock.lock(); defer { lock.unlock() }
-        if let failure { throw failure }
+        if let failure {
+            throw failure
+        }
         return secrets[key]
     }
 
     public func setSecret(_ secret: String?, for key: String) throws {
         lock.lock(); defer { lock.unlock() }
-        if let failure { throw failure }
+        if let failure {
+            throw failure
+        }
         secrets[key] = secret
     }
 

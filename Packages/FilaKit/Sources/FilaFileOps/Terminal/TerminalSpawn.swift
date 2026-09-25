@@ -11,7 +11,7 @@ enum TerminalSpawn {
         _ plan: TerminalPlan,
         sessionHolder: String,
         columns: UInt16,
-        rows: UInt16
+        rows: UInt16,
     ) throws -> TerminalLaunch {
         func checked(_ error: Int32) throws {
             guard error == 0 else {
@@ -78,7 +78,7 @@ enum TerminalSpawn {
         try checked(posix_spawnattr_setsigmask(&attributes, &mask))
         try checked(posix_spawnattr_setflags(
             &attributes,
-            Int16(POSIX_SPAWN_CLOEXEC_DEFAULT | POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK)
+            Int16(POSIX_SPAWN_CLOEXEC_DEFAULT | POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK),
         ))
         var pid: pid_t = -1
         try checked(posix_spawn(&pid, sessionHolder, &actions, &attributes, argv.pointer, envp.pointer))
@@ -101,7 +101,7 @@ enum TerminalSpawn {
             process: TerminalProcess(processIdentifier: pid),
             executable: plan.targetExecutable,
             launcher: plan.executable,
-            userIdentifier: plan.credential?.uid ?? getuid()
+            userIdentifier: plan.credential?.uid ?? getuid(),
         )
     }
 

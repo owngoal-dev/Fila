@@ -25,7 +25,7 @@ public struct BackendModuleCandidate {
         buildVersion: String?,
         manifest: [String: Any]?,
         entryClass: @escaping (String) -> AnyClass?,
-        owns: @escaping (AnyClass) -> Bool
+        owns: @escaping (AnyClass) -> Bool,
     ) {
         self.bundleIdentifier = bundleIdentifier
         self.frameworkName = frameworkName
@@ -56,7 +56,9 @@ public struct BackendHostVersion: Equatable, Sendable {
         self.init(shortVersion: short, buildVersion: build)
     }
 
-    var description: String { "\(shortVersion) (\(buildVersion))" }
+    var description: String {
+        "\(shortVersion) (\(buildVersion))"
+    }
 }
 
 /// Finds the backend modules dyld already loaded and activates them.
@@ -80,7 +82,7 @@ public enum BackendModuleDiscovery {
             guard url.deletingLastPathComponent().path == frameworks.path else { continue }
             guard let manifestURL = bundle.url(
                 forResource: FilaBackendKit.manifestResourceName,
-                withExtension: FilaBackendKit.manifestResourceExtension
+                withExtension: FilaBackendKit.manifestResourceExtension,
             ) else { continue }
             let manifest = NSDictionary(contentsOf: manifestURL) as? [String: Any] ?? [:]
             candidates.append(BackendModuleCandidate(
@@ -90,7 +92,7 @@ public enum BackendModuleDiscovery {
                 buildVersion: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String,
                 manifest: manifest,
                 entryClass: { NSClassFromString($0) },
-                owns: { Bundle(for: $0) == bundle }
+                owns: { Bundle(for: $0) == bundle },
             ))
         }
         return candidates.sorted { $0.bundleIdentifier < $1.bundleIdentifier }
@@ -101,7 +103,7 @@ public enum BackendModuleDiscovery {
     public static func bootstrap(
         _ candidates: [BackendModuleCandidate],
         hostVersion: BackendHostVersion,
-        host: any BackendHost
+        host: any BackendHost,
     ) -> BackendRegistry {
         let registry = BackendRegistry()
         for candidate in candidates.sorted(by: { $0.bundleIdentifier < $1.bundleIdentifier }) {
@@ -121,24 +123,24 @@ public enum BackendModuleDiscovery {
         _ candidate: BackendModuleCandidate,
         hostVersion: BackendHostVersion,
         host: any BackendHost,
-        into registry: BackendRegistry
+        into registry: BackendRegistry,
     ) throws {
         let manifest = try BackendModuleManifest(plist: candidate.manifest ?? [:])
         try manifest.validate()
         let moduleVersion = BackendHostVersion(
             shortVersion: candidate.shortVersion ?? "",
-            buildVersion: candidate.buildVersion ?? ""
+            buildVersion: candidate.buildVersion ?? "",
         )
         guard moduleVersion == hostVersion else {
             throw BackendModuleError.versionMismatch(
                 module: moduleVersion.description,
-                host: hostVersion.description
+                host: hostVersion.description,
             )
         }
         let identity = BackendModuleIdentity(
             bundleIdentifier: candidate.bundleIdentifier,
             frameworkName: candidate.frameworkName,
-            displayNameKey: manifest.displayNameKey
+            displayNameKey: manifest.displayNameKey,
         )
         guard let entryClass = candidate.entryClass(identity.entryClassName) else {
             throw BackendModuleError.entryClassMissing(identity.entryClassName)

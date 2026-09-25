@@ -82,8 +82,13 @@ public final class LocalFileService: LocalFileAccess, @unchecked Sendable {
     /// Whether this service built its streams, and so ends them when it goes.
     private let ownsStreams: Bool
 
-    public var jobEvents: AsyncStream<JobUpdate> { streams.jobEvents }
-    public var searchResults: AsyncStream<SearchUpdate> { streams.searchResults }
+    public var jobEvents: AsyncStream<JobUpdate> {
+        streams.jobEvents
+    }
+
+    public var searchResults: AsyncStream<SearchUpdate> {
+        streams.searchResults
+    }
 
     /// Set by `OperationCenter` through the contract and never read here:
     /// there is no connection to lose, and a job cannot die with one. If
@@ -242,7 +247,7 @@ public final class LocalFileService: LocalFileAccess, @unchecked Sendable {
                 "job \(identifier) \(job.kind) \(job.sources.count) source(s)"
                     + " → \(job.destination ?? "-")"
                     + (job.useTrash ? " trash" : "")
-                    + (job.overrideGuard ? " override" : "")
+                    + (job.overrideGuard ? " override" : ""),
             )
             let lane = job.kind == .search ? self.searchQueue : self.jobQueue
             lane.async {
@@ -255,7 +260,7 @@ public final class LocalFileService: LocalFileAccess, @unchecked Sendable {
                 }
                 FilaLog.log(
                     FilaLog.level(for: outcome.code),
-                    "job \(identifier) \(outcome.path ?? "-") \(FilaLog.describe(outcome))"
+                    "job \(identifier) \(outcome.path ?? "-") \(FilaLog.describe(outcome))",
                 )
                 self.streams.yield(JobUpdate(identifier: identifier, event: .completed(outcome)))
                 // Dropped after the completion is out, so a cancel that arrives
@@ -328,7 +333,7 @@ private protocol RunningJob: Sendable {
     func run(
         report: @escaping (JobProgress) -> Void,
         matches: @escaping (SearchBatch) -> Void,
-        note: @escaping (String) -> Void
+        note: @escaping (String) -> Void,
     ) -> FilaFailure
     func cancel()
 }
@@ -339,7 +344,7 @@ extension ArchiveJob: RunningJob {
     func run(
         report: @escaping (JobProgress) -> Void,
         matches _: @escaping (SearchBatch) -> Void,
-        note: @escaping (String) -> Void
+        note: @escaping (String) -> Void,
     ) -> FilaFailure {
         run(report: report, note: note)
     }

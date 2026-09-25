@@ -51,7 +51,7 @@ public struct TerminalRequest: Sendable {
         redirectsScriptInterpreter: Bool = false,
         workingDirectory: String? = nil,
         columns: UInt16 = 80,
-        rows: UInt16 = 24
+        rows: UInt16 = 24,
     ) {
         self.executable = executable
         self.package = package

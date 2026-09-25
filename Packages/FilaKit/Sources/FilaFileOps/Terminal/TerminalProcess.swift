@@ -37,7 +37,7 @@ public final class TerminalProcess: @unchecked Sendable {
             let source = DispatchSource.makeProcessSource(
                 identifier: processIdentifier,
                 eventMask: .exit,
-                queue: queue
+                queue: queue,
             )
             // Even a natural leader exit must finish cleaning its owned group.
             // Keep the zombie waitable until the last signal so its PID cannot

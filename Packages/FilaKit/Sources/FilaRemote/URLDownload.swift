@@ -52,7 +52,7 @@ public enum URLDownload {
     public static func fetch(
         _ url: URL,
         into directory: URL,
-        progress: @escaping @Sendable (Progress) -> Void
+        progress: @escaping @Sendable (Progress) -> Void,
     ) async throws -> URL {
         guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
             throw Failure.unsupportedScheme
@@ -64,7 +64,7 @@ public enum URLDownload {
         let observer = DownloadObserver(
             directory: directory,
             fallbackName: suggestedName(for: url),
-            report: progress
+            report: progress,
         )
         let session = URLSession(configuration: .ephemeral, delegate: observer, delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
@@ -134,7 +134,7 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
     init(
         directory: URL,
         fallbackName: String,
-        report: @escaping @Sendable (URLDownload.Progress) -> Void
+        report: @escaping @Sendable (URLDownload.Progress) -> Void,
     ) {
         self.directory = directory
         self.fallbackName = fallbackName
@@ -176,7 +176,7 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
         downloadTask: URLSessionDownloadTask,
         didWriteData _: Int64,
         totalBytesWritten: Int64,
-        totalBytesExpectedToWrite: Int64
+        totalBytesExpectedToWrite: Int64,
     ) {
         do {
             // URLSession writes a system-owned temporary before our final move.
@@ -192,7 +192,7 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
         report(URLDownload.Progress(
             received: totalBytesWritten,
             total: totalBytesExpectedToWrite,
-            name: fallbackName
+            name: fallbackName,
         ))
     }
 
@@ -201,7 +201,7 @@ private final class DownloadObserver: NSObject, URLSessionDownloadDelegate, @unc
     func urlSession(
         _: URLSession,
         downloadTask: URLSessionDownloadTask,
-        didFinishDownloadingTo location: URL
+        didFinishDownloadingTo location: URL,
     ) {
         if let response = downloadTask.response as? HTTPURLResponse,
            !(200 ... 299).contains(response.statusCode)

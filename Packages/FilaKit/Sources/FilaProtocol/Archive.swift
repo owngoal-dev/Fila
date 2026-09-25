@@ -69,7 +69,7 @@ public struct ArchiveOptions: Codable, Sendable, Hashable {
         encryption: ZipEncryption = .aes256,
         password: String? = nil,
         members: [ArchiveSelection]? = nil,
-        organizeExtraction: Bool? = nil
+        organizeExtraction: Bool? = nil,
     ) {
         self.format = format
         self.zipCompression = zipCompression

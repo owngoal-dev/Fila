@@ -16,7 +16,7 @@ enum CardQuestion {
     static func ask<Value: Sendable>(
         whenGone: Value,
         from presenter: UIViewController,
-        _ card: (_ reply: @escaping (ActionContext, Value) -> Void) -> AlertViewController
+        _ card: (_ reply: @escaping (ActionContext, Value) -> Void) -> AlertViewController,
     ) async -> Value {
         await withCheckedContinuation { continuation in
             let answer = Answer(continuation, whenGone: whenGone)

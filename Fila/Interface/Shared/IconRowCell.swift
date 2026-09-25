@@ -181,7 +181,7 @@ final class IconRowCell: UICollectionViewListCell {
         image: UIImage?,
         nameColor: UIColor = .label,
         tintColor: UIColor = .secondaryLabel,
-        highlight: String? = nil
+        highlight: String? = nil,
     ) {
         nameLabel.textColor = nameColor
         // A search hit tints the part that matched, the way a mention is
@@ -232,7 +232,7 @@ final class IconRowCell: UICollectionViewListCell {
         let info = UICellAccessory.customView(configuration: .init(
             customView: container,
             placement: .trailing(displayed: .whenNotEditing, at: { _ in 0 }),
-            reservedLayoutWidth: .custom(FilaUI.minimumTapTarget)
+            reservedLayoutWidth: .custom(FilaUI.minimumTapTarget),
         ))
         accessories.insert(info, at: 1)
         // The row is a single accessibility element, so nothing inside it can
@@ -298,7 +298,7 @@ final class IconRowCell: UICollectionViewListCell {
             detail: presentation.map { [$0.detail, node.name].compactMap(\.self).joined(separator: " · ") }
                 ?? Self.detail(for: node),
             image: image,
-            nameColor: presentation == nil ? .label : .systemBrown
+            nameColor: presentation == nil ? .label : .systemBrown,
         )
         // File rows are always two lines, so a zero-mtime file neither shrinks
         // its row nor shifts the size column.

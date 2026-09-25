@@ -8,7 +8,7 @@ import UIKit
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(
         _: UIApplication,
-        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?
+        didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]?,
     ) -> Bool {
         // First thing, so the launch itself is the log's first line. The level
         // is whatever the log screen was last set to; verbose does not survive
@@ -31,7 +31,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         FilaLog.info(
             "Fila \(info?["CFBundleShortVersionString"] as? String ?? "?")"
                 + " (\(info?["CFBundleVersion"] as? String ?? "?"))"
-                + " on \(ProcessInfo.processInfo.operatingSystemVersionString)"
+                + " on \(ProcessInfo.processInfo.operatingSystemVersionString)",
         )
         Task {
             do { try await FileSession.shared.prepareTemporaryFiles() }
@@ -43,7 +43,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(
         _: UIApplication,
         configurationForConnecting session: UISceneSession,
-        options _: UIScene.ConnectionOptions
+        options _: UIScene.ConnectionOptions,
     ) -> UISceneConfiguration {
         let configuration = UISceneConfiguration(name: nil, sessionRole: session.role)
         configuration.delegateClass = SceneDelegate.self
@@ -86,7 +86,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         TopPresenter.whenReady { top in
             let alert = AlertViewController(
                 title: String.LocalizationValue("Fila Was Updated"),
-                message: String.LocalizationValue("This is still the old version. Quit Fila and open it again to use the new one.")
+                message: String.LocalizationValue("This is still the old version. Quit Fila and open it again to use the new one."),
             ) { context in
                 context.addAction(title: String.LocalizationValue("Later")) {
                     context.dispose()

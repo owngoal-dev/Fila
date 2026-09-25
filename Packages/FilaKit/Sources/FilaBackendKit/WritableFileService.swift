@@ -66,7 +66,7 @@ public protocol WritableFileService: FileService {
         size: Int64,
         to destination: ServicePath,
         policy: PublishPolicy,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) async throws
 
     /// Removes one file, or a link as the link. A directory is refused.

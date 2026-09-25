@@ -27,7 +27,7 @@ extension TextViewerViewController {
             let match = text.range(
                 of: term,
                 options: [.caseInsensitive],
-                range: NSRange(location: position, length: text.length - position)
+                range: NSRange(location: position, length: text.length - position),
             )
             guard match.location != NSNotFound, match.length > 0 else { break }
             count += 1

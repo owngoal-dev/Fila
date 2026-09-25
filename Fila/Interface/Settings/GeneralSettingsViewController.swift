@@ -187,12 +187,12 @@ final class GeneralSettingsViewController: UITableViewController {
         let fixed: [UIMenuElement] = [LaunchLocation.root, .home, .lastVisited].map { location in
             UIAction(
                 title: Self.name(of: location),
-                state: selected == location ? .on : .off
+                state: selected == location ? .on : .off,
             ) { _ in choose(location) }
         }
         button.menu = UIMenu(children: FilaMenu.groups(
             fixed,
-            FilaMenu.collections { path in choose(.folder(path)) }
+            FilaMenu.collections { path in choose(.folder(path)) },
         ))
         button.sizeToFit()
         cell.editingAccessoryView = button
@@ -213,14 +213,14 @@ final class GeneralSettingsViewController: UITableViewController {
 
     override func tableView(
         _: UITableView,
-        editingStyleForRowAt _: IndexPath
+        editingStyleForRowAt _: IndexPath,
     ) -> UITableViewCell.EditingStyle {
         .none
     }
 
     override func tableView(
         _: UITableView,
-        shouldIndentWhileEditingRowAt _: IndexPath
+        shouldIndentWhileEditingRowAt _: IndexPath,
     ) -> Bool {
         false
     }
@@ -232,7 +232,7 @@ final class GeneralSettingsViewController: UITableViewController {
     override func tableView(
         _: UITableView,
         targetIndexPathForMoveFromRowAt source: IndexPath,
-        toProposedIndexPath proposed: IndexPath
+        toProposedIndexPath proposed: IndexPath,
     ) -> IndexPath {
         guard proposed.section == source.section else {
             return IndexPath(row: proposed.section < source.section ? 0 : presets.count - 1, section: source.section)

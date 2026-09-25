@@ -90,7 +90,7 @@ public struct FileNode: Sendable, Hashable {
         systemFlags: UInt32,
         linkCount: UInt64,
         inode: UInt64,
-        link: SymbolicLink? = nil
+        link: SymbolicLink? = nil,
     ) {
         self.name = name
         self.kind = kind
@@ -158,7 +158,7 @@ public struct FileDetails: Sendable, Hashable {
         node: FileNode,
         extendedAttributes: [ExtendedAttribute],
         hasAccessControlList: Bool,
-        isDestructionProtected: Bool
+        isDestructionProtected: Bool,
     ) {
         self.path = path
         self.node = node
@@ -189,7 +189,7 @@ public struct VolumeInfo: Sendable, Hashable {
         totalByteCount: Int64,
         availableByteCount: Int64,
         isReadOnly: Bool,
-        deviceIdentifier: UInt64
+        deviceIdentifier: UInt64,
     ) {
         self.mountPoint = mountPoint
         self.deviceName = deviceName
@@ -243,7 +243,7 @@ public struct AttributeChange: Sendable, Hashable {
         accessed: Double? = nil,
         systemFlags: UInt32? = nil,
         extendedAttribute: (name: String, value: Data?)? = nil,
-        isRecursive: Bool = false
+        isRecursive: Bool = false,
     ) {
         self.mode = mode
         self.ownerID = ownerID

@@ -42,7 +42,9 @@ final class SidebarModel {
 
     deinit {
         registryTask?.cancel()
-        for task in subscriptions.values { task.cancel() }
+        for task in subscriptions.values {
+            task.cancel()
+        }
     }
 
     /// A hint that the combined sidebar changed; the reader re-derives what

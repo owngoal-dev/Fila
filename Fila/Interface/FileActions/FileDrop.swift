@@ -44,7 +44,7 @@ enum FileDrop {
         _ items: [UIDragItem],
         conformingTo types: [UTType],
         from presenter: UIViewController,
-        _ receive: @escaping @MainActor ([String]) async -> Void
+        _ receive: @escaping @MainActor ([String]) async -> Void,
     ) {
         var paths: [String] = []
         var shares: [BackendID: [FileLocation]] = [:]
@@ -63,7 +63,7 @@ enum FileDrop {
                     title: String(localized: "Preparing…"),
                     message: String(localized: "Loading the selected file for import."),
                     cancellable: true,
-                    from: presenter
+                    from: presenter,
                 ) { _ in
                     var fetched: [String] = []
                     for locations in shares.values {
@@ -92,7 +92,7 @@ enum FileDrop {
             throw FilaFailure(code: .invalidRequest, path: folder.path)
         }
         let outcome = await FileSession.shared.operations.transfer(
-            locations, into: FileLocation(backend: local.id, path: path), mode: .copy, policy: .failIfExists
+            locations, into: FileLocation(backend: local.id, path: path), mode: .copy, policy: .failIfExists,
         )
         if let failure = outcome.failure {
             throw outcome.wasCancelled ? CancellationError() : failure
@@ -104,7 +104,7 @@ enum FileDrop {
         await CardQuestion.ask(whenGone: nil, from: presenter) { reply in
             let alert = AlertViewController(
                 title: folder.name,
-                message: String(localized: "Copy keeps the originals. Move takes them out of their current folder.")
+                message: String(localized: "Copy keeps the originals. Move takes them out of their current folder."),
             ) { context in
                 context.allowSimpleDispose()
                 // Three actions stack: the choices first, Cancel last and plain.

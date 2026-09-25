@@ -237,7 +237,7 @@ final class TabContainerViewController: UIViewController {
         tab.stack.enumerated().map { index, path in
             let browser = FileBrowserViewController(
                 directory: path,
-                select: index == tab.stack.count - 1 ? tab.selection : nil
+                select: index == tab.stack.count - 1 ? tab.selection : nil,
             )
             browser.restoredScrollOffset = tab.offsets[path]
             return browser
@@ -327,7 +327,7 @@ final class TabContainerViewController: UIViewController {
             id,
             stack: browsers.map(\.directory),
             offsets: offsets,
-            selection: selection.map { URL(fileURLWithPath: $0).lastPathComponent }
+            selection: selection.map { URL(fileURLWithPath: $0).lastPathComponent },
         )
     }
 
@@ -339,7 +339,7 @@ final class TabContainerViewController: UIViewController {
         captureCurrentTab()
         capturePreview()
         let overview = UINavigationController(
-            rootViewController: TabSwitcherViewController(content: self, deferring: deferring)
+            rootViewController: TabSwitcherViewController(content: self, deferring: deferring),
         )
         display(overview)
     }
@@ -508,7 +508,7 @@ final class TabContainerViewController: UIViewController {
         // origin ends up after scaling is what the translation corrects for.
         let shrunk = CGAffineTransform(
             translationX: card.minX - (bounds.midX + (content.minX - bounds.midX) * scale),
-            y: card.minY - (bounds.midY + (content.minY - bounds.midY) * scale)
+            y: card.minY - (bounds.midY + (content.minY - bounds.midY) * scale),
         ).scaledBy(x: scale, y: scale)
         let receded = CGAffineTransform(scaleX: 1.06, y: 1.06)
         let cardMask = CGRect(x: content.minX, y: content.minY, width: content.width, height: card.height / scale)
@@ -579,7 +579,7 @@ extension TabContainerViewController: UINavigationControllerDelegate {
     func navigationController(
         _ navigation: UINavigationController,
         willShow viewController: UIViewController,
-        animated: Bool
+        animated: Bool,
     ) {
         owner?.configureSidebarButton(for: viewController)
         navigation.setNavigationBarHidden(false, animated: animated)
@@ -589,7 +589,7 @@ extension TabContainerViewController: UINavigationControllerDelegate {
     func navigationController(
         _ navigation: UINavigationController,
         didShow viewController: UIViewController,
-        animated _: Bool
+        animated _: Bool,
     ) {
         guard navigation === self.navigation else { return }
         // A cancelled interactive pop never reaches willShow for the controller

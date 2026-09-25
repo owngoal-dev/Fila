@@ -67,7 +67,7 @@
         static func decodeRequest(_ request: xpc_object_t) -> (sequence: UInt64, level: FilaLog.Level?) {
             let level = xpc_dictionary_get_value(request, FilaWireKey.logLevel).flatMap { _ in
                 FilaLog.Level(
-                    rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(request, FilaWireKey.logLevel))
+                    rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(request, FilaWireKey.logLevel)),
                 )
             }
             return (xpc_dictionary_get_uint64(request, FilaWireKey.logCursor), level)
@@ -99,15 +99,15 @@
                         sequence: xpc_dictionary_get_uint64(entry, Key.sequence),
                         time: xpc_dictionary_get_double(entry, Key.time),
                         level: FilaLog.Level(
-                            rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(entry, Key.level))
+                            rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(entry, Key.level)),
                         ) ?? .info,
                         // Whatever the daemon says it is. The viewer merges two
                         // processes onto one timeline and the tag is how a reader
                         // tells whose line they are looking at.
                         source: FilaLog.Source(
-                            rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(entry, Key.source))
+                            rawValue: UInt8(truncatingIfNeeded: xpc_dictionary_get_uint64(entry, Key.source)),
                         ) ?? .daemon,
-                        message: String(cString: message)
+                        message: String(cString: message),
                     ))
                 }
             }

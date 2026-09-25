@@ -37,7 +37,9 @@ final class MusicArtworkView: UIView {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     deinit { load?.cancel() }
 

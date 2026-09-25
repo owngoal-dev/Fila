@@ -14,7 +14,7 @@
 
         static let theme = TerminalTheme(
             light: .alabaster.background(hex(light)),
-            dark: .afterglow.background(hex(dark))
+            dark: .afterglow.background(hex(dark)),
         )
 
         static let background = UIColor { traits in

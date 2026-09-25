@@ -138,7 +138,7 @@ public enum FilaLog {
     public static func start(_ source: Source, capacityBytes: Int? = nil) {
         state.start(
             source,
-            capacityBytes: capacityBytes ?? (source == .daemon ? daemonCapacityBytes : appCapacityBytes)
+            capacityBytes: capacityBytes ?? (source == .daemon ? daemonCapacityBytes : appCapacityBytes),
         )
     }
 
@@ -371,7 +371,7 @@ public struct FilaLogRing {
                     time: Double(bitPattern: uint64(at: offset + 12)),
                     level: FilaLog.Level(rawValue: byte(at: offset + 20)) ?? .info,
                     source: FilaLog.Source(rawValue: byte(at: offset + 21)) ?? .app,
-                    message: String(decoding: bytes, as: UTF8.self)
+                    message: String(decoding: bytes, as: UTF8.self),
                 ))
             }
             offset += Self.headerByteCount + length

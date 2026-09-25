@@ -13,7 +13,9 @@ import Foundation
 public final class SMBBackend: FileBackend {
     /// The bundle the module's strings live in — the framework's when this
     /// is compiled into one, the package's otherwise.
-    public nonisolated static var bundle: Bundle { Bundle(for: SMBBackend.self) }
+    public nonisolated static var bundle: Bundle {
+        Bundle(for: SMBBackend.self)
+    }
 
     public let id: BackendID
     /// Follows the profile's name; the identity underneath does not move.
@@ -23,7 +25,7 @@ public final class SMBBackend: FileBackend {
             kind: .filesystem,
             displayName: profile.displayName,
             artworkName: "shared-folder",
-            detail: profile.address
+            detail: profile.address,
         )
     }
 
@@ -44,7 +46,7 @@ public final class SMBBackend: FileBackend {
         profile: SMBProfile,
         storage: any DefaultStorage<FileBackendPreferences>,
         credentials: any CredentialStore,
-        pollInterval: TimeInterval = RemoteDirectoryObservation.pollInterval
+        pollInterval: TimeInterval = RemoteDirectoryObservation.pollInterval,
     ) {
         self.profile = profile
         self.storage = storage
@@ -61,7 +63,9 @@ public final class SMBBackend: FileBackend {
     }
 
     /// The share's own name, for rows and titles that want it.
-    public var shareName: String { profile.share }
+    public var shareName: String {
+        profile.share
+    }
 
     // MARK: - Service
 
@@ -69,7 +73,9 @@ public final class SMBBackend: FileBackend {
     /// A missing password is not an error here: a guest share has none, and
     /// a server that wants one says so when the session is set up.
     public func fileService() async throws -> any FileService {
-        if let service { return service }
+        if let service {
+            return service
+        }
         let password = profile.isGuest ? nil : try credentials.secret(for: profile.credentialKey)
         let service = SMBFileService(profile: profile, password: password, pollInterval: pollInterval)
         self.service = service
@@ -136,7 +142,9 @@ public final class SMBBackend: FileBackend {
         try update { preferences in
             var list = preferences.favorites ?? []
             list.removeAll { $0 == path }
-            if included { list.append(path) }
+            if included {
+                list.append(path)
+            }
             preferences.favorites = list
         }
     }
@@ -167,17 +175,23 @@ public final class SMBBackend: FileBackend {
     }
 
     private func update(publishes: Bool = true, _ change: (inout FileBackendPreferences) -> Void) throws {
-        if let loadFailure { throw loadFailure }
+        if let loadFailure {
+            throw loadFailure
+        }
         var next = preferences
         change(&next)
         guard next != preferences else { return }
         try storage.save(next)
         preferences = next
-        if publishes { publish() }
+        if publishes {
+            publish()
+        }
     }
 
     private func publish() {
         let snapshot = sidebar()
-        for continuation in subscribers.values { continuation.yield(snapshot) }
+        for continuation in subscribers.values {
+            continuation.yield(snapshot)
+        }
     }
 }

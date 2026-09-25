@@ -21,7 +21,7 @@ enum DebianPackage {
         return try await Task.detached {
             defer { close(descriptor) }
             let notAPackage = ViewerFailure.unsupportedContent(
-                String(localized: "“\(fileName)” is not a valid Debian package. Choose another file.")
+                String(localized: "“\(fileName)” is not a valid Debian package. Choose another file."),
             )
             let outer = try ArchiveReader(descriptor: descriptor)
             while let entry = try outer.next() {

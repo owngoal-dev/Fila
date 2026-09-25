@@ -166,7 +166,7 @@ final class TreeSearch {
                     let text = String(cString: name)
                     append(SearchMatch(
                         directory: level.path,
-                        node: FileNode(name: text, metadata: metadata, at: descriptor, named: text)
+                        node: FileNode(name: text, metadata: metadata, at: descriptor, named: text),
                     ))
                 }
             }

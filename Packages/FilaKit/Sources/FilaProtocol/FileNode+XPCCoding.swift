@@ -103,7 +103,7 @@
                 systemFlags: UInt32(truncatingIfNeeded: xpc_dictionary_get_uint64(dictionary, NodeKey.flags)),
                 linkCount: xpc_dictionary_get_uint64(dictionary, NodeKey.links),
                 inode: xpc_dictionary_get_uint64(dictionary, NodeKey.inode),
-                link: link
+                link: link,
             )
         }
     }
@@ -142,7 +142,7 @@
                     guard let name = xpc_array_get_string(names, index) else { continue }
                     attributes.append(ExtendedAttribute(
                         name: String(cString: name),
-                        byteCount: index < xpc_array_get_count(sizes) ? xpc_array_get_int64(sizes, index) : 0
+                        byteCount: index < xpc_array_get_count(sizes) ? xpc_array_get_int64(sizes, index) : 0,
                     ))
                 }
             }
@@ -152,7 +152,7 @@
                 node: node,
                 extendedAttributes: attributes,
                 hasAccessControlList: xpc_dictionary_get_bool(dictionary, DetailKey.acl),
-                isDestructionProtected: xpc_dictionary_get_bool(dictionary, DetailKey.protected)
+                isDestructionProtected: xpc_dictionary_get_bool(dictionary, DetailKey.protected),
             )
         }
     }
@@ -248,7 +248,7 @@
                 let bytes = xpc_dictionary_get_data(dictionary, ChangeKey.xattrValue, &length)
                 attribute = (
                     String(cString: name),
-                    bytes.map { Data(bytes: $0, count: length) }
+                    bytes.map { Data(bytes: $0, count: length) },
                 )
             }
 
@@ -260,7 +260,7 @@
                 accessed: optionalDouble(ChangeKey.accessed),
                 systemFlags: optionalUInt64(ChangeKey.flags).map { UInt32(truncatingIfNeeded: $0) },
                 extendedAttribute: attribute,
-                isRecursive: xpc_dictionary_get_bool(dictionary, ChangeKey.recursive)
+                isRecursive: xpc_dictionary_get_bool(dictionary, ChangeKey.recursive),
             )
         }
     }

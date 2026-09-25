@@ -13,7 +13,7 @@
             trailingNavigationItems = [UIBarButtonItem(
                 barButtonSystemItem: .action,
                 target: self,
-                action: #selector(share)
+                action: #selector(share),
             )]
             navigationItem.rightBarButtonItem?.isEnabled = false
         }
@@ -29,7 +29,7 @@
         private let grid = Grid()
         private lazy var session = InMemoryTerminalSession(
             write: { _ in },
-            resize: { [grid] in grid.columns = Int($0.columns) }
+            resize: { [grid] in grid.columns = Int($0.columns) },
         )
         /// The cursor column after the last `append`, so a line appended after a
         /// tag wraps with a hanging indent under its text rather than at column 0.
@@ -39,7 +39,7 @@
             terminalConfiguration: TerminalConfiguration { builder in
                 builder.withFontSize(TerminalAppearance.fontSize)
                 builder.withCursorStyleBlink(false)
-            }
+            },
         )
 
         override public func viewDidLoad() {

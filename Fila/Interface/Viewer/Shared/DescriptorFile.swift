@@ -42,7 +42,7 @@ final class DescriptorFile {
         _ path: String,
         flags: Int32 = O_RDONLY,
         mode: mode_t = 0o644,
-        link: any LocalFileAccess
+        link: any LocalFileAccess,
     ) async throws -> DescriptorFile {
         try await DescriptorFile(descriptor: link.open(path, flags: flags, mode: mode))
     }
@@ -221,7 +221,7 @@ enum ViewerFailure: LocalizedError {
             String(
                 format: String(localized: "This file is too large (%@). The viewer supports files up to %@."),
                 FilePresentation.byteLabel(byteCount),
-                FilePresentation.byteLabel(limit)
+                FilePresentation.byteLabel(limit),
             )
         case let .unsupportedContent(reason):
             reason

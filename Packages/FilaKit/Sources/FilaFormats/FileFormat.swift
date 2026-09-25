@@ -198,7 +198,7 @@ private final class PropertyListRoot: NSObject, XMLParserDelegate {
         didStartElement elementName: String,
         namespaceURI _: String?,
         qualifiedName _: String?,
-        attributes _: [String: String]
+        attributes _: [String: String],
     ) {
         isPropertyList = elementName == "plist"
         parser.abortParsing()

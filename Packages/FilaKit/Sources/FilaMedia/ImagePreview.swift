@@ -10,7 +10,7 @@ public enum ImagePreview {
         guard data.count <= PreviewLimits.fileByteCount,
               let source = CGImageSourceCreateWithData(
                   data as CFData,
-                  [kCGImageSourceShouldCache: false] as CFDictionary
+                  [kCGImageSourceShouldCache: false] as CFDictionary,
               )
         else { return nil }
         guard hasSupportedDimensions(source) else { return nil }

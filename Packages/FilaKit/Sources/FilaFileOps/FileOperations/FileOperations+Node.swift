@@ -105,7 +105,7 @@ public extension FileOperations {
         _ source: String,
         to destination: String,
         exclusive: Bool = false,
-        overrideGuard: Bool = false
+        overrideGuard: Bool = false,
     ) throws {
         let from = try resolveForDestruction(source, overrideGuard: overrideGuard)
         let to = try resolveForWrite(destination)

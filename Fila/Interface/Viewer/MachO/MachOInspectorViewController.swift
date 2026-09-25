@@ -69,7 +69,6 @@ final class MachOInspectorViewController: TabContentViewController {
         buildDataSource()
         view.addSubview(table)
         table.snp.makeConstraints { $0.edges.equalToSuperview() }
-
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -104,7 +103,7 @@ final class MachOInspectorViewController: TabContentViewController {
                             for: architecture.0,
                             inspection: architecture.1,
                             entitlements: entitlements,
-                            isUniversal: architectures.count > 1
+                            isUniversal: architectures.count > 1,
                         )
                         let items = built.map { Item(slice: index, label: $0.label) }
                         for (item, row) in zip(items, built) {
@@ -135,7 +134,7 @@ final class MachOInspectorViewController: TabContentViewController {
         table.backgroundView = StatusView(content: .message(
             symbol: "exclamationmark.triangle",
             title: String(localized: "Unable to Read This File"),
-            detail: FailureMessage.text(for: error)
+            detail: FailureMessage.text(for: error),
         ))
     }
 
@@ -177,7 +176,7 @@ final class MachOInspectorViewController: TabContentViewController {
         for architecture: FilaFormats.MachOImage.Slice,
         inspection: FilaFormats.MachOImage.Inspection,
         entitlements: PropertyListValue?,
-        isUniversal: Bool
+        isUniversal: Bool,
     ) -> [Row] {
         var rows: [Row] = [
             .fact(String(localized: "Type"), fileType(architecture.fileType)),
@@ -239,7 +238,7 @@ final class MachOInspectorViewController: TabContentViewController {
             String(
                 format: String(localized: "Encrypted, method %u, %@ region"),
                 method,
-                FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0))
+                FilePresentation.byteLabel(Int64(inspection.encryptedByteCount ?? 0)),
             )
         } else {
             String(localized: "Not encrypted")
@@ -292,7 +291,7 @@ extension MachOInspectorViewController: UITableViewDelegate {
     func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let item = dataSource.itemIdentifier(for: indexPath),
               case let .fact(_, value) = rows[item] else { return nil }

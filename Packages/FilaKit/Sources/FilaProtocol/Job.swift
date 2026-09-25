@@ -73,7 +73,7 @@ public struct JobRequest: Sendable, Hashable, Codable {
         overwrite: Bool = false,
         overrideGuard: Bool = false,
         query: SearchQuery? = nil,
-        archive: ArchiveOptions? = nil
+        archive: ArchiveOptions? = nil,
     ) {
         self.kind = kind
         self.sources = sources

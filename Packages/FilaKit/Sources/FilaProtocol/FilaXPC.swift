@@ -10,7 +10,7 @@
     public func filaCreateMachServiceConnection(
         _ name: UnsafePointer<CChar>,
         _ targetQueue: DispatchQueue?,
-        _ flags: UInt64
+        _ flags: UInt64,
     ) -> xpc_connection_t?
 
     public enum FilaXPCFlag {

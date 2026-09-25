@@ -104,7 +104,7 @@ enum DeviceIcons {
             try FileManager.default.createDirectory(
                 at: directory,
                 withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700]
+                attributes: [.posixPermissions: 0o700],
             )
         } catch { return nil }
         return directory

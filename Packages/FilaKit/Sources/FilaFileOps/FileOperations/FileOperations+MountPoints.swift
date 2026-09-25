@@ -21,7 +21,7 @@ public extension FileOperations {
                 path: filaText($0.f_mntonname),
                 device: filaText($0.f_mntfromname),
                 filesystem: filaText($0.f_fstypename),
-                isReadOnly: $0.f_flags & UInt32(MNT_RDONLY) != 0
+                isReadOnly: $0.f_flags & UInt32(MNT_RDONLY) != 0,
             )
         }.sorted { $0.path < $1.path }
     }

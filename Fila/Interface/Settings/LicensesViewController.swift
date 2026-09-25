@@ -82,7 +82,7 @@ final class LicensesViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         navigationController?.pushViewController(
             LicenseTextViewController(entry: entries[indexPath.row]),
-            animated: true
+            animated: true,
         )
     }
 }

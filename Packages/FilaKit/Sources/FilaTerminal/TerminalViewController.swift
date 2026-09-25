@@ -43,7 +43,7 @@
             user: TerminalUser,
             redirectsScriptInterpreter: Bool = false,
             link: any TerminalAccess,
-            onProcessExit: (@MainActor @Sendable () -> Void)? = nil
+            onProcessExit: (@MainActor @Sendable () -> Void)? = nil,
         ) {
             self.program = program
             requestedUser = user
@@ -60,7 +60,7 @@
                     done([UIAction(
                         title: String(localized: "End Session", bundle: .module),
                         image: UIImage(systemName: "stop"),
-                        attributes: self?.canEndSession == true ? .destructive : [.destructive, .disabled]
+                        attributes: self?.canEndSession == true ? .destructive : [.destructive, .disabled],
                     ) { [weak self] _ in
                         self?.endSession()
                     }])
@@ -118,7 +118,7 @@
                 builder.withCursorStyleBlink(true)
                 // Fila reports launch failures itself. A fast PTY EOF is not one.
                 builder.withCustom("abnormal-command-exit-runtime", "0")
-            }
+            },
         )
 
         private lazy var session = InMemoryTerminalSession(
@@ -127,7 +127,7 @@
                 pump.columns = viewport.columns
                 pump.rows = viewport.rows
                 pump.pty?.resize(columns: viewport.columns, rows: viewport.rows)
-            }
+            },
         )
         private lazy var statusLabel = UILabel().then {
             $0.numberOfLines = 0
@@ -160,7 +160,7 @@
                 // Fila keeps the output and owns the end-of-session UI.
                 $0.configuration = TerminalSurfaceOptions(
                     backend: .inMemory(session),
-                    waitAfterCommand: false
+                    waitAfterCommand: false,
                 )
                 $0.isHidden = true
             }
@@ -225,7 +225,7 @@
             authentication = context
             context.evaluatePolicy(
                 .deviceOwnerAuthentication,
-                localizedReason: String(localized: "Authenticate to run a terminal session as root.", bundle: .module)
+                localizedReason: String(localized: "Authenticate to run a terminal session as root.", bundle: .module),
             ) { [weak self] success, error in
                 Task { @MainActor [weak self] in
                     guard let self, !self.isFinished else { return }
@@ -291,7 +291,7 @@
                             redirectsScriptInterpreter: redirectsScriptInterpreter,
                             workingDirectory: program.workingDirectory,
                             columns: columns,
-                            rows: rows
+                            rows: rows,
                         )
                         guard let self else {
                             // The screen can disappear while launch is pending.
@@ -418,7 +418,7 @@
             // renderer's input; the UI says "Session ended", never "Succeeded".
             session.finish(
                 exitCode: 0,
-                runtimeMilliseconds: UInt64((Date().timeIntervalSince(startedAt) * 1000).rounded())
+                runtimeMilliseconds: UInt64((Date().timeIntervalSince(startedAt) * 1000).rounded()),
             )
             // The pump already read to EOF, so there is nothing left to take off
             // the descriptor; holding it would leak a master and its dispatch
@@ -504,7 +504,7 @@
         private static func message(for failure: Error) -> String {
             let summary = String(
                 localized: "This program could not be started. Check that it exists and can be run.",
-                bundle: .module
+                bundle: .module,
             )
             // The system's own reason stays in the message: on a jailbroken device
             // "Operation not permitted" (a binary AMFI refused) and "No such file

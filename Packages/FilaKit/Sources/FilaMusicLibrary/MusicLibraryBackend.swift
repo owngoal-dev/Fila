@@ -39,7 +39,9 @@ public final class MusicLibraryBackend: Backend {
     private var subscribers: [UUID: AsyncStream<BackendSidebar>.Continuation] = [:]
     private var changeSubscribers: [UUID: AsyncStream<Void>.Continuation] = [:]
 
-    nonisolated static var bundle: Bundle { Bundle(for: MusicLibraryBackend.self) }
+    nonisolated static var bundle: Bundle {
+        Bundle(for: MusicLibraryBackend.self)
+    }
 
     /// `libraryExists` answers whether a library is on this device; the
     /// default looks for the library directory.
@@ -51,7 +53,7 @@ public final class MusicLibraryBackend: Backend {
             location: .root(of: .musicLibrary),
             kind: .catalog,
             displayName: String(localized: "Music", bundle: MusicLibraryBackend.bundle),
-            artworkName: "music"
+            artworkName: "music",
         )
     }
 

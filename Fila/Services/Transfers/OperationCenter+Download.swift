@@ -17,7 +17,7 @@ extension OperationCenter {
             kind: .download,
             title: Kind.download.runningTitle,
             subtitle: name + " → " + directory,
-            affected: [directory]
+            affected: [directory],
         ) { report in
             let staging = try await FileSession.shared.makeTemporaryDirectory()
             defer { try? FileManager.default.removeItem(at: staging) }
@@ -30,7 +30,7 @@ extension OperationCenter {
                     bytesTotal: max(0, progress.total),
                     itemsDone: 0,
                     itemsTotal: 0,
-                    currentPath: progress.name
+                    currentPath: progress.name,
                 )
                 Task { @MainActor in report(update) }
             }

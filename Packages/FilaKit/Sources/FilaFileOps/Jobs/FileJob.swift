@@ -91,7 +91,7 @@ public final class FileJob: @unchecked Sendable {
     public func run(
         report: @escaping (JobProgress) -> Void,
         matches: @escaping (SearchBatch) -> Void = { _ in },
-        note: @escaping (String) -> Void = { _ in }
+        note: @escaping (String) -> Void = { _ in },
     ) -> FilaFailure {
         let tally = JobTally(job: self, report: report)
         do {
@@ -117,7 +117,7 @@ public final class FileJob: @unchecked Sendable {
     /// in-process backend never reaches this: it runs the same job itself.
     private func archive(
         report: @escaping (JobProgress) -> Void,
-        note: @escaping (String) -> Void
+        note: @escaping (String) -> Void,
     ) throws -> FilaFailure {
         guard let helper = operations.archiveHelper else {
             throw FilaFailure(code: .invalidRequest, systemError: ENOSYS)
@@ -135,7 +135,7 @@ public final class FileJob: @unchecked Sendable {
             task: ArchiveHelperTask(request: request, bootstrapRoot: operations.bootstrapRoot),
             job: self,
             report: report,
-            note: note
+            note: note,
         )
     }
 
@@ -181,7 +181,7 @@ public final class FileJob: @unchecked Sendable {
                         code: .invalidRequest,
                         systemError: EINVAL,
                         path: source,
-                        reason: .overlappingSources
+                        reason: .overlappingSources,
                     )
                 }
                 if parent == "/" {
@@ -205,7 +205,7 @@ public final class FileJob: @unchecked Sendable {
                     code: .invalidRequest,
                     systemError: EINVAL,
                     path: directory,
-                    reason: .conflictingNames
+                    reason: .conflictingNames,
                 )
             }
         }
@@ -288,7 +288,7 @@ public final class FileJob: @unchecked Sendable {
                 code: .invalidRequest,
                 systemError: EINVAL,
                 path: target,
-                reason: source == target ? .sameLocation : .sameItem
+                reason: source == target ? .sameLocation : .sameItem,
             )
         }
         // An approved replacement must report the destruction guard first,
@@ -324,12 +324,12 @@ public final class FileJob: @unchecked Sendable {
         to target: String,
         overwrite: Bool,
         tally: JobTally,
-        prepare: (String) throws -> Void = { _ in }
+        prepare: (String) throws -> Void = { _ in },
     ) throws {
         // Publish only a complete copy. Cancellation or a failed read leaves
         // the previous destination intact, including when overwrite was approved.
         let temporary = try operations.resolveForWrite(
-            FilaPath.join(FilaPath.directory(of: target), ".fila-copy-\(UUID().uuidString)")
+            FilaPath.join(FilaPath.directory(of: target), ".fila-copy-\(UUID().uuidString)"),
         )
         do {
             // A clone is instant on APFS; copyfile handles other filesystems
@@ -394,7 +394,7 @@ public final class FileJob: @unchecked Sendable {
         copyfile_state_set(
             state,
             UInt32(COPYFILE_STATE_STATUS_CB),
-            unsafeBitCast(filaCopyProgress, to: UnsafeRawPointer.self)
+            unsafeBitCast(filaCopyProgress, to: UnsafeRawPointer.self),
         )
         copyfile_state_set(state, UInt32(COPYFILE_STATE_STATUS_CTX), Unmanaged.passUnretained(tally).toOpaque())
 
@@ -420,12 +420,12 @@ public final class FileJob: @unchecked Sendable {
         removefile_state_set(
             state,
             UInt32(REMOVEFILE_STATE_CONFIRM_CALLBACK),
-            unsafeBitCast(filaRemoveProgress, to: UnsafeRawPointer.self)
+            unsafeBitCast(filaRemoveProgress, to: UnsafeRawPointer.self),
         )
         removefile_state_set(
             state,
             UInt32(REMOVEFILE_STATE_CONFIRM_CONTEXT),
-            Unmanaged.passUnretained(tally).toOpaque()
+            Unmanaged.passUnretained(tally).toOpaque(),
         )
         // REMOVEFILE_RECURSIVE alone: removefile never follows a symlink, so a
         // link is unlinked and whatever it pointed at is left alone.
@@ -474,7 +474,7 @@ public final class FileJob: @unchecked Sendable {
                 throw FilaFailure(code: .cancelled, path: source)
             }
             let candidate = try operations.resolveForWrite(
-                FilaPath.join(directory, suffix == 0 ? name : "\(name)-\(suffix)")
+                FilaPath.join(directory, suffix == 0 ? name : "\(name)-\(suffix)"),
             )
             if renamex_np(source, candidate, UInt32(RENAME_EXCL)) == 0 {
                 // A same-volume rename already preserved the item. Files with
@@ -524,17 +524,17 @@ public final class FileJob: @unchecked Sendable {
         }
         try operations.setAttributes(
             AttributeChange(extendedAttribute: (FilaTrash.originAttribute, Data(source.utf8))),
-            at: trashed
+            at: trashed,
         )
         if let identity = request.trashID {
             try operations.setAttributes(
                 AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, Data(identity.uuidString.utf8))),
-                at: trashed
+                at: trashed,
             )
         } else {
             try? operations.setAttributes(
                 AttributeChange(extendedAttribute: (FilaTrash.jobAttribute, nil)),
-                at: trashed
+                at: trashed,
             )
         }
     }

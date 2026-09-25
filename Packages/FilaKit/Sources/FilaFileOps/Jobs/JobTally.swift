@@ -95,7 +95,7 @@ final class JobTally {
             bytesTotal: 0,
             itemsDone: itemsDone,
             itemsTotal: 0,
-            currentPath: currentPath
+            currentPath: currentPath,
         ))
     }
 }

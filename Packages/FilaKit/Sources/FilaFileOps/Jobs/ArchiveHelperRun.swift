@@ -25,7 +25,7 @@ enum ArchiveHelperRun {
         task: ArchiveHelperTask,
         job: FileJob,
         report: @escaping (JobProgress) -> Void,
-        note: @escaping (String) -> Void
+        note: @escaping (String) -> Void,
     ) throws -> FilaFailure {
         let request = try JSONEncoder().encode(task)
 

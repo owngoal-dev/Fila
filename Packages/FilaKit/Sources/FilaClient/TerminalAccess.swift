@@ -63,7 +63,7 @@ public protocol TerminalAccess: AnyObject, Sendable {
         redirectsScriptInterpreter: Bool,
         workingDirectory: String?,
         columns: UInt16,
-        rows: UInt16
+        rows: UInt16,
     ) async throws -> Terminal
 
     /// Hang a terminal up. Closing the master is what the tty layer notices;
@@ -86,7 +86,7 @@ public extension TerminalAccess {
         redirectsScriptInterpreter: Bool = false,
         workingDirectory: String? = nil,
         columns: UInt16,
-        rows: UInt16
+        rows: UInt16,
     ) async throws -> Terminal {
         try await openTerminal(
             executable: executable,
@@ -95,7 +95,7 @@ public extension TerminalAccess {
             redirectsScriptInterpreter: redirectsScriptInterpreter,
             workingDirectory: workingDirectory,
             columns: columns,
-            rows: rows
+            rows: rows,
         )
     }
 }

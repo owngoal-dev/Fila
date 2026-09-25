@@ -64,7 +64,7 @@ final class KeyValueListViewController: TabContentTableViewController {
                         $0.secondaryTextProperties.font = UIFontMetrics(forTextStyle: .subheadline)
                             .scaledFont(for: .monospacedSystemFont(
                                 ofSize: FilaUI.Font.monospacedBodySize,
-                                weight: .regular
+                                weight: .regular,
                             ))
                         $0.secondaryTextProperties.numberOfLines = 0
                         $0.secondaryTextProperties.lineBreakMode = .byCharWrapping
@@ -84,7 +84,7 @@ final class KeyValueListViewController: TabContentTableViewController {
     func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let entry = source.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in

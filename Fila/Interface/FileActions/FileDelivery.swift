@@ -84,7 +84,7 @@ enum FileDelivery {
         count: Int,
         into target: FileReference,
         from presenter: UIViewController,
-        prepare: @escaping @MainActor (_ index: Int, _ workspace: URL) async throws -> URL
+        prepare: @escaping @MainActor (_ index: Int, _ workspace: URL) async throws -> URL,
     ) async {
         do {
             for index in 0 ..< count {
@@ -94,7 +94,7 @@ enum FileDelivery {
                     title: String(localized: "Preparing…"),
                     message: String(localized: "Loading the selected file for import."),
                     cancellable: true,
-                    from: presenter
+                    from: presenter,
                 ) { _ in try await prepare(index, workspace) }
                 guard await deliver([.local(file.path)], into: target, mode: .copy, from: presenter) else { return }
             }
@@ -105,7 +105,9 @@ enum FileDelivery {
 
     /// Silent for a cancellation.
     static func reportImport(_ error: Error) {
-        if (error as? FilaFailure)?.code == .cancelled || error is CancellationError { return }
+        if (error as? FilaFailure)?.code == .cancelled || error is CancellationError {
+            return
+        }
         FeedbackAlert.show(String(localized: "Import Failed"), message: FailureMessage.text(for: error))
     }
 
@@ -121,7 +123,7 @@ enum FileDelivery {
             if outcome.systemError == EEXIST, !request.overwrite {
                 guard await confirmReplacement(
                     String.LocalizationValue("Items with the same names will be replaced, not moved to the trash. This cannot be undone. Non-empty folders cannot be replaced."),
-                    from: presenter
+                    from: presenter,
                 ) else { return false }
                 var replacement = request
                 replacement.overwrite = true
@@ -142,13 +144,13 @@ enum FileDelivery {
     private static func transfer(
         mode: TransferMode,
         from presenter: UIViewController?,
-        _ run: (OperationCenter, PublishPolicy) async -> TransferOutcome
+        _ run: (OperationCenter, PublishPolicy) async -> TransferOutcome,
     ) async -> Bool {
         let center = FileSession.shared.operations
         var outcome = await run(center, .failIfExists)
         if case WriteFailure.alreadyExists? = outcome.failure, await confirmReplacement(
             String.LocalizationValue("Files with the same names will be replaced; this cannot be undone. Folders with the same names are merged, and what they already hold is kept."),
-            from: presenter
+            from: presenter,
         ) {
             outcome = await run(center, .replace)
         }
@@ -173,7 +175,7 @@ enum FileDelivery {
         }
         FeedbackAlert.show(
             mode == .move ? String(localized: "Unable to Move Items") : String(localized: "Unable to Copy Items"),
-            message: message
+            message: message,
         )
     }
 

@@ -134,7 +134,7 @@ final class TransferCell: UICollectionViewListCell {
         case .interrupted:
             setDetail(
                 String(localized: "Stopped when Fila closed. Check for incomplete files."),
-                color: .systemOrange
+                color: .systemOrange,
             )
         }
 

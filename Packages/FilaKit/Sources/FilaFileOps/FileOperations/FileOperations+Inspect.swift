@@ -23,7 +23,7 @@ public extension FileOperations {
             node: FileNode(name: FilaPath.name(of: resolved), metadata: metadata, at: AT_FDCWD, named: resolved),
             extendedAttributes: filaExtendedAttributeList(at: resolved),
             hasAccessControlList: filaHasAccessControlList(at: resolved),
-            isDestructionProtected: isDestructionProtected(resolved)
+            isDestructionProtected: isDestructionProtected(resolved),
         )
     }
 
@@ -47,7 +47,7 @@ public extension FileOperations {
             totalByteCount: Int64(volume.f_blocks) * Int64(volume.f_bsize),
             availableByteCount: Int64(volume.f_bavail) * Int64(volume.f_bsize),
             isReadOnly: volume.f_flags & UInt32(MNT_RDONLY) != 0,
-            deviceIdentifier: UInt64(UInt32(bitPattern: metadata.st_dev))
+            deviceIdentifier: UInt64(UInt32(bitPattern: metadata.st_dev)),
         )
     }
 
@@ -114,7 +114,7 @@ extension FileNode {
             systemFlags: metadata.st_flags,
             linkCount: UInt64(metadata.st_nlink),
             inode: metadata.st_ino,
-            link: kind == .symbolicLink ? filaReadSymbolicLink(directory, entry) : nil
+            link: kind == .symbolicLink ? filaReadSymbolicLink(directory, entry) : nil,
         )
     }
 }
@@ -157,7 +157,7 @@ func filaExtendedAttributeList(at path: String) -> [ExtendedAttribute] {
             let name = String(cString: Array(names[start ..< index]) + [0])
             attributes.append(ExtendedAttribute(
                 name: name,
-                byteCount: Int64(max(0, getxattr(path, name, nil, 0, 0, XATTR_NOFOLLOW)))
+                byteCount: Int64(max(0, getxattr(path, name, nil, 0, 0, XATTR_NOFOLLOW))),
             ))
         }
         start = index + 1

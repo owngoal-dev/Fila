@@ -30,7 +30,7 @@ enum FolderSize {
         _ root: String,
         session: FileSession,
         interval: TimeInterval = 0.25,
-        onProgress: @MainActor (Totals) -> Void
+        onProgress: @MainActor (Totals) -> Void,
     ) async -> Totals? {
         var totals = Totals()
         var frontier = [root]

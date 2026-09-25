@@ -31,7 +31,7 @@ final class FileActions {
         presenter: UIViewController,
         directory: String,
         removals: RemovalTracking? = nil,
-        didRemove: @escaping () -> Void = {}
+        didRemove: @escaping () -> Void = {},
     ) {
         self.presenter = presenter
         self.directory = directory
@@ -79,7 +79,7 @@ final class FileActions {
         groupsFileOperations: Bool = false,
         offersExtraction: Bool = true,
         preview: (() -> Void)? = nil,
-        confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
+        confirm: @escaping (@escaping () -> Void) -> Void = { $0() },
     ) -> [UIMenuElement] {
         if Self.isInTrash(path) {
             return trashMenuElements(for: path, additional: additional, confirm: confirm)
@@ -90,7 +90,7 @@ final class FileActions {
             children: [
                 runAction(path, user: .root, title: String(localized: "Run as root"), confirm: confirm),
                 runAction(path, user: .mobile, title: String(localized: "Run as mobile"), confirm: confirm),
-            ]
+            ],
         )] : []
         let properties: [UIMenuElement] = includesProperties ? [
             UIAction(title: String(localized: "Properties"), image: UIImage(systemName: "info.circle")) { [self] _ in
@@ -109,7 +109,7 @@ final class FileActions {
         let extraction: [UIMenuElement] = isArchive && offersExtraction ? [
             UIAction(
                 title: String(localized: "Extract"),
-                image: UIImage(systemName: OperationCenter.Kind.extract.symbol)
+                image: UIImage(systemName: OperationCenter.Kind.extract.symbol),
             ) { [self] _ in
                 confirm { self.extract(path) }
             },
@@ -130,7 +130,7 @@ final class FileActions {
                     UIPasteboard.general.string = path
                     Toast.show(String(localized: "Copied"))
                 },
-            ]
+            ],
         )
         let operations: [UIMenuElement] = [
             copy,
@@ -145,7 +145,7 @@ final class FileActions {
         let opening: [UIMenuElement] = [
             UIAction(
                 title: String(localized: "Open With…"),
-                image: UIImage(systemName: "square.and.arrow.up")
+                image: UIImage(systemName: "square.and.arrow.up"),
             ) { [self] _ in
                 confirm { self.share([path]) }
             },
@@ -154,7 +154,7 @@ final class FileActions {
             UIAction(
                 title: Self.deleteTitle,
                 image: UIImage(systemName: "trash"),
-                attributes: .destructive
+                attributes: .destructive,
             ) { [self] _ in
                 confirm { self.delete([path]) }
             },
@@ -163,7 +163,7 @@ final class FileActions {
             let file = UIMenu(
                 title: String(localized: "File Actions"),
                 image: UIImage(systemName: "doc"),
-                children: FilaMenu.groups(operations, opening, destructive)
+                children: FilaMenu.groups(operations, opening, destructive),
             )
             return FilaMenu.groups(inspection, [file])
         }
@@ -176,7 +176,7 @@ final class FileActions {
     private func trashMenuElements(
         for path: String,
         additional: [UIMenuElement],
-        confirm: @escaping (@escaping () -> Void) -> Void
+        confirm: @escaping (@escaping () -> Void) -> Void,
     ) -> [UIMenuElement] {
         [
             UIMenu(
@@ -184,17 +184,17 @@ final class FileActions {
                 children: additional + [
                     UIAction(
                         title: String(localized: "Put Back"),
-                        image: UIImage(systemName: "arrow.uturn.backward")
+                        image: UIImage(systemName: "arrow.uturn.backward"),
                     ) { [self] _ in
                         confirm { self.putBack([path]) }
                     },
                     UIAction(
                         title: String(localized: "Properties"),
-                        image: UIImage(systemName: "info.circle")
+                        image: UIImage(systemName: "info.circle"),
                     ) { [self] _ in
                         showProperties(path)
                     },
-                ]
+                ],
             ),
             UIMenu(
                 options: .displayInline,
@@ -202,11 +202,11 @@ final class FileActions {
                     UIAction(
                         title: String(localized: "Delete Permanently"),
                         image: UIImage(systemName: "trash"),
-                        attributes: .destructive
+                        attributes: .destructive,
                     ) { [self] _ in
                         confirm { self.delete([path], permanently: true) }
                     },
-                ]
+                ],
             ),
         ]
     }
@@ -234,7 +234,7 @@ final class FileActions {
                     let name = failure.path.map { ($0 as NSString).lastPathComponent } ?? ""
                     activePresenter?.presentMessage(
                         String(localized: "Cannot Put Back"),
-                        message: String(localized: "The original location of “\(name)” is unknown. It can only be deleted permanently.")
+                        message: String(localized: "The original location of “\(name)” is unknown. It can only be deleted permanently."),
                     )
                 case let error?: report(error)
                 case nil: break
@@ -258,7 +258,7 @@ final class FileActions {
         _ path: String,
         user: TerminalUser,
         title: String,
-        confirm: @escaping (@escaping () -> Void) -> Void
+        confirm: @escaping (@escaping () -> Void) -> Void,
     ) -> UIAction {
         // Root is marked destructive so the menu itself says which of the two
         // is the one to think about; the terminal spawns as soon as it appears.
@@ -271,7 +271,7 @@ final class FileActions {
     func openTerminal(
         _ program: TerminalProgram,
         user: TerminalUser,
-        onProcessExit: (@MainActor @Sendable () -> Void)? = nil
+        onProcessExit: (@MainActor @Sendable () -> Void)? = nil,
     ) -> Bool {
         // No privileged module, no terminal: `runsPrograms` already hides
         // every entry that leads here, so this is the last line of defence,
@@ -282,7 +282,7 @@ final class FileActions {
             user: user,
             redirectsScriptInterpreter: AppPreferences.shared.redirectsScriptInterpreters,
             link: access,
-            onProcessExit: onProcessExit
+            onProcessExit: onProcessExit,
         )
         // The file being run, or the folder a shell starts in, then the
         // terminal; a crumb on a folder goes back to its browser.
@@ -292,7 +292,7 @@ final class FileActions {
             terminal.decorationSource = LocalPathDecoration(
                 path: path,
                 icon: FilePresentation.image(kind: .regular, name: (path as NSString).lastPathComponent),
-                screen: screen
+                screen: screen,
             )
         case let .loginShell(workingDirectory):
             if let workingDirectory {
@@ -315,7 +315,7 @@ final class FileActions {
                 let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
                 guard let presenter = activePresenter else { return }
                 presenter.presentAsSheet(UINavigationController(
-                    rootViewController: PropertiesViewController(details: details, link: session.link)
+                    rootViewController: PropertiesViewController(details: details, link: session.link),
                 ))
             } catch { report(error) }
         }
@@ -329,7 +329,7 @@ final class FileActions {
             message: String.LocalizationValue("Enter a new name. The item stays in the same folder."),
             placeholder: String.LocalizationValue("New name"),
             text: source.lastPathComponent,
-            doneButtonText: String.LocalizationValue("Rename")
+            doneButtonText: String.LocalizationValue("Rename"),
         ) { name in
             guard name != source.lastPathComponent else { return }
             guard !name.isEmpty, name != ".", name != "..", !name.contains("/"), !name.contains("\0") else {
@@ -339,7 +339,7 @@ final class FileActions {
             self.rename(
                 path,
                 to: source.deletingLastPathComponent().appendingPathComponent(name).path,
-                replacingExisting: false
+                replacingExisting: false,
             )
         }
         presenter.present(alert, animated: true)
@@ -360,7 +360,7 @@ final class FileActions {
                 confirmDestruction(
                     title: URL(fileURLWithPath: destination).lastPathComponent,
                     message: String(localized: "An item with this name already exists. Replacing it cannot be undone — the replaced item does not go to the trash."),
-                    confirm: String(localized: "Replace")
+                    confirm: String(localized: "Replace"),
                 ) { self.rename(source, to: destination, replacingExisting: true) }
             } catch { report(error) }
         }
@@ -369,7 +369,7 @@ final class FileActions {
     /// *Compress…*: the form, then the job.
     func compressAction(
         paths: @escaping () -> [String],
-        confirm: @escaping (@escaping () -> Void) -> Void = { $0() }
+        confirm: @escaping (@escaping () -> Void) -> Void = { $0() },
     ) -> UIAction {
         UIAction(title: String(localized: "Compress…"), image: UIImage(systemName: "doc.zipper")) { [self] _ in
             let selection = paths()
@@ -387,7 +387,7 @@ final class FileActions {
             suggestedName: base.isEmpty ? "Archive" : base,
             directory: directory,
             itemCount: paths.count,
-            link: session.link
+            link: session.link,
         ) { [self] choice in
             let suffix = "." + choice.options.format.filenameExtension
             let stem = choice.name.hasSuffix(suffix) ? String(choice.name.dropLast(suffix.count)) : choice.name
@@ -406,14 +406,14 @@ final class FileActions {
                 let destination = try await freePath(
                     base: stem,
                     extension: options.format.filenameExtension,
-                    in: directory
+                    in: directory,
                 )
                 let request = JobRequest(kind: .compress, sources: paths, destination: destination, archive: options)
                 try await jobCover().show(job: center.startJob(
                     request,
                     kind: .compress,
                     title: OperationCenter.Kind.compress.runningTitle,
-                    subtitle: OperationCenter.describe(paths, destination: directory)
+                    subtitle: OperationCenter.describe(paths, destination: directory),
                 ), in: center)
             } catch { report(error) }
         }

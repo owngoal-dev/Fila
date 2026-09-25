@@ -37,7 +37,9 @@ public struct MusicImportMetadata: Sendable {
                           "itsk/soaa": "SortAlbumArtist", "itsk/soco": "SortComposer"][identifier?.rawValue ?? ""]
                 }
             }
-            if let field, let text, !text.isEmpty { result.strings[field] = text }
+            if let field, let text, !text.isEmpty {
+                result.strings[field] = text
+            }
             if item.commonKey == .commonKeyArtwork, result.artwork == nil {
                 result.artwork = try await item.load(.dataValue)
             }
@@ -47,15 +49,21 @@ public struct MusicImportMetadata: Sendable {
                 let isDisc = identifier == .iTunesMetadataDiscNumber || identifier == .id3MetadataPartOfASet
                 let data = try await item.load(.dataValue)
                 let pair = numberPair(text: text, data: data)
-                if let number = pair.number { result.numbers[isDisc ? "DiscNumber" : "TrackNumber"] = number }
-                if let total = pair.total { result.numbers[isDisc ? "DiscCount" : "TrackCount"] = total }
+                if let number = pair.number {
+                    result.numbers[isDisc ? "DiscNumber" : "TrackNumber"] = number
+                }
+                if let total = pair.total {
+                    result.numbers[isDisc ? "DiscCount" : "TrackCount"] = total
+                }
             case .iTunesMetadataDiscCompilation:
                 if let number = try await item.load(.numberValue) {
                     result.numbers["Compilation"] = number.boolValue ? 1 : 0
                 }
             case .iTunesMetadataReleaseDate, .id3MetadataYear, .id3MetadataRecordingTime, .id3MetadataReleaseTime:
                 if let text {
-                    if let year = Int64(text.prefix(4)), (1...9999).contains(year) { result.numbers["Year"] = year }
+                    if let year = Int64(text.prefix(4)), (1 ... 9999).contains(year) {
+                        result.numbers["Year"] = year
+                    }
                     result.strings["ReleaseDate"] = text
                     if let date = releaseDate(text) {
                         result.numbers["ReleaseDateTime"] = Int64(date.timeIntervalSinceReferenceDate)
@@ -78,7 +86,9 @@ public struct MusicImportMetadata: Sendable {
             return formatter.date(from: text + " 12:00")
         }
         let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: text) { return date }
+        if let date = formatter.date(from: text) {
+            return date
+        }
         formatter.formatOptions.insert(.withFractionalSeconds)
         return formatter.date(from: text)
     }

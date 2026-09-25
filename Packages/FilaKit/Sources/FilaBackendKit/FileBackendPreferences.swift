@@ -53,7 +53,7 @@ public struct FileBackendPreferences: Codable, Equatable, Sendable {
         sortAscending: Bool = true,
         showsHidden: Bool = false,
         layout: BrowserLayout = .list,
-        folderLayouts: [ServicePath: BrowserLayout] = [:]
+        folderLayouts: [ServicePath: BrowserLayout] = [:],
     ) {
         self.favorites = favorites
         self.recents = recents

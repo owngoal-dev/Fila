@@ -58,14 +58,14 @@ final class PDFViewerViewController: TabContentViewController {
             self,
             selector: #selector(updatePage),
             name: .PDFViewPageChanged,
-            object: pdfView
+            object: pdfView,
         )
 
         do {
             let data = try file.readAll(limit: ViewerLimits.inMemoryDocumentByteCount)
             guard let document = PDFDocument(data: data) else {
                 throw ViewerFailure.unsupportedContent(
-                    String(localized: "Unable to open this PDF. Open it as Hex to see its contents.")
+                    String(localized: "Unable to open this PDF. Open it as Hex to see its contents."),
                 )
             }
             guard document.pageCount <= 10000 else {
@@ -94,7 +94,7 @@ final class PDFViewerViewController: TabContentViewController {
         pageLabel.text = String(
             format: String(localized: "Page %lld of %lld"),
             Int64(document.index(for: page) + 1),
-            Int64(document.pageCount)
+            Int64(document.pageCount),
         )
     }
 }

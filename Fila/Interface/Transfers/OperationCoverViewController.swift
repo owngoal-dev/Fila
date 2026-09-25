@@ -39,7 +39,7 @@ final class OperationCoverViewController: UIViewController {
                 cancel: {
                     guard let operation = running(), operation.isCancellable else { return }
                     center.cancel(operation)
-                }
+                },
             )
         }
     }
@@ -68,7 +68,7 @@ final class OperationCoverViewController: UIViewController {
         _ source: Source,
         from presenter: UIViewController,
         shown: @escaping () -> Void = {},
-        dismissed: @escaping () -> Void = {}
+        dismissed: @escaping () -> Void = {},
     ) {
         Task { @MainActor [weak presenter] in
             try? await Task.sleep(nanoseconds: UInt64(StatusView.revealDelay * 1_000_000_000))
@@ -82,7 +82,9 @@ final class OperationCoverViewController: UIViewController {
             // At the start, not in the completion: a job that ends mid-animation
             // closes the card the moment it lands, and whatever waits on it must
             // not be presented in between. A refused presentation sets nothing.
-            if alert.presentingViewController != nil { shown() }
+            if alert.presentingViewController != nil {
+                shown()
+            }
         }
     }
 
@@ -343,7 +345,7 @@ final class OperationCoverViewController: UIViewController {
             parts.append(String(
                 format: String(localized: "%@ of %@"),
                 FilePresentation.byteLabel(progress.bytesDone),
-                FilePresentation.byteLabel(progress.bytesTotal)
+                FilePresentation.byteLabel(progress.bytesTotal),
             ))
         } else if progress.bytesDone > 0 {
             parts.append(FilePresentation.byteLabel(progress.bytesDone))

@@ -39,7 +39,7 @@ func srgb(_ text: String) -> NSColor {
 }
 
 let json = try JSONSerialization.jsonObject(
-    with: Data(contentsOf: document.appendingPathComponent("icon.json"))
+    with: Data(contentsOf: document.appendingPathComponent("icon.json")),
 ) as? [String: Any] ?? [:]
 let fill = (json["fill"] as? [String: Any])?["automatic-gradient"] as? String ?? "srgb:1,1,1,1"
 guard let group = (json["groups"] as? [[String: Any]])?.first,
@@ -52,7 +52,7 @@ let translation = (position["translation-in-points"] as? [Double]) ?? [0, 0]
 let layer = Layer(
     image: image,
     scale: CGFloat(position["scale"] as? Double ?? 1),
-    translation: CGPoint(x: translation[0], y: translation[1])
+    translation: CGPoint(x: translation[0], y: translation[1]),
 )
 
 /// One square PNG. `dark` swaps the document fill for the dark icon ground.
@@ -67,7 +67,7 @@ func render(side: Int, dark: Bool) -> Data? {
         isPlanar: false,
         colorSpaceName: .deviceRGB,
         bytesPerRow: 0,
-        bitsPerPixel: 0
+        bitsPerPixel: 0,
     ) else { return nil }
     NSGraphicsContext.saveGraphicsState()
     defer { NSGraphicsContext.restoreGraphicsState() }
@@ -81,7 +81,7 @@ func render(side: Int, dark: Bool) -> Data? {
     if dark {
         NSGradient(
             starting: NSColor(srgbRed: 0.18, green: 0.18, blue: 0.19, alpha: 1),
-            ending: NSColor(srgbRed: 0.10, green: 0.10, blue: 0.11, alpha: 1)
+            ending: NSColor(srgbRed: 0.10, green: 0.10, blue: 0.11, alpha: 1),
         )?
             .draw(in: canvas, angle: -90)
     } else {

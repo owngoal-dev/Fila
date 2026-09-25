@@ -106,7 +106,7 @@ extension WebDAVHandler {
                 ("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"),
             ],
             on: http,
-            includeBody: includeBody
+            includeBody: includeBody,
         )
     }
 
@@ -134,7 +134,7 @@ extension WebDAVHandler {
             contentType: contentType,
             headers: [],
             on: http,
-            includeBody: includeBody
+            includeBody: includeBody,
         )
     }
 
@@ -146,7 +146,7 @@ extension WebDAVHandler {
         contentType: String,
         headers: [(String, String)],
         on http: HTTPConnection,
-        includeBody: Bool
+        includeBody: Bool,
     ) async throws -> Int {
         let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW)
         guard descriptor >= 0 else {
@@ -164,7 +164,7 @@ extension WebDAVHandler {
             try await http.write(head(
                 200,
                 headers: [("Content-Type", contentType), ("Cache-Control", "no-cache")] + headers,
-                contentLength: Int(size)
+                contentLength: Int(size),
             ))
             guard includeBody else { return }
             try await send(descriptor: descriptor, offset: 0, count: size, to: http)

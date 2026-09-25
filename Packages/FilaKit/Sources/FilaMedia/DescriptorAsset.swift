@@ -45,7 +45,7 @@ public final class DescriptorAsset {
         reader = DescriptorResourceLoader(
             descriptor: descriptor,
             byteCount: byteCount,
-            contentType: DescriptorAsset.contentType(descriptor: descriptor, name: name)
+            contentType: DescriptorAsset.contentType(descriptor: descriptor, name: name),
         )
 
         var components = URLComponents()
@@ -171,7 +171,7 @@ private final class DescriptorResourceLoader: NSObject, AVAssetResourceLoaderDel
 
     func resourceLoader(
         _: AVAssetResourceLoader,
-        shouldWaitForLoadingOfRequestedResource request: AVAssetResourceLoadingRequest
+        shouldWaitForLoadingOfRequestedResource request: AVAssetResourceLoadingRequest,
     ) -> Bool {
         if let information = request.contentInformationRequest {
             information.contentType = contentType
@@ -217,7 +217,7 @@ private final class DescriptorResourceLoader: NSObject, AVAssetResourceLoaderDel
             if got <= 0 {
                 request.finishLoading(with: NSError(
                     domain: NSPOSIXErrorDomain,
-                    code: Int(got < 0 ? failure : EIO)
+                    code: Int(got < 0 ? failure : EIO),
                 ))
                 return true
             }

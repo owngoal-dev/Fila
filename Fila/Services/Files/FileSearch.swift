@@ -49,7 +49,7 @@ enum FileSearch {
         session: FileSession,
         limit: Int = resultLimit,
         onVisit: @MainActor (String) -> Void,
-        onHit: @MainActor (FileSearchResult) -> Void
+        onHit: @MainActor (FileSearchResult) -> Void,
     ) async -> Int {
         let needle = needle.lowercased()
         guard !needle.isEmpty, limit > 0 else { return 0 }
@@ -72,7 +72,7 @@ enum FileSearch {
             FilaLog.info(
                 "search \"\(needle)\" ended: \(found) hit(s), \(skippedLinks) link(s) not entered"
                     + (Task.isCancelled ? ", cancelled" : "")
-                    + ", \(Int(Date().timeIntervalSince(startedAt) * 1000))ms"
+                    + ", \(Int(Date().timeIntervalSince(startedAt) * 1000))ms",
             )
         }
         while next < frontier.count, found < limit {

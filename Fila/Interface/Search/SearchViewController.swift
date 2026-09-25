@@ -54,7 +54,7 @@ final class SearchViewController: TabContentViewController {
         // folder or an ancestor goes back to its browser.
         decorationSource = LocalPathDecoration(
             directory: root,
-            screen: PathBarView.Crumb(title: title ?? "", icon: UIImage(systemName: "magnifyingglass"))
+            screen: PathBarView.Crumb(title: title ?? "", icon: UIImage(systemName: "magnifyingglass")),
         )
     }
 
@@ -101,7 +101,7 @@ final class SearchViewController: TabContentViewController {
                 name: hit.node.name,
                 detail: self?.scope == .folder ? nil : hit.directory,
                 image: FilePresentation.image(for: hit.node),
-                highlight: self?.query
+                highlight: self?.query,
             )
             cell.showThumbnail(for: hit.path, node: hit.node, session: .shared)
             cell.accessories = hit.node.isNavigable ? [.disclosureIndicator()] : []
@@ -114,7 +114,7 @@ final class SearchViewController: TabContentViewController {
         // The footer exists only while there is something to confess (see
         // `layout(footer:)`).
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] cell, _, _ in
             var content = UIListContentConfiguration.plainFooter()
             content.text = self?.footerText
@@ -174,7 +174,7 @@ final class SearchViewController: TabContentViewController {
             UIAction(
                 title: title,
                 image: UIImage(systemName: option == .folder ? "folder" : "square.stack.3d.up"),
-                state: scope == option ? .on : .off
+                state: scope == option ? .on : .off,
             ) { [weak self] _ in
                 self?.selectScope(option)
             }
@@ -234,7 +234,7 @@ final class SearchViewController: TabContentViewController {
                 let skipped = await FileSearch.run(
                     root: root,
                     needle: needle,
-                    session: session
+                    session: session,
                 ) { directory in
                     guard !Task.isCancelled, self.searchID == searchID else { return }
                     self.currentDirectory = directory
@@ -302,12 +302,12 @@ final class SearchViewController: TabContentViewController {
         var lines: [String] = []
         if hits.count >= FileSearch.resultLimit {
             lines.append(
-                String(localized: "Showing the first \(FileSearch.resultLimit) matches. Try a more specific name.")
+                String(localized: "Showing the first \(FileSearch.resultLimit) matches. Try a more specific name."),
             )
         }
         if skippedLinks > 0 {
             lines.append(
-                String(localized: "Symbolic links were not followed, so items they point to were not searched.")
+                String(localized: "Symbolic links were not followed, so items they point to were not searched."),
             )
         }
         return lines.isEmpty ? nil : lines.joined(separator: "\n")
@@ -364,7 +364,7 @@ final class SearchViewController: TabContentViewController {
             return .message(
                 symbol: "exclamationmark.triangle",
                 title: String(localized: "Unable to Read Folder"),
-                detail: failure
+                detail: failure,
             )
         }
         if isSearching {
@@ -378,7 +378,7 @@ final class SearchViewController: TabContentViewController {
                     : String(localized: "Search Subfolders"),
                 detail: scope == .subfolders
                     ? String(localized: "Enter a name, then tap Search to include subfolders.")
-                    : nil
+                    : nil,
             )
         }
         let detail = scope == .folder
@@ -450,7 +450,7 @@ extension SearchViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let hit = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -458,7 +458,7 @@ extension SearchViewController: UICollectionViewDelegate {
             var additional: [UIMenuElement] = [
                 UIAction(
                     title: String(localized: "Reveal in Folder"),
-                    image: UIImage(systemName: "folder")
+                    image: UIImage(systemName: "folder"),
                 ) { [weak self] _ in
                     self?.shell?.follow(.reveal(hit.path))
                 },
@@ -466,7 +466,7 @@ extension SearchViewController: UICollectionViewDelegate {
             if hit.node.isNavigable {
                 additional.append(UIAction(
                     title: String(localized: "Open in New Tab"),
-                    image: UIImage(systemName: "plus.square.on.square")
+                    image: UIImage(systemName: "plus.square.on.square"),
                 ) { [weak self] _ in
                     self?.shell?.openInNewTab(hit.path)
                 })
@@ -483,8 +483,8 @@ extension SearchViewController: UICollectionViewDelegate {
                     for: hit.path,
                     node: hit.node,
                     additional: additional,
-                    preview: { [weak self] in self?.open(hit) }
-                )
+                    preview: { [weak self] in self?.open(hit) },
+                ),
             )
         }
     }

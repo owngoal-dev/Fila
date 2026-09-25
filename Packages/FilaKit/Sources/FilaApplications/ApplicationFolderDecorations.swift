@@ -32,7 +32,7 @@ public enum ApplicationFolderDecorations {
         in directory: String,
         entries: [(name: String, isDirectory: Bool)],
         apps: [InstalledApp],
-        read: (String) async -> Data?
+        read: (String) async -> Data?,
     ) async -> [String: FolderDecoration] {
         guard decorates(directory, entries: entries) else { return [:] }
         let root = displayPath(directory)
@@ -56,7 +56,7 @@ public enum ApplicationFolderDecorations {
             result[entry.name] = FolderDecoration(
                 name: owner?.name ?? (root == groupRoot ? identifier : InstalledApp.name(identifier: identifier)),
                 detail: owner == nil && root != groupRoot ? identifier : nil,
-                applicationIdentifier: owner?.bundleIdentifier ?? (root == groupRoot ? nil : identifier)
+                applicationIdentifier: owner?.bundleIdentifier ?? (root == groupRoot ? nil : identifier),
             )
         }
         return result
@@ -114,7 +114,7 @@ public enum ApplicationFolderDecorations {
             return FolderDecoration(
                 name: (groups.isEmpty ? names : groups).joined(separator: ", "),
                 detail: groups.isEmpty ? nil : names.joined(separator: ", "),
-                applicationIdentifier: identifiers.count == 1 ? identifiers.first : nil
+                applicationIdentifier: identifiers.count == 1 ? identifiers.first : nil,
             )
         }
     }

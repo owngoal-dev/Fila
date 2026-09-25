@@ -66,7 +66,7 @@ final class TextViewerViewController: TabContentViewController {
             image: UIImage(systemName: "xmark"),
             style: .plain,
             target: self,
-            action: #selector(stopEditing)
+            action: #selector(stopEditing),
         )
         item.accessibilityLabel = String(localized: "Cancel")
         return item
@@ -77,7 +77,7 @@ final class TextViewerViewController: TabContentViewController {
     private lazy var editItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "pencil"),
-            primaryAction: UIAction { [weak self] _ in self?.startEditing() }
+            primaryAction: UIAction { [weak self] _ in self?.startEditing() },
         )
         item.accessibilityLabel = String(localized: "Edit")
         return item
@@ -86,7 +86,7 @@ final class TextViewerViewController: TabContentViewController {
     private lazy var saveItem: UIBarButtonItem = {
         let item = UIBarButtonItem(
             image: UIImage(systemName: "checkmark"),
-            primaryAction: UIAction { [weak self] _ in self?.save() }
+            primaryAction: UIAction { [weak self] _ in self?.save() },
         )
         item.accessibilityLabel = String(localized: "Save")
         return item
@@ -208,11 +208,11 @@ final class TextViewerViewController: TabContentViewController {
                 pendingNotice = String(
                     format: String(localized: "Showing the first %@ of %@. This file is too large to edit. Open it as Hex to see the rest."),
                     FilePresentation.byteLabel(Int64(data.count)),
-                    FilePresentation.byteLabel(file.byteCount)
+                    FilePresentation.byteLabel(file.byteCount),
                 )
             } else if encoding != .utf8 {
                 pendingNotice = String(
-                    localized: "This file is not valid UTF-8. It is shown and saved without converting it to UTF-8."
+                    localized: "This file is not valid UTF-8. It is shown and saved without converting it to UTF-8.",
                 )
             }
         } catch {
@@ -339,13 +339,13 @@ final class TextViewerViewController: TabContentViewController {
         let preferences = AppPreferences.shared
         let find = UIAction(
             title: String(localized: "Find"),
-            image: UIImage(systemName: "magnifyingglass")
+            image: UIImage(systemName: "magnifyingglass"),
         ) { [weak self] _ in self?.toggleFind() }
         let wrap = UIAction(
             title: String(localized: "Wrap Lines"),
             // `text.word.spacing` is an iOS 16 symbol and draws nothing on 15.
             image: UIImage(systemName: "arrow.turn.down.left"),
-            state: preferences.wrapsLines ? .on : .off
+            state: preferences.wrapsLines ? .on : .off,
         ) { [weak self] _ in
             AppPreferences.shared.wrapsLines.toggle()
             self?.textView.isLineWrappingEnabled = AppPreferences.shared.wrapsLines
@@ -356,7 +356,7 @@ final class TextViewerViewController: TabContentViewController {
         // Picking one turns highlighting on — that is what the tap meant.
         let toggle = UIAction(
             title: String(localized: "Syntax Highlighting"),
-            state: preferences.highlightsSyntax ? .on : .off
+            state: preferences.highlightsSyntax ? .on : .off,
         ) { [weak self] _ in
             AppPreferences.shared.highlightsSyntax.toggle()
             self?.applyLanguageMode()
@@ -365,7 +365,7 @@ final class TextViewerViewController: TabContentViewController {
         let automatic = UIAction(
             title: String(localized: "Automatic"),
             attributes: tooLarge ? .disabled : [],
-            state: chosenLanguage == nil ? .on : .off
+            state: chosenLanguage == nil ? .on : .off,
         ) { [weak self] _ in
             self?.chosenLanguage = nil
             self?.applyLanguageMode()
@@ -374,7 +374,7 @@ final class TextViewerViewController: TabContentViewController {
             UIAction(
                 title: choice.name,
                 attributes: tooLarge ? .disabled : [],
-                state: chosenLanguage == choice.name ? .on : .off
+                state: chosenLanguage == choice.name ? .on : .off,
             ) { [weak self] _ in
                 self?.chosenLanguage = choice.name
                 AppPreferences.shared.highlightsSyntax = true
@@ -389,9 +389,9 @@ final class TextViewerViewController: TabContentViewController {
                 UIMenu(
                     title: String(localized: "Language"),
                     options: .displayInline,
-                    children: [automatic] + languages
+                    children: [automatic] + languages,
                 ),
-            ]
+            ],
         )
         return [find, wrap, highlight]
     }
@@ -432,14 +432,14 @@ final class TextViewerViewController: TabContentViewController {
             // something outside those 256 values. Refusing out loud, because a
             // Save button that does nothing is indistinguishable from a save.
             presentSaveFailure(ViewerFailure.unsupportedContent(
-                String(localized: "Some characters you typed cannot be saved in this file’s encoding. Remove them and try again.")
+                String(localized: "Some characters you typed cannot be saved in this file’s encoding. Remove them and try again."),
             ))
             return
         }
         guard data.count <= ViewerLimits.editableTextByteCount else {
             presentSaveFailure(ViewerFailure.tooLarge(
                 byteCount: Int64(data.count),
-                limit: ViewerLimits.editableTextByteCount
+                limit: ViewerLimits.editableTextByteCount,
             ))
             return
         }
@@ -478,7 +478,7 @@ final class TextViewerViewController: TabContentViewController {
         guard !isSaving else { return }
         let alert = AlertViewController(
             title: String.LocalizationValue("Unsaved Changes"),
-            message: String.LocalizationValue("Leaving now discards your changes. The file on disk is unchanged.")
+            message: String.LocalizationValue("Leaving now discards your changes. The file on disk is unchanged."),
         ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()

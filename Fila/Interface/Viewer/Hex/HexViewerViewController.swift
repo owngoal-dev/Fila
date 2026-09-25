@@ -60,14 +60,14 @@ final class HexViewerViewController: TabContentViewController {
         container?.childMenuElements = [UIAction(
             title: String(localized: "Go to Offset"),
             image: UIImage(systemName: "number"),
-            attributes: file.byteCount > 0 ? [] : .disabled
+            attributes: file.byteCount > 0 ? [] : .disabled,
         ) { [weak self] _ in self?.goToOffset() }]
         container?.refreshBarItems()
         if file.byteCount == 0 {
             table.backgroundView = StatusView(content: .message(
                 symbol: "doc",
                 title: String(localized: "Empty File"),
-                detail: nil
+                detail: nil,
             ))
         }
     }
@@ -101,7 +101,7 @@ final class HexViewerViewController: TabContentViewController {
             table.scrollToRow(
                 at: IndexPath(row: Int(offset / Int64(bytesPerRow)), section: 0),
                 at: .top,
-                animated: false
+                animated: false,
             )
         }
     }
@@ -132,7 +132,7 @@ final class HexViewerViewController: TabContentViewController {
         }
         let data = (try? file.read(
             at: index * Int64(Self.pageByteCount),
-            count: Self.pageByteCount
+            count: Self.pageByteCount,
         )) ?? Data()
         pages[index] = data
         pageOrder.append(index)
@@ -148,7 +148,7 @@ final class HexViewerViewController: TabContentViewController {
             message: String.LocalizationValue("Enter a decimal offset, or a hexadecimal offset with a 0x prefix."),
             placeholder: String.LocalizationValue("Offset"),
             text: "",
-            doneButtonText: String.LocalizationValue("Go")
+            doneButtonText: String.LocalizationValue("Go"),
         ) { [weak self] text in
             guard let self else { return }
             // Silently doing nothing is how this read as broken: a typo and a
@@ -160,7 +160,7 @@ final class HexViewerViewController: TabContentViewController {
             guard offset < file.byteCount else {
                 explain(String(
                     format: String(localized: "This offset is past the end of the file. Enter 0x%llx or less."),
-                    max(0, file.byteCount - 1)
+                    max(0, file.byteCount - 1),
                 ))
                 return
             }
@@ -173,7 +173,7 @@ final class HexViewerViewController: TabContentViewController {
     private func explain(_ message: String) {
         let alert = AlertViewController(
             title: String(localized: "Invalid Offset"),
-            message: message
+            message: message,
         ) { [weak self] context in
             context.allowSimpleDispose()
             context.addAction(title: String.LocalizationValue("Close")) { context.dispose() }
@@ -213,7 +213,7 @@ extension HexViewerViewController: UITableViewDataSource {
         (cell as? HexRowCell)?.show(
             offset: Int64(indexPath.row) * Int64(bytesPerRow),
             bytes: bytes(forRow: indexPath.row),
-            width: bytesPerRow
+            width: bytesPerRow,
         )
         return cell
     }
@@ -270,7 +270,7 @@ final class HexRowCell: UITableViewCell {
         line.font = Self.font
         let text = NSMutableAttributedString(
             string: String(format: "%08llx\n", offset),
-            attributes: [.foregroundColor: UIColor.secondaryLabel]
+            attributes: [.foregroundColor: UIColor.secondaryLabel],
         )
         text.append(NSAttributedString(string: hex + " |" + ascii + "|", attributes: [.foregroundColor: UIColor.label]))
         line.attributedText = text

@@ -30,13 +30,13 @@ public enum PropertyListBudget {
         var remainingNodes = 100_000
         var remainingBytes = PreviewLimits.textByteCount
         let tooManyValues = FormatFailure.unsupported(
-            String(localized: "a property list this large or this deeply nested", bundle: .module)
+            String(localized: "a property list this large or this deeply nested", bundle: .module),
         )
         func consume(_ count: Int) throws {
             guard count <= remainingBytes else {
                 throw FormatFailure.tooLarge(
                     byteCount: PreviewLimits.textByteCount + 1,
-                    limit: PreviewLimits.textByteCount
+                    limit: PreviewLimits.textByteCount,
                 )
             }
             remainingBytes -= Int64(count)

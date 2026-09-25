@@ -125,7 +125,7 @@ public final class TerminalPTY: @unchecked Sendable {
                 ws_row: max(1, rows),
                 ws_col: max(1, columns),
                 ws_xpixel: 0,
-                ws_ypixel: 0
+                ws_ypixel: 0,
             )
             _ = ioctl(descriptor, TIOCSWINSZ, &size)
         }

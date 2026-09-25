@@ -44,7 +44,7 @@ public final class ArchiveJob: @unchecked Sendable {
     /// the user should be able to find in the log.
     public func run(
         report: @escaping (JobProgress) -> Void,
-        note: @escaping (String) -> Void = { _ in }
+        note: @escaping (String) -> Void = { _ in },
     ) -> FilaFailure {
         let progress = Progress(report: report)
         do {
@@ -155,7 +155,7 @@ public final class ArchiveJob: @unchecked Sendable {
             mode: metadata.st_mode & 0o7777,
             modified: Date(timeIntervalSince1970: Double(metadata.st_mtimespec.tv_sec)),
             byteCount: kind == .regular ? Int64(metadata.st_size) : 0,
-            linkTarget: linkTarget
+            linkTarget: linkTarget,
         ))
         guard kind == .directory else { return }
         guard let handle = opendir(path) else { throw FilaFailure(errno: Darwin.errno, path: path) }
@@ -181,7 +181,7 @@ public final class ArchiveJob: @unchecked Sendable {
             format: options.format,
             zipCompression: options.zipCompression,
             encryption: options.encryption,
-            password: options.password
+            password: options.password,
         )
         for member in members {
             try checkCancelled(member.path)
@@ -234,7 +234,7 @@ public final class ArchiveJob: @unchecked Sendable {
         let reader = try ArchiveReader(
             descriptor: descriptor,
             name: FilaPath.name(of: archive),
-            password: options.password
+            password: options.password,
         )
         let publication = try options.organizeExtraction == true
             ? ArchiveExtractionDestination(directory: destination, operations: operations) : nil
@@ -245,7 +245,7 @@ public final class ArchiveJob: @unchecked Sendable {
         let placement = try Placement(
             operations: operations,
             destination: publication?.temporary ?? FilaPath.canonical(destination),
-            overwrite: publication == nil ? request.overwrite : false
+            overwrite: publication == nil ? request.overwrite : false,
         )
         try placement.prepare()
 
@@ -301,7 +301,7 @@ public final class ArchiveJob: @unchecked Sendable {
         with placement: Placement,
         from reader: ArchiveReader,
         progress: Progress,
-        note: (String) -> Void
+        note: (String) -> Void,
     ) throws {
         do {
             try placement.place(entry, from: reader) { done, _ in
@@ -372,7 +372,7 @@ public final class ArchiveJob: @unchecked Sendable {
                 bytesTotal: bytesTotal,
                 itemsDone: itemsDone,
                 itemsTotal: itemsTotal,
-                currentPath: currentPath
+                currentPath: currentPath,
             ))
         }
     }
@@ -490,7 +490,7 @@ private final class Placement {
         from reader: ArchiveReader,
         to target: String,
         permissions: mode_t,
-        progress: @escaping ProgressHandler
+        progress: @escaping ProgressHandler,
     ) throws {
         let temporary = FilaPath.join(FilaPath.directory(of: target), ".fila-tmp-\(UUID().uuidString)")
         let descriptor = try operations.open(temporary, flags: O_CREAT | O_EXCL | O_WRONLY, mode: 0o600)

@@ -35,7 +35,7 @@ final class JobCover {
                 let waiting = pending
                 pending = nil
                 waiting?()
-            }
+            },
         )
     }
 

@@ -49,7 +49,7 @@ struct WebDAVHandler {
                 http, 401,
                 headers: HTTPAuthentication.challenges(nonces: nonces, for: request)
                     .map { ("WWW-Authenticate", $0) },
-                close: true
+                close: true,
             )
             return false
         }
@@ -193,7 +193,7 @@ struct WebDAVHandler {
             request,
             username: configuration.username,
             password: configuration.password,
-            nonces: nonces
+            nonces: nonces,
         )
     }
 
@@ -276,7 +276,7 @@ struct WebDAVHandler {
         _ status: Int,
         headers: [(String, String)] = [],
         body: Data = Data(),
-        close: Bool = false
+        close: Bool = false,
     ) async throws {
         try await http.write(head(status, headers: headers, contentLength: body.count, close: close))
         try await http.write(body)
@@ -291,7 +291,7 @@ struct WebDAVHandler {
         _ status: Int,
         headers: [(String, String)] = [],
         contentLength: Int?,
-        close: Bool = false
+        close: Bool = false,
     ) -> HTTPResponseHead {
         var fields = HTTPHeaders(headers)
         fields.add(name: "Date", value: HTTPDate.rfc1123(Date().timeIntervalSince1970))

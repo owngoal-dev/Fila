@@ -45,7 +45,7 @@
                     guard let path = xpc_dictionary_get_string(entry, FilaWireKey.memberPath) else { return nil }
                     selected.append(ArchiveSelection(
                         index: xpc_dictionary_get_int64(entry, FilaWireKey.memberIndex),
-                        declaredPath: String(cString: path)
+                        declaredPath: String(cString: path),
                     ))
                 }
                 members = selected
@@ -57,7 +57,7 @@
                 password: xpc_dictionary_get_string(request, FilaWireKey.archivePassword).map { String(cString: $0) },
                 members: members,
                 organizeExtraction: xpc_dictionary_get_value(request, FilaWireKey.archiveOrganizeExtraction) == nil
-                    ? nil : xpc_dictionary_get_bool(request, FilaWireKey.archiveOrganizeExtraction)
+                    ? nil : xpc_dictionary_get_bool(request, FilaWireKey.archiveOrganizeExtraction),
             )
         }
     }

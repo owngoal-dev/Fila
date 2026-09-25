@@ -49,7 +49,7 @@
                 overwrite: xpc_dictionary_get_bool(request, FilaWireKey.overwrite),
                 overrideGuard: xpc_dictionary_get_bool(request, FilaWireKey.overrideGuard),
                 query: SearchQuery(decoding: request),
-                archive: ArchiveOptions(decoding: request)
+                archive: ArchiveOptions(decoding: request),
             )
         }
     }
@@ -93,7 +93,7 @@
                     systemError: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(message, FilaWireKey.errno)),
                     path: path,
                     reason: xpc_dictionary_get_string(message, FilaWireKey.failureReason)
-                        .flatMap { FilaFailureReason(rawValue: String(cString: $0)) }
+                        .flatMap { FilaFailureReason(rawValue: String(cString: $0)) },
                 )))
             }
             return (identifier, .progress(JobProgress(
@@ -101,7 +101,7 @@
                 bytesTotal: xpc_dictionary_get_int64(message, FilaWireKey.bytesTotal),
                 itemsDone: xpc_dictionary_get_int64(message, FilaWireKey.itemsDone),
                 itemsTotal: xpc_dictionary_get_int64(message, FilaWireKey.itemsTotal),
-                currentPath: path ?? ""
+                currentPath: path ?? "",
             )))
         }
     }

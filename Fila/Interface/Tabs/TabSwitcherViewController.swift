@@ -62,7 +62,7 @@ final class TabSwitcherViewController: UIViewController {
             self,
             selector: #selector(tabsChanged),
             name: .filaTabsChanged,
-            object: store
+            object: store,
         )
     }
 
@@ -75,12 +75,12 @@ final class TabSwitcherViewController: UIViewController {
                 .isAccessibilityCategory ? 280 : 160
             let columns = max(1, Int((width + spacing) / (minimum + spacing)))
             let item = NSCollectionLayoutItem(
-                layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230))
+                layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230)),
             )
             let group = NSCollectionLayoutGroup.horizontal(
                 layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(230)),
                 subitem: item,
-                count: columns
+                count: columns,
             )
             group.interItemSpacing = .fixed(spacing)
             return NSCollectionLayoutSection(group: group).then {
@@ -98,7 +98,7 @@ final class TabSwitcherViewController: UIViewController {
                 title: preview?.title ?? tab.title,
                 path: tab.path,
                 image: preview?.image,
-                current: id == currentTabID
+                current: id == currentTabID,
             ) { [weak self] in self?.shell?.closeTab(id) }
         }
         dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView) { collection, indexPath, id in
@@ -221,7 +221,7 @@ final class TabSwitcherViewController: UIViewController {
         switch gesture.state {
         case .began:
             guard let indexPath = collectionView.indexPathForItem(
-                at: gesture.location(in: collectionView)
+                at: gesture.location(in: collectionView),
             ) else { return }
             collectionView.beginInteractiveMovementForItem(at: indexPath)
         case .changed:
@@ -270,7 +270,7 @@ private final class TabGridLayout: UICollectionViewCompositionalLayout {
     }
 
     override func initialLayoutAttributesForAppearingItem(
-        at itemIndexPath: IndexPath
+        at itemIndexPath: IndexPath,
     ) -> UICollectionViewLayoutAttributes? {
         let attributes = super.initialLayoutAttributesForAppearingItem(at: itemIndexPath)
         if inserted.contains(itemIndexPath) {
@@ -280,7 +280,7 @@ private final class TabGridLayout: UICollectionViewCompositionalLayout {
     }
 
     override func finalLayoutAttributesForDisappearingItem(
-        at itemIndexPath: IndexPath
+        at itemIndexPath: IndexPath,
     ) -> UICollectionViewLayoutAttributes? {
         let attributes = super.finalLayoutAttributesForDisappearingItem(at: itemIndexPath)
         if deleted.contains(itemIndexPath) {
@@ -336,7 +336,7 @@ private final class TabCardCell: UICollectionViewCell {
                 top: FilaUI.Spacing.small,
                 leading: FilaUI.Spacing.medium,
                 bottom: FilaUI.Spacing.small,
-                trailing: FilaUI.Spacing.compact
+                trailing: FilaUI.Spacing.compact,
             )
         }
 

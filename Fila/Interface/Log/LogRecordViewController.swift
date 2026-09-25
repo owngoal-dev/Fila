@@ -18,7 +18,7 @@ final class LogRecordViewController: UIViewController {
                 UIAction(title: String(localized: "Copy"), image: UIImage(systemName: "doc.on.doc")) { [record] _ in
                     UIPasteboard.general.string = LogViewController.exportLine(record)
                 },
-            ])
+            ]),
         )
         navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "More")
     }

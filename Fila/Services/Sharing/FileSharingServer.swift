@@ -57,13 +57,13 @@ final class FileSharingServer {
             self,
             selector: #selector(applicationWillResign),
             name: UIApplication.willResignActiveNotification,
-            object: nil
+            object: nil,
         )
         notifications.addObserver(
             self,
             selector: #selector(applicationDidBecomeActive),
             name: UIApplication.didBecomeActiveNotification,
-            object: nil
+            object: nil,
         )
     }
 
@@ -93,7 +93,7 @@ final class FileSharingServer {
             guard let root, root.node.kind == .directory else {
                 FilaLog.warning("sharing not started: \(preferences.serverRoot) is not a directory")
                 startFailure = String(
-                    localized: "The shared folder is unavailable. Choose another folder and start sharing again."
+                    localized: "The shared folder is unavailable. Choose another folder and start sharing again.",
                 )
                 refresh()
                 return
@@ -121,7 +121,7 @@ final class FileSharingServer {
                     await MainActor.run {
                         FilePresentation.image(kind: isDirectory ? .directory : .regular, name: name)?.pngData()
                     }
-                }
+                },
             ))
         } catch {
             // The listener's own failures already log themselves; this is the

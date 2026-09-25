@@ -173,7 +173,7 @@ final class ScaledEditorTheme: EditorTheme {
         ScaledEditorTheme(
             base: traits.userInterfaceStyle == .dark ? OneDarkTheme() : TomorrowTheme(),
             pointSize: UIFontMetrics(forTextStyle: .body)
-                .scaledValue(for: FilaUI.Font.monospacedBodySize, compatibleWith: traits)
+                .scaledValue(for: FilaUI.Font.monospacedBodySize, compatibleWith: traits),
         )
     }
 

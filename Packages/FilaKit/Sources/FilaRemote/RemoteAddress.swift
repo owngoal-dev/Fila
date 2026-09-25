@@ -32,7 +32,7 @@ public enum RemoteAddress {
             guard getnameinfo(
                 address, socklen_t(address.pointee.sa_len),
                 &text, socklen_t(text.count),
-                nil, 0, NI_NUMERICHOST
+                nil, 0, NI_NUMERICHOST,
             ) == 0 else { continue }
             let value = String(cString: text)
             if !value.isEmpty, !found.contains(value) {

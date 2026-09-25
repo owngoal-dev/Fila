@@ -30,7 +30,7 @@ struct PasswdEntry {
 
     private static func bootstrapEntry(
         layout: BootstrapLayout,
-        matching: (PasswdEntry) -> Bool
+        matching: (PasswdEntry) -> Bool,
     ) -> PasswdEntry? {
         let path = layout.resolve(layout.bootstrapPath("/etc/passwd"))
         guard let contents = try? String(contentsOfFile: path, encoding: .utf8) else { return nil }
@@ -42,7 +42,7 @@ struct PasswdEntry {
                 uid: uid,
                 gid: gid,
                 home: String(fields[5]),
-                shell: String(fields[6])
+                shell: String(fields[6]),
             )
             if matching(entry) {
                 return entry
@@ -58,7 +58,7 @@ struct PasswdEntry {
             uid: entry.pointee.pw_uid,
             gid: entry.pointee.pw_gid,
             home: String(cString: entry.pointee.pw_dir),
-            shell: String(cString: entry.pointee.pw_shell)
+            shell: String(cString: entry.pointee.pw_shell),
         )
     }
 }

@@ -36,7 +36,7 @@ public final class ApplicationPreferencesDefaults: DefaultStorage {
     public func load() throws -> ApplicationPreferences? {
         let value = ApplicationPreferences(
             sort: defaults.string(forKey: "appSort").flatMap(AppSort.init) ?? .name,
-            scope: defaults.string(forKey: "appScope").flatMap(AppScope.init) ?? .all
+            scope: defaults.string(forKey: "appScope").flatMap(AppScope.init) ?? .all,
         )
         known = value
         return value

@@ -111,7 +111,7 @@ final class RootSplitViewController: UISplitViewController {
     private func item(
         in table: NSMapTable<UIViewController, UIBarButtonItem>,
         for controller: UIViewController,
-        make: () -> UIBarButtonItem
+        make: () -> UIBarButtonItem,
     ) -> UIBarButtonItem {
         if let item = table.object(forKey: controller) {
             return item
@@ -133,7 +133,7 @@ final class RootSplitViewController: UISplitViewController {
                 } else {
                     hide(.primary)
                 }
-            }
+            },
         ).then {
             $0.accessibilityLabel = String(localized: "Places")
             if #available(iOS 26.0, *) {
@@ -143,7 +143,6 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
-
     /// A standard Back item preserves the guarded history menu while allowing
     /// the sidebar toggle to move between columns independently.
     private func makeNavigationBack() -> UIBarButtonItem {
@@ -151,7 +150,7 @@ final class RootSplitViewController: UISplitViewController {
             image: UIImage(systemName: "chevron.backward"),
             primaryAction: UIAction { [weak self] _ in
                 self?.navigateBack()
-            }
+            },
         ).then {
             $0.accessibilityLabel = String(localized: "Back")
             if #available(iOS 26.0, *) {
@@ -171,7 +170,7 @@ final class RootSplitViewController: UISplitViewController {
             for: controller,
             in: navigation,
             ancestors: Array(navigation.viewControllers.prefix(index)),
-            leadingItems: leadingItems
+            leadingItems: leadingItems,
         )
     }
 
@@ -181,7 +180,7 @@ final class RootSplitViewController: UISplitViewController {
         for controller: UIViewController,
         in navigation: UINavigationController,
         ancestors: [UIViewController],
-        leadingItems: [UIBarButtonItem]? = nil
+        leadingItems: [UIBarButtonItem]? = nil,
     ) {
         let item = controller.navigationItem
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
@@ -195,7 +194,7 @@ final class RootSplitViewController: UISplitViewController {
             if !ancestors.isEmpty, buttons.isEmpty {
                 back.menu = UIMenu(children: ancestors.reversed().map { destination in
                     UIAction(
-                        title: destination.navigationItem.title ?? destination.title ?? String(localized: "Back")
+                        title: destination.navigationItem.title ?? destination.title ?? String(localized: "Back"),
                     ) { [weak self, weak destination] _ in
                         guard let destination else { return }
                         self?.navigateBack(to: destination)
@@ -329,7 +328,7 @@ final class RootSplitViewController: UISplitViewController {
         guard let tab = tabs.open(path) else {
             FeedbackAlert.show(
                 String(localized: "Too Many Tabs"),
-                message: String(localized: "This folder opened in the current tab. Close a tab to open a new one.")
+                message: String(localized: "This folder opened in the current tab. Close a tab to open a new one."),
             )
             confirmLeavingContent { [weak self] in
                 guard let self else { return }
@@ -412,7 +411,11 @@ final class RootSplitViewController: UISplitViewController {
     /// Only an editor that actually needs a save/discard prompt becomes visible.
     private func closeTabs(_ ids: ArraySlice<UUID>, completion: (() -> Void)? = nil) {
         guard let id = ids.first else {
-            if let completion { completion() } else { content.showTabSwitcher() }
+            if let completion {
+                completion()
+            } else {
+                content.showTabSwitcher()
+            }
             return
         }
         guard tabs.tabs.contains(where: { $0.id == id }) else {
@@ -488,7 +491,7 @@ final class RootSplitViewController: UISplitViewController {
 extension RootSplitViewController: UISplitViewControllerDelegate {
     func splitViewController(
         _: UISplitViewController,
-        willChangeTo displayMode: UISplitViewController.DisplayMode
+        willChangeTo displayMode: UISplitViewController.DisplayMode,
     ) {
         announcedDisplayMode = displayMode
         animateToggleTransfer = true

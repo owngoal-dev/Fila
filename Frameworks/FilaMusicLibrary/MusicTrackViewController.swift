@@ -16,7 +16,9 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
     private var isSaving = false
     private var load: Task<Void, Never>?
 
-    private var bundle: Bundle { MusicLibraryBackend.bundle }
+    private var bundle: Bundle {
+        MusicLibraryBackend.bundle
+    }
 
     /// `root` is the library's own crumb; this screen draws it first and
     /// pops back to the library from it.
@@ -27,26 +29,26 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
         super.init(style: .insetGrouped)
         title = track.title.isEmpty ? String(localized: "Song Details", bundle: bundle) : track.title
         trailingNavigationItems = [Self.actionsItem(menu: UIMenu(children: [
-                UIMenu(options: .displayInline, children: [
-                    UIAction(
-                        title: String(localized: "Export", bundle: bundle),
-                        image: UIImage(systemName: "square.and.arrow.up")
-                    ) { [weak self] _ in
-                        self?.exportMusic()
-                    },
-                ]),
-                UIMenu(options: .displayInline, children: [
-                    UIAction(
-                        title: String(localized: "Delete from Library", bundle: bundle),
-                        image: UIImage(systemName: "trash"),
-                        attributes: .destructive
-                    ) { [weak self] _ in
-                        guard let self, !isSaving else { return }
-                        delete(self)
-                    },
-                ]),
-                settingsMenuElement,
-            ]))]
+            UIMenu(options: .displayInline, children: [
+                UIAction(
+                    title: String(localized: "Export", bundle: bundle),
+                    image: UIImage(systemName: "square.and.arrow.up"),
+                ) { [weak self] _ in
+                    self?.exportMusic()
+                },
+            ]),
+            UIMenu(options: .displayInline, children: [
+                UIAction(
+                    title: String(localized: "Delete from Library", bundle: bundle),
+                    image: UIImage(systemName: "trash"),
+                    attributes: .destructive,
+                ) { [weak self] _ in
+                    guard let self, !isSaving else { return }
+                    delete(self)
+                },
+            ]),
+            settingsMenuElement,
+        ]))]
     }
 
     // MARK: - Decoration
@@ -111,13 +113,15 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                     title: String(localized: "Exporting…", bundle: bundle),
                     message: String(localized: "Keep Fila open until the export finishes.", bundle: bundle),
                     cancellable: false,
-                    from: self
+                    from: self,
                 ) { _ in
                     let staged = try await shell.stage(path)
                     let workspace = staged.deletingLastPathComponent()
                     defer { try? FileManager.default.removeItem(at: workspace) }
                     let named = workspace.appendingPathComponent(target.lastPathComponent)
-                    if named != staged { try FileManager.default.moveItem(at: staged, to: named) }
+                    if named != staged {
+                        try FileManager.default.moveItem(at: staged, to: named)
+                    }
                     try await shell.copy(named, into: target.deletingLastPathComponent().path, subtitle: target.path)
                 }
             } catch { failure = error }
@@ -152,7 +156,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                 guard details == nil else { return }
                 BackendScreens.shell?.alert(
                     title: String(localized: "Unable to Load Song", bundle: bundle),
-                    message: error.localizedDescription
+                    message: error.localizedDescription,
                 )
             }
         }
@@ -169,10 +173,14 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
         tableView.layoutIfNeeded()
     }
 
-    override func numberOfSections(in _: UITableView) -> Int { 2 }
+    override func numberOfSections(in _: UITableView) -> Int {
+        2
+    }
 
     override func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if section == 0 { return 1 }
+        if section == 0 {
+            return 1
+        }
         return details == nil ? 0 : MusicLibraryEditor.Field.allCases.count
     }
 
@@ -211,7 +219,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
             placeholder: fieldTitle(field),
             text: original,
             cancelButtonText: String(localized: "Cancel", bundle: bundle),
-            doneButtonText: String(localized: "Save", bundle: bundle)
+            doneButtonText: String(localized: "Save", bundle: bundle),
         ) { [weak self] value in
             guard let self, value != original else { return }
             save(field, original: original, value: value)
@@ -231,7 +239,7 @@ final class MusicTrackViewController: TabContentTableViewController, TabContentD
                     title: String(localized: "Saving…", bundle: bundle),
                     message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle),
                     cancellable: false,
-                    from: self
+                    from: self,
                 ) { [track] _ in
                     try await MusicLibraryEditor.shared.save(id: track.id, field: field, original: original, value: value)
                 }

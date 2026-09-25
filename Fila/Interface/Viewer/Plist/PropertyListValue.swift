@@ -130,7 +130,7 @@ extension PropertyListValue {
             self = .array(value.map(PropertyListValue.init))
         case let value as [String: Any]:
             self = .dictionary(
-                value.sorted { $0.key < $1.key }.map { (key: $0.key, value: PropertyListValue($0.value)) }
+                value.sorted { $0.key < $1.key }.map { (key: $0.key, value: PropertyListValue($0.value)) },
             )
         default:
             self = .readOnly(Self.readOnlySummary(object))

@@ -37,7 +37,7 @@ final class CompressViewController: UIViewController {
         directory: String,
         itemCount: Int,
         link: any LocalFileAccess,
-        confirm: @escaping (Choice) -> Void
+        confirm: @escaping (Choice) -> Void,
     ) {
         name = suggestedName
         self.directory = directory
@@ -48,14 +48,14 @@ final class CompressViewController: UIViewController {
         title = String(localized: "Compress")
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
-            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) }
+            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) },
         )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Cancel")
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: String(localized: "Compress"),
             style: .done,
             target: self,
-            action: #selector(commit)
+            action: #selector(commit),
         )
     }
 
@@ -71,14 +71,14 @@ final class CompressViewController: UIViewController {
         directory: String,
         itemCount: Int,
         link: any LocalFileAccess,
-        confirm: @escaping (Choice) -> Void
+        confirm: @escaping (Choice) -> Void,
     ) {
         let form = CompressViewController(
             suggestedName: suggestedName,
             directory: directory,
             itemCount: itemCount,
             link: link,
-            confirm: confirm
+            confirm: confirm,
         )
         presenter.presentAsSheet(UINavigationController(rootViewController: form))
     }
@@ -93,7 +93,7 @@ final class CompressViewController: UIViewController {
         }
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration)
+            collectionViewLayout: UICollectionViewCompositionalLayout.list(using: configuration),
         )
         collectionView.keyboardDismissMode = .onDrag
         collectionView.delegate = self
@@ -111,7 +111,7 @@ final class CompressViewController: UIViewController {
             cell.configure(
                 text: name,
                 placeholder: String(localized: "Archive name"),
-                suffix: "." + format.filenameExtension
+                suffix: "." + format.filenameExtension,
             ) { self.name = $0 }
         }
         let choice = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
@@ -126,7 +126,7 @@ final class CompressViewController: UIViewController {
                         ArchiveFormat.allCases,
                         selected: format,
                         title: Self.title(for:),
-                        label: content.text
+                        label: content.text,
                     ) { self.format = $0 },
                 ]
             case .level:
@@ -136,7 +136,7 @@ final class CompressViewController: UIViewController {
                         ZipCompression.allCases,
                         selected: level,
                         title: Self.title(for:),
-                        label: content.text
+                        label: content.text,
                     ) { self.level = $0 },
                 ]
             case .encryption:
@@ -146,7 +146,7 @@ final class CompressViewController: UIViewController {
                         ZipEncryption.allCases,
                         selected: encryption,
                         title: Self.title(for:),
-                        label: content.text
+                        label: content.text,
                     ) { self.encryption = $0 },
                 ]
             case .password:
@@ -166,14 +166,14 @@ final class CompressViewController: UIViewController {
             cell.contentConfiguration = content
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionHeader
+            elementKind: UICollectionView.elementKindSectionHeader,
         ) { view, _, indexPath in
             var content = UIListContentConfiguration.groupedHeader()
             content.text = Section(rawValue: indexPath.section) == .options ? String(localized: "Options") : nil
             view.contentConfiguration = content
         }
         let footer = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] view, _, indexPath in
             var content = UIListContentConfiguration.groupedFooter()
             content.text = self?.footerText(for: indexPath.section)
@@ -198,7 +198,7 @@ final class CompressViewController: UIViewController {
         selected: Value,
         title: @escaping (Value) -> String,
         label: String?,
-        choose: @escaping (Value) -> Void
+        choose: @escaping (Value) -> Void,
     ) -> UICellAccessory {
         let button = UIButton(configuration: .plain()).then {
             $0.menu = UIMenu(children: values.map { value in
@@ -225,7 +225,7 @@ final class CompressViewController: UIViewController {
         case .options where !password.isEmpty:
             encryption == .aes256
                 ? String(
-                    localized: "AES-256 provides strong encryption, but some older tools cannot open these archives."
+                    localized: "AES-256 provides strong encryption, but some older tools cannot open these archives.",
                 )
                 : String(localized: "ZipCrypto offers broad compatibility but weak password protection.")
         case .destination:
@@ -267,7 +267,7 @@ final class CompressViewController: UIViewController {
             message: String.LocalizationValue("Enter a password for the archive. Leave it empty for no password."),
             placeholder: String.LocalizationValue("Password"),
             text: "",
-            doneButtonText: String.LocalizationValue("Next")
+            doneButtonText: String.LocalizationValue("Next"),
         ) { [weak self] entered in
             guard let self else { return }
             guard !entered.isEmpty else {
@@ -280,13 +280,13 @@ final class CompressViewController: UIViewController {
                 message: String.LocalizationValue("Enter the password again."),
                 placeholder: String.LocalizationValue("Password"),
                 text: "",
-                doneButtonText: String.LocalizationValue("Set")
+                doneButtonText: String.LocalizationValue("Set"),
             ) { [weak self] confirmed in
                 guard let self else { return }
                 guard confirmed == entered else {
                     presentMessage(
                         String(localized: "Passwords Do Not Match"),
-                        message: String(localized: "The password was not changed. Try again.")
+                        message: String(localized: "The password was not changed. Try again."),
                     )
                     return
                 }
@@ -300,7 +300,7 @@ final class CompressViewController: UIViewController {
 
     private func promptDestination() {
         let picker = SaveDestinationViewController(
-            link: link
+            link: link,
         ) { [weak self] url in
             self?.directory = url.path
             self?.apply()
@@ -315,8 +315,8 @@ final class CompressViewController: UIViewController {
             FeedbackAlert.show(
                 String(localized: "Invalid Name"),
                 message: String(
-                    localized: "Enter an archive name without slashes. “.” and “..” cannot be used."
-                )
+                    localized: "Enter an archive name without slashes. “.” and “..” cannot be used.",
+                ),
             )
             return
         }
@@ -327,8 +327,8 @@ final class CompressViewController: UIViewController {
                 format: format,
                 zipCompression: level,
                 encryption: encryption,
-                password: format == .zip && !password.isEmpty ? password : nil
-            )
+                password: format == .zip && !password.isEmpty ? password : nil,
+            ),
         )
         dismiss(animated: true) { self.confirm(choice) }
     }

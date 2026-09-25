@@ -91,7 +91,7 @@ public final class BackendRegistry {
         for (key, provider) in registration.providers {
             if let existing = providers[key] {
                 throw BackendModuleError.duplicateProvider(
-                    "\(provider.name) (already from \(existing.module.bundleIdentifier))"
+                    "\(provider.name) (already from \(existing.module.bundleIdentifier))",
                 )
             }
         }
@@ -155,7 +155,7 @@ public final class BackendRegistry {
         for backend in produced {
             if let existing = backends.first(where: { $0.id == backend.id }) {
                 host.warn(
-                    "backend failed to bootstrap: \(factory.module): backend \(backend.id) duplicates one already registered as \(type(of: existing))"
+                    "backend failed to bootstrap: \(factory.module): backend \(backend.id) duplicates one already registered as \(type(of: existing))",
                 )
                 continue
             }

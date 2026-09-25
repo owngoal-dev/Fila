@@ -59,7 +59,9 @@ public struct TransferRequest: Sendable {
     /// Both ends on one backend: a move is that backend's own rename, and
     /// a copy still relays, because the neutral contract has no
     /// server-side copy.
-    public var isSameBackend: Bool { source.backend == destination.backend }
+    public var isSameBackend: Bool {
+        source.backend == destination.backend
+    }
 }
 
 /// How far a transfer has got, as one operation: bytes over every leg the
@@ -132,7 +134,9 @@ public struct TransferShortfall: Error, Sendable, Equatable {
         self.uncertain = uncertain
     }
 
-    public var isEmpty: Bool { skipped.isEmpty && retained.isEmpty && uncertain.isEmpty }
+    public var isEmpty: Bool {
+        skipped.isEmpty && retained.isEmpty && uncertain.isEmpty
+    }
 }
 
 /// How a transfer ended, whatever happened on the way.
@@ -155,8 +159,13 @@ public struct TransferOutcome: Sendable {
         self.publishedFiles = publishedFiles
     }
 
-    public var succeeded: Bool { failure == nil }
-    public var wasCancelled: Bool { failure is CancellationError }
+    public var succeeded: Bool {
+        failure == nil
+    }
+
+    public var wasCancelled: Bool {
+        failure is CancellationError
+    }
 }
 
 /// A copy or move between two file backends, or within one.
@@ -197,7 +206,7 @@ public enum FileTransfer {
     public static func run(
         _ request: TransferRequest,
         staging: URL,
-        progress: @escaping @Sendable (TransferProgressReport) -> Void
+        progress: @escaping @Sendable (TransferProgressReport) -> Void,
     ) async -> TransferOutcome {
         await Run(request: request, staging: staging, progress: progress).execute()
     }
@@ -292,7 +301,7 @@ private final class Meter: @unchecked Sendable {
         let report = TransferProgressReport(
             bytesDone: bytesDone, bytesTotal: bytesTotal,
             itemsDone: itemsDone, itemsTotal: itemsTotal,
-            currentName: currentName, planning: planning
+            currentName: currentName, planning: planning,
         )
         lock.unlock()
         self.report(report)
@@ -405,7 +414,9 @@ private final class Run {
             let name = path.name ?? ""
             meter.beginItem(name: name)
             try await destination.service.move(path, to: destination.directory.appending(name), policy: request.policy)
-            if let parent = path.parent { touchedSourceDirectories.insert(parent) }
+            if let parent = path.parent {
+                touchedSourceDirectories.insert(parent)
+            }
             publishedFiles += 1
             meter.itemFinished(name: name)
         }
@@ -416,7 +427,9 @@ private final class Run {
     /// The direct legs one file costs: 1 when the source hands out a
     /// descriptor (read straight into the write), 2 when it must be staged
     /// (download then upload).
-    private var legsPerFile: Int64 { request.source.service is any DescriptorFileService ? 1 : 2 }
+    private var legsPerFile: Int64 {
+        request.source.service is any DescriptorFileService ? 1 : 2
+    }
 
     /// Every root described, every directory under one listed once. Links
     /// and special files are recorded as skipped and never entered.
@@ -557,14 +570,16 @@ private final class Run {
         }
         defer {
             close(descriptor)
-            if let stagingFile { unlink(stagingFile.path) }
+            if let stagingFile {
+                unlink(stagingFile.path)
+            }
         }
         try await request.destination.service.writeFile(
             from: descriptor,
             size: size,
             to: target,
             policy: request.policy,
-            progress: meter.legCounter()
+            progress: meter.legCounter(),
         )
         // Length is the evidence a move deletes the source on. The write
         // pumps to end of file, so a source that changed size before it was
@@ -627,7 +642,9 @@ private final class Run {
                     continue
                 }
                 try await writable.removeFile(source)
-                if let parent = source.parent { touchedSourceDirectories.insert(parent) }
+                if let parent = source.parent {
+                    touchedSourceDirectories.insert(parent)
+                }
             } catch {
                 shortfall.retained.append(source)
             }
@@ -642,15 +659,21 @@ private final class Run {
             let parent = directory.parent
             guard !blocked.contains(directory) else {
                 shortfall.retained.append(directory)
-                if let parent { blocked.insert(parent) }
+                if let parent {
+                    blocked.insert(parent)
+                }
                 continue
             }
             do {
                 try await writable.removeEmptyDirectory(directory)
-                if let parent { touchedSourceDirectories.insert(parent) }
+                if let parent {
+                    touchedSourceDirectories.insert(parent)
+                }
             } catch {
                 shortfall.retained.append(directory)
-                if let parent { blocked.insert(parent) }
+                if let parent {
+                    blocked.insert(parent)
+                }
             }
         }
     }
@@ -666,9 +689,13 @@ private final class Run {
         // that may not exist there.
         var directories: Set<ServicePath> = []
         for path in request.source.paths {
-            if let parent = path.parent { directories.insert(parent) }
+            if let parent = path.parent {
+                directories.insert(parent)
+            }
         }
-        for directory in touchedSourceDirectories { directories.insert(directory) }
+        for directory in touchedSourceDirectories {
+            directories.insert(directory)
+        }
         let sourceLocations = directories.map { FileLocation(backend: request.source.backend, path: $0) }
         let destinationLocation = FileLocation(backend: request.destination.backend, path: request.destination.directory)
         var affected = [destinationLocation]
@@ -686,6 +713,7 @@ public struct StagingFailure: Error, Sendable, Equatable, LocalizedError {
         self.code = code
         self.path = path
     }
+
     public var errorDescription: String? {
         String(localized: "The file could not be saved on this device. Try again.")
     }

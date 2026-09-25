@@ -52,7 +52,9 @@ public enum DescriptorIO {
         var buffer = [UInt8](repeating: 0, count: chunkByteCount)
         var remaining = original.st_size
         while remaining > 0 {
-            if isCancelled() { throw CancellationError() }
+            if isCancelled() {
+                throw CancellationError()
+            }
             let count = Int(min(remaining, off_t(buffer.count)))
             let got = buffer.withUnsafeMutableBytes { read(descriptor, $0.baseAddress, count) }
             if got < 0 {
@@ -86,7 +88,7 @@ extension DescriptorIO {
     /// would not see that cancellation, so it travels through a flag the
     /// handler sets, and `work` checks it between chunks.
     public static func blocking<T: Sendable>(
-        _ work: @escaping @Sendable (_ isCancelled: @Sendable () -> Bool) throws -> T
+        _ work: @escaping @Sendable (_ isCancelled: @Sendable () -> Bool) throws -> T,
     ) async throws -> T {
         let cancelled = CancelFlag()
         return try await withTaskCancellationHandler {
@@ -103,8 +105,13 @@ extension DescriptorIO {
     private final class CancelFlag: @unchecked Sendable {
         private let lock = NSLock()
         private var flag = false
-        var isSet: Bool { lock.lock(); defer { lock.unlock() }; return flag }
-        func set() { lock.lock(); flag = true; lock.unlock() }
+        var isSet: Bool {
+            lock.lock(); defer { lock.unlock() }; return flag
+        }
+
+        func set() {
+            lock.lock(); flag = true; lock.unlock()
+        }
     }
 
     /// Streams a file from the app's container into a descriptor `filad` opened,
@@ -115,7 +122,9 @@ extension DescriptorIO {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         while true {
-            if isCancelled() { throw CancellationError() }
+            if isCancelled() {
+                throw CancellationError()
+            }
             let chunk = try handle.read(upToCount: chunkByteCount) ?? Data()
             if chunk.isEmpty {
                 while fsync(descriptor) != 0 {

@@ -101,7 +101,7 @@ func render(_ image: NSImage, points: CGFloat, scale: Int) -> Data? {
         isPlanar: false,
         colorSpaceName: .deviceRGB,
         bytesPerRow: 0,
-        bitsPerPixel: 0
+        bitsPerPixel: 0,
     ) else { return nil }
     bitmap.size = NSSize(width: points, height: points)
     NSGraphicsContext.saveGraphicsState()

@@ -30,7 +30,7 @@ public struct InstalledApp: Hashable, Sendable {
         bundlePath: String,
         dataPath: String?,
         groupPaths: [String: String] = [:],
-        details: [Detail] = []
+        details: [Detail] = [],
     ) {
         self.name = name
         self.bundleIdentifier = bundleIdentifier

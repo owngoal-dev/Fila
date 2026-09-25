@@ -28,7 +28,7 @@ enum AtomicSave {
             temporary,
             flags: O_CREAT | O_EXCL | O_WRONLY,
             mode: 0o600,
-            link: link
+            link: link,
         )
         do {
             try file.write(data)

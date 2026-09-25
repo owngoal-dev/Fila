@@ -182,7 +182,7 @@ struct TerminalPlan {
     /// the harness it is the whole of what can be tested.
     private static func sessionUser(
         _ requested: TerminalUser,
-        layout: BootstrapLayout
+        layout: BootstrapLayout,
     ) throws -> (entry: PasswdEntry?, credential: Credential?) {
         guard requested == .mobile, getuid() == 0 else {
             return (PasswdEntry.current(layout: layout), nil)

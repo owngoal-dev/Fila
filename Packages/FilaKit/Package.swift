@@ -83,7 +83,7 @@ let package = Package(
         .target(
             name: "FilaFileOps",
             dependencies: ["FilaProtocol", "CRemoveFile", "CTerminalSession"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // The local file contract and its in-process answer: `LocalFileAccess`,
@@ -99,7 +99,7 @@ let package = Package(
         .target(
             name: "FilaClient",
             dependencies: ["FilaProtocol", "FilaLog", "FilaFileOps", "FilaFormats", "FilaBackendKit"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // The privileged side of the local contract: `DaemonLink`, which
@@ -122,12 +122,12 @@ let package = Package(
         .target(
             name: "FilaPrivileged",
             dependencies: ["FilaClient", "FilaProtocol", "FilaLog"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         .testTarget(
             name: "FilaPrivilegedTests",
             dependencies: ["FilaPrivileged", "FilaClient", "CRemoveFile"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // The installed-applications catalogue: LaunchServices behind a
@@ -139,12 +139,12 @@ let package = Package(
         .target(
             name: "FilaApplications",
             dependencies: ["FilaBackendKit", "FilaClient", "FilaFormats", "FilaLog", "FilaProtocol"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         .testTarget(
             name: "FilaApplicationsTests",
             dependencies: ["FilaApplications", "FilaClient", "CRemoveFile"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // The music library: the Objective-C bridge that owns every private
@@ -157,12 +157,12 @@ let package = Package(
         .target(
             name: "FilaMusicLibrary",
             dependencies: ["CFilaMusicLibrary", "FilaBackendKit", "FilaClient", "FilaLog", "FilaMedia", "FilaProtocol"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         .testTarget(
             name: "FilaMusicLibraryTests",
             dependencies: ["FilaMusicLibrary"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // One saved SMB share as a file backend: the profile, the session
@@ -179,14 +179,14 @@ let package = Package(
                 "FilaLog",
                 .product(name: "SMBClient", package: "SMBClient"),
             ],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         // FilaClient as well: the live suite carries files between a local
         // root and the share through `FileTransfer`, both ends real.
         .testTarget(
             name: "FilaSMBTests",
             dependencies: ["FilaSMB", "FilaBackendKit", "FilaClient"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // Readers and writers that work over a descriptor the daemon handed
@@ -205,7 +205,7 @@ let package = Package(
                 .product(name: "MachOKit", package: "MachOKit"),
             ],
             resources: [.process("Resources")],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // AVFoundation and ImageIO over the same descriptor, for the app only —
@@ -216,7 +216,7 @@ let package = Package(
             name: "FilaMedia",
             dependencies: ["FilaFormats"],
             resources: [.process("Resources")],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // The terminal: the pseudo-terminal pump, and the screen libghostty
@@ -239,7 +239,7 @@ let package = Package(
                 .product(name: "Then", package: "Then"),
             ],
             resources: [.process("Resources")],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         // The network side: a WebDAV server over `NWListener`, and downloading
@@ -261,13 +261,13 @@ let package = Package(
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOTransportServices", package: "swift-nio-transport-services"),
             ],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         .testTarget(
             name: "FilaProtocolTests",
             dependencies: ["FilaProtocol"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         // The backend module contract: entry class, registration, registry
         // and the values a backend and the shell exchange. Foundation only,
@@ -278,7 +278,7 @@ let package = Package(
         .testTarget(
             name: "FilaBackendKitTests",
             dependencies: ["FilaBackendKit"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         // The shared list screen every backend's root is shown with, the
         // status panel and the layout tokens. UIKit, behind `canImport`, so
@@ -293,30 +293,30 @@ let package = Package(
                 .product(name: "Then", package: "Then"),
             ],
             resources: [.process("Resources")],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
         .target(name: "FilaTestSupport", path: "Tests/Support", swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(
             name: "FilaFileOpsTests",
             dependencies: ["FilaFileOps", "CRemoveFile", "FilaTestSupport"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         .testTarget(
             name: "FilaFormatsTests",
             dependencies: ["FilaFormats", "FilaFileOps"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         .testTarget(
             name: "FilaLogTests",
             dependencies: ["FilaLog", "FilaProtocol"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         .testTarget(name: "FilaMediaTests", dependencies: ["FilaMedia"], swiftSettings: [.swiftLanguageMode(.v5)]),
         .testTarget(
             name: "FilaClientTests",
             dependencies: ["FilaClient", "CRemoveFile"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         // FilaFileOps as well as FilaRemote: the harness's `RemoteFileService`
         // is the daemon's own file layer with the XPC hop taken out, so the
@@ -328,9 +328,9 @@ let package = Package(
                 "FilaRemote",
                 "FilaFileOps",
                 "CRemoveFile",
-                .product(name: "NIOEmbedded", package: "swift-nio")
+                .product(name: "NIOEmbedded", package: "swift-nio"),
             ],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
         // Depends on FilaFileOps so the pump can be driven against a real
         // pseudo-terminal with a real program on it — the same spawn the daemon
@@ -338,7 +338,7 @@ let package = Package(
         .testTarget(
             name: "FilaTerminalTests",
             dependencies: ["FilaTestSupport", "FilaTerminal", "FilaFileOps"],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
-    ]
+    ],
 )

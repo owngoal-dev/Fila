@@ -123,7 +123,7 @@ final class MediaPlayerViewController: TabContentViewController {
         let status = StatusView(content: .message(
             symbol: "exclamationmark.triangle",
             title: String(localized: "Unable to Play This File"),
-            detail: FailureMessage.text(for: error)
+            detail: FailureMessage.text(for: error),
         ))
         view.addSubview(status)
         status.snp.makeConstraints { make in

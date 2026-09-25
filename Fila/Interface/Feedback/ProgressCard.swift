@@ -22,7 +22,7 @@ enum ProgressCard {
         message: String,
         cancellable: Bool,
         from presenter: UIViewController,
-        operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T
+        operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T,
     ) async throws -> T {
         let state = State(.init(title: title, subtitle: message, progress: nil, isCancellable: cancellable))
         let work = Task { @MainActor in
@@ -32,7 +32,7 @@ enum ProgressCard {
         cover.show(OperationCoverViewController.Source(
             snapshot: { state.subject.value },
             changes: state.subject.map { _ in }.eraseToAnyPublisher(),
-            cancel: { work.cancel() }
+            cancel: { work.cancel() },
         ))
         let result = await withTaskCancellationHandler {
             await work.result
@@ -44,7 +44,9 @@ enum ProgressCard {
         let cancelled = work.isCancelled
         state.subject.value = nil
         await cover.settled()
-        if cancelled { throw CancellationError() }
+        if cancelled {
+            throw CancellationError()
+        }
         return try result.get()
     }
 

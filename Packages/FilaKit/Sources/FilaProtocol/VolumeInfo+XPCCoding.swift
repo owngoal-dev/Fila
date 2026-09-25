@@ -34,7 +34,7 @@
                 path: String(cString: path),
                 device: String(cString: device),
                 filesystem: String(cString: filesystem),
-                isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly)
+                isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly),
             )
         }
     }
@@ -66,7 +66,7 @@
                 totalByteCount: xpc_dictionary_get_int64(dictionary, VolumeKey.total),
                 availableByteCount: xpc_dictionary_get_int64(dictionary, VolumeKey.available),
                 isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly),
-                deviceIdentifier: xpc_dictionary_get_uint64(dictionary, VolumeKey.identifier)
+                deviceIdentifier: xpc_dictionary_get_uint64(dictionary, VolumeKey.identifier),
             )
         }
     }

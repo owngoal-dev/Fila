@@ -212,7 +212,7 @@ final class LogViewController: UIViewController {
         let size = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(rowHeight))
         let group = NSCollectionLayoutGroup.vertical(
             layoutSize: size,
-            subitems: [NSCollectionLayoutItem(layoutSize: size)]
+            subitems: [NSCollectionLayoutItem(layoutSize: size)],
         )
         return UICollectionViewCompositionalLayout(section: NSCollectionLayoutSection(group: group))
     }
@@ -222,7 +222,7 @@ final class LogViewController: UIViewController {
             cell.show(record)
         }
         dataSource = UICollectionViewDiffableDataSource(
-            collectionView: collectionView
+            collectionView: collectionView,
         ) { collection, indexPath, record in
             collection.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: record)
         }
@@ -312,7 +312,7 @@ final class LogViewController: UIViewController {
             return .message(
                 symbol: "line.3.horizontal.decrease",
                 title: String(localized: "No Matching Lines"),
-                detail: String(localized: "Try different filters.")
+                detail: String(localized: "Try different filters."),
             )
         }
         return .message(symbol: "text.alignleft", title: String(localized: "Nothing Logged Yet"))
@@ -323,7 +323,7 @@ final class LogViewController: UIViewController {
         collectionView.scrollToItem(
             at: IndexPath(item: visible.count - 1, section: 0),
             at: .bottom,
-            animated: animated
+            animated: animated,
         )
     }
 
@@ -345,7 +345,7 @@ final class LogViewController: UIViewController {
         var content = UIListContentConfiguration.groupedFooter()
         content.text = daemonDropped == 0 ? nil : String(
             format: String(localized: "%lld earlier lines from filad were discarded."),
-            Int64(daemonDropped)
+            Int64(daemonDropped),
         )
         droppedNotice.configuration = content
         droppedNotice.isHidden = daemonDropped == 0
@@ -365,7 +365,7 @@ final class LogViewController: UIViewController {
             children: FilaLog.Level.allCases.reversed().map { level in
                 UIAction(
                     title: Self.title(for: level),
-                    state: LogPreferences.level == level ? .on : .off
+                    state: LogPreferences.level == level ? .on : .off,
                 ) { [weak self] _ in
                     LogPreferences.level = level
                     FilaLog.minimumLevel = level
@@ -378,7 +378,7 @@ final class LogViewController: UIViewController {
                     self?.updateBarButtons()
                     self?.applyFilter()
                 }
-            }
+            },
         )
         let sources = UIMenu(
             title: String(localized: "Process"),
@@ -386,31 +386,31 @@ final class LogViewController: UIViewController {
             children: [nil, FilaLog.Source.app, FilaLog.Source.daemon].map { source in
                 UIAction(
                     title: source?.name ?? String(localized: "Both"),
-                    state: sourceFilter == source ? .on : .off
+                    state: sourceFilter == source ? .on : .off,
                 ) { [weak self] _ in
                     self?.sourceFilter = source
                     self?.updateBarButtons()
                     self?.applyFilter()
                 }
-            }
+            },
         )
         let actions = FilaMenu.groups([
             UIAction(
                 title: String(localized: "Jump to Latest"),
-                image: UIImage(systemName: "arrow.down.to.line")
+                image: UIImage(systemName: "arrow.down.to.line"),
             ) { [weak self] _ in
                 self?.isFollowing = true
                 self?.scrollToNewest(animated: true)
             },
             UIAction(
                 title: String(localized: "Share"),
-                image: UIImage(systemName: "square.and.arrow.up")
+                image: UIImage(systemName: "square.and.arrow.up"),
             ) { [weak self] _ in self?.share() },
         ], [
             UIAction(
                 title: String(localized: "Clear"),
                 image: UIImage(systemName: "trash"),
-                attributes: .destructive
+                attributes: .destructive,
             ) { [weak self] _ in self?.clear() },
         ])
         return UIMenu(children: FilaMenu.groups([levels, sources]) + actions)
@@ -513,14 +513,14 @@ extension LogViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let record = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
             UIMenu(children: [
                 UIAction(
                     title: String(localized: "Copy"),
-                    image: UIImage(systemName: "doc.on.doc")
+                    image: UIImage(systemName: "doc.on.doc"),
                 ) { _ in
                     UIPasteboard.general.string = LogViewController.exportLine(record)
                 },

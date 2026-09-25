@@ -97,7 +97,9 @@ public final class RemoteDirectoryObservation {
     public func finishAll(throwing error: Error) {
         let ending = subscribers
         subscribers = [:]
-        for watch in watches.values { watch.task.cancel() }
+        for watch in watches.values {
+            watch.task.cancel()
+        }
         watches = [:]
         for subscriber in ending.values {
             subscriber.continuation.finish(throwing: error)
@@ -108,7 +110,9 @@ public final class RemoteDirectoryObservation {
         guard self.paused != paused else { return }
         self.paused = paused
         if paused {
-            for watch in watches.values { watch.task.cancel() }
+            for watch in watches.values {
+                watch.task.cancel()
+            }
         } else {
             for directory in watches.keys {
                 let task = watch(directory)
@@ -117,8 +121,13 @@ public final class RemoteDirectoryObservation {
         }
     }
 
-    public var subscriberCount: Int { subscribers.count }
-    public var watchedDirectories: [String] { Array(watches.keys) }
+    public var subscriberCount: Int {
+        subscribers.count
+    }
+
+    public var watchedDirectories: [String] {
+        Array(watches.keys)
+    }
 
     // MARK: - Polling
 

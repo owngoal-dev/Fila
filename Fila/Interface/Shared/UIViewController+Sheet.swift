@@ -47,7 +47,7 @@ extension UIViewController {
         guard navigationController == nil || navigationController?.viewControllers.first === self else { return }
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
-            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) }
+            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) },
         )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
     }

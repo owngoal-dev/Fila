@@ -37,7 +37,7 @@ final class DirectoryObservation {
     /// is added, removed or renamed.
     func subscribe(
         _ directory: String,
-        stat: @escaping @Sendable () async throws -> Double
+        stat: @escaping @Sendable () async throws -> Double,
     ) -> AsyncThrowingStream<Void, Error> {
         let token = UUID()
         let (stream, continuation) = AsyncThrowingStream<Void, Error>.makeStream(bufferingPolicy: .bufferingNewest(1))
@@ -98,7 +98,9 @@ final class DirectoryObservation {
         guard self.paused != paused else { return }
         self.paused = paused
         if paused {
-            for state in states.values { state.task.cancel() }
+            for state in states.values {
+                state.task.cancel()
+            }
         } else {
             for directory in states.keys {
                 let task = watch(directory)
@@ -107,8 +109,13 @@ final class DirectoryObservation {
         }
     }
 
-    var subscriberCount: Int { subscribers.count }
-    var watchedDirectories: [String] { Array(states.keys) }
+    var subscriberCount: Int {
+        subscribers.count
+    }
+
+    var watchedDirectories: [String] {
+        Array(states.keys)
+    }
 
     // MARK: - Polling
 

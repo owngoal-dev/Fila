@@ -16,7 +16,7 @@ public extension FileOperations {
         guard original.st_mode & S_IFMT == S_IFREG else { throw FilaFailure(errno: ENOTSUP, path: source) }
 
         let temporary = try resolveForWrite(
-            FilaPath.join(FilaPath.directory(of: destination), ".fila-provider-" + UUID().uuidString)
+            FilaPath.join(FilaPath.directory(of: destination), ".fila-provider-" + UUID().uuidString),
         )
         var ownsTemporary = false
         do {
@@ -26,7 +26,7 @@ public extension FileOperations {
             let output = Darwin.open(
                 temporary,
                 cloned ? O_RDONLY | O_NOFOLLOW : O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW,
-                0o600
+                0o600,
             )
             guard output >= 0 else { throw FilaFailure(errno: errno, path: destination) }
             ownsTemporary = true

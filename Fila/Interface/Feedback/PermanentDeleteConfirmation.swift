@@ -8,7 +8,7 @@ enum PermanentDeleteConfirmation {
         title: String,
         message: String,
         confirmTitle: String = String(localized: "Delete Permanently"),
-        confirm: @escaping () -> Void
+        confirm: @escaping () -> Void,
     ) {
         let accent = AlertControllerConfiguration.accentColor
         AlertControllerConfiguration.accentColor = .systemRed

@@ -57,8 +57,9 @@ extension FilePresentation {
                byteCount: node.size,
                maxPixelSize: side,
                square: !large,
-               open: open
-           ) {
+               open: open,
+           )
+        {
             return Task.isCancelled ? nil : .thumbnail(UIImage(cgImage: image))
         }
         // 3. QuickLook's page, for a declared type no artwork matches — an
@@ -74,7 +75,7 @@ extension FilePresentation {
                   maxPixelSize: side,
                   square: !large,
                   workspace: { try await session.makeTemporaryDirectory() },
-                  open: open
+                  open: open,
               ),
               !Task.isCancelled else { return nil }
         return .thumbnail(UIImage(cgImage: page))
@@ -87,13 +88,13 @@ extension FilePresentation {
         for path: String,
         node: FileNode,
         session: FileSession,
-        large: Bool
+        large: Bool,
     ) async -> UIImage? {
         let found = await ThumbnailService.shared.isMachO(
             path: path,
             modified: node.modified,
             byteCount: node.kind == .symbolicLink ? 4 : node.size,
-            cacheResult: node.kind != .symbolicLink
+            cacheResult: node.kind != .symbolicLink,
         ) {
             try await session.perform(retryOnDisconnect: true) {
                 try await $0.open(path, flags: O_RDONLY | O_NONBLOCK | (node.kind == .symbolicLink ? 0 : O_NOFOLLOW))

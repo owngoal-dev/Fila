@@ -15,7 +15,7 @@ extension FileActions {
             PermanentDeleteConfirmation.present(
                 from: presenter,
                 title: String(localized: "Delete Permanently?"),
-                message: String(localized: "\(paths.count) items will be deleted and cannot be recovered.")
+                message: String(localized: "\(paths.count) items will be deleted and cannot be recovered."),
             ) { self.startDelete(paths) }
         }
     }
@@ -49,7 +49,7 @@ extension FileActions {
                         return try await session.operations.trash(
                             paths,
                             feedback: .successOnly,
-                            started: { cover.show(job: $0, in: self.session.operations) }
+                            started: { cover.show(job: $0, in: self.session.operations) },
                         )
                     }
                     return try await session.operations.awaitJob(
@@ -57,7 +57,7 @@ extension FileActions {
                         kind: kind,
                         subtitle: description,
                         feedback: .successOnly,
-                        started: { cover.show(job: $0, in: self.session.operations) }
+                        started: { cover.show(job: $0, in: self.session.operations) },
                     )
                 }
                 result = .success(outcome)
@@ -91,7 +91,7 @@ extension FileActions {
         PermanentDeleteConfirmation.present(
             from: presenter,
             title: String(localized: "Cannot Move to Trash"),
-            message: String(localized: "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone.")
+            message: String(localized: "The trash cannot be written to. Permanently delete the selected items still at their original paths? Items already in the trash will stay there. This cannot be undone."),
         ) { self.deleteRemainingItems(at: paths) }
     }
 

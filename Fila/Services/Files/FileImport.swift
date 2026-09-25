@@ -63,7 +63,9 @@ enum FileImport {
                 continuation.finish()
             }
             continuation.onTermination = { ending in
-                if case .cancelled = ending { load.cancel() }
+                if case .cancelled = ending {
+                    load.cancel()
+                }
             }
         } else {
             continuation.finish(throwing: FilaFailure(errno: ENOTSUP))

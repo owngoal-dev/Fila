@@ -48,7 +48,7 @@ extension FileActions {
         into destination: String? = nil,
         estimate: ArchiveSpaceEstimate? = nil,
         encrypted: Bool = false,
-        password: String? = nil
+        password: String? = nil,
     ) {
         let destination = destination ?? (archive as NSString).deletingLastPathComponent
         let extraction = Extraction(archive: archive, members: members, destination: destination)
@@ -77,14 +77,14 @@ extension FileActions {
                         kind: .extract,
                         sources: [archive],
                         destination: destination,
-                        archive: ArchiveOptions(password: password, members: members, organizeExtraction: true)
+                        archive: ArchiveOptions(password: password, members: members, organizeExtraction: true),
                     ),
                     kind: .extract,
                     title: OperationCenter.Kind.extract.runningTitle,
                     subtitle: OperationCenter.describe([archive], destination: destination),
                     // A wrong password is a question, not a failure: failures
                     // are reported below, and the success toast still shows.
-                    feedback: .successOnly
+                    feedback: .successOnly,
                 ) { [self] outcome in
                     Self.extracting.remove(extraction)
                     cover.settle { [self] in
@@ -113,7 +113,7 @@ extension FileActions {
             message: String.LocalizationValue("This archive is encrypted. Enter its password to extract."),
             placeholder: String.LocalizationValue("Password"),
             text: "",
-            doneButtonText: String.LocalizationValue("Extract")
+            doneButtonText: String.LocalizationValue("Extract"),
         ) { password in
             guard !password.isEmpty else { return }
             handler(password)
@@ -131,7 +131,7 @@ extension FileActions {
                 format: String(localized: "These items need %1$@, which is more than %2$@ of the %3$@ free here."),
                 FilePresentation.byteLabel(estimate.byteCount),
                 ArchiveSpaceEstimate.warningFraction.formatted(.percent),
-                FilePresentation.byteLabel(available)
+                FilePresentation.byteLabel(available),
             )
     }
 

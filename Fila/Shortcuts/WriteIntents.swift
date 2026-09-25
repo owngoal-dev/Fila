@@ -97,7 +97,7 @@ struct CreateFolderIntent: AppIntent {
 struct CopyItemIntent: AppIntent {
     static var title: LocalizedStringResource = "Copy Item"
     static var description = IntentDescription(
-        "Copies a file or folder into another folder, as root, without replacing anything already there."
+        "Copies a file or folder into another folder, as root, without replacing anything already there.",
     )
 
     @Parameter(title: "Item")
@@ -126,7 +126,7 @@ struct CopyItemIntent: AppIntent {
             JobRequest(kind: .copy, sources: [source], destination: destination),
             kind: .copy,
             subtitle: OperationCenter.describe([source], destination: destination),
-            announcing: [IntentSupport.path(self.destination)]
+            announcing: [IntentSupport.path(self.destination)],
         )
         return try await .result(value: FileEntity(IntentSupport.details(of: landing)))
     }
@@ -136,7 +136,7 @@ struct CopyItemIntent: AppIntent {
 struct MoveItemIntent: AppIntent {
     static var title: LocalizedStringResource = "Move Item"
     static var description = IntentDescription(
-        "Moves a file or folder into another folder, as root, without replacing anything already there."
+        "Moves a file or folder into another folder, as root, without replacing anything already there.",
     )
 
     @Parameter(title: "Item")
@@ -164,7 +164,7 @@ struct MoveItemIntent: AppIntent {
             announcing: [
                 IntentSupport.path(self.destination),
                 (IntentSupport.path(path) as NSString).deletingLastPathComponent,
-            ]
+            ],
         )
         return try await .result(value: FileEntity(IntentSupport.details(of: landing)))
     }
@@ -176,7 +176,7 @@ struct MoveItemIntent: AppIntent {
 struct DeleteItemIntent: AppIntent {
     static var title: LocalizedStringResource = "Delete Item"
     static var description = IntentDescription(
-        "Moves a file or folder to the trash, or deletes it permanently."
+        "Moves a file or folder to the trash, or deletes it permanently.",
     )
 
     @Parameter(title: "Item")
@@ -210,7 +210,7 @@ struct DeleteItemIntent: AppIntent {
             JobRequest(kind: .delete, sources: [target], useTrash: !permanently),
             kind: permanently ? .delete : .trash,
             subtitle: OperationCenter.describe([target]),
-            announcing: [(asked as NSString).deletingLastPathComponent]
+            announcing: [(asked as NSString).deletingLastPathComponent],
         )
         return .result()
     }
@@ -222,7 +222,7 @@ struct DeleteItemIntent: AppIntent {
 struct WriteTextFileIntent: AppIntent {
     static var title: LocalizedStringResource = "Write Text to File"
     static var description = IntentDescription(
-        "Writes text to a file as root, replacing its contents and keeping its permissions, owner and dates."
+        "Writes text to a file as root, replacing its contents and keeping its permissions, owner and dates.",
     )
 
     @Parameter(title: "Path")

@@ -21,7 +21,7 @@ import ObjectiveC
         _ url: URL,
         consumeSource: Bool,
         options: AnyObject?,
-        completion: @escaping (AnyObject?, AnyObject?) -> Void
+        completion: @escaping (AnyObject?, AnyObject?) -> Void,
     )
 }
 
@@ -94,7 +94,9 @@ enum IPAInstaller {
         let viaCoordinator = await installViaCoordination(ipa, packageType: packageType)
         guard case .unsupported = viaCoordinator else { return viaCoordinator }
         let viaWorkspace = await installViaWorkspace(ipa, packageType: packageType)
-        if case .unsupported = viaWorkspace { return viaCoordinator }
+        if case .unsupported = viaWorkspace {
+            return viaCoordinator
+        }
         return viaWorkspace
     }
 
@@ -120,7 +122,7 @@ enum IPAInstaller {
             defer { close(descriptor) }
             let notAnApp = PackageFailure(message: String(
                 localized: "“\(url.lastPathComponent)” is not an app package. Choose an .ipa that contains one app.",
-                bundle: ApplicationBackend.bundle
+                bundle: ApplicationBackend.bundle,
             ))
             let reader = try ArchiveReader(descriptor: descriptor)
             var found: Manifest?
@@ -139,7 +141,7 @@ enum IPAInstaller {
                 found = Manifest(
                     bundleID: bundleID,
                     displayName: name.flatMap { $0.isEmpty ? nil : $0 }
-                        ?? (bundleName as NSString).deletingPathExtension
+                        ?? (bundleName as NSString).deletingPathExtension,
                 )
             }
             guard let found else { throw notAnApp }
@@ -187,7 +189,7 @@ enum IPAInstaller {
         // caught here: the workspace path (iOS 15) is what runs instead.
         guard class_getClassMethod(
             coordinatorClass,
-            NSSelectorFromString("installApplication:consumeSource:options:completion:")
+            NSSelectorFromString("installApplication:consumeSource:options:completion:"),
         ) != nil else {
             return .unsupported("IXAppInstallCoordinator has no installApplication:consumeSource:options:completion:")
         }
@@ -198,7 +200,7 @@ enum IPAInstaller {
         {
             options = instance.perform(
                 NSSelectorFromString("initWithLegacyOptionsDictionary:"),
-                with: ["PackageType": packageType]
+                with: ["PackageType": packageType],
             )?.takeUnretainedValue()
         }
         let capturedOptions = options
@@ -261,5 +263,7 @@ enum IPAInstaller {
 /// A package that is not one: the sentence the Install… card shows.
 struct PackageFailure: LocalizedError {
     let message: String
-    var errorDescription: String? { message }
+    var errorDescription: String? {
+        message
+    }
 }

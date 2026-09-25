@@ -104,7 +104,7 @@ final class OperationCenter: ObservableObject {
     func trash(
         _ paths: [String],
         feedback: Feedback = .automatic,
-        started: ((UInt64) -> Void)? = nil
+        started: ((UInt64) -> Void)? = nil,
     ) async throws -> FilaFailure {
         let identity = UUID()
         var recorded: [String] = []
@@ -127,7 +127,7 @@ final class OperationCenter: ObservableObject {
             subtitle: Self.describe(paths),
             undo: undo,
             feedback: feedback,
-            started: started
+            started: started,
         )
     }
 
@@ -149,7 +149,7 @@ final class OperationCenter: ObservableObject {
         subtitle: String,
         undo: Undo? = nil,
         feedback: Feedback = .automatic,
-        whenFinished: ((FilaFailure) -> Void)? = nil
+        whenFinished: ((FilaFailure) -> Void)? = nil,
     ) async throws -> UInt64 {
         var directories = request.sources.map { ($0 as NSString).deletingLastPathComponent }
         if let destination = request.destination {
@@ -185,7 +185,7 @@ final class OperationCenter: ObservableObject {
             control: .job(identifier),
             undo: undo,
             feedback: feedback,
-            whenFinished: whenFinished
+            whenFinished: whenFinished,
         )
         append(operation)
         // A job small enough to finish inside its own `startJob` round trip has
@@ -221,7 +221,7 @@ final class OperationCenter: ObservableObject {
         subtitle: String,
         undo: Undo? = nil,
         feedback: Feedback = .automatic,
-        started: ((UInt64) -> Void)? = nil
+        started: ((UInt64) -> Void)? = nil,
     ) async throws -> FilaFailure {
         try await withCheckedThrowingContinuation { continuation in
             Task { @MainActor in
@@ -235,7 +235,7 @@ final class OperationCenter: ObservableObject {
                         title: kind.runningTitle,
                         subtitle: subtitle,
                         undo: undo,
-                        feedback: feedback
+                        feedback: feedback,
                     ) { continuation.resume(returning: $0) }
                     started?(identifier)
                 } catch {
@@ -257,7 +257,7 @@ final class OperationCenter: ObservableObject {
                     kind: kind,
                     subtitle: subtitle,
                     logSubject: logSubject,
-                    failure: (error as? FilaFailure) ?? FilaFailure(code: .operationFailed)
+                    failure: (error as? FilaFailure) ?? FilaFailure(code: .operationFailed),
                 )
             }
         }
@@ -273,7 +273,7 @@ final class OperationCenter: ObservableObject {
             affected: [directory, (destination as NSString).deletingLastPathComponent],
             undo: Undo(title: String(localized: "Undo")) { [weak self] in
                 try await self?.session.perform { try await $0.rename(destination, to: path, exclusive: true) }
-            }
+            },
         ) { try await $0.rename(path, to: destination) }
     }
 
@@ -283,7 +283,7 @@ final class OperationCenter: ObservableObject {
         perform(
             kind: .create,
             subtitle: (path as NSString).lastPathComponent,
-            affected: [(path as NSString).deletingLastPathComponent]
+            affected: [(path as NSString).deletingLastPathComponent],
         ) { try await $0.create(template, at: path) }
     }
 
@@ -294,7 +294,7 @@ final class OperationCenter: ObservableObject {
         subtitle: String,
         affected: [String],
         undo: Undo? = nil,
-        _ body: @escaping (any LocalFileAccess) async throws -> Void
+        _ body: @escaping (any LocalFileAccess) async throws -> Void,
     ) {
         run(kind: kind, title: kind.runningTitle, subtitle: subtitle, affected: affected, undo: undo) { [session] _ in
             try await session.perform(body)
@@ -320,7 +320,7 @@ final class OperationCenter: ObservableObject {
         undo: Undo? = nil,
         feedback: Feedback = .automatic,
         whenFinished: ((FilaFailure) -> Void)? = nil,
-        _ body: @escaping (@escaping (JobProgress) -> Void) async throws -> Void
+        _ body: @escaping (@escaping (JobProgress) -> Void) async throws -> Void,
     ) -> UUID {
         let operation = Operation(
             kind: kind,
@@ -332,7 +332,7 @@ final class OperationCenter: ObservableObject {
             control: nil,
             undo: undo,
             feedback: feedback,
-            whenFinished: whenFinished
+            whenFinished: whenFinished,
         )
         let identity = operation.id
         append(operation)
@@ -392,7 +392,7 @@ final class OperationCenter: ObservableObject {
             kind: operation.kind,
             title: undo.title,
             subtitle: operation.subtitle,
-            affected: operation.affected
+            affected: operation.affected,
         ) { _ in try await undo.perform() }
     }
 
@@ -467,7 +467,7 @@ final class OperationCenter: ObservableObject {
         // daemon to report anything.
         FilaLog.log(
             FilaLog.level(for: failure.code),
-            "\(operations[index].kind.rawValue) \(operations[index].logged) \(FilaLog.describe(failure))"
+            "\(operations[index].kind.rawValue) \(operations[index].logged) \(FilaLog.describe(failure))",
         )
         var finished = operations[index]
         // Taken off the row that goes back in the list: it fires exactly once,
@@ -484,7 +484,7 @@ final class OperationCenter: ObservableObject {
         NotificationCenter.default.post(
             name: .filaJobFinished,
             object: finished.affected,
-            userInfo: ["kind": finished.kind.rawValue]
+            userInfo: ["kind": finished.kind.rawValue],
         )
         announce(finished)
         changed()
@@ -505,7 +505,7 @@ final class OperationCenter: ObservableObject {
             state: .finished(failure),
             affected: [],
             control: nil,
-            undo: nil
+            undo: nil,
         )
         append(operation)
         announce(operation)
@@ -523,7 +523,7 @@ final class OperationCenter: ObservableObject {
             // Never started. `finish` is not coming, so the verdict is here.
             FilaLog.log(
                 FilaLog.level(for: failure.code),
-                "\(operation.kind.rawValue) \(operation.logged) \(FilaLog.describe(failure))"
+                "\(operation.kind.rawValue) \(operation.logged) \(FilaLog.describe(failure))",
             )
         case .interrupted:
             break
@@ -620,7 +620,7 @@ final class OperationCenter: ObservableObject {
                 state: .interrupted,
                 affected: [],
                 control: nil,
-                undo: nil
+                undo: nil,
             )
         }
         guard !operations.isEmpty else { return }
@@ -629,7 +629,7 @@ final class OperationCenter: ObservableObject {
             guard let self, !self.operations.isEmpty else { return }
             FeedbackAlert.show(
                 String(localized: "Task Stopped"),
-                message: String(localized: "Fila closed before the task finished. Start it again.")
+                message: String(localized: "Fila closed before the task finished. Start it again."),
             )
         }
     }
