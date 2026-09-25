@@ -97,7 +97,7 @@ enum FilePresentation {
         case .video: return .artwork("video")
         case .pdf: return .artwork("pdf")
         case .text: return .artwork("text")
-        case .sqlite, .binary, nil:
+        case .document, .sqlite, .binary, nil:
             // No artwork matches, so the device draws the type. An
             // extension the OS declares no type for draws what no
             // extension draws, so `backup.1 … backup.99999` is one

@@ -342,7 +342,7 @@ public actor ThumbnailService {
             let copy = dup(descriptor)
             guard copy >= 0 else { return nil }
             return await DescriptorAsset(descriptor: copy, name: name).frame(maxPixelSize: maxPixelSize).map { ($0, .center) }
-        case .audio, .propertyList, .machO, .archive, .sqlite, .text, .binary:
+        case .audio, .propertyList, .machO, .archive, .document, .sqlite, .text, .binary:
             // Audio artwork is a real thumbnail and deliberately absent: it
             // means loading the asset's metadata for every track in a folder,
             // and the waveform icon already says what the file is.

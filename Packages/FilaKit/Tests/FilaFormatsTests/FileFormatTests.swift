@@ -57,8 +57,57 @@ struct FileFormatTests {
     func `System types cover formats outside the extension table`() {
         #expect(FileFormat.detect(head: Data(), name: "picture.svg") == .image)
         #expect(FileFormat.detect(head: Data(), name: "picture.tif") == .image)
-        #expect(FileFormat.detect(head: Data(), name: "document.rtf") == .text)
         #expect(FileFormat.detect(head: Data(), name: "animation.caml") == .text)
+    }
+
+    private static let zip = Data([0x50, 0x4B, 0x03, 0x04, 0x14, 0x00])
+    private static let compoundFile = Data([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1, 0x00])
+
+    @Test(arguments: ["report.docx", "deck.pptx", "sheet.XLSX", "notes.pages", "budget.numbers", "talk.key", "macro.xlsm"])
+    func `A ZIP named as a document is that document, not an archive`(name: String) {
+        #expect(FileFormat.detect(head: Self.zip, name: name) == .document)
+        #expect(FileFormat.detect(name: name) == .document)
+        #expect(FileFormat.documentMIMEType(name: name) != nil)
+    }
+
+    @Test(arguments: ["report.doc", "deck.ppt", "sheet.xls", "show.pps"])
+    func `An OLE compound file named as a legacy Office document is that document`(name: String) {
+        #expect(FileFormat.detect(head: Self.compoundFile, name: name) == .document)
+    }
+
+    @Test
+    func `RTF is a document when its bytes say RTF`() {
+        #expect(FileFormat.detect(head: Data("{\\rtf1\\ansi hello}".utf8), name: "letter.rtf") == .document)
+        #expect(FileFormat.documentMIMEType(name: "letter.rtf") == "application/rtf")
+    }
+
+    @Test
+    func `A document extension over the wrong bytes is detected as the bytes are`() {
+        // A PEM private key and a plain-text README are the usual strangers.
+        #expect(FileFormat.detect(head: Data("-----BEGIN PRIVATE KEY-----\n".utf8), name: "server.key") == .text)
+        #expect(FileFormat.detect(head: Data("Read me first.\n".utf8), name: "README.doc") == .text)
+        #expect(FileFormat.detect(head: Data("%PDF-1.7".utf8), name: "report.docx") == .pdf)
+        #expect(FileFormat.detect(head: Self.zip, name: "report.doc") == .archive)
+        #expect(FileFormat.detect(head: Data([0x01, 0x02, 0x03]), name: "deck.pptx") == .binary)
+    }
+
+    @Test
+    func `With no bytes, the name decides, as it does for a list icon`() {
+        #expect(FileFormat.detect(head: Data(), name: "report.docx") == .document)
+        #expect(FileFormat.detect(head: Data(), name: "document.rtf") == .document)
+    }
+
+    @Test
+    func `Without a name, a document's bytes are their container: archive, hex or text`() {
+        #expect(FileFormat.detect(head: Self.zip, name: "") == .archive)
+        #expect(FileFormat.detect(head: Self.compoundFile, name: "") == .binary)
+        #expect(FileFormat.detect(head: Data("{\\rtf1 hello}".utf8), name: "") == .text)
+    }
+
+    @Test(arguments: ["archive.zip", "notes.txt", "spreadsheet.csv", "notes.odt", "unnamed"])
+    func `Names outside the document table have no document MIME type`(name: String) {
+        #expect(FileFormat.documentMIMEType(name: name) == nil)
+        #expect(FileFormat.detect(name: name) != .document)
     }
 
     @Test

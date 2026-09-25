@@ -58,6 +58,8 @@ enum ViewerRegistry {
             MediaPlayerViewController(details: details, file: file, isAudio: false)
         case .pdf:
             PDFViewerViewController(details: details, file: file)
+        case .document:
+            DocumentViewerViewController(details: details, file: file)
         case .text:
             TextViewerViewController(details: details, file: file, link: link)
         // A SQLite browser is a viewer several times the size of the others and
@@ -98,6 +100,10 @@ final class ViewerContainerViewController: TabContentViewController {
     ))
     private var child: UIViewController?
     private var detectedFormat: FileFormat?
+    /// What the bytes alone say, without the name — the archive browser for a
+    /// ZIP, hex for an OLE compound file, text for RTF. A document opens in
+    /// it when WebKit declines it, when it is empty, or when it is too large.
+    private var contentFormat: FileFormat = .binary
     private lazy var menuItem: UIBarButtonItem = {
         let item = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu())
         item.accessibilityLabel = String(localized: "More")
@@ -142,7 +148,16 @@ final class ViewerContainerViewController: TabContentViewController {
         do {
             let file = try await DescriptorFile.open(details.path, link: link)
             let head = try file.read(at: 0, count: FileFormat.detectionByteCount)
-            let format = FileFormat.detect(head: head, name: fileName)
+            var format = FileFormat.detect(head: head, name: fileName)
+            contentFormat = FileFormat.detect(head: head, name: "")
+            // A document with nothing in it, or too much to draw, opens as its
+            // bytes: an empty `.rtf` is a text file to write in, and a 300 MB
+            // `.docx` browses as the archive it is.
+            if format == .document, file.byteCount == 0
+                || (try? PreviewLimits.validate(byteCount: file.byteCount, format: format)) == nil
+            {
+                format = contentFormat
+            }
             // Detection is a guess from the first bytes and it will eventually
             // be wrong on a jailbroken filesystem. The line says which guess it
             // made, which is the difference between "the editor is broken" and
@@ -229,7 +244,12 @@ final class ViewerContainerViewController: TabContentViewController {
         isModalInPresentation = child?.isModalInPresentation ?? false
         navigationController?.isModalInPresentation = isModalInPresentation
 
-        let choices: [FileFormat] = [.text, .binary, .propertyList, .machO, .archive, .image]
+        var choices: [FileFormat] = [.text, .binary, .propertyList, .machO, .archive, .image]
+        // Only a name WebKit has a type for: the way back to the page after
+        // opening a `.docx` as an archive, or after it fell back to one.
+        if FileFormat.documentMIMEType(name: fileName) != nil {
+            choices.append(.document)
+        }
         let openAs = UIMenu(
             title: String(localized: "Open As"),
             image: UIImage(systemName: "doc.text.magnifyingglass"),
@@ -299,6 +319,20 @@ final class ViewerContainerViewController: TabContentViewController {
         )
     }
 
+    /// The document viewer's way out: WebKit declined the file or failed to
+    /// draw it, so the file opens as its bytes alone would have — the archive
+    /// browser for a ZIP, hex for an OLE compound file. Nothing is said about
+    /// it; Open As still offers Document.
+    ///
+    /// Only from the viewer on screen, and only while nothing else is being
+    /// opened: an Open As chosen during the conversion has already replaced
+    /// the document, and a second open racing it could land on top.
+    func openWithoutDocumentViewer(from viewer: UIViewController) {
+        guard child === viewer, detectedFormat == .document, menuItem.isEnabled else { return }
+        FilaLog.info("open \(details.path) as \(contentFormat): WebKit declined the document")
+        open(as: contentFormat)
+    }
+
     private func reopen(as format: FileFormat) {
         guard format != detectedFormat, menuItem.isEnabled else { return }
         let replace: () -> Void = { [weak self] in self?.open(as: format) }
@@ -347,6 +381,7 @@ final class ViewerContainerViewController: TabContentViewController {
         case .audio: String(localized: "Audio")
         case .video: String(localized: "Video")
         case .pdf: String(localized: "PDF")
+        case .document: String(localized: "Document")
         case .sqlite: String(localized: "Database")
         case .text: String(localized: "Text")
         case .binary: String(localized: "Hex")

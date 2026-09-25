@@ -15,6 +15,10 @@ public enum FileFormat: Sendable, Hashable, CaseIterable {
     case audio
     case video
     case pdf
+    /// An Office, iWork or RTF document: something WebKit converts and draws.
+    /// The only format that needs its extension as well as its bytes — see
+    /// `detect(head:name:)` and `documentMIMEType(name:)`.
+    case document
     case sqlite
     case text
     /// Binary content without a dedicated viewer.
@@ -23,12 +27,32 @@ public enum FileFormat: Sendable, Hashable, CaseIterable {
     /// Content signatures take precedence, followed by known extensions and
     /// system MIME types. Otherwise prefer text unless binary controls say
     /// otherwise. `head` may be short, including empty for list icons.
+    ///
+    /// A document needs both: its container's bytes say only "ZIP" or "OLE
+    /// compound file", and its extension says which document that is. A name
+    /// alone is not enough — `server.key` is usually a PEM key, and a
+    /// `README.doc` is often plain text — so a document whose bytes are some
+    /// other container is detected as those bytes are. With no bytes at all,
+    /// as for a list icon, the name decides.
     public static func detect(head: Data, name: String) -> FileFormat {
         let head = Data(head.prefix(detectionByteCount))
+        if let document = documentTypes[extensionOf(name)] {
+            if head.isEmpty || head.starts(with: document.container.signature) {
+                return .document
+            }
+            return signatureMatch(head) ?? (hasBinaryControls(head) ? .binary : .text)
+        }
         if let signature = signatureMatch(head) {
             return signature
         }
         return extensionMatch(name) ?? (hasBinaryControls(head) ? .binary : .text)
+    }
+
+    /// The MIME type a document is served to WebKit under, or nil for a name
+    /// that is not a document. WebKit converts only the types it recognises
+    /// by MIME, so this table is the whole of what `.document` means.
+    public static func documentMIMEType(name: String) -> String? {
+        documentTypes[extensionOf(name)]?.mimeType
     }
 
     /// What the name alone says: nil for a missing or unknown extension,
@@ -121,8 +145,73 @@ private func signatureMatch(_ head: Data) -> FileFormat? {
     return nil
 }
 
+private struct DocumentType {
+    /// What a document's first bytes are. The container is the evidence;
+    /// the extension says which document inside it.
+    enum Container {
+        case zip
+        case compoundFile
+        case rtf
+
+        var signature: [UInt8] {
+            switch self {
+            case .zip: [0x50, 0x4B, 0x03, 0x04]
+            case .compoundFile: [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]
+            case .rtf: Array("{\\rtf".utf8)
+            }
+        }
+    }
+
+    let mimeType: String
+    let container: Container
+}
+
+/// Every extension WebKit's document conversion accepts, with the MIME type
+/// it accepts it under. The types are the ones `QLPreviewGetSupportedMIMETypes`
+/// reports; each family was rendered on the simulator before it was listed.
+/// Written out rather than asked of `UTType`, which has no MIME type for the
+/// iWork formats and may lack the macro-enabled ones on an older system.
+/// An iWork document saved as a folder is not here: one descriptor cannot
+/// carry a folder, and a folder is never detected as a file anyway.
+private let documentTypes: [String: DocumentType] = [
+    "doc": DocumentType(mimeType: "application/msword", container: .compoundFile),
+    "dot": DocumentType(mimeType: "application/msword", container: .compoundFile),
+    "docx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", container: .zip),
+    "dotx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.template", container: .zip),
+    "docm": DocumentType(mimeType: "application/vnd.ms-word.document.macroenabled.12", container: .zip),
+    "xls": DocumentType(mimeType: "application/vnd.ms-excel", container: .compoundFile),
+    "xlt": DocumentType(mimeType: "application/vnd.ms-excel", container: .compoundFile),
+    "xla": DocumentType(mimeType: "application/vnd.ms-excel", container: .compoundFile),
+    "xlsx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", container: .zip),
+    "xltx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.template", container: .zip),
+    "xlsm": DocumentType(mimeType: "application/vnd.ms-excel.sheet.macroenabled.12", container: .zip),
+    "xltm": DocumentType(mimeType: "application/vnd.ms-excel.template.macroenabled.12", container: .zip),
+    "ppt": DocumentType(mimeType: "application/vnd.ms-powerpoint", container: .compoundFile),
+    "pps": DocumentType(mimeType: "application/vnd.ms-powerpoint", container: .compoundFile),
+    "pot": DocumentType(mimeType: "application/vnd.ms-powerpoint", container: .compoundFile),
+    "pptx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.presentationml.presentation", container: .zip),
+    "ppsx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.presentationml.slideshow", container: .zip),
+    "potx": DocumentType(mimeType: "application/vnd.openxmlformats-officedocument.presentationml.template", container: .zip),
+    "pptm": DocumentType(mimeType: "application/vnd.ms-powerpoint.presentation.macroenabled.12", container: .zip),
+    "ppsm": DocumentType(mimeType: "application/vnd.ms-powerpoint.slideshow.macroenabled.12", container: .zip),
+    "potm": DocumentType(mimeType: "application/vnd.ms-powerpoint.template.macroenabled.12", container: .zip),
+    "pages": DocumentType(mimeType: "application/vnd.iwork.pages.archive", container: .zip),
+    "numbers": DocumentType(mimeType: "application/vnd.iwork.numbers.archive", container: .zip),
+    "key": DocumentType(mimeType: "application/vnd.iwork.keynote.archive", container: .zip),
+    "rtf": DocumentType(mimeType: "application/rtf", container: .rtf),
+]
+
+private func extensionOf(_ name: String) -> String {
+    (name as NSString).pathExtension.lowercased()
+}
+
 private func extensionMatch(_ name: String) -> FileFormat? {
-    let ext = (name as NSString).pathExtension.lowercased()
+    let ext = extensionOf(name)
+    // Before the table below and the system types: a `.docx` conforms to
+    // ZIP and an `.rtf` to text, and neither is what a person opens them for.
+    if documentTypes[ext] != nil {
+        return .document
+    }
     switch ext {
     case "plist", "strings", "entitlements": return .propertyList
     case "zip", "ipa", "deb", "tar", "gz", "tgz", "xz", "txz", "bz2", "tbz", "7z",
