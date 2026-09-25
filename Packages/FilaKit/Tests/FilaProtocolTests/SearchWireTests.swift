@@ -26,18 +26,18 @@
                 systemFlags: UInt32(UF_HIDDEN),
                 linkCount: 1,
                 inode: 42,
-                link: SymbolicLink(target: "../elsewhere", resolvedKind: .directory)
+                link: SymbolicLink(target: "../elsewhere", resolvedKind: .directory),
             )
         }
 
-        @Test("A batch of matches survives the round trip, limits and all")
-        func batchRoundTrip() throws {
+        @Test
+        func `A batch of matches survives the round trip, limits and all`() throws {
             let batch = SearchBatch(
                 matches: [
                     SearchMatch(directory: "/private/var/mobile", node: node(named: "Library")),
                     SearchMatch(directory: "/", node: node(named: "var")),
                 ],
-                limits: [.resultCount, .unreadable]
+                limits: [.resultCount, .unreadable],
             )
 
             let decoded = try #require(SearchBatch.decode(batch.encoded(jobIdentifier: 7)))
@@ -48,8 +48,8 @@
             #expect(decoded.batch.matches.last?.path == "/var")
         }
 
-        @Test("A search result and a job event are not mistaken for one another")
-        func theTwoMessagesAreDistinct() {
+        @Test
+        func `A search result and a job event are not mistaken for one another`() {
             let result = SearchBatch(matches: [], limits: .depth).encoded(jobIdentifier: 1)
             let event = JobEvent.completed(FilaFailure(code: .success)).encoded(jobIdentifier: 1)
 
@@ -58,12 +58,12 @@
             #expect(SearchBatch.decode(result)?.batch.limits == .depth)
         }
 
-        @Test("A query rides along with the job that needs it, and only that one")
-        func queryRidesWithTheRequest() {
+        @Test
+        func `A query rides along with the job that needs it, and only that one`() {
             let request = JobRequest(
                 kind: .search,
                 sources: ["/private/var"],
-                query: SearchQuery(text: "*.plist", isCaseSensitive: true, includesHidden: true, isGlob: true)
+                query: SearchQuery(text: "*.plist", isCaseSensitive: true, includesHidden: true, isGlob: true),
             )
             let message = xpc_dictionary_create(nil, nil, 0)
             request.encode(into: message)
@@ -76,8 +76,8 @@
             #expect(JobRequest(decoding: other)?.query == nil)
         }
 
-        @Test("Trash identities and restore jobs survive the wire and JSON")
-        func trashIdentityRoundTrip() throws {
+        @Test
+        func `Trash identities and restore jobs survive the wire and JSON`() throws {
             for kind: FilaJobKind in [.delete, .restore] {
                 let request = JobRequest(kind: kind, sources: ["/tmp/item"], useTrash: kind == .delete, trashID: UUID())
                 let message = xpc_dictionary_create(nil, nil, 0)

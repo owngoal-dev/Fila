@@ -27,7 +27,7 @@ extension FileActions {
                 confirmDestruction(
                     title: String(localized: "Open in TrollStore?"),
                     message: String(localized: "Choose TrollStore to install “\(name)” without the system installer."),
-                    confirm: String(localized: "Open")
+                    confirm: String(localized: "Open"),
                 ) { self.share([path]) }
             }
         case "ipa":
@@ -42,7 +42,7 @@ extension FileActions {
         }
         return UIAction(
             title: String(localized: "Install…"),
-            image: UIImage(systemName: "arrow.down.app")
+            image: UIImage(systemName: "arrow.down.app"),
         ) { _ in confirm(install) }
     }
 
@@ -69,7 +69,7 @@ extension FileActions {
                 guard let presenter = activePresenter else { cleanup(); return }
                 let alert = AlertViewController(
                     title: String(localized: "Install Package?"),
-                    message: String(localized: "Installs “\(name)” as root with dpkg. A faulty package can damage the system environment or leave the device unable to start. This cannot be undone.")
+                    message: String(localized: "Installs “\(name)” as root with dpkg. A faulty package can damage the system environment or leave the device unable to start. This cannot be undone."),
                 ) { context in
                     context.addAction(title: String.LocalizationValue("Cancel")) { context.dispose { cleanup() } }
                     context.addAction(title: String.LocalizationValue("Install"), attribute: .accent) {
@@ -77,7 +77,7 @@ extension FileActions {
                             if !self.openTerminal(
                                 .installPackage(path: staged.path),
                                 user: .root,
-                                onProcessExit: cleanup
+                                onProcessExit: cleanup,
                             ) {
                                 cleanup()
                             }
@@ -101,7 +101,7 @@ extension FileActions {
         guard !Self.appInstallInFlight else {
             FeedbackAlert.show(
                 String(localized: "Installation in Progress"),
-                message: String(localized: "Wait for the current installation to finish, then try again.")
+                message: String(localized: "Wait for the current installation to finish, then try again."),
             )
             return
         }
@@ -135,7 +135,7 @@ extension FileActions {
             }
             let alert = AlertViewController(
                 title: String(localized: "Install App?"),
-                message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleIdentifier)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified.")
+                message: String(localized: "The system installer will install “\(manifest.displayName)” (\(manifest.bundleIdentifier)), replacing any app with the same identifier. Apps not signed for this device require AppSync Unified."),
             ) { context in
                 context.addAction(title: String.LocalizationValue("Cancel")) {
                     context.dispose {
@@ -157,12 +157,12 @@ extension FileActions {
     /// the identifier. The system or another installer may have changed it, so
     /// uninstall remains an explicit user action in Applications.
     private func installApp(
-        _ path: String, staged: URL, manifest: PackageManifest, applications: any ApplicationCapability
+        _ path: String, staged: URL, manifest: PackageManifest, applications: any ApplicationCapability,
     ) async {
         // Only a cancelled wait comes back empty, and installd may still be
         // reading the package then: that is the unanswered case. installd
         // cannot be stopped, so the card offers Continue and no Cancel.
-        let outcome = (try? await withInstallProgress(String(localized: "Installing App…"), cancellable: false) {
+        let outcome = await (try? withInstallProgress(String(localized: "Installing App…"), cancellable: false) {
             await applications.install(packageAt: staged)
         }) ?? .timedOut
         // An unanswered request may still be reading its source. Preserve the
@@ -179,7 +179,7 @@ extension FileActions {
         case .unsupported:
             reportInstallRefusal(
                 path,
-                message: String(localized: "Fila cannot use the system installer. Open “\(manifest.displayName)” with another installer.")
+                message: String(localized: "Fila cannot use the system installer. Open “\(manifest.displayName)” with another installer."),
             )
         case .timedOut:
             report(NSError(
@@ -187,15 +187,15 @@ extension FileActions {
                 code: -1,
                 userInfo: [
                     NSLocalizedDescriptionKey: String(
-                        localized: "The installer is still working. Check Applications before trying again."
+                        localized: "The installer is still working. Check Applications before trying again.",
                     ),
-                ]
+                ],
             ))
         case let .failed(domain, code, message):
             if outcome.isSignatureRefusal {
                 reportInstallRefusal(
                     path,
-                    message: String(localized: "The signature of “\(manifest.displayName)” was rejected. Install AppSync Unified on this device or open the file in TrollStore.")
+                    message: String(localized: "The signature of “\(manifest.displayName)” was rejected. Install AppSync Unified on this device or open the file in TrollStore."),
                 )
             } else {
                 report(NSError(domain: domain, code: code, userInfo: [NSLocalizedDescriptionKey: message]))
@@ -207,14 +207,14 @@ extension FileActions {
     private func withInstallProgress<T: Sendable>(
         _ title: String,
         cancellable: Bool,
-        _ operation: @escaping @MainActor () async throws -> T
+        _ operation: @escaping @MainActor () async throws -> T,
     ) async throws -> T {
         guard let presenter = activePresenter else { return try await operation() }
         return try await ProgressCard.run(
             title: title,
             message: String(localized: "Keep Fila open until this finishes."),
             cancellable: cancellable,
-            from: presenter
+            from: presenter,
         ) { _ in try await operation() }
     }
 
@@ -227,7 +227,7 @@ extension FileActions {
         }
         let alert = AlertViewController(
             title: String(localized: "Cannot Install"),
-            message: message
+            message: message,
         ) { context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()

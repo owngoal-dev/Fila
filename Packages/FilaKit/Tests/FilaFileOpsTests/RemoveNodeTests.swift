@@ -11,8 +11,8 @@ struct RemoveNodeTests {
     let scratch = Scratch()
     let operations = FileOperations(bootstrapRoot: "")
 
-    @Test("A file is unlinked and an empty directory is removed")
-    func removesWhatItWasToldTo() throws {
+    @Test
+    func `A file is unlinked and an empty directory is removed`() throws {
         let file = scratch.file("one.txt")
         try operations.removeNode(at: file, directory: false)
         #expect(!exists(file))
@@ -22,8 +22,8 @@ struct RemoveNodeTests {
         #expect(!exists(directory))
     }
 
-    @Test("A directory with entries is refused and keeps every entry")
-    func refusesNonEmptyDirectory() {
+    @Test
+    func `A directory with entries is refused and keeps every entry`() {
         scratch.directory("full")
         scratch.file("full/keep.txt")
         let failure = #expect(throws: FilaFailure.self) {
@@ -33,8 +33,8 @@ struct RemoveNodeTests {
         #expect(exists(scratch.path("full/keep.txt")))
     }
 
-    @Test("A name whose kind is not the one verified is left alone")
-    func refusesTheWrongKind() {
+    @Test
+    func `A name whose kind is not the one verified is left alone`() {
         scratch.directory("folder")
         scratch.file("plain.txt")
         // Verified as a file, found a directory: refused here, before
@@ -60,8 +60,8 @@ struct RemoveNodeTests {
         #expect(exists(scratch.path("plain.txt")))
     }
 
-    @Test("Removing a link removes the link and keeps its target")
-    func neverFollowsLinks() throws {
+    @Test
+    func `Removing a link removes the link and keeps its target`() throws {
         let target = scratch.file("target.txt", contents: "kept")
         let link = scratch.path("pointer")
         #expect(symlink(target, link) == 0)
@@ -78,8 +78,8 @@ struct RemoveNodeTests {
         #expect(exists(scratch.path("realdir")))
     }
 
-    @Test("The guard refuses a protected node")
-    func guardStillApplies() {
+    @Test
+    func `The guard refuses a protected node`() {
         let failure = #expect(throws: FilaFailure.self) {
             try operations.removeNode(at: "/", directory: true)
         }

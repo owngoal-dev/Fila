@@ -20,7 +20,7 @@ extension OperationCenter {
         _ sources: [FileLocation],
         into destination: FileLocation,
         mode: TransferMode,
-        policy: PublishPolicy
+        policy: PublishPolicy,
     ) async -> TransferOutcome {
         let local = session.local
         if sources.allSatisfy({ $0.backend == local.id }) {
@@ -33,7 +33,7 @@ extension OperationCenter {
             sourceDirectories: [],
             into: destination,
             mode: mode,
-            policy: policy
+            policy: policy,
         ) {
             try await Self.source(for: sources, in: backends)
         }
@@ -48,7 +48,7 @@ extension OperationCenter {
         localPaths: [String],
         into destination: FileLocation,
         mode: TransferMode,
-        policy: PublishPolicy
+        policy: PublishPolicy,
     ) async -> TransferOutcome {
         let parents = Set(localPaths.map { ($0 as NSString).deletingLastPathComponent })
         let root = Self.commonDirectory(of: parents)
@@ -64,7 +64,7 @@ extension OperationCenter {
             sourceDirectories: Array(parents),
             into: destination,
             mode: mode,
-            policy: policy
+            policy: policy,
         ) {
             // Its own identity: these paths are relative to `root`, not to
             // the local backend's, so the outcome's hints about the source
@@ -91,14 +91,16 @@ extension OperationCenter {
         into destination: FileLocation,
         mode: TransferMode,
         policy: PublishPolicy,
-        source: @escaping @Sendable () async throws -> TransferSource
+        source: @escaping @Sendable () async throws -> TransferSource,
     ) async -> TransferOutcome {
         let backends = BackendComposition.fileBackends
         let local = session.local
         // Every local directory the row should invalidate is known now; the
         // remote ones are hinted from the outcome once it is in.
         var affected = sourceDirectories
-        if destination.backend == local.id { affected.append(local.absolutePath(destination.path)) }
+        if destination.backend == local.id {
+            affected.append(local.absolutePath(destination.path))
+        }
         let destinationName = backends.first { $0.id == destination.backend }.map { backend in
             destination.path.isRoot ? backend.root.displayName : backend.root.displayName + "/" + destination.path.description
         } ?? destination.path.description
@@ -117,18 +119,18 @@ extension OperationCenter {
                 logSubject: logSubject,
                 affected: Array(Set(affected)),
                 feedback: .silent,
-                whenFinished: { continuation.resume(returning: $0) }
+                whenFinished: { continuation.resume(returning: $0) },
             ) { report in
                 let relay = ProgressRelay(report)
                 let outcome = await Self.execute(
-                    source, into: destination, mode: mode, policy: policy, backends: backends, session: self.session
+                    source, into: destination, mode: mode, policy: policy, backends: backends, session: self.session,
                 ) { progress in
                     relay.post(JobProgress(
                         bytesDone: progress.bytesDone,
                         bytesTotal: progress.planning ? 0 : progress.bytesTotal,
                         itemsDone: progress.itemsDone,
                         itemsTotal: progress.itemsTotal,
-                        currentPath: progress.currentName
+                        currentPath: progress.currentName,
                     ))
                 }
                 box.outcome = outcome
@@ -138,14 +140,20 @@ extension OperationCenter {
                     backends.first { $0.id == location.backend }?.invalidate([location.path])
                 }
                 if let failure = outcome.failure {
-                    if failure is CancellationError { throw CancellationError() }
-                    if let known = failure as? FilaFailure { throw known }
+                    if failure is CancellationError {
+                        throw CancellationError()
+                    }
+                    if let known = failure as? FilaFailure {
+                        throw known
+                    }
                     throw FilaFailure(code: .operationFailed, path: Self.failedPath(failure))
                 }
             }
         } } onCancel: {
             Task { @MainActor [weak self] in
-                if let operation = self?.operations.first(where: { $0.id == box.operation }) { self?.cancel(operation) }
+                if let operation = self?.operations.first(where: { $0.id == box.operation }) {
+                    self?.cancel(operation)
+                }
             }
         }
         return box.outcome ?? TransferOutcome(failure: verdict, affected: [], publishedFiles: 0)
@@ -171,7 +179,7 @@ extension OperationCenter {
         policy: PublishPolicy,
         backends: [any FileBackend],
         session: FileSession,
-        progress: @escaping @Sendable (TransferProgressReport) -> Void
+        progress: @escaping @Sendable (TransferProgressReport) -> Void,
     ) async -> TransferOutcome {
         guard let destinationBackend = backends.first(where: { $0.id == destination.backend }) else {
             return TransferOutcome(failure: TransferRefusal.nothingToTransfer, affected: [], publishedFiles: 0)
@@ -187,7 +195,7 @@ extension OperationCenter {
                 source: source,
                 destination: TransferDestination(backend: destination.backend, service: destinationService, directory: destination.path),
                 mode: mode,
-                policy: policy
+                policy: policy,
             )
             return await FileTransfer.run(request, staging: staging, progress: progress)
         } catch {
@@ -200,18 +208,18 @@ extension OperationCenter {
         switch failure {
         case let refusal as TransferRefusal:
             switch refusal {
-            case let .sameLocation(path), let .insideSource(path), let .sizeMismatch(path, _, _): return path.description
-            default: return nil
+            case let .sameLocation(path), let .insideSource(path), let .sizeMismatch(path, _, _): path.description
+            default: nil
             }
         case let write as WriteFailure:
             switch write {
             case let .alreadyExists(path), let .notFound(path), let .notEmpty(path), let .publicationUnknown(path):
-                return path.description
+                path.description
             }
         case let shortfall as TransferShortfall:
-            return (shortfall.uncertain.first ?? shortfall.retained.first ?? shortfall.skipped.first)?.description
+            (shortfall.uncertain.first ?? shortfall.retained.first ?? shortfall.skipped.first)?.description
         default:
-            return nil
+            nil
         }
     }
 
@@ -243,7 +251,9 @@ extension OperationCenter {
             lock.unlock()
             guard schedule else { return }
             Task { @MainActor [self] in
-                if let value = take() { report(value) }
+                if let value = take() {
+                    report(value)
+                }
             }
         }
 

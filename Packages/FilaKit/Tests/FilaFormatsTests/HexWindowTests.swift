@@ -4,8 +4,8 @@ import Testing
 
 @Suite("Hex windows")
 struct HexWindowTests {
-    @Test("Offset input accepts decimal and hex, and rejects negative or overflowing positions")
-    func parsesOffsets() {
+    @Test
+    func `Offset input accepts decimal and hex, and rejects negative or overflowing positions`() {
         #expect(HexWindow.parseOffset("0") == 0)
         #expect(HexWindow.parseOffset(" 32\n") == 32)
         #expect(HexWindow.parseOffset("0X7f") == 127)
@@ -15,8 +15,8 @@ struct HexWindowTests {
         }
     }
 
-    @Test("A window reads the bytes actually at the offset, including the short last row")
-    func readsAWindow() throws {
+    @Test
+    func `A window reads the bytes actually at the offset, including the short last row`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("blob.bin")
             let payload = samplePayload(byteCount: 5000)
@@ -36,8 +36,8 @@ struct HexWindowTests {
         }
     }
 
-    @Test("Reading past the end is empty rather than an error, because files get truncated under a viewer")
-    func readsPastTheEnd() throws {
+    @Test
+    func `Reading past the end is empty rather than an error, because files get truncated under a viewer`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("small.bin")
             try Data([1, 2, 3]).write(to: url)

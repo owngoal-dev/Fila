@@ -12,8 +12,8 @@ struct AppInstallFixtureTests {
         LocalFileService()
     }
 
-    @Test("A RootHide fixture copies, archives and cleans up without importing runtime additions", arguments: [false, true])
-    func runtimeAdditions(dangling: Bool) async throws {
+    @Test(arguments: [false, true])
+    func `A RootHide fixture copies, archives and cleans up without importing runtime additions`(dangling: Bool) async throws {
         let scratch = LocalScratch()
         let bootstrap = scratch.directory("bootstrap")
         let bundle = scratch.directory("bootstrap/Applications/Fila.app")
@@ -42,7 +42,7 @@ struct AppInstallFixtureTests {
 
         try operations.create(.directory, at: destination)
         let request = try await AppInstallFixture.copyRequest(
-            from: URL(fileURLWithPath: bundle), to: URL(fileURLWithPath: destination), link: link()
+            from: URL(fileURLWithPath: bundle), to: URL(fileURLWithPath: destination), link: link(),
         )
         let copy = FileJob(request: request, operations: operations).run(report: { _ in })
         try #require(copy.code == .success)
@@ -55,7 +55,7 @@ struct AppInstallFixtureTests {
         let ipa = workspace + "/Fixture.ipa"
         let archive = ArchiveJob(
             request: JobRequest(kind: .compress, sources: [payload], destination: ipa, archive: ArchiveOptions()),
-            operations: operations
+            operations: operations,
         ).run(report: { _ in })
         try #require(archive.code == .success)
         let descriptor = try operations.open(ipa, flags: O_RDONLY, mode: 0)
@@ -78,8 +78,8 @@ struct AppInstallFixtureTests {
         #expect(try String(contentsOfFile: bootstrap + "/keep", encoding: .utf8) == "bootstrap sentinel")
     }
 
-    @Test("A bundle without runtime additions includes every listing page")
-    func paginatedBundle() async throws {
+    @Test
+    func `A bundle without runtime additions includes every listing page`() async throws {
         let scratch = LocalScratch()
         let bundle = scratch.directory("Fila.app")
         let destination = scratch.directory("Fixture.app")
@@ -88,7 +88,7 @@ struct AppInstallFixtureTests {
             scratch.file("Fila.app/resource-\(index)")
         }
         let request = try await AppInstallFixture.copyRequest(
-            from: URL(fileURLWithPath: bundle), to: URL(fileURLWithPath: destination), link: link()
+            from: URL(fileURLWithPath: bundle), to: URL(fileURLWithPath: destination), link: link(),
         )
         #expect(request.sources.count == count)
         let outcome = FileJob(request: request, operations: FileOperations(bootstrapRoot: "")).run(report: { _ in })

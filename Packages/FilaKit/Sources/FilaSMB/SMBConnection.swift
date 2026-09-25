@@ -89,7 +89,7 @@ actor SMBConnection {
     /// session is already closed and fails silently.
     nonisolated func closeHandle(_ handle: Handle) async {
         let close = Task.detached { [self] in
-            _ = try await self.perform("close", on: handle) { client in
+            _ = try await perform("close", on: handle) { client in
                 try await client.session.close(fileId: handle.fileId)
             }
         }
@@ -112,7 +112,7 @@ actor SMBConnection {
     func perform<T: Sendable>(
         _ operation: String,
         path: String? = nil,
-        _ body: @escaping @Sendable (SMBClient) async throws -> T
+        _ body: @escaping @Sendable (SMBClient) async throws -> T,
     ) async throws -> T {
         try Task.checkCancellation()
         await acquire()
@@ -128,7 +128,7 @@ actor SMBConnection {
         _ operation: String,
         on handle: Handle,
         path: String? = nil,
-        _ body: @escaping @Sendable (SMBClient) async throws -> T
+        _ body: @escaping @Sendable (SMBClient) async throws -> T,
     ) async throws -> T {
         try Task.checkCancellation()
         await acquire()
@@ -140,7 +140,9 @@ actor SMBConnection {
     // MARK: - Session
 
     private func connectedClient() async throws -> SMBClient {
-        if let client { return client }
+        if let client {
+            return client
+        }
         let configuration = configuration
         let client = SMBClient(host: configuration.host, port: configuration.port)
         do {
@@ -148,7 +150,7 @@ actor SMBConnection {
                 try await client.login(
                     username: configuration.isGuest ? nil : configuration.username,
                     password: configuration.isGuest ? nil : configuration.password,
-                    domain: configuration.domain?.isEmpty == false ? configuration.domain : nil
+                    domain: configuration.domain?.isEmpty == false ? configuration.domain : nil,
                 )
                 try await client.connectShare(configuration.share)
             }
@@ -191,11 +193,11 @@ actor SMBConnection {
         path: String?,
         timeout: TimeInterval,
         on client: SMBClient,
-        _ body: @escaping @Sendable () async throws -> T
+        _ body: @escaping @Sendable () async throws -> T,
     ) async throws -> T {
         try await withThrowingTaskGroup(of: Outcome<T>.self) { group in
             group.addTask {
-                do { return .value(try await body()) } catch { return .failed(error) }
+                do { return try await .value(body()) } catch { return .failed(error) }
             }
             group.addTask {
                 try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
@@ -242,7 +244,9 @@ actor SMBConnection {
         guard self.client === client else { return }
         self.client = nil
         if announce {
-            for handler in lostHandlers.values { handler(reason) }
+            for handler in lostHandlers.values {
+                handler(reason)
+            }
         }
     }
 
@@ -268,7 +272,7 @@ actor SMBConnection {
             try await client.login(
                 username: configuration.isGuest ? nil : configuration.username,
                 password: configuration.isGuest ? nil : configuration.password,
-                domain: configuration.domain?.isEmpty == false ? configuration.domain : nil
+                domain: configuration.domain?.isEmpty == false ? configuration.domain : nil,
             )
             let shares = try await client.listShares()
             _ = try? await client.logoff()
@@ -301,7 +305,9 @@ actor SMBConnection {
 }
 
 extension SMBConnection.Configuration {
-    var isGuest: Bool { username?.isEmpty != false }
+    var isGuest: Bool {
+        username?.isEmpty != false
+    }
 }
 
 private extension ThrowingTaskGroup {

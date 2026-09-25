@@ -9,8 +9,8 @@ struct NodeFactoryTests {
     let scratch = Scratch()
     let operations = FileOperations(bootstrapRoot: "")
 
-    @Test("New files and directories use the default owner and exact 0777 mode", arguments: [NodeTemplate.emptyFile, .directory, .symbolicLink(target: "missing")])
-    func defaultPermissions(_ template: NodeTemplate) throws {
+    @Test(arguments: [NodeTemplate.emptyFile, .directory, .symbolicLink(target: "missing")])
+    func `New files and directories use the default owner and exact 0777 mode`(_ template: NodeTemplate) throws {
         let path = scratch.path("new")
         try operations.create(template, at: path)
         let node = try #require(metadata(of: path))
@@ -19,8 +19,8 @@ struct NodeFactoryTests {
         #expect(node.st_gid == (geteuid() == 0 ? 501 : getgid()))
     }
 
-    @Test("Explicit private creation and hard links retain their permissions")
-    func preservesSuppliedPermissions() throws {
+    @Test
+    func `Explicit private creation and hard links retain their permissions`() throws {
         let path = scratch.path("private")
         try operations.create(.directory, at: path, mode: 0o700)
         #expect(metadata(of: path).map { $0.st_mode & 0o7777 } == 0o700)
@@ -29,8 +29,8 @@ struct NodeFactoryTests {
         #expect(metadata(of: original).map { $0.st_mode & 0o7777 } == 0o640)
     }
 
-    @Test("Each template makes what it says")
-    func makesEachKind() throws {
+    @Test
+    func `Each template makes what it says`() throws {
         try operations.create(.directory, at: scratch.path("folder"))
         #expect(metadata(of: scratch.path("folder")).map { $0.st_mode & S_IFMT == S_IFDIR } == true)
 
@@ -44,8 +44,8 @@ struct NodeFactoryTests {
         #expect(metadata(of: scratch.path("second-name"))?.st_ino == metadata(of: scratch.path("empty.txt"))?.st_ino)
     }
 
-    @Test("Creating a file never truncates one that is already there")
-    func neverClobbers() {
+    @Test
+    func `Creating a file never truncates one that is already there`() {
         scratch.file("existing.txt", contents: "precious")
         let failure = #expect(throws: FilaFailure.self) {
             try operations.create(.emptyFile, at: scratch.path("existing.txt"))
@@ -54,8 +54,8 @@ struct NodeFactoryTests {
         #expect(metadata(of: scratch.path("existing.txt"))?.st_size == 8)
     }
 
-    @Test("Renaming onto an existing name replaces it, and says so to the guard")
-    func renameReplaces() throws {
+    @Test
+    func `Renaming onto an existing name replaces it, and says so to the guard`() throws {
         let source = scratch.file("new.txt", contents: "fresh")
         scratch.file("old.txt", contents: "stale")
 
@@ -64,8 +64,8 @@ struct NodeFactoryTests {
         #expect(metadata(of: scratch.path("old.txt"))?.st_size == 5)
     }
 
-    @Test("An exclusive rename refuses to replace, and leaves both files alone")
-    func exclusiveRenameRefusesToReplace() {
+    @Test
+    func `An exclusive rename refuses to replace, and leaves both files alone`() {
         let source = scratch.file("new.txt", contents: "fresh")
         scratch.file("old.txt", contents: "stale")
 
@@ -80,8 +80,8 @@ struct NodeFactoryTests {
         #expect(metadata(of: scratch.path("old.txt"))?.st_size == 5)
     }
 
-    @Test("An exclusive rename into a free name is an ordinary move")
-    func exclusiveRenameIntoAFreeName() throws {
+    @Test
+    func `An exclusive rename into a free name is an ordinary move`() throws {
         let source = scratch.file("new.txt", contents: "fresh")
 
         try operations.rename(source, to: scratch.path("moved.txt"), exclusive: true)

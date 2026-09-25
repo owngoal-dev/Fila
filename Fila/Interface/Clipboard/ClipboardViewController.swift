@@ -94,7 +94,7 @@ final class ClipboardViewController: TabContentViewController {
             UIAction(
                 title: String(localized: "Clear"),
                 image: UIImage(systemName: "trash"),
-                attributes: .destructive
+                attributes: .destructive,
             ) { [weak self] _ in
                 self?.confirmClear()
             },
@@ -190,7 +190,7 @@ final class ClipboardViewController: TabContentViewController {
         table.backgroundView = items.isEmpty ? StatusView(content: .message(
             symbol: "doc.on.clipboard",
             title: String(localized: "Clipboard Is Empty"),
-            detail: String(localized: "Items you copy or move wait here until you paste them.")
+            detail: String(localized: "Items you copy or move wait here until you paste them."),
         )) : nil
     }
 
@@ -200,7 +200,9 @@ final class ClipboardViewController: TabContentViewController {
         items = clipboard.items
         statuses = statuses.filter { items.contains($0.key) }
         navigationItem.rightBarButtonItem?.isEnabled = !items.isEmpty
-        if dataSource.snapshot().sectionIdentifiers.isEmpty { applySnapshot() }
+        if dataSource.snapshot().sectionIdentifiers.isEmpty {
+            applySnapshot()
+        }
         startSurvey()
     }
 
@@ -240,7 +242,7 @@ final class ClipboardViewController: TabContentViewController {
                 // The share was removed since the copy: nothing can paste it.
                 return .missing
             }
-            return .present(try await backend.fileService().details(item.path))
+            return try await .present(backend.fileService().details(item.path))
         } catch let failure as FilaFailure where failure.code == .notFound || failure.systemError == ENOENT {
             // The one answer worth acting on: the path resolves to nothing, so
             // the promise this entry was is broken and the paste will fail.
@@ -282,7 +284,7 @@ final class ClipboardViewController: TabContentViewController {
     private func confirmClear() {
         let alert = AlertViewController(
             title: String.LocalizationValue("Clear Clipboard?"),
-            message: String.LocalizationValue("Your files stay where they are. You will have nothing left to paste.")
+            message: String.LocalizationValue("Your files stay where they are. You will have nothing left to paste."),
         ) { [weak self] context in
             context.addAction(title: String.LocalizationValue("Cancel")) {
                 context.dispose()
@@ -325,14 +327,14 @@ final class ClipboardViewController: TabContentViewController {
         guard !missingItems.isEmpty else { return nil }
         guard missingItems.count > 1 else {
             return String(
-                localized: "One of these items no longer exists. Remove it from the clipboard before pasting."
+                localized: "One of these items no longer exists. Remove it from the clipboard before pasting.",
             )
         }
         return String(
             format: String(
-                localized: "%lld of these items no longer exist. Remove them from the clipboard before pasting."
+                localized: "%lld of these items no longer exist. Remove them from the clipboard before pasting.",
             ),
-            Int64(missingItems.count)
+            Int64(missingItems.count),
         )
     }
 
@@ -392,7 +394,7 @@ extension ClipboardViewController: UITableViewDelegate {
 
     func tableView(
         _: UITableView,
-        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath,
     ) -> UISwipeActionsConfiguration? {
         guard case let .entry(entry)? = dataSource.itemIdentifier(for: indexPath) else { return nil }
         let item = entry.location
@@ -401,7 +403,7 @@ extension ClipboardViewController: UITableViewDelegate {
         // had better mean the other thing.
         let action = UIContextualAction(
             style: .destructive,
-            title: String(localized: "Remove")
+            title: String(localized: "Remove"),
         ) { [weak self] _, _, done in
             self?.remove(item)
             done(true)

@@ -9,8 +9,8 @@ struct AtomicReplaceTests {
     let scratch = Scratch()
     let operations = FileOperations(bootstrapRoot: "")
 
-    @Test("The original's metadata survives the swap")
-    func carriesMetadataAcross() throws {
+    @Test
+    func `The original's metadata survives the swap`() throws {
         let target = scratch.file("config.plist", contents: "old", mode: 0o640)
         setExtendedAttribute("wiki.qaq.fila.test", to: "kept", at: target)
         var times = [timeval(tv_sec: 1_000_000, tv_usec: 0), timeval(tv_sec: 1_000_000, tv_usec: 0)]
@@ -32,8 +32,8 @@ struct AtomicReplaceTests {
         #expect(!exists(temporary))
     }
 
-    @Test("A temporary in another directory is refused, not copied")
-    func refusesCrossDirectory() {
+    @Test
+    func `A temporary in another directory is refused, not copied`() {
         let target = scratch.file("config.plist", contents: "old")
         scratch.directory("elsewhere")
         let temporary = scratch.file("elsewhere/config.plist.new", contents: "new")
@@ -46,8 +46,8 @@ struct AtomicReplaceTests {
         #expect(metadata(of: target)?.st_size == 3)
     }
 
-    @Test("Saving a new file applies defaults before publishing it")
-    func createsWhenNothingToReplace() throws {
+    @Test
+    func `Saving a new file applies defaults before publishing it`() throws {
         let temporary = scratch.file("brand-new.txt.tmp", contents: "hello")
         try operations.replaceItem(at: scratch.path("brand-new.txt"), withTemporary: temporary)
         #expect(metadata(of: scratch.path("brand-new.txt"))?.st_size == 5)
@@ -56,8 +56,8 @@ struct AtomicReplaceTests {
         #expect(!exists(temporary))
     }
 
-    @Test("Saving preserves the original access control list")
-    func preservesACL() throws {
+    @Test
+    func `Saving preserves the original access control list`() throws {
         let target = scratch.file("restricted.txt", contents: "old")
         var acl = acl_init(1)
         defer {
@@ -82,8 +82,8 @@ struct AtomicReplaceTests {
         #expect(try String(contentsOfFile: target, encoding: .utf8) == "new")
     }
 
-    @Test("Archive replacement applies its mode while retaining destination metadata")
-    func replacementPermissions() throws {
+    @Test
+    func `Archive replacement applies its mode while retaining destination metadata`() throws {
         let target = scratch.file("script", contents: "old", mode: 0o600)
         setExtendedAttribute("wiki.qaq.fila.test", to: "kept", at: target)
         let temporary = scratch.file("script.tmp", contents: "new", mode: 0o600)
@@ -93,8 +93,8 @@ struct AtomicReplaceTests {
         #expect(try String(contentsOfFile: target, encoding: .utf8) == "new")
     }
 
-    @Test("A save refuses a non-regular staging node and preserves the destination")
-    func rejectsNonRegularTemporary() throws {
+    @Test
+    func `A save refuses a non-regular staging node and preserves the destination`() throws {
         let target = scratch.file("config", contents: "original")
         let temporary = scratch.path("config.tmp")
         try #require(mkfifo(temporary, 0o600) == 0)
@@ -103,8 +103,8 @@ struct AtomicReplaceTests {
         #expect((metadata(of: temporary)?.st_mode ?? 0) & S_IFMT == S_IFIFO)
     }
 
-    @Test("A directory at the name is refused as EISDIR, and keeps its entries and the temporary")
-    func refusesDirectoryDestination() throws {
+    @Test
+    func `A directory at the name is refused as EISDIR, and keeps its entries and the temporary`() throws {
         let target = scratch.directory("config")
         let inside = scratch.file("config/kept", contents: "entry")
         let temporary = scratch.file("config.tmp", contents: "new bytes")

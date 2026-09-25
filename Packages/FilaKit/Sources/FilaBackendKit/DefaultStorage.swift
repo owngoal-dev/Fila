@@ -40,7 +40,7 @@ public final class UserDefaultsStorage<Value: Codable>: DefaultStorage {
     }
 
     public func save(_ value: Value) throws {
-        defaults.set(try JSONEncoder().encode(value), forKey: key)
+        try defaults.set(JSONEncoder().encode(value), forKey: key)
     }
 }
 
@@ -59,12 +59,16 @@ public final class MemoryStorage<Value: Codable>: DefaultStorage {
     }
 
     public func load() throws -> Value? {
-        if let failure { throw failure }
+        if let failure {
+            throw failure
+        }
         return stored
     }
 
     public func save(_ value: Value) throws {
-        if let failure { throw failure }
+        if let failure {
+            throw failure
+        }
         stored = value
         saveCount += 1
     }

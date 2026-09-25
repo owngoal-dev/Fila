@@ -44,7 +44,7 @@ public struct FileChecksums: Sendable {
               current.st_mtimespec.tv_nsec == original.st_mtimespec.tv_nsec,
               current.st_ctimespec.tv_sec == original.st_ctimespec.tv_sec,
               current.st_ctimespec.tv_nsec == original.st_ctimespec.tv_nsec else { throw POSIXError(.EBUSY) }
-        func hex<D: Digest>(_ digest: D) -> String {
+        func hex(_ digest: some Digest) -> String {
             digest.map { String(format: "%02x", $0) }.joined()
         }
         return Self(md5: hex(md5.finalize()), sha1: hex(sha1.finalize()), sha256: hex(sha256.finalize()))

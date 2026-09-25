@@ -9,8 +9,8 @@ struct AttributeWriterTests {
     let scratch = Scratch()
     let operations = FileOperations(bootstrapRoot: "")
 
-    @Test("A recursive change reaches a nested file")
-    func recursiveReachesTheBottom() throws {
+    @Test
+    func `A recursive change reaches a nested file`() throws {
         scratch.directory("tree/one/two")
         let deep = scratch.file("tree/one/two/leaf.txt", mode: 0o644)
         let shallow = scratch.file("tree/sibling.txt", mode: 0o644)
@@ -25,8 +25,8 @@ struct AttributeWriterTests {
         #expect(permissions(of: scratch.path("tree/one")) == 0o700)
     }
 
-    @Test("A recursive change does not walk through a symlink")
-    func recursiveStopsAtLinks() throws {
+    @Test
+    func `A recursive change does not walk through a symlink`() throws {
         scratch.directory("tree")
         scratch.directory("outside")
         let outsider = scratch.file("outside/untouched.txt", mode: 0o644)
@@ -37,8 +37,8 @@ struct AttributeWriterTests {
         #expect(permissions(of: outsider) == 0o644)
     }
 
-    @Test("Times, flags and one extended attribute, each on its own")
-    func writesEachField() throws {
+    @Test
+    func `Times, flags and one extended attribute, each on its own`() throws {
         let file = scratch.file("subject.txt")
 
         try operations.setAttributes(AttributeChange(modified: 1_234_567), at: file)
@@ -49,19 +49,19 @@ struct AttributeWriterTests {
 
         try operations.setAttributes(
             AttributeChange(extendedAttribute: ("wiki.qaq.fila.test", Data("here".utf8))),
-            at: file
+            at: file,
         )
         #expect(extendedAttribute("wiki.qaq.fila.test", at: file) == "here")
 
         try operations.setAttributes(
             AttributeChange(extendedAttribute: ("wiki.qaq.fila.test", nil)),
-            at: file
+            at: file,
         )
         #expect(extendedAttribute("wiki.qaq.fila.test", at: file) == nil)
     }
 
-    @Test("Setting one timestamp leaves the other where it was")
-    func keepsTheTimestampItWasNotGiven() throws {
+    @Test
+    func `Setting one timestamp leaves the other where it was`() throws {
         let file = scratch.file("subject.txt")
         var times = [timeval(tv_sec: 111_111, tv_usec: 0), timeval(tv_sec: 222_222, tv_usec: 0)]
         #expect(lutimes(file, &times) == 0)
@@ -72,8 +72,8 @@ struct AttributeWriterTests {
         #expect(after.st_atimespec.tv_sec == 111_111)
     }
 
-    @Test("A change on a symlink changes the link, not its target")
-    func doesNotFollowTheLeaf() throws {
+    @Test
+    func `A change on a symlink changes the link, not its target`() throws {
         let target = scratch.file("target.txt", mode: 0o644)
         let link = scratch.link("pointer", to: target)
 
@@ -87,8 +87,8 @@ struct AttributeWriterTests {
 struct FileInspectorTests {
     let scratch = Scratch()
 
-    @Test("Details come back under the path every decision was made about")
-    func canonicalisesTheReply() throws {
+    @Test
+    func `Details come back under the path every decision was made about`() throws {
         let operations = FileOperations(bootstrapRoot: "")
         scratch.directory("folder")
         scratch.file("folder/subject.txt", contents: "12345")
@@ -100,8 +100,8 @@ struct FileInspectorTests {
         #expect(details.isDestructionProtected == false)
     }
 
-    @Test("Details of a symlink describe the link")
-    func describesTheLink() throws {
+    @Test
+    func `Details of a symlink describe the link`() throws {
         let operations = FileOperations(bootstrapRoot: "")
         let target = scratch.file("target.txt")
         let link = scratch.link("pointer", to: target)
@@ -112,16 +112,16 @@ struct FileInspectorTests {
         #expect(details.node.link?.resolvedKind == .regular)
     }
 
-    @Test("The guard's verdict ships with the details")
-    func shipsTheVerdict() throws {
+    @Test
+    func `The guard's verdict ships with the details`() throws {
         let operations = FileOperations(bootstrapRoot: scratch.root)
         scratch.directory("usr/lib")
         #expect(try operations.details(of: scratch.path("usr")).isDestructionProtected)
         #expect(try !operations.details(of: scratch.path("usr/lib")).isDestructionProtected)
     }
 
-    @Test("Extended attributes are listed by name and size, never by value")
-    func listsAttributes() throws {
+    @Test
+    func `Extended attributes are listed by name and size, never by value`() throws {
         let operations = FileOperations(bootstrapRoot: "")
         let file = scratch.file("subject.txt")
         setExtendedAttribute("wiki.qaq.fila.one", to: "abc", at: file)
@@ -129,7 +129,7 @@ struct FileInspectorTests {
 
         let details = try operations.details(of: file)
         let sizes = Dictionary(
-            uniqueKeysWithValues: details.extendedAttributes.map { ($0.name, $0.byteCount) }
+            uniqueKeysWithValues: details.extendedAttributes.map { ($0.name, $0.byteCount) },
         )
         #expect(sizes["wiki.qaq.fila.one"] == 3)
         #expect(sizes["wiki.qaq.fila.two"] == 6)
@@ -137,8 +137,8 @@ struct FileInspectorTests {
         #expect(try operations.extendedAttribute("wiki.qaq.fila.two", at: file) == Data("abcdef".utf8))
     }
 
-    @Test("Volume identity is what says whether a move is a rename")
-    func volumeIdentity() throws {
+    @Test
+    func `Volume identity is what says whether a move is a rename`() throws {
         let operations = FileOperations(bootstrapRoot: "")
         scratch.directory("here")
         let volume = try operations.volumeInfo(for: scratch.path("here"))
@@ -147,8 +147,8 @@ struct FileInspectorTests {
         #expect(try volume.deviceIdentifier == operations.volumeInfo(for: scratch.root).deviceIdentifier)
     }
 
-    @Test("Mount table agrees with statfs for the root volume")
-    func mountedRoot() throws {
+    @Test
+    func `Mount table agrees with statfs for the root volume`() throws {
         let operations = FileOperations(bootstrapRoot: "")
         let volume = try operations.volumeInfo(for: "/")
         let mount = try #require(operations.mountPoints().first { $0.path == volume.mountPoint })
@@ -157,8 +157,8 @@ struct FileInspectorTests {
         #expect(mount.isReadOnly == volume.isReadOnly)
     }
 
-    @Test("A descriptor comes back opened, and the daemon read none of it")
-    func opensAsRoot() throws {
+    @Test
+    func `A descriptor comes back opened, and the daemon read none of it`() throws {
         let operations = FileOperations(bootstrapRoot: "")
         let file = scratch.file("subject.txt", contents: "abcdef")
         let descriptor = try operations.open(file, flags: O_RDONLY, mode: 0)
@@ -169,8 +169,8 @@ struct FileInspectorTests {
         #expect(read == 6)
     }
 
-    @Test("A relative path is a client bug, not a path")
-    func refusesRelativePaths() {
+    @Test
+    func `A relative path is a client bug, not a path`() {
         let failure = #expect(throws: FilaFailure.self) {
             _ = try FilaPath.canonical("etc/passwd")
         }

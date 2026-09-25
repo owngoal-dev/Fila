@@ -4,8 +4,8 @@ import Testing
 
 @Suite("Shared Inbox")
 struct SharedInboxTests {
-    @Test("Imports preserve existing names and source bytes")
-    func collisions() throws {
+    @Test
+    func `Imports preserve existing names and source bytes`() throws {
         let scratch = Scratch()
         let group = URL(fileURLWithPath: scratch.directory("group"))
         let source = URL(fileURLWithPath: scratch.path("example.txt"))
@@ -20,8 +20,8 @@ struct SharedInboxTests {
         #expect(throws: (any Error).self) { try SharedInbox.save(source, suggestedName: "../escape", in: inbox) }
     }
 
-    @Test("An Inbox symlink is not a writable destination")
-    func linkedInbox() throws {
+    @Test
+    func `An Inbox symlink is not a writable destination`() throws {
         let scratch = Scratch()
         let group = URL(fileURLWithPath: scratch.directory("group"))
         let outside = scratch.directory("outside")

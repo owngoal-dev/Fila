@@ -17,8 +17,8 @@ struct ArchiveJobTests {
         return (outcome, progress, notes)
     }
 
-    @Test("Selected extraction finishes without scanning unrelated entries past the listing limit")
-    func selectedExtractionStopsAfterSelection() throws {
+    @Test
+    func `Selected extraction finishes without scanning unrelated entries past the listing limit`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("many.tar")
             try withDescriptor(writing: archive) { descriptor in
@@ -32,7 +32,7 @@ struct ArchiveJobTests {
             let destination = scratch.appendingPathComponent("out")
             let result = run(JobRequest(
                 kind: .extract, sources: [archive.path], destination: destination.path,
-                archive: ArchiveOptions(members: [ArchiveSelection(index: 0, declaredPath: "selected.txt")])
+                archive: ArchiveOptions(members: [ArchiveSelection(index: 0, declaredPath: "selected.txt")]),
             ))
             #expect(result.outcome.code == .success)
             #expect(try String(contentsOf: destination.appendingPathComponent("selected.txt"), encoding: .utf8) == "selected")
@@ -50,8 +50,8 @@ struct ArchiveJobTests {
         return tree
     }
 
-    @Test("A tree compresses with totals and extracts back with its modes and its link")
-    func roundTrip() throws {
+    @Test
+    func `A tree compresses with totals and extracts back with its modes and its link`() throws {
         try withScratch { scratch in
             let tree = try makeTree(in: scratch)
             let archive = scratch.appendingPathComponent("tree.zip")
@@ -77,8 +77,8 @@ struct ArchiveJobTests {
         }
     }
 
-    @Test("Read-only folders receive all their children before archive modes are applied")
-    func readOnlyDirectories() throws {
+    @Test
+    func `Read-only folders receive all their children before archive modes are applied`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("folders.zip")
             try withDescriptor(writing: archive) { descriptor in
@@ -101,8 +101,8 @@ struct ArchiveJobTests {
         }
     }
 
-    @Test("A password locks a zip, the wrong one is its own outcome, and the right one opens it")
-    func password() throws {
+    @Test
+    func `A password locks a zip, the wrong one is its own outcome, and the right one opens it`() throws {
         try withScratch { scratch in
             let tree = try makeTree(in: scratch)
             let archive = scratch.appendingPathComponent("locked.zip")
@@ -124,8 +124,8 @@ struct ArchiveJobTests {
         }
     }
 
-    @Test("A tar refuses a password rather than writing an archive that is not locked")
-    func tarRefusesPassword() throws {
+    @Test
+    func `A tar refuses a password rather than writing an archive that is not locked`() throws {
         try withScratch { scratch in
             let tree = try makeTree(in: scratch)
             let archive = scratch.appendingPathComponent("tree.tar")
@@ -135,8 +135,8 @@ struct ArchiveJobTests {
         }
     }
 
-    @Test("An escaping name is skipped and said, and the selection is matched by position")
-    func hostileNamesAndSelection() throws {
+    @Test
+    func `An escaping name is skipped and said, and the selection is matched by position`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("hostile.zip")
             try withDescriptor(writing: archive) { descriptor in
@@ -169,8 +169,8 @@ struct ArchiveJobTests {
         }
     }
 
-    @Test("A cancelled compress leaves no archive and no temporary behind")
-    func cancelledCompress() throws {
+    @Test
+    func `A cancelled compress leaves no archive and no temporary behind`() throws {
         try withScratch { scratch in
             let tree = try makeTree(in: scratch)
             let archive = scratch.appendingPathComponent("tree.zip")

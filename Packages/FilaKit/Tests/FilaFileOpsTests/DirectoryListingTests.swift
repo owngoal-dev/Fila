@@ -8,8 +8,8 @@ import Testing
 struct DirectoryListingTests {
     let scratch = Scratch()
 
-    @Test("Every entry arrives exactly once across pages")
-    func pagesCoverTheDirectory() throws {
+    @Test
+    func `Every entry arrives exactly once across pages`() throws {
         let expected = Set((0 ..< 25).map { "entry-\($0)" })
         for name in expected {
             scratch.file(name)
@@ -28,16 +28,16 @@ struct DirectoryListingTests {
         #expect(seen.count == expected.count)
     }
 
-    @Test("`.` and `..` are never entries")
-    func skipsSelfAndParent() throws {
+    @Test
+    func `. and .. are never entries`() throws {
         scratch.file("only")
         let page = try ListingRegistry().page(directory: scratch.root, cursor: 0)
         #expect(page.entries.map(\.name) == ["only"])
         #expect(page.cursor == 0)
     }
 
-    @Test("A symlink reports its target and what is there")
-    func resolvesLinks() throws {
+    @Test
+    func `A symlink reports its target and what is there`() throws {
         scratch.file("target")
         scratch.directory("folder")
         scratch.link("to-file", to: scratch.path("target"))
@@ -59,8 +59,8 @@ struct DirectoryListingTests {
         #expect(entries["dangling"]?.isNavigable == false)
     }
 
-    @Test("The handle stays open between pages and closes at the end")
-    func cursorLifetime() throws {
+    @Test
+    func `The handle stays open between pages and closes at the end`() throws {
         for index in 0 ..< 5 {
             scratch.file("f\(index)")
         }
@@ -77,9 +77,11 @@ struct DirectoryListingTests {
         #expect(registry.count == 0)
     }
 
-    @Test("Cancelling one listing releases its handle and leaves another cursor usable")
-    func closesOnlyRequestedCursor() throws {
-        for index in 0 ..< 5 { scratch.file("f\(index)") }
+    @Test
+    func `Cancelling one listing releases its handle and leaves another cursor usable`() throws {
+        for index in 0 ..< 5 {
+            scratch.file("f\(index)")
+        }
         let registry = ListingRegistry()
         let cancelled = try registry.page(directory: scratch.root, cursor: 0, limit: 1)
         let foreground = try registry.page(directory: scratch.root, cursor: 0, limit: 1)
@@ -96,8 +98,8 @@ struct DirectoryListingTests {
         #expect(registry.count == 0)
     }
 
-    @Test("Only so many listings stay open per peer, oldest evicted")
-    func capsOpenListings() throws {
+    @Test
+    func `Only so many listings stay open per peer, oldest evicted`() throws {
         for index in 0 ... FilaProtocol.concurrentListingsPerPeer {
             scratch.directory("d\(index)")
             for entry in 0 ..< 4 {
@@ -111,8 +113,8 @@ struct DirectoryListingTests {
         #expect(registry.count <= FilaProtocol.concurrentListingsPerPeer)
     }
 
-    @Test("A cursor the daemon has forgotten is refused, not silently restarted")
-    func staleCursor() throws {
+    @Test
+    func `A cursor the daemon has forgotten is refused, not silently restarted`() throws {
         scratch.file("a")
         let registry = ListingRegistry()
         #expect(throws: FilaFailure.self) {
@@ -120,8 +122,8 @@ struct DirectoryListingTests {
         }
     }
 
-    @Test("Listing something that is not a directory fails with its errno")
-    func notADirectory() throws {
+    @Test
+    func `Listing something that is not a directory fails with its errno`() throws {
         let file = scratch.file("plain")
         let failure = #expect(throws: FilaFailure.self) {
             _ = try ListingRegistry().page(directory: file, cursor: 0)

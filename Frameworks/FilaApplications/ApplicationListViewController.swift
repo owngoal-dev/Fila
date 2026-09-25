@@ -17,7 +17,9 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         cell.showApplicationIcon(app.bundleIdentifier, artwork: ApplicationArtworkCache.shared)
     }
 
-    private var bundle: Bundle { ApplicationBackend.bundle }
+    private var bundle: Bundle {
+        ApplicationBackend.bundle
+    }
 
     init(backend: ApplicationBackend) {
         self.backend = backend
@@ -35,7 +37,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         PathBarView.Crumb(
             title: title ?? String(localized: "Applications", bundle: bundle),
             target: backend.id.rawValue,
-            icon: BackendScreens.shell?.rootArtwork(for: backend.root)
+            icon: BackendScreens.shell?.rootArtwork(for: backend.root),
         )
     }
 
@@ -54,7 +56,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         menu: UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] done in done(self?.arrangementElements() ?? []) },
             settingsMenuElement,
-        ])
+        ]),
     ).then {
         $0.accessibilityLabel = String(localized: "Sort and Filter", bundle: bundle)
         if #available(iOS 26.0, *) {
@@ -74,7 +76,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
             UIAction(
                 title: title(of: scope),
                 image: UIImage(systemName: scope == .all ? "square.grid.2x2" : scope == .user ? "person" : "gearshape"),
-                state: backend.scope == scope ? .on : .off
+                state: backend.scope == scope ? .on : .off,
             ) { [weak self] _ in
                 self?.backend.scope = scope
                 self?.rearrange(animated: true)
@@ -85,7 +87,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
             UIMenu(
                 title: String(localized: "Applications", bundle: bundle),
                 options: [.displayInline, .singleSelection],
-                children: scopes
+                children: scopes,
             ),
         ]
     }
@@ -118,7 +120,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         collectionView.keyboardDismissMode = .onDrag
 
         NotificationCenter.default.addObserver(
-            forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+            forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main,
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.backend.catalogChanged() }
         }
@@ -150,7 +152,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         pullRequested = false
         return AsyncThrowingStream { continuation in
             let task = Task {
-                continuation.yield(await backend.applications(refresh: refresh))
+                await continuation.yield(backend.applications(refresh: refresh))
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
@@ -168,7 +170,9 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         let hints = backend.changes()
         return AsyncThrowingStream { continuation in
             let task = Task {
-                for await _ in hints { continuation.yield(()) }
+                for await _ in hints {
+                    continuation.yield(())
+                }
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
@@ -203,7 +207,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
                 title: String(localized: "No Matches", bundle: bundle),
                 detail: filter.isEmpty
                     ? String(localized: "No apps match this filter. Choose All Apps, User Apps, or System Apps.", bundle: bundle)
-                    : String(localized: "No apps match “\(filter)”. Try a different search.", bundle: bundle)
+                    : String(localized: "No apps match “\(filter)”. Try a different search.", bundle: bundle),
             )
         }
         // Reachable through a link after the sidebar row is gone: say why
@@ -212,7 +216,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
             return .message(
                 symbol: "questionmark.app.dashed",
                 title: String(localized: "Applications Unavailable", bundle: bundle),
-                detail: String(localized: "Fila cannot see other apps on this device.", bundle: bundle)
+                detail: String(localized: "Fila cannot see other apps on this device.", bundle: bundle),
             )
         }
         // Both sources came back empty: the installation database would not
@@ -221,7 +225,7 @@ final class ApplicationListViewController: BackendListViewController<InstalledAp
         return .message(
             symbol: "questionmark.app.dashed",
             title: String(localized: "Unable to List Apps", bundle: bundle),
-            detail: String(localized: "Fila could not read the list of installed apps. Pull down to refresh.", bundle: bundle)
+            detail: String(localized: "Fila could not read the list of installed apps. Pull down to refresh.", bundle: bundle),
         )
     }
 }
@@ -237,7 +241,7 @@ extension ApplicationListViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let app = dataSource.itemIdentifier(for: indexPath) else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
@@ -246,7 +250,7 @@ extension ApplicationListViewController: UICollectionViewDelegate {
                     title: ApplicationDetailViewController.title(of: location),
                     // The location as the browser draws it: the bundle as an
                     // application, a container as a folder.
-                    image: BackendScreens.shell?.fileIcon(named: location.path, isDirectory: true)
+                    image: BackendScreens.shell?.fileIcon(named: location.path, isDirectory: true),
                 ) { [weak self] _ in
                     guard let self, let navigation = navigationController,
                           navigation.topViewController === self,
@@ -268,7 +272,7 @@ extension ApplicationListViewController: UICollectionViewDelegate {
             }
             let copy = UIAction(
                 title: String(localized: "Copy Bundle Identifier", bundle: self?.bundle ?? .main),
-                image: UIImage(systemName: "doc.on.doc")
+                image: UIImage(systemName: "doc.on.doc"),
             ) { _ in
                 UIPasteboard.general.string = app.bundleIdentifier
             }
@@ -283,7 +287,7 @@ extension ApplicationListViewController: UICollectionViewDelegate {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let app = dataSource.itemIdentifier(for: indexPath) else { return }
         navigationController?.pushViewController(
-            ApplicationDetailViewController(app: app, backend: backend, root: rootCrumb), animated: true
+            ApplicationDetailViewController(app: app, backend: backend, root: rootCrumb), animated: true,
         )
     }
 

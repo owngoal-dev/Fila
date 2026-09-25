@@ -29,7 +29,7 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
         port: Int = SMBProfile.defaultPort,
         share: String,
         domain: String? = nil,
-        username: String? = nil
+        username: String? = nil,
     ) {
         self.id = id
         self.name = name
@@ -43,7 +43,9 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
     /// No account at all. An empty `username` is an account whose name
     /// has not been typed yet — the setup screen's account mode — and is
     /// refused by `validationFailure` rather than silently sent as guest.
-    public var isGuest: Bool { username == nil }
+    public var isGuest: Bool {
+        username == nil
+    }
 
     /// The name the sidebar shows: the user's, or `share on host`.
     public var displayName: String {
@@ -56,11 +58,10 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
     /// the account or the word for none. Not localized: it is an address.
     public var address: String {
         let origin = port == SMBProfile.defaultPort ? host : "\(host):\(port)"
-        let account: String
-        if let username {
-            account = domain.map { "\($0)\\\(username)" } ?? username
+        let account: String = if let username {
+            domain.map { "\($0)\\\(username)" } ?? username
         } else {
-            account = "guest"
+            "guest"
         }
         return "smb://\(origin)/\(share) · \(account)"
     }
@@ -74,24 +75,40 @@ public struct SMBProfile: Codable, Hashable, Sendable, Identifiable {
     }
 
     /// The backend ID this profile registers under.
-    public var backendID: BackendID { BackendID("smb:" + id.uuidString) }
+    public var backendID: BackendID {
+        BackendID("smb:" + id.uuidString)
+    }
 
     /// The credential-store key of this profile's password.
-    public var credentialKey: String { "wiki.qaq.fila.smb." + id.uuidString }
+    public var credentialKey: String {
+        "wiki.qaq.fila.smb." + id.uuidString
+    }
 
     /// The preference key of this backend's bookmarks and history.
-    public var preferencesKey: String { "wiki.qaq.fila.smb." + id.uuidString + ".preferences" }
+    public var preferencesKey: String {
+        "wiki.qaq.fila.smb." + id.uuidString + ".preferences"
+    }
 
     /// Nil when `host` and `share` are usable; otherwise why not, for the
     /// setup screen. A share name may not contain a separator: `\\host\a\b`
     /// is a path inside share `a`, not a share.
     public var validationFailure: ValidationFailure? {
-        if host.trimmingCharacters(in: .whitespaces).isEmpty { return .hostMissing }
-        if host.contains(where: { $0 == "/" || $0 == "\\" || $0 == " " }) { return .hostInvalid }
+        if host.trimmingCharacters(in: .whitespaces).isEmpty {
+            return .hostMissing
+        }
+        if host.contains(where: { $0 == "/" || $0 == "\\" || $0 == " " }) {
+            return .hostInvalid
+        }
         guard (1 ... 65535).contains(port) else { return .portInvalid }
-        if share.trimmingCharacters(in: .whitespaces).isEmpty { return .shareMissing }
-        if share.contains(where: { $0 == "/" || $0 == "\\" }) { return .shareInvalid }
-        if let username, username.trimmingCharacters(in: .whitespaces).isEmpty { return .usernameMissing }
+        if share.trimmingCharacters(in: .whitespaces).isEmpty {
+            return .shareMissing
+        }
+        if share.contains(where: { $0 == "/" || $0 == "\\" }) {
+            return .shareInvalid
+        }
+        if let username, username.trimmingCharacters(in: .whitespaces).isEmpty {
+            return .usernameMissing
+        }
         return nil
     }
 

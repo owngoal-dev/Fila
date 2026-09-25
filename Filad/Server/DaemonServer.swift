@@ -32,7 +32,10 @@ final class DaemonServer: @unchecked Sendable {
         let connection: xpc_connection_t
         /// How `peers` is keyed, so a job's completion can find its way back
         /// without every call passing the pair around.
-        var key: ObjectIdentifier { ObjectIdentifier(connection as AnyObject) }
+        var key: ObjectIdentifier {
+            ObjectIdentifier(connection as AnyObject)
+        }
+
         let listings = ListingRegistry()
         var jobs: [UInt64: FileJob] = [:]
         /// The terminals this peer opened. A pid and a dispatch source each —
@@ -51,7 +54,7 @@ final class DaemonServer: @unchecked Sendable {
     private let controlQueue = DispatchQueue(
         label: "wiki.qaq.fila.daemon.control",
         qos: .utility,
-        autoreleaseFrequency: .workItem
+        autoreleaseFrequency: .workItem,
     )
     /// Jobs run off the control queue, so a copy that takes minutes does not
     /// stall the next request — but one at a time. A concurrent queue grows a
@@ -81,7 +84,7 @@ final class DaemonServer: @unchecked Sendable {
     /// helper sits beside this binary, under the same install root.
     private let operations = FileOperations(
         bootstrapRoot: InstallRoot.current,
-        archiveHelper: InstallRoot.current + "/usr/libexec/fila-archive"
+        archiveHelper: InstallRoot.current + "/usr/libexec/fila-archive",
     )
 
     private var listener: xpc_connection_t?
@@ -185,7 +188,7 @@ final class DaemonServer: @unchecked Sendable {
             // nothing about which ancestor matched.
             FilaLog.log(
                 FilaLog.level(for: failure.code),
-                Self.describe(operation?.name ?? "?", path: FilaLog.requestPath(message), failure: failure)
+                Self.describe(operation?.name ?? "?", path: FilaLog.requestPath(message), failure: failure),
             )
         } catch {
             xpc_dictionary_set_int64(reply, FilaWireKey.code, FilaReplyCode.operationFailed.rawValue)
@@ -216,7 +219,7 @@ final class DaemonServer: @unchecked Sendable {
         _ operation: FilaOperation,
         message: xpc_object_t,
         into reply: xpc_object_t,
-        peer: Peer
+        peer: Peer,
     ) throws {
         switch operation {
         case .hello:
@@ -226,7 +229,7 @@ final class DaemonServer: @unchecked Sendable {
         case .listDirectory:
             let page = try peer.listings.page(
                 directory: string(FilaWireKey.path, in: message),
-                cursor: xpc_dictionary_get_uint64(message, FilaWireKey.cursor)
+                cursor: xpc_dictionary_get_uint64(message, FilaWireKey.cursor),
             )
             let entries = xpc_array_create(nil, 0)
             for node in page.entries {
@@ -246,7 +249,7 @@ final class DaemonServer: @unchecked Sendable {
             let descriptor = try operations.open(
                 string(FilaWireKey.path, in: message),
                 flags: Int32(truncatingIfNeeded: xpc_dictionary_get_int64(message, FilaWireKey.openFlags)),
-                mode: mode_t(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.mode))
+                mode: mode_t(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.mode)),
             )
             // `xpc_dictionary_set_fd` duplicates it, so this process keeps none
             // of them: a browsing session that leaked one per preview would run
@@ -261,7 +264,7 @@ final class DaemonServer: @unchecked Sendable {
             try operations.create(
                 template,
                 at: string(FilaWireKey.path, in: message),
-                mode: optionalMode(FilaWireKey.mode, in: message)
+                mode: optionalMode(FilaWireKey.mode, in: message),
             )
 
         case .rename:
@@ -269,14 +272,14 @@ final class DaemonServer: @unchecked Sendable {
                 string(FilaWireKey.path, in: message),
                 to: string(FilaWireKey.destination, in: message),
                 exclusive: xpc_dictionary_get_bool(message, FilaWireKey.exclusive),
-                overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard)
+                overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard),
             )
 
         case .removeNode:
             try operations.removeNode(
                 at: string(FilaWireKey.path, in: message),
                 directory: xpc_dictionary_get_bool(message, FilaWireKey.removeDirectory),
-                overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard)
+                overrideGuard: xpc_dictionary_get_bool(message, FilaWireKey.overrideGuard),
             )
 
         case .setAttributes:
@@ -295,7 +298,7 @@ final class DaemonServer: @unchecked Sendable {
         case .replaceItem:
             try operations.replaceItem(
                 at: string(FilaWireKey.destination, in: message),
-                withTemporary: string(FilaWireKey.path, in: message)
+                withTemporary: string(FilaWireKey.path, in: message),
             )
 
         case .mountPoints:
@@ -312,7 +315,7 @@ final class DaemonServer: @unchecked Sendable {
         case .readExtendedAttribute:
             let value = try operations.extendedAttribute(
                 string(FilaWireKey.attributeName, in: message),
-                at: string(FilaWireKey.path, in: message)
+                at: string(FilaWireKey.path, in: message),
             )
             value.withUnsafeBytes {
                 xpc_dictionary_set_data(reply, FilaWireKey.attributeValue, $0.baseAddress, $0.count)
@@ -417,7 +420,7 @@ final class DaemonServer: @unchecked Sendable {
             redirectsScriptInterpreter: xpc_dictionary_get_bool(message, FilaWireKey.redirectsScriptInterpreter),
             workingDirectory: optionalString(FilaWireKey.workingDirectory, in: message),
             columns: UInt16(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.columns)),
-            rows: UInt16(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.rows))
+            rows: UInt16(truncatingIfNeeded: xpc_dictionary_get_uint64(message, FilaWireKey.rows)),
         ))
         // The same trade `openPath` makes: XPC duplicates the descriptor into
         // the message, so this process keeps none of it and never sees a byte
@@ -468,7 +471,7 @@ final class DaemonServer: @unchecked Sendable {
             "job \(identifier) \(request.kind) \(request.sources.count) source(s)"
                 + " → \(request.destination ?? "-")"
                 + (request.useTrash ? " trash" : "")
-                + (request.overrideGuard ? " override" : "")
+                + (request.overrideGuard ? " override" : ""),
         )
 
         // Events are unsolicited messages on the peer's own connection, not
@@ -476,11 +479,10 @@ final class DaemonServer: @unchecked Sendable {
         // that started it may be gone by the time it ends.
         let connection = peer.connection
         let key = peer.key
-        let queue: DispatchQueue
-        switch request.kind {
-        case .search: queue = searchQueue
-        case .compress, .extract: queue = archiveQueue
-        case .copy, .move, .delete, .restore: queue = jobQueue
+        let queue: DispatchQueue = switch request.kind {
+        case .search: searchQueue
+        case .compress, .extract: archiveQueue
+        case .copy, .move, .delete, .restore: jobQueue
         }
         queue.async { [weak self] in
             let outcome = job.run { progress in
@@ -500,7 +502,7 @@ final class DaemonServer: @unchecked Sendable {
             // answered minutes ago.
             FilaLog.log(
                 FilaLog.level(for: outcome.code),
-                Self.describe("job \(identifier)", path: outcome.path ?? "-", failure: outcome)
+                Self.describe("job \(identifier)", path: outcome.path ?? "-", failure: outcome),
             )
             xpc_connection_send_message(connection, JobEvent.completed(outcome).encoded(jobIdentifier: identifier))
             self?.controlQueue.async { self?.jobFinished(identifier, key: key) }

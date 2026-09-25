@@ -23,8 +23,8 @@ struct ArchiveHelperRunTests {
         JobRequest(kind: .compress, sources: [scratch.file("source")], destination: scratch.path("out.zip"), archive: ArchiveOptions())
     }
 
-    @Test("The task goes down as JSON, and progress, notes and the outcome come back by line")
-    func relaysLines() throws {
+    @Test
+    func `The task goes down as JSON, and progress, notes and the outcome come back by line`() throws {
         let progress = try line(.progress(JobProgress(bytesDone: 1, bytesTotal: 2, itemsDone: 3, itemsTotal: 4, currentPath: "x")))
         let note = try line(.note("skipped one"))
         let completed = try line(.completed(FilaFailure(code: .wrongPassword, path: "y")))
@@ -44,8 +44,8 @@ struct ArchiveHelperRunTests {
         #expect(notes == ["skipped one"])
     }
 
-    @Test("A helper that dies without an outcome is a failure, not a success")
-    func deathWithoutOutcome() {
+    @Test
+    func `A helper that dies without an outcome is a failure, not a success`() {
         let operations = FileOperations(bootstrapRoot: scratch.root, archiveHelper: helper("cat >/dev/null; exit 9"))
         var notes: [String] = []
         let outcome = FileJob(request: request(), operations: operations).run { _ in } note: { notes.append($0) }
@@ -53,15 +53,15 @@ struct ArchiveHelperRunTests {
         #expect(notes.first?.contains("exited") == true)
     }
 
-    @Test("A missing helper fails with the errno rather than hanging")
-    func missingHelper() {
+    @Test
+    func `A missing helper fails with the errno rather than hanging`() {
         let operations = FileOperations(bootstrapRoot: scratch.root, archiveHelper: scratch.path("absent"))
         let outcome = FileJob(request: request(), operations: operations).run { _ in }
         #expect(outcome.systemError == ENOENT)
     }
 
-    @Test("Cancel hangs the helper up and the job reports cancelled")
-    func cancelSignalsChild() {
+    @Test
+    func `Cancel hangs the helper up and the job reports cancelled`() {
         let operations = FileOperations(bootstrapRoot: scratch.root, archiveHelper: helper("cat >/dev/null; exec sleep 30"))
         let job = FileJob(request: request(), operations: operations)
         DispatchQueue.global().asyncAfter(deadline: .now() + 0.3) { job.cancel() }

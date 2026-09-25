@@ -37,7 +37,7 @@ struct SMBLiveServerTests {
                 share: environment["FILA_SMB_SHARE"] ?? "SHARE",
                 user: environment["FILA_SMB_USER"],
                 password: environment["FILA_SMB_PASSWORD"],
-                fixtures: URL(fileURLWithPath: fixtures)
+                fixtures: URL(fileURLWithPath: fixtures),
             )
         }
 
@@ -48,7 +48,7 @@ struct SMBLiveServerTests {
         func service(password: String?? = nil, requestTimeout: TimeInterval = 30) -> SMBFileService {
             SMBFileService(
                 profile: profile(), password: password ?? self.password, pollInterval: 0.2,
-                connectTimeout: 10, requestTimeout: requestTimeout
+                connectTimeout: 10, requestTimeout: requestTimeout,
             )
         }
     }
@@ -69,8 +69,8 @@ struct SMBLiveServerTests {
         return (descriptor, url)
     }
 
-    @Test("Listing pulls a large directory page by page and keeps every name")
-    func pagedListing() async throws {
+    @Test
+    func `Listing pulls a large directory page by page and keeps every name`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             for index in 0 ..< 2500 {
@@ -82,13 +82,17 @@ struct SMBLiveServerTests {
             var batches = 0
             var names: Set<String> = []
             var directories: [String] = []
-            for try await batch in try await service.list(try ServicePath(name)) {
+            for try await batch in try await service.list(ServicePath(name)) {
                 batches += 1
                 #expect(!batch.isEmpty)
                 for entry in batch {
                     names.insert(entry.name)
-                    if entry.kind == .directory { directories.append(entry.name) }
-                    if entry.name == "émoji 🎉.bin" { #expect(entry.size == 3) }
+                    if entry.kind == .directory {
+                        directories.append(entry.name)
+                    }
+                    if entry.name == "émoji 🎉.bin" {
+                        #expect(entry.size == 3)
+                    }
                 }
             }
             #expect(batches > 1, "2500 entries do not fit one response")
@@ -100,8 +104,8 @@ struct SMBLiveServerTests {
         }
     }
 
-    @Test("Stopping a listing early closes its handle and the next listing still works")
-    func abandonedListing() async throws {
+    @Test
+    func `Stopping a listing early closes its handle and the next listing still works`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             for index in 0 ..< 1200 {
@@ -115,7 +119,9 @@ struct SMBLiveServerTests {
             #expect(first?.isEmpty == false)
             let task = Task {
                 var count = 0
-                for try await batch in try await service.list(path) { count += batch.count }
+                for try await batch in try await service.list(path) {
+                    count += batch.count
+                }
                 return count
             }
             #expect(try await task.value == 1200)
@@ -123,8 +129,8 @@ struct SMBLiveServerTests {
         }
     }
 
-    @Test("Details describe the root, a file, an empty file and a missing path honestly")
-    func details() async throws {
+    @Test
+    func `Details describe the root, a file, an empty file and a missing path honestly`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             FileManager.default.createFile(atPath: directory.appendingPathComponent("five").path, contents: Data("hello".utf8))
@@ -133,14 +139,14 @@ struct SMBLiveServerTests {
             let root = try await service.details(.root)
             #expect(root.kind == .directory)
             #expect(root.name == server.share)
-            let five = try await service.details(try ServicePath("\(name)/five"))
+            let five = try await service.details(ServicePath("\(name)/five"))
             #expect(five.kind == .file)
             #expect(five.size == 5)
             #expect(five.modified != nil)
-            let empty = try await service.details(try ServicePath("\(name)/empty"))
+            let empty = try await service.details(ServicePath("\(name)/empty"))
             #expect(empty.size == 0)
             do {
-                _ = try await service.details(try ServicePath("\(name)/missing"))
+                _ = try await service.details(ServicePath("\(name)/missing"))
                 Issue.record("a missing path was described")
             } catch let error as SMBError {
                 #expect(error == .notFound(path: "\(name)/missing"))
@@ -149,14 +155,16 @@ struct SMBLiveServerTests {
         }
     }
 
-    @Test("A large file is copied in bounded chunks with monotonic progress; an empty one reports zero")
-    func copyContents() async throws {
+    @Test
+    func `A large file is copied in bounded chunks with monotonic progress; an empty one reports zero`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let size = 48 * 1024 * 1024
             var content = Data(count: size)
             content.withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) in
-                for index in stride(from: 0, to: size, by: 4096) { buffer[index] = UInt8(truncatingIfNeeded: index / 4096) }
+                for index in stride(from: 0, to: size, by: 4096) {
+                    buffer[index] = UInt8(truncatingIfNeeded: index / 4096)
+                }
             }
             try content.write(to: directory.appendingPathComponent("big"))
             FileManager.default.createFile(atPath: directory.appendingPathComponent("empty").path, contents: Data())
@@ -164,7 +172,7 @@ struct SMBLiveServerTests {
             let (descriptor, staging) = try stagingDescriptor()
             defer { close(descriptor); try? FileManager.default.removeItem(at: staging) }
             let progress = ProgressLog()
-            try await service.copyContents(of: try ServicePath("\(name)/big"), to: descriptor) { progress.append($0) }
+            try await service.copyContents(of: ServicePath("\(name)/big"), to: descriptor) { progress.append($0) }
             let reports = progress.reports
             #expect(reports.first?.completed == 0)
             #expect(reports.last?.completed == Int64(size))
@@ -176,15 +184,15 @@ struct SMBLiveServerTests {
             let (emptyDescriptor, emptyStaging) = try stagingDescriptor()
             defer { close(emptyDescriptor); try? FileManager.default.removeItem(at: emptyStaging) }
             let emptyProgress = ProgressLog()
-            try await service.copyContents(of: try ServicePath("\(name)/empty"), to: emptyDescriptor) { emptyProgress.append($0) }
+            try await service.copyContents(of: ServicePath("\(name)/empty"), to: emptyDescriptor) { emptyProgress.append($0) }
             #expect(emptyProgress.reports.map(\.completed) == [0])
             #expect(emptyProgress.reports.first?.expected == 0)
             await service.disconnect()
         }
     }
 
-    @Test("Cancelling a transfer stops it, leaves the descriptor alone afterwards, and the next request reconnects")
-    func cancelledTransfer() async throws {
+    @Test
+    func `Cancelling a transfer stops it, leaves the descriptor alone afterwards, and the next request reconnects`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             try Data(count: 64 * 1024 * 1024).write(to: directory.appendingPathComponent("big"))
@@ -193,11 +201,13 @@ struct SMBLiveServerTests {
             defer { close(descriptor); try? FileManager.default.removeItem(at: staging) }
             let progress = ProgressLog()
             let transfer = Task {
-                try await service.copyContents(of: try ServicePath("\(name)/big"), to: descriptor) { report in
+                try await service.copyContents(of: ServicePath("\(name)/big"), to: descriptor) { report in
                     progress.append(report)
                 }
             }
-            while progress.reports.count < 3 { try await Task.sleep(nanoseconds: 10_000_000) }
+            while progress.reports.count < 3 {
+                try await Task.sleep(nanoseconds: 10_000_000)
+            }
             transfer.cancel()
             let outcome = await transfer.result
             switch outcome {
@@ -211,14 +221,14 @@ struct SMBLiveServerTests {
             #expect(sizeAtReturn == sizeLater, "nothing touches the descriptor after return")
             #expect((sizeLater ?? 0) < 64 * 1024 * 1024)
             // A fresh session behind the same service.
-            let entry = try await service.details(try ServicePath("\(name)/big"))
+            let entry = try await service.details(ServicePath("\(name)/big"))
             #expect(entry.size == Int64(64 * 1024 * 1024))
             await service.disconnect()
         }
     }
 
-    @Test("A connection past its budget fails as a timeout, within that budget")
-    func connectTimeout() async throws {
+    @Test
+    func `A connection past its budget fails as a timeout, within that budget`() async throws {
         guard Server.configured != nil else { return }
         // An address on a test network that nothing routes: the SYN goes
         // nowhere and only the budget brings the request back.
@@ -235,13 +245,13 @@ struct SMBLiveServerTests {
         await service.disconnect()
     }
 
-    @Test("A request past its budget retires the session and the next request reconnects")
-    func requestTimeout() async throws {
+    @Test
+    func `A request past its budget retires the session and the next request reconnects`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             try Data(count: 32 * 1024 * 1024).write(to: directory.appendingPathComponent("big"))
             let service = server.service()
-            _ = try await service.details(try ServicePath("\(name)/big"))
+            _ = try await service.details(ServicePath("\(name)/big"))
             // A budget no request meets once the session is up: the first
             // read after this must time out, retire the session, and the
             // details call after it must get a fresh one.
@@ -250,21 +260,25 @@ struct SMBLiveServerTests {
             defer { close(descriptor); try? FileManager.default.removeItem(at: staging) }
             var sawTimeout = false
             do {
-                try await service.copyContents(of: try ServicePath("\(name)/big"), to: descriptor) { _ in }
+                try await service.copyContents(of: ServicePath("\(name)/big"), to: descriptor) { _ in }
             } catch let error as SMBError {
-                if case .timedOut = error { sawTimeout = true }
-                if error == .disconnected { sawTimeout = true }
+                if case .timedOut = error {
+                    sawTimeout = true
+                }
+                if error == .disconnected {
+                    sawTimeout = true
+                }
             }
             #expect(sawTimeout)
             await service.connection.setRequestTimeout(30)
-            let entry = try await service.details(try ServicePath("\(name)/big"))
+            let entry = try await service.details(ServicePath("\(name)/big"))
             #expect(entry.size == Int64(32 * 1024 * 1024))
             await service.disconnect()
         }
     }
 
-    @Test("Wrong password and unknown share are named, and the connection fails within its budget")
-    func refusals() async throws {
+    @Test
+    func `Wrong password and unknown share are named, and the connection fails within its budget`() async throws {
         guard let server = Server.configured, server.user != nil else { return }
         let wrongPassword = server.service(password: .some("not-the-password"))
         do {
@@ -282,8 +296,8 @@ struct SMBLiveServerTests {
         }
     }
 
-    @Test("A change stream hints at once, then when the directory changes, and ends when the session is lost")
-    func changes() async throws {
+    @Test
+    func `A change stream hints at once, then when the directory changes, and ends when the session is lost`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let service = server.service()
@@ -291,7 +305,9 @@ struct SMBLiveServerTests {
             let hints = HintLog()
             let consumer = Task {
                 do {
-                    for try await _ in try await service.changes(in: path) { hints.hinted() }
+                    for try await _ in try await service.changes(in: path) {
+                        hints.hinted()
+                    }
                     return nil as SMBError?
                 } catch {
                     return error as? SMBError
@@ -302,7 +318,9 @@ struct SMBLiveServerTests {
             // A second subscriber, to another directory, keeps its own hints.
             let otherHints = HintLog()
             let other = Task {
-                for try await _ in try await service.changes(in: .root) { otherHints.hinted() }
+                for try await _ in try await service.changes(in: .root) {
+                    otherHints.hinted()
+                }
             }
             try await otherHints.wait(for: 1, seconds: 5)
             try await Task.sleep(nanoseconds: 300_000_000)

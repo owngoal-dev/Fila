@@ -20,7 +20,7 @@ public final class FilaSMBModule: NSObject, BackendModule {
     @MainActor private var store: SMBProfileStore?
     @MainActor private var backends: [BackendID: SMBBackend] = [:]
 
-    public required override init() {
+    override public required init() {
         super.init()
     }
 
@@ -29,7 +29,7 @@ public final class FilaSMBModule: NSObject, BackendModule {
         self.host = host
         let store = SMBProfileStore(
             storage: UserDefaultsStorage<SMBProfileList>(defaults: host.defaults, key: SMBProfileList.storageKey),
-            credentials: host.credentials
+            credentials: host.credentials,
         )
         self.store = store
         if let failure = store.loadFailure {
@@ -46,8 +46,8 @@ public final class FilaSMBModule: NSObject, BackendModule {
             guard let self else { return [] }
             var made: [any Backend] = []
             for profile in store.profiles {
-                let backend = self.makeBackend(profile, host: resolver.host)
-                self.backends[backend.id] = backend
+                let backend = makeBackend(profile, host: resolver.host)
+                backends[backend.id] = backend
                 made.append(backend)
             }
             return made
@@ -61,7 +61,7 @@ public final class FilaSMBModule: NSObject, BackendModule {
                 let existing = id.flatMap { self.backends[$0] }
                 return UINavigationController(rootViewController: SMBConnectionViewController(module: self, existing: existing))
             },
-            remove: { [weak self] id in try self?.remove(id) }
+            remove: { [weak self] id in try self?.remove(id) },
         )
     }
 
@@ -72,7 +72,7 @@ public final class FilaSMBModule: NSObject, BackendModule {
         SMBBackend(
             profile: profile,
             storage: UserDefaultsStorage<FileBackendPreferences>(defaults: host.defaults, key: profile.preferencesKey),
-            credentials: host.credentials
+            credentials: host.credentials,
         )
     }
 
@@ -124,7 +124,9 @@ public final class FilaSMBModule: NSObject, BackendModule {
     }
 
     @MainActor
-    var profileStore: SMBProfileStore? { store }
+    var profileStore: SMBProfileStore? {
+        store
+    }
 
     struct ModuleNotRegistered: Error {}
 }

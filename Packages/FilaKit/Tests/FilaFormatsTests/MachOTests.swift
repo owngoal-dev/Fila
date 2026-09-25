@@ -8,8 +8,8 @@ import Testing
 /// signature.
 @Suite("Mach-O")
 struct MachOTests {
-    @Test("/bin/ls parses: its architectures, its dylibs, its UUID and its signature")
-    func parsesSystemBinary() throws {
+    @Test
+    func `/bin/ls parses: its architectures, its dylibs, its UUID and its signature`() throws {
         try withDescriptor(reading: URL(fileURLWithPath: "/bin/ls")) { descriptor in
             let image = try MachOImage(descriptor: descriptor)
             #expect(!image.slices.isEmpty)
@@ -29,8 +29,8 @@ struct MachOTests {
         }
     }
 
-    @Test("The entitlements come back out of the code signature as a property list")
-    func readsEntitlements() throws {
+    @Test
+    func `The entitlements come back out of the code signature as a property list`() throws {
         let url = URL(fileURLWithPath: "/usr/libexec/lsd")
         try #require(FileManager.default.fileExists(atPath: url.path))
         try withDescriptor(reading: url) { descriptor in
@@ -45,8 +45,8 @@ struct MachOTests {
         }
     }
 
-    @Test("A binary with no entitlements is nil, not a failure — most of a jailbroken filesystem is that")
-    func toleratesNoEntitlements() throws {
+    @Test
+    func `A binary with no entitlements is nil, not a failure — most of a jailbroken filesystem is that`() throws {
         try withDescriptor(reading: URL(fileURLWithPath: "/bin/ls")) { descriptor in
             let image = try MachOImage(descriptor: descriptor)
             for slice in image.slices {
@@ -55,8 +55,8 @@ struct MachOTests {
         }
     }
 
-    @Test("Anything that is not a Mach-O is not recognised")
-    func rejectsOtherFiles() throws {
+    @Test
+    func `Anything that is not a Mach-O is not recognised`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("text.txt")
             try Data("this is not a binary".utf8).write(to: url)

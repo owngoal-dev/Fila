@@ -10,8 +10,8 @@ import Testing
 
 @Suite("Request targets")
 struct RemotePathTests {
-    @Test("Decodes after splitting, so an escaped separator stays inside a name")
-    func decodesPerComponent() {
+    @Test
+    func `Decodes after splitting, so an escaped separator stays inside a name`() {
         #expect(RemotePath.components(of: "/a/b%20c") == ["a", "b c"])
         // The whole reason to split first: decoded as one string this is
         // `/a/../etc` and hands back the parent.
@@ -19,8 +19,8 @@ struct RemotePathTests {
         #expect(RemotePath.components(of: "/a/b%2Fc") == nil)
     }
 
-    @Test("Refuses anything that could climb out")
-    func refusesTraversal() {
+    @Test
+    func `Refuses anything that could climb out`() {
         #expect(RemotePath.components(of: "/../etc") == nil)
         #expect(RemotePath.components(of: "/a/../../etc") == nil)
         #expect(RemotePath.components(of: "/a/./b") == nil)
@@ -28,23 +28,23 @@ struct RemotePathTests {
         #expect(RemotePath.components(of: "relative/path") == nil)
     }
 
-    @Test("Stays under the served root")
-    func staysUnderRoot() {
+    @Test
+    func `Stays under the served root`() {
         #expect(RemotePath.filesystemPath(for: "/", root: "/private/tmp/x") == "/private/tmp/x")
         #expect(RemotePath.filesystemPath(for: "/a/b", root: "/private/tmp/x") == "/private/tmp/x/a/b")
         #expect(RemotePath.filesystemPath(for: "/a/b", root: "/") == "/a/b")
         #expect(RemotePath.filesystemPath(for: "/../a", root: "/private/tmp/x") == nil)
     }
 
-    @Test("Takes the path out of the absolute form a Destination header uses")
-    func absoluteForm() {
+    @Test
+    func `Takes the path out of the absolute form a Destination header uses`() {
         #expect(RemotePath.filesystemPath(for: "http://phone.local:8080/a/b", root: "/") == "/a/b")
         #expect(RemotePath.filesystemPath(for: "http://phone.local:8080", root: "/") == "/")
         #expect(RemotePath.filesystemPath(for: "http://phone.local/a?v=1", root: "/") == "/a")
     }
 
-    @Test("Encodes an href a component at a time, separators included")
-    func encodesHref() {
+    @Test
+    func `Encodes an href a component at a time, separators included`() {
         #expect(RemotePath.href(for: "/a/b c", root: "/", isCollection: false) == "/a/b%20c")
         #expect(RemotePath.href(for: "/a/b", root: "/", isCollection: true) == "/a/b/")
         #expect(RemotePath.href(for: "/", root: "/", isCollection: true) == "/")
@@ -55,8 +55,8 @@ struct RemotePathTests {
 
 @Suite("HTTP framing")
 struct HTTPMessageTests {
-    @Test("Header names are case-insensitive, values keep their spelling")
-    func parsesHeaders() {
+    @Test
+    func `Header names are case-insensitive, values keep their spelling`() {
         let block = "PROPFIND /a HTTP/1.1\r\nHost: x\r\nDepth: 1\r\nCONTENT-LENGTH: 12\r\n"
         let request = HTTPRequest.parse(Data(block.utf8))
         #expect(request?.method == "PROPFIND")
@@ -66,21 +66,21 @@ struct HTTPMessageTests {
         #expect(request?.wantsKeepAlive == true)
     }
 
-    @Test("An absent Depth means infinity, which is the one PROPFIND refuses")
-    func depthDefaultsToInfinity() {
+    @Test
+    func `An absent Depth means infinity, which is the one PROPFIND refuses`() {
         let request = HTTPRequest.parse(Data("PROPFIND / HTTP/1.1\r\nHost: x\r\n".utf8))
         #expect(request?.depth == "infinity")
     }
 
-    @Test("Overwrite is only false when it says F")
-    func overwriteDefault() {
+    @Test
+    func `Overwrite is only false when it says F`() {
         #expect(HTTPRequest.parse(Data("MOVE /a HTTP/1.1\r\nOverwrite: F\r\n".utf8))?.allowsOverwrite == false)
         #expect(HTTPRequest.parse(Data("MOVE /a HTTP/1.1\r\nOverwrite: T\r\n".utf8))?.allowsOverwrite == true)
         #expect(HTTPRequest.parse(Data("MOVE /a HTTP/1.1\r\nHost: x\r\n".utf8))?.allowsOverwrite == true)
     }
 
-    @Test("Ranges, in the three forms a client sends")
-    func parsesRanges() {
+    @Test
+    func `Ranges, in the three forms a client sends`() {
         func range(_ text: String?, size: Int64 = 100) -> ByteRange.Parsed {
             ByteRange.parse(text, fileSize: size)
         }
@@ -130,13 +130,13 @@ struct AuthenticationTests {
         method: String = "GET",
         target: String = "/",
         user: String = "fila",
-        password: String = "s3cret"
+        password: String = "s3cret",
     ) -> Bool {
         HTTPAuthentication.isAuthorized(
             request(authorization, method: method, target: target),
             username: user,
             password: password,
-            nonces: nonces
+            nonces: nonces,
         )
     }
 
@@ -156,7 +156,7 @@ struct AuthenticationTests {
         method: String,
         uri: String,
         nonce: String,
-        realm: String = HTTPAuthentication.realm
+        realm: String = HTTPAuthentication.realm,
     ) -> String {
         let ha1 = HTTPAuthentication.md5("\(user):\(realm):\(password)")
         let ha2 = HTTPAuthentication.md5("\(method):\(uri)")
@@ -167,8 +167,8 @@ struct AuthenticationTests {
         """
     }
 
-    @Test("Only the right Basic credentials get in")
-    func basic() {
+    @Test
+    func `Only the right Basic credentials get in`() {
         let good = Data("fila:s3cret".utf8).base64EncodedString()
         #expect(accepts("Basic \(good)"))
         #expect(accepts("basic \(good)"))
@@ -180,12 +180,12 @@ struct AuthenticationTests {
         #expect(accepts(
             "Basic \(Data("a:b:c".utf8).base64EncodedString())",
             user: "a",
-            password: "b:c"
+            password: "b:c",
         ))
     }
 
-    @Test("Digest is accepted, and is bound to the method and the path")
-    func digestAuthentication() {
+    @Test
+    func `Digest is accepted, and is bound to the method and the path`() {
         let nonce = nonces.issue()
 
         #expect(accepts(digest(user: "fila", password: "s3cret", method: "GET", uri: "/", nonce: nonce)))
@@ -194,7 +194,7 @@ struct AuthenticationTests {
         // is inside the hash for exactly this reason.
         #expect(!accepts(
             digest(user: "fila", password: "s3cret", method: "GET", uri: "/", nonce: nonce),
-            method: "DELETE"
+            method: "DELETE",
         ))
         // A nonce we never issued is a nonce the client chose.
         #expect(!accepts(digest(user: "fila", password: "s3cret", method: "GET", uri: "/", nonce: "made-up")))
@@ -204,34 +204,34 @@ struct AuthenticationTests {
         // and the one holding it would choose the target.
         #expect(!accepts(
             digest(user: "fila", password: "s3cret", method: "GET", uri: "/", nonce: nonce),
-            target: "/somewhere/else"
+            target: "/somewhere/else",
         ))
         #expect(accepts(
             digest(user: "fila", password: "s3cret", method: "GET", uri: "/a/b", nonce: nonce),
-            target: "/a/b"
+            target: "/a/b",
         ))
         // The same resource spelled the way macOS spells a Destination.
         #expect(accepts(
             digest(user: "fila", password: "s3cret", method: "GET", uri: "http://host:8080/a/b", nonce: nonce),
-            target: "/a/b"
+            target: "/a/b",
         ))
         // A target the server will refuse anyway still authenticates, so the
         // client is told 400 rather than being sent back to the password box.
         #expect(accepts(
             digest(user: "fila", password: "s3cret", method: "GET", uri: "/%2e%2e/etc", nonce: nonce),
-            target: "/%2e%2e/etc"
+            target: "/%2e%2e/etc",
         ))
         // A different realm gives a different HA1, and must not be accepted
         // just because the client said so.
         #expect(!accepts(
-            digest(user: "fila", password: "s3cret", method: "GET", uri: "/", nonce: nonce, realm: "Other")
+            digest(user: "fila", password: "s3cret", method: "GET", uri: "/", nonce: nonce, realm: "Other"),
         ))
     }
 
-    @Test("Header parsing keeps commas inside quoted values")
-    func parsesDigestHeader() {
+    @Test
+    func `Header parsing keeps commas inside quoted values`() {
         let fields = HTTPAuthentication.parse(
-            #"Digest username="a,b", realm="Fila", nc=00000001, response="deadbeef""#
+            #"Digest username="a,b", realm="Fila", nc=00000001, response="deadbeef""#,
         )
         #expect(fields["username"] == "a,b")
         #expect(fields["realm"] == "Fila")
@@ -239,8 +239,8 @@ struct AuthenticationTests {
         #expect(fields["response"] == "deadbeef")
     }
 
-    @Test("A 401 offers Digest before Basic, and offers nothing else")
-    func challenges() {
+    @Test
+    func `A 401 offers Digest before Basic, and offers nothing else`() {
         let offered = HTTPAuthentication.challenges(nonces: nonces)
         #expect(offered.count == 2)
         #expect(offered[0].hasPrefix("Digest "))
@@ -248,8 +248,8 @@ struct AuthenticationTests {
         #expect(offered[0].contains("qop=\"auth\""))
     }
 
-    @Test("A server with no password refuses to start")
-    func passwordRequired() {
+    @Test
+    func `A server with no password refuses to start`() {
         let server = WebDAVServer(service: LocalService())
         #expect(throws: WebDAVServer.StartFailure.passwordRequired) {
             try server.start(.init(port: 0, username: "fila", password: "", advertisesBonjour: false))
@@ -259,8 +259,8 @@ struct AuthenticationTests {
 
 @Suite("XML")
 struct DAVXMLTests {
-    @Test("A file named with markup does not break the listing")
-    func escapes() {
+    @Test
+    func `A file named with markup does not break the listing`() {
         #expect(DAVXML.escape("a & b") == "a &amp; b")
         #expect(DAVXML.escape("<x>") == "&lt;x&gt;")
         #expect(DAVXML.escape("\"'") == "&quot;&apos;")

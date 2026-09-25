@@ -5,8 +5,8 @@ import Foundation
 import Testing
 
 struct StorageSpaceTests {
-    @Test("Writes preserve the reserve at the exact boundary")
-    func boundaries() throws {
+    @Test
+    func `Writes preserve the reserve at the exact boundary`() throws {
         let reserve = StorageSpace.reserveByteCount
         try StorageSpace.validate(availableByteCount: reserve + 17, writing: 17)
         #expect(throws: FilaFailure(errno: ENOSPC)) {
@@ -20,8 +20,8 @@ struct StorageSpaceTests {
         }
     }
 
-    @Test("Read descriptors are nonblocking and still return ordinary file bytes")
-    func nonblockingRead() throws {
+    @Test
+    func `Read descriptors are nonblocking and still return ordinary file bytes`() throws {
         let scratch = Scratch()
         let path = scratch.file("ordinary.txt")
         let descriptor = try FileOperations(bootstrapRoot: "").open(path, flags: O_RDONLY, mode: 0)

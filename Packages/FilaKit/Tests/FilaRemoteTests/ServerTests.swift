@@ -28,7 +28,7 @@ final class Harness {
         service: RemoteFileService = LocalService(),
         ioTimeout: TimeAmount = .seconds(HTTPConnection.readTimeoutSeconds),
         webRoot: String? = nil,
-        typeIcon: (@Sendable (String, Bool) async -> Data?)? = nil
+        typeIcon: (@Sendable (String, Bool) async -> Data?)? = nil,
     ) async throws {
         web.file("index.html", contents: "<!doctype html><script src=\"/_fila/app.js\"></script>")
         web.file("app.js", contents: "console.log('fila')")
@@ -41,7 +41,7 @@ final class Harness {
             root: scratch.root,
             advertisesBonjour: false,
             webRoot: URL(fileURLWithPath: webRoot ?? web.root, isDirectory: true),
-            typeIcon: typeIcon
+            typeIcon: typeIcon,
         ))
         var found: UInt16?
         for _ in 0 ..< 100 {
@@ -86,7 +86,7 @@ final class Harness {
         _ target: String,
         headers: [String: String] = [:],
         body: Data? = nil,
-        authorized: Bool = true
+        authorized: Bool = true,
     ) async throws -> Reply {
         guard var components = URLComponents(string: "http://127.0.0.1:\(port)"),
               let requestTarget = URLComponents(string: target),
@@ -148,8 +148,8 @@ final class Reports: @unchecked Sendable {
 
 @Suite("WebDAV over a real socket", .serialized)
 struct ServerTests {
-    @Test("Long backend jobs do not consume the socket idle timeout")
-    func longBackendJob() async throws {
+    @Test
+    func `Long backend jobs do not consume the socket idle timeout`() async throws {
         let harness = try await Harness(service: LocalService(jobDelayNanoseconds: 600_000_000), ioTimeout: .milliseconds(250))
         harness.scratch.file("original.txt", contents: "complete")
         let reply = try await harness.send("COPY", "/original.txt", headers: ["Destination": "http://127.0.0.1:\(harness.port)/copy.txt", "Overwrite": "F"])
@@ -158,8 +158,8 @@ struct ServerTests {
         #expect(harness.scratch.contents("copy.txt") == "complete")
     }
 
-    @Test("Cancelled startup callbacks cannot stop a later sharing session", arguments: [UInt64(0), 1_000_000, 10_000_000])
-    func restartDuringStartup(delay: UInt64) async throws {
+    @Test(arguments: [UInt64(0), 1_000_000, 10_000_000])
+    func `Cancelled startup callbacks cannot stop a later sharing session`(delay: UInt64) async throws {
         let scratch = Scratch()
         let server = WebDAVServer(service: LocalService())
         defer { server.stop() }
@@ -184,8 +184,8 @@ struct ServerTests {
         #expect(server.isRunning)
     }
 
-    @Test("Refuses everything without credentials, and says how to send them")
-    func requiresAuthentication() async throws {
+    @Test
+    func `Refuses everything without credentials, and says how to send them`() async throws {
         let harness = try await Harness()
         let reply = try await harness.send("OPTIONS", "/", authorized: false)
         #expect(reply.status == 401)
@@ -196,8 +196,8 @@ struct ServerTests {
         #expect(challenge.contains("Basic"))
     }
 
-    @Test("OPTIONS does not advertise unsupported locking")
-    func options() async throws {
+    @Test
+    func `OPTIONS does not advertise unsupported locking`() async throws {
         let harness = try await Harness()
         let reply = try await harness.send("OPTIONS", "/")
         #expect(reply.status == 200)
@@ -207,8 +207,8 @@ struct ServerTests {
         #expect(reply.header("ms-author-via") == "DAV")
     }
 
-    @Test("PROPFIND lists a directory at depth 1 and only itself at depth 0")
-    func propfind() async throws {
+    @Test
+    func `PROPFIND lists a directory at depth 1 and only itself at depth 0`() async throws {
         let harness = try await Harness()
         harness.scratch.file("readme.txt", contents: "hello")
         harness.scratch.directory("folder")
@@ -233,8 +233,8 @@ struct ServerTests {
         #expect(missing.status == 404)
     }
 
-    @Test("A name with markup and spaces survives the listing and the fetch")
-    func awkwardNames() async throws {
+    @Test
+    func `A name with markup and spaces survives the listing and the fetch`() async throws {
         let harness = try await Harness()
         harness.scratch.file("a & b <c>.txt", contents: "awkward")
 
@@ -246,8 +246,8 @@ struct ServerTests {
         #expect(fetched.text == "awkward")
     }
 
-    @Test("GET streams a file, and a Range gets exactly that window")
-    func get() async throws {
+    @Test
+    func `GET streams a file, and a Range gets exactly that window`() async throws {
         let harness = try await Harness()
         harness.scratch.file("data.bin", contents: "0123456789")
 
@@ -278,8 +278,8 @@ struct ServerTests {
         }
     }
 
-    @Test("Unsupported conditional mutations preserve the original file")
-    func conditionalMutations() async throws {
+    @Test
+    func `Unsupported conditional mutations preserve the original file`() async throws {
         let harness = try await Harness()
         harness.scratch.file("keep.txt", contents: "original")
         for method in ["PUT", "DELETE", "MOVE", "COPY"] {
@@ -289,7 +289,7 @@ struct ServerTests {
                 headers: [
                     "If-Match": "\"prior-version\"", "Destination": "/changed.txt",
                 ],
-                body: method == "PUT" ? Data("replacement".utf8) : nil
+                body: method == "PUT" ? Data("replacement".utf8) : nil,
             )
             #expect(reply.status == 501)
             #expect(try String(contentsOfFile: harness.scratch.path("keep.txt"), encoding: .utf8) == "original")
@@ -300,8 +300,8 @@ struct ServerTests {
         #expect(try String(contentsOfFile: harness.scratch.path("keep.txt"), encoding: .utf8) == "original")
     }
 
-    @Test("A big file comes back byte for byte")
-    func largeFile() async throws {
+    @Test
+    func `A big file comes back byte for byte`() async throws {
         let harness = try await Harness()
         // Over the 256 KB read window, so the streaming loop actually loops.
         let contents = String(repeating: "fila-", count: 200_000)
@@ -316,8 +316,8 @@ struct ServerTests {
     /// A body after a HEAD is not a cosmetic error: the client does not read
     /// it, so it stays in the socket and is parsed as the start of the next
     /// reply. Two requests on one connection is what proves it is gone.
-    @Test("HEAD sends no body, and the connection stays usable after it")
-    func headSendsNoBody() async throws {
+    @Test
+    func `HEAD sends no body, and the connection stays usable after it`() async throws {
         let harness = try await Harness()
         harness.scratch.file("one.txt", contents: "body")
 
@@ -332,8 +332,8 @@ struct ServerTests {
         }
     }
 
-    @Test("A name with a control character does not take the listing down with it")
-    func controlCharactersInNames() async throws {
+    @Test
+    func `A name with a control character does not take the listing down with it`() async throws {
         let harness = try await Harness()
         harness.scratch.file("bell\u{01}name.txt", contents: "x")
         harness.scratch.file("ordinary.txt", contents: "y")
@@ -346,8 +346,8 @@ struct ServerTests {
         #expect(listing.text.contains("ordinary.txt"))
     }
 
-    @Test("GET on a directory is a page a browser can use")
-    func directoryIndex() async throws {
+    @Test
+    func `GET on a directory is a page a browser can use`() async throws {
         let harness = try await Harness()
         harness.scratch.file("one.txt")
         harness.scratch.directory("two")
@@ -360,8 +360,8 @@ struct ServerTests {
         #expect(reply.header("content-security-policy")?.contains("unsafe-inline") == false)
     }
 
-    @Test("Frontend assets come from the web root and nothing else does")
-    func frontendAssets() async throws {
+    @Test
+    func `Frontend assets come from the web root and nothing else does`() async throws {
         let harness = try await Harness()
         harness.scratch.directory("_fila")
         harness.scratch.file("_fila/shared.txt", contents: "the user's file")
@@ -392,8 +392,8 @@ struct ServerTests {
         #expect(!harness.scratch.exists("_fila/shared.txt"))
     }
 
-    @Test("A thumbnail is a PNG of a file, and only of a file")
-    func thumbnails() async throws {
+    @Test
+    func `A thumbnail is a PNG of a file, and only of a file`() async throws {
         let harness = try await Harness()
         // A 1×1 red PNG.
         let png = try #require(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="))
@@ -425,8 +425,8 @@ struct ServerTests {
         #expect(whole.body == png)
     }
 
-    @Test("A row icon is the app's picture of the type the name asks for")
-    func typeIcons() async throws {
+    @Test
+    func `A row icon is the app's picture of the type the name asks for`() async throws {
         let harness = try await Harness(typeIcon: { name, isDirectory in
             Data("\(isDirectory ? "dir" : "file"):\(name)".utf8)
         })
@@ -447,8 +447,8 @@ struct ServerTests {
         #expect(try await bare.send("GET", "/_fila/icon-dir.png").status == 404)
     }
 
-    @Test("Without a web root the DAV protocol is intact and the page is absent")
-    func noWebRoot() async throws {
+    @Test
+    func `Without a web root the DAV protocol is intact and the page is absent`() async throws {
         let server = WebDAVServer(service: LocalService())
         let scratch = Scratch()
         try server.start(.init(port: 0, username: "fila", password: "s3cret", root: scratch.root, advertisesBonjour: false))
@@ -471,16 +471,16 @@ struct ServerTests {
         #expect((dav as? HTTPURLResponse)?.statusCode == 207)
     }
 
-    @Test("A Continue handshake completes a streamed upload")
-    func continueUpload() async throws {
+    @Test
+    func `A Continue handshake completes a streamed upload`() async throws {
         let harness = try await Harness()
         let reply = try await harness.send("PUT", "/continue.txt", headers: ["Expect": "100-continue"], body: Data("complete".utf8))
         #expect(reply.status == 201)
         #expect(harness.scratch.contents("continue.txt") == "complete")
     }
 
-    @Test("Concurrent browser uploads publish exactly one complete file")
-    func exclusiveUploads() async throws {
+    @Test
+    func `Concurrent browser uploads publish exactly one complete file`() async throws {
         let harness = try await Harness()
         let left = Data(repeating: 65, count: 2 * 1024 * 1024)
         let right = Data(repeating: 66, count: 2 * 1024 * 1024)
@@ -494,8 +494,8 @@ struct ServerTests {
         #expect(names == ["race.bin"])
     }
 
-    @Test("Browser writes require the listener origin and existing uploads survive")
-    func browserOriginAndCollision() async throws {
+    @Test
+    func `Browser writes require the listener origin and existing uploads survive`() async throws {
         let harness = try await Harness()
         harness.scratch.file("keep.txt", contents: "original")
         let rejected = try await harness.send("PUT", "/keep.txt", headers: ["Origin": "http://other.example"], body: Data("changed".utf8))
@@ -510,16 +510,16 @@ struct ServerTests {
         #expect(harness.scratch.exists("keep.txt"))
     }
 
-    @Test("A named pipe is refused without opening a blocking file stream")
-    func refusesSpecialFiles() async throws {
+    @Test
+    func `A named pipe is refused without opening a blocking file stream`() async throws {
         let harness = try await Harness()
         #expect(mkfifo(harness.scratch.path("pipe"), 0o600) == 0)
         let reply = try await harness.send("GET", "/pipe")
         #expect(reply.status == 403)
     }
 
-    @Test("Shared HTML downloads without executing as the authenticated web application")
-    func sharedHTMLIsAttachment() async throws {
+    @Test
+    func `Shared HTML downloads without executing as the authenticated web application`() async throws {
         let harness = try await Harness()
         harness.scratch.file("page.html", contents: "<script>document.title='file'</script>")
         let reply = try await harness.send("GET", "/page.html")
@@ -529,8 +529,8 @@ struct ServerTests {
         #expect(reply.header("x-content-type-options") == "nosniff")
     }
 
-    @Test("PUT creates, then replaces, and the bytes land on disk")
-    func put() async throws {
+    @Test
+    func `PUT creates, then replaces, and the bytes land on disk`() async throws {
         let harness = try await Harness()
 
         let created = try await harness.send("PUT", "/note.txt", body: Data("first".utf8))
@@ -555,8 +555,8 @@ struct ServerTests {
         #expect(!harness.scratch.exists("missing"))
     }
 
-    @Test("PUT leaves no temporary behind when it fails")
-    func putCleansUp() async throws {
+    @Test
+    func `PUT leaves no temporary behind when it fails`() async throws {
         let harness = try await Harness()
         harness.scratch.directory("folder")
 
@@ -567,8 +567,8 @@ struct ServerTests {
         #expect(!leftovers.contains { $0.hasPrefix(".fila-tmp-") })
     }
 
-    @Test("MKCOL makes one directory and refuses to make two")
-    func mkcol() async throws {
+    @Test
+    func `MKCOL makes one directory and refuses to make two`() async throws {
         let harness = try await Harness()
 
         let made = try await harness.send("MKCOL", "/folder")
@@ -582,8 +582,8 @@ struct ServerTests {
         #expect(orphan.status == 409)
     }
 
-    @Test("MOVE renames, and honours Overwrite: F")
-    func move() async throws {
+    @Test
+    func `MOVE renames, and honours Overwrite: F`() async throws {
         let harness = try await Harness()
         harness.scratch.file("from.txt", contents: "moved")
         harness.scratch.file("blocker.txt", contents: "keep")
@@ -609,8 +609,8 @@ struct ServerTests {
         #expect(harness.scratch.contents("blocker.txt") == "moved")
     }
 
-    @Test("COPY duplicates under a new name and leaves no staging directory")
-    func copy() async throws {
+    @Test
+    func `COPY duplicates under a new name and leaves no staging directory`() async throws {
         let harness = try await Harness()
         harness.scratch.file("original.txt", contents: "copy me")
 
@@ -625,8 +625,8 @@ struct ServerTests {
         #expect(!leftovers.contains { $0.hasPrefix(".fila-dav-") })
     }
 
-    @Test("COPY of a directory takes the tree with it")
-    func copyTree() async throws {
+    @Test
+    func `COPY of a directory takes the tree with it`() async throws {
         let harness = try await Harness()
         harness.scratch.directory("tree")
         harness.scratch.file("tree/leaf.txt", contents: "leaf")
@@ -639,8 +639,8 @@ struct ServerTests {
         #expect(harness.scratch.contents("tree-copy/leaf.txt") == "leaf")
     }
 
-    @Test("DELETE removes a tree, and never the served root")
-    func delete() async throws {
+    @Test
+    func `DELETE removes a tree, and never the served root`() async throws {
         let harness = try await Harness()
         harness.scratch.directory("tree")
         harness.scratch.file("tree/leaf.txt")
@@ -657,8 +657,8 @@ struct ServerTests {
         #expect(harness.scratch.exists(""))
     }
 
-    @Test("DELETE accepts encoded folder names and collection trailing slashes", arguments: ["未命名文件夹", "100% #? 😀", "%E6%9C%AA"])
-    func deleteEncodedFolder(name: String) async throws {
+    @Test(arguments: ["未命名文件夹", "100% #? 😀", "%E6%9C%AA"])
+    func `DELETE accepts encoded folder names and collection trailing slashes`(name: String) async throws {
         let harness = try await Harness()
         let container = ".Trash/BA394090-7848-4AC2-B6C1-F8035B8120BF"
         harness.scratch.directory(".Trash")
@@ -678,8 +678,8 @@ struct ServerTests {
         #expect(harness.scratch.contents(container + "/保留.txt") == "keep")
     }
 
-    @Test("DELETE is permanent even when the backend trash is unavailable")
-    func deleteWithoutTrash() async throws {
+    @Test
+    func `DELETE is permanent even when the backend trash is unavailable`() async throws {
         let bootstrap = Scratch()
         bootstrap.file(FilaTrash.directoryName, contents: "unavailable")
         let harness = try await Harness(service: LocalService(bootstrapRoot: bootstrap.root))
@@ -692,8 +692,8 @@ struct ServerTests {
         #expect(bootstrap.contents(FilaTrash.directoryName) == "unavailable")
     }
 
-    @Test("Lock-dependent clients receive an explicit refusal")
-    func locking() async throws {
+    @Test
+    func `Lock-dependent clients receive an explicit refusal`() async throws {
         let harness = try await Harness()
         harness.scratch.file("locked.txt", contents: "original")
         for method in ["LOCK", "UNLOCK"] {
@@ -711,7 +711,7 @@ struct ServerTests {
                 headers: [
                     "If": "(<opaquelocktoken:prior-session>)", "Destination": "/changed.txt",
                 ],
-                body: method == "PUT" ? Data("replacement".utf8) : nil
+                body: method == "PUT" ? Data("replacement".utf8) : nil,
             )
             #expect(reply.status == 501)
             #expect(harness.scratch.contents("locked.txt") == "original")
@@ -719,8 +719,8 @@ struct ServerTests {
         }
     }
 
-    @Test("An escaped traversal is refused at the door")
-    func refusesTraversal() async throws {
+    @Test
+    func `An escaped traversal is refused at the door`() async throws {
         let harness = try await Harness()
         // Percent-encoded so that neither `URL` nor `URLSession` tidies it away
         // before it reaches the server — which is the whole point of the check.
@@ -731,8 +731,8 @@ struct ServerTests {
         #expect(encodedSeparator.status == 400)
     }
 
-    @Test("A symlink pointing out of the served root is refused")
-    func refusesSymlinkEscape() async throws {
+    @Test
+    func `A symlink pointing out of the served root is refused`() async throws {
         let harness = try await Harness()
         // Nothing lexical can catch this: the target has no `..` in it and no
         // separator that was hidden. Only the canonical path the daemon reports
@@ -745,8 +745,8 @@ struct ServerTests {
         #expect(!FileManager.default.fileExists(atPath: "/private/etc/planted"))
     }
 
-    @Test("An unknown verb is refused with the list of the ones that work")
-    func unknownMethod() async throws {
+    @Test
+    func `An unknown verb is refused with the list of the ones that work`() async throws {
         let harness = try await Harness()
         let reply = try await harness.send("PATCH", "/", body: Data("x".utf8))
         #expect(reply.status == 405)
@@ -757,8 +757,8 @@ struct ServerTests {
     /// a real socket and a real body on the other end. Placing the result on a
     /// root-owned path is the app's half and needs the daemon, so it is not
     /// here — see `OperationCenter.download`.
-    @Test("A download lands the bytes, reports progress, and refuses a 404 page")
-    func downloading() async throws {
+    @Test
+    func `A download lands the bytes, reports progress, and refuses a 404 page`() async throws {
         let harness = try await Harness()
         let contents = String(repeating: "payload-", count: 100_000)
         harness.scratch.file("payload.bin", contents: contents)
@@ -783,8 +783,8 @@ struct ServerTests {
         }
     }
 
-    @Test("A download's name comes from the URL, and cannot be a path")
-    func downloadNames() throws {
+    @Test
+    func `A download's name comes from the URL, and cannot be a path`() throws {
         #expect(try URLDownload.suggestedName(for: #require(URL(string: "http://x/a/b.zip"))) == "b.zip")
         #expect(try URLDownload.suggestedName(for: #require(URL(string: "http://x/"))) == "download")
         #expect(try URLDownload.suggestedName(for: #require(URL(string: "http://x"))) == "download")
@@ -795,8 +795,8 @@ struct ServerTests {
         #expect(URLDownload.sanitize("  ") == nil)
     }
 
-    @Test("Connections and their verdicts reach the log the user reads")
-    func logsConnections() async throws {
+    @Test
+    func `Connections and their verdicts reach the log the user reads`() async throws {
         let harness = try await Harness()
         _ = try await harness.send("OPTIONS", "/")
         // The client can receive the response before the server resumes to log it.

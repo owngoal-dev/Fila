@@ -25,20 +25,20 @@ struct LocalFileBackendTests {
         ]
     }
 
-    @Test("Both backends share one identity and resolve paths under their root")
-    func identity() throws {
+    @Test
+    func `Both backends share one identity and resolve paths under their root`() throws {
         for (_, backend) in backends() {
             #expect(backend.id == LocalFileBackend.identifier)
             #expect(backend.root.location == .root(of: LocalFileBackend.identifier))
             #expect(backend.root.kind == .filesystem)
             #expect(backend.absolutePath(.root) == scratch.root)
-            #expect(backend.absolutePath(try ServicePath("a/b")) == scratch.root + "/a/b")
+            #expect(try backend.absolutePath(ServicePath("a/b")) == scratch.root + "/a/b")
         }
-        #expect(LocalFileBackend(access: LocalFileService(), storage: MemoryStorage()).absolutePath(try ServicePath("var")) == "/var")
+        #expect(try LocalFileBackend(access: LocalFileService(), storage: MemoryStorage()).absolutePath(ServicePath("var")) == "/var")
     }
 
-    @Test("The sandboxed backend starts at Documents and holds in-process access")
-    func sandboxedAuthority() {
+    @Test
+    func `The sandboxed backend starts at Documents and holds in-process access`() {
         let backend = SandboxedLocalFileBackend(documents: URL(fileURLWithPath: scratch.root, isDirectory: true), storage: MemoryStorage())
         #expect(backend.rootPath == scratch.root)
         #expect(backend.access is LocalFileService)
@@ -47,9 +47,11 @@ struct LocalFileBackendTests {
         #expect(SandboxedLocalFileBackend(storage: MemoryStorage()).rootPath.hasSuffix("/Documents"))
     }
 
-    @Test("Lists a directory in pages and releases the cursor when abandoned")
-    func listing() async throws {
-        for index in 0 ... FilaProtocol.directoryPageEntryCount { scratch.file("entry-\(index)") }
+    @Test
+    func `Lists a directory in pages and releases the cursor when abandoned`() async throws {
+        for index in 0 ... FilaProtocol.directoryPageEntryCount {
+            scratch.file("entry-\(index)")
+        }
         for (name, backend) in backends() {
             let service = try await backend.fileService()
             var names: [String] = []
@@ -63,9 +65,11 @@ struct LocalFileBackendTests {
         }
     }
 
-    @Test("An abandoned listing closes its cursor once; a finished or unstarted one closes nothing")
-    func cursorRelease() async throws {
-        for index in 0 ... FilaProtocol.directoryPageEntryCount { scratch.file("entry-\(index)") }
+    @Test
+    func `An abandoned listing closes its cursor once; a finished or unstarted one closes nothing`() async throws {
+        for index in 0 ... FilaProtocol.directoryPageEntryCount {
+            scratch.file("entry-\(index)")
+        }
         let spy = RecordingAccess(LocalFileService())
         let backend = LocalFileBackend(access: spy, rootPath: scratch.root, displayName: "Scratch", artworkName: "folder", storage: MemoryStorage(), environment: .init(), defaultFavorites: [])
         let service = try await backend.fileService()
@@ -103,30 +107,30 @@ struct LocalFileBackendTests {
         #expect(try await b.next() == nil)
     }
 
-    @Test("Details and entry kinds come from the node, without invented metadata")
-    func details() async throws {
+    @Test
+    func `Details and entry kinds come from the node, without invented metadata`() async throws {
         scratch.file("plain", contents: "12345")
         scratch.directory("dir")
         symlink("plain", scratch.path("link"))
         symlink("missing", scratch.path("broken"))
         for (name, backend) in backends() {
             let service = try await backend.fileService()
-            let plain = try await service.details(try ServicePath("plain"))
+            let plain = try await service.details(ServicePath("plain"))
             #expect(plain.kind == .file && plain.size == 5 && plain.modified != nil, "\(name)")
-            let dir = try await service.details(try ServicePath("dir"))
+            let dir = try await service.details(ServicePath("dir"))
             #expect(dir.kind == .directory && dir.size == nil && dir.entersDirectory, "\(name)")
-            let link = try await service.details(try ServicePath("link"))
+            let link = try await service.details(ServicePath("link"))
             #expect(link.kind == .symbolicLink(resolved: .file), "\(name)")
-            let broken = try await service.details(try ServicePath("broken"))
+            let broken = try await service.details(ServicePath("broken"))
             #expect(broken.kind == .symbolicLink(resolved: nil), "\(name)")
             await #expect(throws: FilaFailure.self, "\(name)") {
-                _ = try await service.details(try ServicePath("absent"))
+                _ = try await service.details(ServicePath("absent"))
             }
         }
     }
 
-    @Test("copyContents fills the caller's descriptor, reports progress and closes only its source")
-    func copyContents() async throws {
+    @Test
+    func `copyContents fills the caller's descriptor, reports progress and closes only its source`() async throws {
         let payload = Data((0 ..< (3 * LocalFileServiceAdapter.chunkSize + 17)).map { UInt8(truncatingIfNeeded: $0) })
         FileManager.default.createFile(atPath: scratch.path("big"), contents: payload)
         for (name, backend) in backends() {
@@ -135,7 +139,7 @@ struct LocalFileBackendTests {
             let output = Darwin.open(staging, O_WRONLY | O_CREAT | O_EXCL, 0o600)
             #expect(output >= 0)
             let progress = ProgressLog()
-            try await service.copyContents(of: try ServicePath("big"), to: output) { progress.append($0) }
+            try await service.copyContents(of: ServicePath("big"), to: output) { progress.append($0) }
             // Still ours to close: the adapter did not.
             #expect(fcntl(output, F_GETFD) != -1, "\(name)")
             close(output)
@@ -146,8 +150,8 @@ struct LocalFileBackendTests {
         }
     }
 
-    @Test("A copy cancelled mid-way stops, throws cancellation and leaves the descriptor to its owner")
-    func cancelledCopy() async throws {
+    @Test
+    func `A copy cancelled mid-way stops, throws cancellation and leaves the descriptor to its owner`() async throws {
         let payload = Data(count: 16 * LocalFileServiceAdapter.chunkSize)
         FileManager.default.createFile(atPath: scratch.path("big"), contents: payload)
         let backend = backends()[0].1
@@ -156,7 +160,7 @@ struct LocalFileBackendTests {
         defer { close(output) }
         let progress = ProgressLog()
         let task = Task {
-            try await service.copyContents(of: try ServicePath("big"), to: output) { report in
+            try await service.copyContents(of: ServicePath("big"), to: output) { report in
                 progress.append(report)
                 // Cancel from inside the pump, after the first chunk landed.
                 progress.cancelOnce?()
@@ -166,12 +170,12 @@ struct LocalFileBackendTests {
         await #expect(throws: CancellationError.self) { try await task.value }
         // It stopped well short of the whole file, and the descriptor is
         // still ours.
-        #expect(progress.reports.last!.completed < Int64(payload.count))
+        #expect(try #require(progress.reports.last?.completed) < Int64(payload.count))
         #expect(fcntl(output, F_GETFD) != -1)
     }
 
-    @Test("copyContents refuses what is not a regular file and follows a link to its target's size")
-    func copySources() async throws {
+    @Test
+    func `copyContents refuses what is not a regular file and follows a link to its target's size`() async throws {
         scratch.directory("dir")
         scratch.file("plain", contents: "12345")
         symlink("plain", scratch.path("link"))
@@ -179,11 +183,11 @@ struct LocalFileBackendTests {
         let output = Darwin.open(scratch.path("staging"), O_WRONLY | O_CREAT | O_EXCL, 0o600)
         defer { close(output) }
         let failure = await #expect(throws: FilaFailure.self) {
-            try await service.copyContents(of: try ServicePath("dir"), to: output) { _ in }
+            try await service.copyContents(of: ServicePath("dir"), to: output) { _ in }
         }
         #expect(failure?.systemError == EISDIR)
         let log = ProgressLog()
-        try await service.copyContents(of: try ServicePath("link"), to: output) { log.append($0) }
+        try await service.copyContents(of: ServicePath("link"), to: output) { log.append($0) }
         #expect(log.reports.last == TransferProgress(completed: 5, expected: 5))
     }
 }
@@ -195,11 +199,21 @@ private final class RecordingAccess: LocalFileAccess, @unchecked Sendable {
     private var openedCursors: [UInt64] = []
     private var closedCursors: [UInt64] = []
 
-    init(_ inner: LocalFileService) { self.inner = inner }
+    init(_ inner: LocalFileService) {
+        self.inner = inner
+    }
 
-    var opened: [UInt64] { lock.withLock { openedCursors } }
-    var closed: [UInt64] { lock.withLock { closedCursors } }
-    var lastCursor: UInt64 { opened.last ?? 0 }
+    var opened: [UInt64] {
+        lock.withLock { openedCursors }
+    }
+
+    var closed: [UInt64] {
+        lock.withLock { closedCursors }
+    }
+
+    var lastCursor: UInt64 {
+        opened.last ?? 0
+    }
 
     /// Releases run on a detached task after an iterator is dropped; give
     /// them a moment, bounded.
@@ -209,14 +223,23 @@ private final class RecordingAccess: LocalFileAccess, @unchecked Sendable {
         }
     }
 
-    var jobEvents: AsyncStream<JobUpdate> { inner.jobEvents }
-    var searchResults: AsyncStream<SearchUpdate> { inner.searchResults }
+    var jobEvents: AsyncStream<JobUpdate> {
+        inner.jobEvents
+    }
+
+    var searchResults: AsyncStream<SearchUpdate> {
+        inner.searchResults
+    }
+
     var onLinkLost: (@Sendable () -> Void)? {
         get { inner.onLinkLost }
         set { inner.onLinkLost = newValue }
     }
 
-    func hello() async throws -> LocalHello { try await inner.hello() }
+    func hello() async throws -> LocalHello {
+        try await inner.hello()
+    }
+
     func list(directory: String, cursor: UInt64) async throws -> DirectoryPage {
         let page = try await inner.list(directory: directory, cursor: cursor)
         if !page.isFinal {
@@ -230,34 +253,75 @@ private final class RecordingAccess: LocalFileAccess, @unchecked Sendable {
         try await inner.closeDirectory(cursor: cursor)
     }
 
-    func details(of path: String) async throws -> FileDetails { try await inner.details(of: path) }
-    func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32 { try await inner.open(path, flags: flags, mode: mode) }
-    func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws { try await inner.create(template, at: path, mode: mode) }
+    func details(of path: String) async throws -> FileDetails {
+        try await inner.details(of: path)
+    }
+
+    func open(_ path: String, flags: Int32, mode: mode_t) async throws -> Int32 {
+        try await inner.open(path, flags: flags, mode: mode)
+    }
+
+    func create(_ template: NodeTemplate, at path: String, mode: mode_t?) async throws {
+        try await inner.create(template, at: path, mode: mode)
+    }
+
     func rename(_ source: String, to destination: String, exclusive: Bool, overrideGuard: Bool) async throws {
         try await inner.rename(source, to: destination, exclusive: exclusive, overrideGuard: overrideGuard)
     }
+
     func remove(_ path: String, directory: Bool, overrideGuard: Bool) async throws {
         try await inner.remove(path, directory: directory, overrideGuard: overrideGuard)
     }
-    func setAttributes(_ change: AttributeChange, at path: String) async throws { try await inner.setAttributes(change, at: path) }
-    func replaceItem(at target: String, withTemporary temporary: String) async throws { try await inner.replaceItem(at: target, withTemporary: temporary) }
-    func mountPoints() async throws -> [MountPoint] { try await inner.mountPoints() }
-    func volumeInfo(for path: String) async throws -> VolumeInfo { try await inner.volumeInfo(for: path) }
-    func extendedAttribute(_ name: String, at path: String) async throws -> Data { try await inner.extendedAttribute(name, at: path) }
-    func startJob(_ job: JobRequest) async throws -> UInt64 { try await inner.startJob(job) }
-    func cancelJob(_ identifier: UInt64) async throws { try await inner.cancelJob(identifier) }
+
+    func setAttributes(_ change: AttributeChange, at path: String) async throws {
+        try await inner.setAttributes(change, at: path)
+    }
+
+    func replaceItem(at target: String, withTemporary temporary: String) async throws {
+        try await inner.replaceItem(at: target, withTemporary: temporary)
+    }
+
+    func mountPoints() async throws -> [MountPoint] {
+        try await inner.mountPoints()
+    }
+
+    func volumeInfo(for path: String) async throws -> VolumeInfo {
+        try await inner.volumeInfo(for: path)
+    }
+
+    func extendedAttribute(_ name: String, at path: String) async throws -> Data {
+        try await inner.extendedAttribute(name, at: path)
+    }
+
+    func startJob(_ job: JobRequest) async throws -> UInt64 {
+        try await inner.startJob(job)
+    }
+
+    func cancelJob(_ identifier: UInt64) async throws {
+        try await inner.cancelJob(identifier)
+    }
+
     func fetchLog(since sequence: UInt64, level: FilaLog.Level) async throws -> (records: [FilaLog.Record], dropped: UInt64) {
         try await inner.fetchLog(since: sequence, level: level)
     }
-    func invalidate() { inner.invalidate() }
+
+    func invalidate() {
+        inner.invalidate()
+    }
 }
 
 private final class ProgressLog: @unchecked Sendable {
     private let lock = NSLock()
     private var log: [TransferProgress] = []
     private var once: (@Sendable () -> Void)?
-    func append(_ progress: TransferProgress) { lock.lock(); log.append(progress); lock.unlock() }
-    var reports: [TransferProgress] { lock.lock(); defer { lock.unlock() }; return log }
+    func append(_ progress: TransferProgress) {
+        lock.lock(); log.append(progress); lock.unlock()
+    }
+
+    var reports: [TransferProgress] {
+        lock.lock(); defer { lock.unlock() }; return log
+    }
+
     /// A hook fired by the first report only, then cleared.
     var cancelOnce: (@Sendable () -> Void)? {
         get { lock.lock(); defer { lock.unlock() }; defer { once = nil }; return once }

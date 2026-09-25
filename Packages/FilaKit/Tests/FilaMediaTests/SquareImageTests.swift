@@ -8,8 +8,8 @@ struct SquareImageTests {
     /// square landed on is the colour of its middle pixel.
     private static let bands: [(red: CGFloat, green: CGFloat, blue: CGFloat)] = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
-    @Test("A portrait picture is cut at its anchor: a page's top, a photo's middle", arguments: [SquareImage.Anchor.top, .center])
-    func portrait(anchor: SquareImage.Anchor) throws {
+    @Test(arguments: [SquareImage.Anchor.top, .center])
+    func `A portrait picture is cut at its anchor: a page's top, a photo's middle`(anchor: SquareImage.Anchor) throws {
         let page = try banded(width: 40, height: 120, vertical: true)
         let square = try #require(SquareImage.make(page, anchor: anchor, maxSide: 512))
         #expect(square.width == 40)
@@ -17,23 +17,23 @@ struct SquareImageTests {
         #expect(try band(square, x: 20, y: 20) == (anchor == .top ? 0 : 1))
     }
 
-    @Test("A landscape picture is cut from its middle, whatever the anchor", arguments: [SquareImage.Anchor.top, .center])
-    func landscape(anchor: SquareImage.Anchor) throws {
+    @Test(arguments: [SquareImage.Anchor.top, .center])
+    func `A landscape picture is cut from its middle, whatever the anchor`(anchor: SquareImage.Anchor) throws {
         let photo = try banded(width: 120, height: 40, vertical: false)
         let square = try #require(SquareImage.make(photo, anchor: anchor, maxSide: 512))
         #expect(square.width == square.height)
         #expect(try band(square, x: 20, y: 20) == 1)
     }
 
-    @Test("The square is no larger than asked")
-    func bounded() throws {
+    @Test
+    func `The square is no larger than asked`() throws {
         let square = try #require(SquareImage.make(banded(width: 300, height: 900, vertical: true), anchor: .top, maxSide: 64))
         #expect(square.width == 64)
         #expect(square.height == 64)
     }
 
-    @Test("An icon is fitted whole into its square, never cut")
-    func fitted() throws {
+    @Test
+    func `An icon is fitted whole into its square, never cut`() throws {
         let icon = try banded(width: 120, height: 40, vertical: false)
         let square = try #require(SquareImage.fit(icon, maxSide: 60))
         #expect(square.width == 60)
@@ -55,7 +55,7 @@ struct SquareImageTests {
             bitsPerComponent: 8,
             bytesPerRow: 0,
             space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
         ))
         for (index, band) in Self.bands.enumerated() {
             context.setFillColor(red: band.red, green: band.green, blue: band.blue, alpha: 1)
@@ -89,7 +89,7 @@ struct SquareImageTests {
             bitsPerComponent: 8,
             bytesPerRow: 4,
             space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
         ))
         // Draw the image so that pixel (x, y) lands on the context's only pixel.
         context.draw(image, in: CGRect(x: -x, y: y - image.height + 1, width: image.width, height: image.height))

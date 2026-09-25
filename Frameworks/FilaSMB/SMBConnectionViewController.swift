@@ -38,10 +38,12 @@ final class SMBConnectionViewController: UITableViewController {
     private let existing: SMBBackend?
     private var profile: SMBProfile
     /// `.none` keeps the stored password; `.some` replaces it on save.
-    private var password: String?? = nil
+    private var password: String??
     private var isStoredPasswordPresent = false
     private var work: Task<Void, Never>?
-    private var bundle: Bundle { SMBBackend.bundle }
+    private var bundle: Bundle {
+        SMBBackend.bundle
+    }
 
     init(module: FilaSMBModule, existing: SMBBackend?) {
         self.module = module
@@ -55,11 +57,11 @@ final class SMBConnectionViewController: UITableViewController {
             : String(localized: "Edit SMB Share", bundle: bundle)
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"),
-            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) }
+            primaryAction: UIAction { [weak self] _ in self?.dismiss(animated: true) },
         )
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Cancel", bundle: bundle)
         navigationItem.rightBarButtonItem = UIBarButtonItem(
-            primaryAction: UIAction(title: String(localized: "Save", bundle: bundle)) { [weak self] _ in self?.save() }
+            primaryAction: UIAction(title: String(localized: "Save", bundle: bundle)) { [weak self] _ in self?.save() },
         ).then {
             $0.style = .done
         }
@@ -93,9 +95,9 @@ final class SMBConnectionViewController: UITableViewController {
 
     private func rows(in section: Section) -> [Row] {
         switch section {
-        case .server: return [.host, .port, .share, .chooseShare]
-        case .account: return profile.isGuest ? [.guest] : [.guest, .domain, .username, .password]
-        case .name: return [.name]
+        case .server: [.host, .port, .share, .chooseShare]
+        case .account: profile.isGuest ? [.guest] : [.guest, .domain, .username, .password]
+        case .name: [.name]
         }
     }
 
@@ -141,13 +143,13 @@ final class SMBConnectionViewController: UITableViewController {
     override func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         switch Section(rawValue: section)! {
         case .server:
-            return String(localized: "Uses SMB 2 on port 445. SMB 1 is not supported.", bundle: bundle)
+            String(localized: "Uses SMB 2 on port 445. SMB 1 is not supported.", bundle: bundle)
         case .account:
-            return profile.isGuest
+            profile.isGuest
                 ? String(localized: "Guest access has no username or password. Servers that require an account will refuse it.", bundle: bundle)
                 : String(localized: "The password is kept in this device's keychain and never written anywhere else.", bundle: bundle)
         case .name:
-            return existing == nil
+            existing == nil
                 ? nil
                 : String(localized: "Changing the server or share creates a new sidebar item with its own favorites.", bundle: bundle)
         }
@@ -231,43 +233,41 @@ final class SMBConnectionViewController: UITableViewController {
                 title: String(localized: "Address", bundle: bundle),
                 placeholder: String(localized: "Host name or IP address", bundle: bundle),
                 text: profile.host,
-                keyboard: .URL
+                keyboard: .URL,
             )
         case .port:
             return .init(
                 title: String(localized: "Port", bundle: bundle),
                 placeholder: String(SMBProfile.defaultPort),
                 text: String(profile.port),
-                keyboard: .numberPad
+                keyboard: .numberPad,
             )
         case .share:
             return .init(
                 title: String(localized: "Share", bundle: bundle),
                 placeholder: String(localized: "Shared folder", bundle: bundle),
-                text: profile.share
+                text: profile.share,
             )
         case .domain:
             return .init(
                 title: String(localized: "Domain", bundle: bundle),
                 placeholder: String(localized: "Optional", bundle: bundle),
-                text: profile.domain ?? ""
+                text: profile.domain ?? "",
             )
         case .username:
             return .init(
                 title: String(localized: "User Name", bundle: bundle),
                 placeholder: String(localized: "Required", bundle: bundle),
-                text: profile.username ?? ""
+                text: profile.username ?? "",
             )
         case .password:
-            let stored: Bool
-            switch password {
-            case .none: stored = isStoredPasswordPresent
-            case .some: stored = false
+            let stored: Bool = switch password {
+            case .none: isStoredPasswordPresent
+            case .some: false
             }
-            let typed: String
-            switch password {
-            case let .some(.some(value)): typed = value
-            default: typed = ""
+            let typed: String = switch password {
+            case let .some(.some(value)): value
+            default: ""
             }
             return .init(
                 title: String(localized: "Password", bundle: bundle),
@@ -275,14 +275,14 @@ final class SMBConnectionViewController: UITableViewController {
                 // field: the dots are a placeholder, and typing replaces it.
                 placeholder: stored ? "••••••••" : String(localized: "Optional", bundle: bundle),
                 text: typed,
-                isSecure: true
+                isSecure: true,
             )
         case .name:
             let hasIdentity = !profile.host.isEmpty && !profile.share.isEmpty
             return .init(
                 title: String(localized: "Name", bundle: bundle),
                 placeholder: hasIdentity ? profile.displayName : String(localized: "Optional", bundle: bundle),
-                text: profile.name
+                text: profile.name,
             )
         case .chooseShare, .guest:
             preconditionFailure("not a field")
@@ -295,7 +295,9 @@ final class SMBConnectionViewController: UITableViewController {
         case .host:
             let wasEmpty = profile.host.isEmpty
             profile.host = trimmed
-            if wasEmpty != trimmed.isEmpty { reload(.chooseShare) }
+            if wasEmpty != trimmed.isEmpty {
+                reload(.chooseShare)
+            }
             reloadNamePlaceholder()
         case .port:
             // Empty is the default; anything else must parse, or Save waits.
@@ -334,7 +336,7 @@ final class SMBConnectionViewController: UITableViewController {
                     title: String(localized: "Listing Shares…", bundle: bundle),
                     message: String(localized: "Looking up shares on \(profile.host).", bundle: bundle),
                     cancellable: true,
-                    from: self
+                    from: self,
                 ) { _ in
                     try await SMBShares.list(profile: profile, password: candidatePassword)
                 }
@@ -344,7 +346,7 @@ final class SMBConnectionViewController: UITableViewController {
                 guard !Task.isCancelled, !(error is CancellationError) else { return }
                 shell.alert(
                     title: String(localized: "Unable to List Shares", bundle: bundle),
-                    message: shell.failureText(for: error)
+                    message: shell.failureText(for: error),
                 )
             }
         }
@@ -356,9 +358,9 @@ final class SMBConnectionViewController: UITableViewController {
             message: shares.isEmpty
                 ? String(
                     localized: "This account has no listed shares. Type the share name instead.",
-                    bundle: bundle
+                    bundle: bundle,
                 )
-                : String(localized: "Shared folders available to this account.", bundle: bundle)
+                : String(localized: "Shared folders available to this account.", bundle: bundle),
         ) { [weak self] context in
             let choices = Array(shares.prefix(24))
             let cancel = {
@@ -393,7 +395,9 @@ final class SMBConnectionViewController: UITableViewController {
     /// The password a connection made from this form uses: the edited
     /// one, else what is stored for the profile being edited.
     private func passwordForConnecting() -> String? {
-        if profile.isGuest { return nil }
+        if profile.isGuest {
+            return nil
+        }
         switch password {
         case let .some(value): return value
         case .none: return existing.flatMap { try? module.profileStore?.password(for: $0.profile) } ?? nil
@@ -420,7 +424,7 @@ final class SMBConnectionViewController: UITableViewController {
                     title: String(localized: "Connecting…", bundle: bundle),
                     message: String(localized: "Connecting to \(saving.share) on \(saving.host).", bundle: bundle),
                     cancellable: true,
-                    from: self
+                    from: self,
                 ) { _ in
                     _ = try await probe.details(.root)
                 }
@@ -442,8 +446,8 @@ final class SMBConnectionViewController: UITableViewController {
             title: String(localized: "Unable to Connect", bundle: bundle),
             message: String(
                 localized: "\(reason)\n\nSave the share anyway? It can be opened later when the server is reachable.",
-                bundle: bundle
-            )
+                bundle: bundle,
+            ),
         ) { [weak self] context in
             context.addAction(title: String(localized: "Cancel", bundle: bundle)) {
                 context.dispose()
@@ -461,7 +465,9 @@ final class SMBConnectionViewController: UITableViewController {
     /// unless the field was touched; a new identity copies what the old
     /// profile had, so a share moved to another server keeps its account.
     private func passwordToStore(for saving: SMBProfile) -> String?? {
-        if saving.isGuest { return .some(nil) }
+        if saving.isGuest {
+            return .some(nil)
+        }
         if let existing, existing.profile.id != saving.id, password == nil {
             return .some(try? module.profileStore?.password(for: existing.profile) ?? nil)
         }
@@ -479,7 +485,7 @@ final class SMBConnectionViewController: UITableViewController {
         } catch {
             BackendScreens.shell?.alert(
                 title: String(localized: "Unable to Save Share", bundle: bundle),
-                message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription
+                message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription,
             )
         }
     }

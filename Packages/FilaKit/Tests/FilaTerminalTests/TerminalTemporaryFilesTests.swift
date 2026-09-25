@@ -5,8 +5,8 @@ import Testing
 
 @Suite("Terminal temporary configurations")
 struct TerminalTemporaryFilesTests {
-    @Test("Cleanup removes new configurations while preserving workspace and unrelated files")
-    func configurations() throws {
+    @Test
+    func `Cleanup removes new configurations while preserving workspace and unrelated files`() throws {
         let root = try makeFixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let directory = root.appendingPathComponent("wiki.qaq.fila")
@@ -35,8 +35,8 @@ struct TerminalTemporaryFilesTests {
         }
     }
 
-    @Test("Cleanup unlinks a configuration symlink without changing its target")
-    func configurationLink() throws {
+    @Test
+    func `Cleanup unlinks a configuration symlink without changing its target`() throws {
         let root = try makeFixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let directory = root.appendingPathComponent("wiki.qaq.fila")
@@ -50,8 +50,8 @@ struct TerminalTemporaryFilesTests {
         #expect(try String(contentsOf: target, encoding: .utf8) == "keep")
     }
 
-    @Test("Cleanup refuses a symlink or an untrusted directory", arguments: [true, false])
-    func invalidParent(symlink: Bool) throws {
+    @Test(arguments: [true, false])
+    func `Cleanup refuses a symlink or an untrusted directory`(symlink: Bool) throws {
         let root = try makeFixture()
         defer { try? FileManager.default.removeItem(at: root) }
         let target = root.appendingPathComponent("target")

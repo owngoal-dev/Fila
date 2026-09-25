@@ -84,16 +84,16 @@ struct TerminalPTYTests {
         try body(pty, launch.process, sink)
     }
 
-    @Test("bytes travel both ways between the program and the pump")
-    func pumpsBothDirections() throws {
+    @Test
+    func `bytes travel both ways between the program and the pump`() throws {
         try withShell { pty, _, sink in
             pty.send(Data("printf 'fila-marker\\n'\n".utf8))
             #expect(sink.wait(for: "fila-marker"))
         }
     }
 
-    @Test("a resize reaches the program, which is what SIGWINCH is")
-    func resizes() throws {
+    @Test
+    func `a resize reaches the program, which is what SIGWINCH is`() throws {
         try withShell { pty, _, sink in
             // The app owns the master, so this is one `ioctl` with no daemon in
             // it — and the kernel signals the foreground process group itself.
@@ -103,8 +103,8 @@ struct TerminalPTYTests {
         }
     }
 
-    @Test("a paste larger than the terminal's own buffer arrives whole")
-    func deliversALargePaste() throws {
+    @Test
+    func `a paste larger than the terminal's own buffer arrives whole`() throws {
         // A pty master takes about a kilobyte ahead of the reader and answers
         // EAGAIN for the rest, so this is the buffering under test: without it
         // the tail of a paste is silently lost.
@@ -127,16 +127,16 @@ struct TerminalPTYTests {
         #expect(sink.wait(for: "END-OF-PASTE", seconds: 30))
     }
 
-    @Test("the pump reports the program letting go of the terminal")
-    func reportsTheProgramEnding() throws {
+    @Test
+    func `the pump reports the program letting go of the terminal`() throws {
         try withShell { pty, _, sink in
             pty.send(Data("exit 0\n".utf8))
             #expect(sink.waitForEnd())
         }
     }
 
-    @Test("closing the master hangs the session up")
-    func closingHangsUp() throws {
+    @Test
+    func `closing the master hangs the session up`() throws {
         // The claim the whole teardown rests on: the app closing its master is
         // what revokes the terminal, and the kernel sends SIGHUP to the
         // session. The daemon's kill is the belt to this braces, for a program

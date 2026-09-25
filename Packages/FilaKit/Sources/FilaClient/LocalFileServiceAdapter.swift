@@ -68,19 +68,19 @@ final class LocalFileServiceAdapter: FileService, @unchecked Sendable {
                     // that never asked for a page has nothing to release.
                     guard let open = cursor.takeOpen() else { return }
                     try? await access.closeDirectory(cursor: open)
-                }
+                },
             )
         }
     }
 
     func details(_ path: ServicePath) async throws -> FileEntry {
-        FileEntry(node: try await access.details(of: absolutePath(path)).node)
+        try await FileEntry(node: access.details(of: absolutePath(path)).node)
     }
 
     func copyContents(
         of path: ServicePath,
         to descriptor: Int32,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) async throws {
         let source = absolutePath(path)
         let input = try await access.open(source, flags: O_RDONLY)
@@ -107,24 +107,34 @@ final class LocalFileServiceAdapter: FileService, @unchecked Sendable {
         to output: Int32,
         expected: Int64,
         isCancelled: () -> Bool,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) throws {
         var buffer = [UInt8](repeating: 0, count: chunkSize)
         var completed: Int64 = 0
         while true {
-            if isCancelled() { throw CancellationError() }
+            if isCancelled() {
+                throw CancellationError()
+            }
             let count = buffer.withUnsafeMutableBytes { read(input, $0.baseAddress, $0.count) }
             if count < 0 {
-                if errno == EINTR { continue }
+                if errno == EINTR {
+                    continue
+                }
                 throw FilaFailure(errno: errno)
             }
-            if count == 0 { break }
+            if count == 0 {
+                break
+            }
             var written = 0
             while written < count {
-                if isCancelled() { throw CancellationError() }
+                if isCancelled() {
+                    throw CancellationError()
+                }
                 let wrote = buffer.withUnsafeBytes { write(output, $0.baseAddress! + written, count - written) }
                 if wrote < 0 {
-                    if errno == EINTR { continue }
+                    if errno == EINTR {
+                        continue
+                    }
                     throw FilaFailure(errno: errno)
                 }
                 // A write that moved nothing would loop here forever.
@@ -195,7 +205,7 @@ extension LocalFileServiceAdapter: WritableFileService, DescriptorFileService {
         size: Int64,
         to destination: ServicePath,
         policy: PublishPolicy,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) async throws {
         let target = absolutePath(destination)
         let temporary = (target as NSString).deletingLastPathComponent + "/.fila-transfer-" + UUID().uuidString
@@ -263,10 +273,10 @@ extension LocalFileServiceAdapter: WritableFileService, DescriptorFileService {
     /// local failure it was, with its path and reason intact.
     private static func classify(_ failure: FilaFailure, at path: ServicePath) -> Error {
         switch failure.systemError {
-        case EEXIST: return WriteFailure.alreadyExists(path)
-        case ENOENT: return WriteFailure.notFound(path)
-        case ENOTEMPTY, EISDIR: return WriteFailure.notEmpty(path)
-        default: return failure
+        case EEXIST: WriteFailure.alreadyExists(path)
+        case ENOENT: WriteFailure.notFound(path)
+        case ENOTEMPTY, EISDIR: WriteFailure.notEmpty(path)
+        default: failure
         }
     }
 }
@@ -282,9 +292,9 @@ public extension FileEntry {
         case .symbolicLink:
             let resolved: Kind.ResolvedKind? = node.link?.resolvedKind.map { target in
                 switch target {
-                case .regular: return .file
-                case .directory: return .directory
-                default: return .other
+                case .regular: .file
+                case .directory: .directory
+                default: .other
                 }
             }
             kind = .symbolicLink(resolved: resolved)
@@ -295,7 +305,7 @@ public extension FileEntry {
             kind: kind,
             size: node.kind == .regular ? node.size : nil,
             modified: Date(timeIntervalSince1970: node.modified),
-            isHidden: node.isHidden
+            isHidden: node.isHidden,
         )
     }
 }

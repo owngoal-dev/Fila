@@ -12,7 +12,7 @@ import UIKit
 public final class FilaApplicationsModule: NSObject, BackendModule {
     private var backend: ApplicationBackend?
 
-    public required override init() {
+    override public required init() {
         super.init()
     }
 
@@ -48,7 +48,9 @@ public final class FilaApplicationsModule: NSObject, BackendModule {
 final class ApplicationCapabilityProxy: ApplicationCapability {
     var backend: ApplicationBackend?
 
-    var isEnabled: Bool { backend?.isEnabled ?? false }
+    var isEnabled: Bool {
+        backend?.isEnabled ?? false
+    }
 
     func locate(bundleIdentifier: String) async -> ApplicationLocation? {
         await backend?.locate(bundleIdentifier: bundleIdentifier)

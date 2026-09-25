@@ -10,12 +10,23 @@ private final class RecordingHost: BackendHost {
     let inboxDirectory: String? = nil
     let credentials: any CredentialStore = MemoryCredentialStore()
     var lines: [String] = []
-    func log(_ message: String) { lines.append(message) }
-    func warn(_ message: String) { lines.append(message) }
-    func addBackend(_ backend: any Backend, screen: @escaping @MainActor (BackendLocation) -> AnyObject?) throws {}
-    func removeBackend(_ id: BackendID) {}
-    var failures: [String] { lines.filter { $0.hasPrefix("backend failed to bootstrap") } }
-    var bootstrapped: [String] { lines.filter { $0.hasPrefix("backend module bootstrapped") } }
+    func log(_ message: String) {
+        lines.append(message)
+    }
+
+    func warn(_ message: String) {
+        lines.append(message)
+    }
+
+    func addBackend(_: any Backend, screen _: @escaping @MainActor (BackendLocation) -> AnyObject?) throws {}
+    func removeBackend(_: BackendID) {}
+    var failures: [String] {
+        lines.filter { $0.hasPrefix("backend failed to bootstrap") }
+    }
+
+    var bootstrapped: [String] {
+        lines.filter { $0.hasPrefix("backend module bootstrapped") }
+    }
 }
 
 private protocol Greeting { var text: String { get } }
@@ -38,7 +49,7 @@ private final class Fixture: Backend {
 @objc(FilaFixtureModule)
 private final class FilaFixtureModule: NSObject, BackendModule {
     nonisolated(unsafe) static var onRegister: (@MainActor (BackendRegistration) throws -> Void)?
-    required override init() {}
+    override required init() {}
     func register(with registration: BackendRegistration) throws {
         try Self.onRegister?(registration)
     }
@@ -46,7 +57,7 @@ private final class FilaFixtureModule: NSObject, BackendModule {
 
 @objc(FilaPlainModule)
 private final class FilaPlainModule: NSObject {
-    required override init() {}
+    override required init() {}
 }
 
 private let hostVersion = BackendHostVersion(shortVersion: "1.2.3", buildVersion: "45")
@@ -54,7 +65,7 @@ private let hostVersion = BackendHostVersion(shortVersion: "1.2.3", buildVersion
 private func manifest(
     schema: Int = FilaBackendKit.manifestSchemaVersion,
     contract: Int = FilaBackendKit.contractVersion,
-    name: String = "Fixture"
+    name: String = "Fixture",
 ) -> [String: Any] {
     [
         BackendModuleManifest.schemaKey: schema,
@@ -68,7 +79,7 @@ private func candidate(
     framework: String = "FilaFixture",
     version: BackendHostVersion = hostVersion,
     manifest plist: [String: Any]? = manifest(),
-    owns: @escaping (AnyClass) -> Bool = { _ in true }
+    owns: @escaping (AnyClass) -> Bool = { _ in true },
 ) -> BackendModuleCandidate {
     BackendModuleCandidate(
         bundleIdentifier: identifier,
@@ -77,7 +88,7 @@ private func candidate(
         buildVersion: version.buildVersion,
         manifest: plist,
         entryClass: { NSClassFromString($0) },
-        owns: owns
+        owns: owns,
     )
 }
 
@@ -86,10 +97,12 @@ private func candidate(
 @Suite("Backend module discovery", .serialized)
 @MainActor
 struct BackendModuleDiscoveryTests {
-    init() { FilaFixtureModule.onRegister = nil }
+    init() {
+        FilaFixtureModule.onRegister = nil
+    }
 
-    @Test("A module whose manifest, version and entry class check out is registered")
-    func happyPath() {
+    @Test
+    func `A module whose manifest, version and entry class check out is registered`() {
         FilaFixtureModule.onRegister = { registration in
             try registration.provide(Greeting.self, Hello())
             registration.backends { resolver in
@@ -107,18 +120,18 @@ struct BackendModuleDiscoveryTests {
         #expect(host.bootstrapped.count == 1)
     }
 
-    @Test("A framework without a manifest is not a module and is ignored without a log line")
-    func noManifest() {
+    @Test
+    func `A framework without a manifest is not a module and is ignored without a log line`() {
         let host = RecordingHost()
         let registry = BackendModuleDiscovery.bootstrap(
-            [candidate(manifest: nil)], hostVersion: hostVersion, host: host
+            [candidate(manifest: nil)], hostVersion: hostVersion, host: host,
         )
         #expect(registry.modules.isEmpty)
         #expect(host.lines.isEmpty)
     }
 
-    @Test("A malformed manifest is refused before the entry class is touched")
-    func badManifest() {
+    @Test
+    func `A malformed manifest is refused before the entry class is touched`() {
         var touched = false
         FilaFixtureModule.onRegister = { _ in touched = true }
         let host = RecordingHost()
@@ -130,8 +143,8 @@ struct BackendModuleDiscoveryTests {
         #expect(!touched)
     }
 
-    @Test("Schema and contract mismatches name both numbers")
-    func contractMismatch() {
+    @Test
+    func `Schema and contract mismatches name both numbers`() {
         let host = RecordingHost()
         _ = BackendModuleDiscovery.bootstrap([candidate(manifest: manifest(schema: 2))], hostVersion: hostVersion, host: host)
         _ = BackendModuleDiscovery.bootstrap([candidate(manifest: manifest(contract: 9))], hostVersion: hostVersion, host: host)
@@ -139,19 +152,19 @@ struct BackendModuleDiscoveryTests {
         #expect(host.failures[1].contains("contract 9, host is \(FilaBackendKit.contractVersion)"))
     }
 
-    @Test("A module built from another version than the host is refused")
-    func versionMismatch() {
+    @Test
+    func `A module built from another version than the host is refused`() {
         let host = RecordingHost()
         let stale = BackendHostVersion(shortVersion: "1.2.3", buildVersion: "44")
         let registry = BackendModuleDiscovery.bootstrap(
-            [candidate(version: stale)], hostVersion: hostVersion, host: host
+            [candidate(version: stale)], hostVersion: hostVersion, host: host,
         )
         #expect(registry.modules.isEmpty)
         #expect(host.failures.first?.contains("module version 1.2.3 (44) differs from host 1.2.3 (45)") == true)
     }
 
-    @Test("A missing, foreign or non-conforming entry class is refused")
-    func entryClass() {
+    @Test
+    func `A missing, foreign or non-conforming entry class is refused`() {
         let host = RecordingHost()
         _ = BackendModuleDiscovery.bootstrap([candidate(framework: "FilaMissing")], hostVersion: hostVersion, host: host)
         _ = BackendModuleDiscovery.bootstrap([candidate(owns: { _ in false })], hostVersion: hostVersion, host: host)
@@ -161,8 +174,8 @@ struct BackendModuleDiscoveryTests {
         #expect(host.failures[2].contains("does not conform to BackendModule"))
     }
 
-    @Test("A module that throws during registration leaves nothing behind")
-    func registrationFailure() {
+    @Test
+    func `A module that throws during registration leaves nothing behind`() {
         struct Boom: Error {}
         FilaFixtureModule.onRegister = { registration in
             try registration.provide(Greeting.self, Hello())
@@ -177,8 +190,8 @@ struct BackendModuleDiscoveryTests {
         #expect(host.failures.first?.contains("registration failed") == true)
     }
 
-    @Test("Two modules cannot both supply one provider; the second is refused whole")
-    func duplicateProvider() {
+    @Test
+    func `Two modules cannot both supply one provider; the second is refused whole`() {
         FilaFixtureModule.onRegister = { registration in
             try registration.provide(Greeting.self, Hello())
             registration.backends { _ in [Fixture(registration.module.bundleIdentifier)] }
@@ -187,7 +200,7 @@ struct BackendModuleDiscoveryTests {
         let registry = BackendModuleDiscovery.bootstrap(
             [candidate("wiki.qaq.fila.b"), candidate("wiki.qaq.fila.a")],
             hostVersion: hostVersion,
-            host: host
+            host: host,
         )
         #expect(registry.modules.map(\.bundleIdentifier) == ["wiki.qaq.fila.a"])
         #expect(registry.backends.map(\.id.rawValue) == ["wiki.qaq.fila.a"])
@@ -195,22 +208,22 @@ struct BackendModuleDiscoveryTests {
         #expect(host.failures.first?.contains("already from wiki.qaq.fila.a") == true)
     }
 
-    @Test("The same module identity twice is refused the second time")
-    func duplicateModule() {
+    @Test
+    func `The same module identity twice is refused the second time`() {
         FilaFixtureModule.onRegister = { registration in
             registration.backends { _ in [Fixture("x")] }
         }
         let host = RecordingHost()
         let registry = BackendModuleDiscovery.bootstrap(
-            [candidate(), candidate()], hostVersion: hostVersion, host: host
+            [candidate(), candidate()], hostVersion: hostVersion, host: host,
         )
         #expect(registry.modules.count == 1)
         #expect(registry.backends.count == 1)
         #expect(host.failures.first?.contains("module wiki.qaq.fila.fixture already registered") == true)
     }
 
-    @Test("Backend factories run after every module registered, in module order, and a duplicate backend ID is dropped")
-    func factoriesResolveLast() {
+    @Test
+    func `Backend factories run after every module registered, in module order, and a duplicate backend ID is dropped`() {
         var order: [String] = []
         FilaFixtureModule.onRegister = { registration in
             let name = registration.module.bundleIdentifier
@@ -227,7 +240,7 @@ struct BackendModuleDiscoveryTests {
         let registry = BackendModuleDiscovery.bootstrap(
             [candidate("wiki.qaq.fila.a.consumer"), candidate("wiki.qaq.fila.z.provider")],
             hostVersion: hostVersion,
-            host: host
+            host: host,
         )
         // The consumer registered first yet still saw the provider from the
         // module registered after it.
@@ -237,13 +250,13 @@ struct BackendModuleDiscoveryTests {
         #expect(host.failures[0].contains("backend shared duplicates"))
     }
 
-    @Test("Embedded candidate enumeration on the host finds no modules and does not crash")
-    func embeddedOnHost() {
+    @Test
+    func `Embedded candidate enumeration on the host finds no modules and does not crash`() {
         #expect(BackendModuleDiscovery.embeddedCandidates(in: .main).isEmpty)
     }
 
-    @Test("A module routes screens for its backend; a second route for the same backend is refused whole")
-    func routes() {
+    @Test
+    func `A module routes screens for its backend; a second route for the same backend is refused whole`() {
         final class Screen {}
         FilaFixtureModule.onRegister = { registration in
             try registration.route(BackendID(registration.module.bundleIdentifier)) { location in
@@ -256,7 +269,7 @@ struct BackendModuleDiscoveryTests {
         let registry = BackendModuleDiscovery.bootstrap(
             [candidate("wiki.qaq.fila.a"), candidate("wiki.qaq.fila.b")],
             hostVersion: hostVersion,
-            host: host
+            host: host,
         )
         #expect(registry.modules.map(\.bundleIdentifier) == ["wiki.qaq.fila.a"])
         #expect(registry.screen(for: .root(of: BackendID("wiki.qaq.fila.a"))) is Screen)
@@ -265,8 +278,8 @@ struct BackendModuleDiscoveryTests {
         #expect(host.failures.first?.contains("screen route for shared") == true)
     }
 
-    @Test("A factory may ask for a backend a later module produces; asking for one's own is nil, not a loop")
-    func onDemandResolution() {
+    @Test
+    func `A factory may ask for a backend a later module produces; asking for one's own is nil, not a loop`() {
         var seen: [String] = []
         FilaFixtureModule.onRegister = { registration in
             let name = registration.module.bundleIdentifier
@@ -287,7 +300,7 @@ struct BackendModuleDiscoveryTests {
         let registry = BackendModuleDiscovery.bootstrap(
             [candidate("wiki.qaq.fila.a.consumer"), candidate("wiki.qaq.fila.z.provider")],
             hostVersion: hostVersion,
-            host: host
+            host: host,
         )
         #expect(seen == ["found"])
         #expect(registry.backends.map(\.id.rawValue) == ["provided", "consumed"])

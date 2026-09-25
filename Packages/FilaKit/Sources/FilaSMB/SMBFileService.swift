@@ -37,7 +37,7 @@ public final class SMBFileService: FileService, @unchecked Sendable {
         password: String?,
         pollInterval: TimeInterval = RemoteDirectoryObservation.pollInterval,
         connectTimeout: TimeInterval = 20,
-        requestTimeout: TimeInterval = 30
+        requestTimeout: TimeInterval = 30,
     ) {
         let configuration = SMBConnection.Configuration(
             host: profile.host,
@@ -45,13 +45,13 @@ public final class SMBFileService: FileService, @unchecked Sendable {
             share: profile.share,
             domain: profile.domain,
             username: profile.username,
-            password: password
+            password: password,
         )
         self.init(
             connection: SMBConnection(
-                configuration: configuration, connectTimeout: connectTimeout, requestTimeout: requestTimeout
+                configuration: configuration, connectTimeout: connectTimeout, requestTimeout: requestTimeout,
             ),
-            observation: RemoteDirectoryObservation(interval: pollInterval)
+            observation: RemoteDirectoryObservation(interval: pollInterval),
         )
     }
 
@@ -87,7 +87,7 @@ public final class SMBFileService: FileService, @unchecked Sendable {
             let cursor = ListingCursor(connection: connection, wire: wire)
             return FileListing.Source(
                 next: { try await cursor.next() },
-                close: { await cursor.close() }
+                close: { await cursor.close() },
             )
         }
     }
@@ -102,14 +102,14 @@ public final class SMBFileService: FileService, @unchecked Sendable {
             kind: stat.isDirectory ? .directory : .file,
             size: stat.isDirectory ? nil : Int64(clamping: stat.size),
             modified: Self.date(stat.lastWriteTime),
-            isHidden: stat.isHidden || (path.name?.hasPrefix(".") ?? false)
+            isHidden: stat.isHidden || (path.name?.hasPrefix(".") ?? false),
         )
     }
 
     public func copyContents(
         of path: ServicePath,
         to descriptor: Int32,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) async throws {
         let wire = try Self.wirePath(path)
         let handle = try await connection.perform("open", path: path.description) { client in
@@ -119,7 +119,7 @@ public final class SMBFileService: FileService, @unchecked Sendable {
                 shareAccess: [.read],
                 createDisposition: .open,
                 createOptions: [],
-                name: wire
+                name: wire,
             )
             return SMBConnection.Handle(client: client, fileId: response.fileId, size: response.endOfFile)
         }
@@ -135,11 +135,15 @@ public final class SMBFileService: FileService, @unchecked Sendable {
                     let response = try await client.session.read(fileId: handle.fileId, offset: start, length: chunkLength)
                     return ReadChunk(data: response.buffer, endOfFile: NTStatus(response.header.status) == .endOfFile)
                 }
-                if chunk.data.isEmpty { break }
+                if chunk.data.isEmpty {
+                    break
+                }
                 try Self.write(chunk.data, to: descriptor)
                 offset += UInt64(chunk.data.count)
                 progress(TransferProgress(completed: Int64(clamping: offset), expected: expected))
-                if chunk.endOfFile { break }
+                if chunk.endOfFile {
+                    break
+                }
             }
         } catch {
             await close(handle)
@@ -208,7 +212,9 @@ public final class SMBFileService: FileService, @unchecked Sendable {
             while written < buffer.count {
                 let result = Darwin.write(descriptor, buffer.baseAddress! + written, buffer.count - written)
                 if result < 0 {
-                    if errno == EINTR { continue }
+                    if errno == EINTR {
+                        continue
+                    }
                     throw SMBError.descriptorWrite(code: errno)
                 }
                 written += result
@@ -224,7 +230,7 @@ public enum SMBShares {
     public static func list(profile: SMBProfile, password: String?, timeout: TimeInterval = 20) async throws -> [String] {
         try await SMBConnection.listShares(SMBConnection.Configuration(
             host: profile.host, port: profile.port, share: profile.share,
-            domain: profile.domain, username: profile.username, password: password
+            domain: profile.domain, username: profile.username, password: password,
         ), timeout: timeout)
     }
 }
@@ -261,7 +267,9 @@ actor ListingCursor {
         if !page.hasMore {
             finished = true
             await close()
-            if entries.isEmpty { return nil }
+            if entries.isEmpty {
+                return nil
+            }
         }
         return entries
     }
@@ -274,7 +282,9 @@ actor ListingCursor {
     }
 
     private func open() async throws -> SMBConnection.Handle {
-        if let handle { return handle }
+        if let handle {
+            return handle
+        }
         let wire = wire
         let handle = try await connection.perform("open", path: wire) { client in
             let response = try await client.session.create(
@@ -283,7 +293,7 @@ actor ListingCursor {
                 shareAccess: [.read, .write, .delete],
                 createDisposition: .open,
                 createOptions: [.directoryFile],
-                name: wire
+                name: wire,
             )
             return SMBConnection.Handle(client: client, fileId: response.fileId, size: 0)
         }
@@ -305,23 +315,22 @@ struct SMBEntry: Sendable {
     init(_ information: FileDirectoryInformation) {
         name = information.fileName
         let attributes = information.fileAttributes
-        let kind: FileEntry.Kind
-        if attributes.contains(.reparsePoint) {
+        let kind: FileEntry.Kind = if attributes.contains(.reparsePoint) {
             // A junction, a symlink, a mount point: something the server
             // follows on our behalf. Which of those it is, SMB2 does not
             // say without another request; what it opens as is known.
-            kind = .symbolicLink(resolved: attributes.contains(.directory) ? .directory : .file)
+            .symbolicLink(resolved: attributes.contains(.directory) ? .directory : .file)
         } else if attributes.contains(.directory) {
-            kind = .directory
+            .directory
         } else {
-            kind = .file
+            .file
         }
         entry = FileEntry(
             name: name,
             kind: kind,
             size: attributes.contains(.directory) ? nil : Int64(clamping: information.endOfFile),
             modified: SMBFileService.date(fileTime: information.lastWriteTime),
-            isHidden: attributes.contains(.hidden) || name.hasPrefix(".")
+            isHidden: attributes.contains(.hidden) || name.hasPrefix("."),
         )
     }
 }

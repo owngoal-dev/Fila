@@ -11,6 +11,7 @@ final class MusicTrackPreviewCell: UITableViewCell {
         $0.textAlignment = .center
         $0.numberOfLines = 0
     }
+
     private let subtitleLabel = UILabel().then {
         $0.font = .preferredFont(forTextStyle: .subheadline)
         $0.adjustsFontForContentSizeCategory = true
@@ -47,7 +48,9 @@ final class MusicTrackPreviewCell: UITableViewCell {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -62,6 +65,6 @@ final class MusicTrackPreviewCell: UITableViewCell {
         subtitleLabel.text = [artist, album].filter { !$0.isEmpty }.joined(separator: " · ")
         artwork.show(id: track.id, pixelSize: 512)
         accessibilityLabel = [titleLabel.text, artist, album]
-            .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+            .compactMap(\.self).filter { !$0.isEmpty }.joined(separator: ", ")
     }
 }

@@ -10,7 +10,9 @@ private final class Stamps: @unchecked Sendable {
 
     /// Read under the lock like every other field: the poll counts from its
     /// own task and the test compares from the main actor.
-    var reads: Int { lock.withLock { stampReads } }
+    var reads: Int {
+        lock.withLock { stampReads }
+    }
 
     func set(_ directory: String, _ value: String) {
         lock.withLock { values[directory] = value }
@@ -31,8 +33,13 @@ private final class Collector: @unchecked Sendable {
     private var hints = 0
     private var endError: Error?
 
-    var count: Int { lock.withLock { hints } }
-    var ended: Error? { lock.withLock { endError } }
+    var count: Int {
+        lock.withLock { hints }
+    }
+
+    var ended: Error? {
+        lock.withLock { endError }
+    }
 
     func consume(_ stream: AsyncThrowingStream<Void, Error>) -> Task<Void, Never> {
         Task {
@@ -59,7 +66,9 @@ private final class Collector: @unchecked Sendable {
     /// the test, after the same number of chances on every machine.
     func wait(for expected: Int, polls: Int = 300) async throws {
         for _ in 0 ..< polls {
-            if count >= expected { return }
+            if count >= expected {
+                return
+            }
             try await Task.sleep(nanoseconds: 10_000_000)
         }
         guard count >= expected else { throw Timeout() }
@@ -77,14 +86,16 @@ struct RemoteDirectoryObservationTests {
     /// of time, for the reason `Collector.wait` documents.
     private func released(_ observation: RemoteDirectoryObservation, to subscribers: Int) async -> Bool {
         for _ in 0 ..< 300 {
-            if observation.subscriberCount == subscribers { return true }
+            if observation.subscriberCount == subscribers {
+                return true
+            }
             try? await Task.sleep(nanoseconds: 10_000_000)
         }
         return observation.subscriberCount == subscribers
     }
 
-    @Test("Every subscriber gets the initial hint, and a moved stamp hints only that directory")
-    func hintsPerDirectory() async throws {
+    @Test
+    func `Every subscriber gets the initial hint, and a moved stamp hints only that directory`() async throws {
         let stamps = Stamps()
         let observation = RemoteDirectoryObservation(interval: 0.05)
         let a = Collector(), b = Collector(), other = Collector()
@@ -109,8 +120,8 @@ struct RemoteDirectoryObservationTests {
         #expect(observation.watchedDirectories.isEmpty, "the last subscriber releases the watch")
     }
 
-    @Test("Cancelling one subscriber leaves the other polling")
-    func cancelOne() async throws {
+    @Test
+    func `Cancelling one subscriber leaves the other polling`() async throws {
         let stamps = Stamps()
         let observation = RemoteDirectoryObservation(interval: 0.05)
         let a = Collector(), b = Collector()
@@ -126,8 +137,8 @@ struct RemoteDirectoryObservationTests {
         bTask.cancel()
     }
 
-    @Test("An invalidation hints at once and restarts from a fresh baseline")
-    func invalidate() async throws {
+    @Test
+    func `An invalidation hints at once and restarts from a fresh baseline`() async throws {
         let stamps = Stamps()
         let observation = RemoteDirectoryObservation(interval: 0.05)
         let a = Collector()
@@ -141,8 +152,8 @@ struct RemoteDirectoryObservationTests {
         task.cancel()
     }
 
-    @Test("Paused observation polls nothing and hints everyone once on resume")
-    func pause() async throws {
+    @Test
+    func `Paused observation polls nothing and hints everyone once on resume`() async throws {
         let stamps = Stamps()
         let observation = RemoteDirectoryObservation(interval: 0.05)
         let a = Collector()
@@ -164,8 +175,8 @@ struct RemoteDirectoryObservationTests {
         lateTask.cancel()
     }
 
-    @Test("A lost session ends every stream with its error")
-    func finishAll() async throws {
+    @Test
+    func `A lost session ends every stream with its error`() async throws {
         struct Lost: Error {}
         let stamps = Stamps()
         let observation = RemoteDirectoryObservation(interval: 0.05)

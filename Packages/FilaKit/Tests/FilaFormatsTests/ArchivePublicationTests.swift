@@ -13,8 +13,8 @@ struct ArchivePublicationTests {
         try #require(result.code == .success, "\(result), \(notes)")
     }
 
-    @Test("Every offered format compresses and extracts Unicode files through the real job", arguments: ArchiveFormat.allCases)
-    func formats(_ format: ArchiveFormat) throws {
+    @Test(arguments: ArchiveFormat.allCases)
+    func `Every offered format compresses and extracts Unicode files through the real job`(_ format: ArchiveFormat) throws {
         try withScratch { scratch in
             let folder = scratch.appendingPathComponent("歌曲 (测试)")
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
@@ -35,16 +35,18 @@ struct ArchivePublicationTests {
         }
     }
 
-    @Test("macOS grouping follows top-level items, including implicit folders", arguments: [
+    @Test(arguments: [
         ["song.txt"], ["Album/song.txt"], ["Album/one.txt", "Album/two.txt"], ["one.txt", "two.txt"],
         ["Album/nested/song.txt"], [".hidden"],
     ])
-    func grouping(_ names: [String]) throws {
+    func `macOS grouping follows top-level items, including implicit folders`(_ names: [String]) throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("Download.zip")
             try withDescriptor(writing: archive) { descriptor in
                 let writer = try ArchiveWriter(descriptor: descriptor)
-                for name in names { try writer.addData(name, Data(name.utf8)) }
+                for name in names {
+                    try writer.addData(name, Data(name.utf8))
+                }
                 try writer.addData(".DS_Store", Data("layout".utf8))
                 try writer.addData("__MACOSX/.DS_Store", Data("layout".utf8))
                 try writer.finish()
@@ -59,8 +61,8 @@ struct ArchivePublicationTests {
         }
     }
 
-    @Test("Repeated extraction numbers files and folders without replacing or merging", arguments: [false, true])
-    func collisions(_ directory: Bool) throws {
+    @Test(arguments: [false, true])
+    func `Repeated extraction numbers files and folders without replacing or merging`(_ directory: Bool) throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("Download.zip")
             let name = directory ? "Album/song.txt" : "song.txt"
@@ -78,8 +80,8 @@ struct ArchivePublicationTests {
         }
     }
 
-    @Test("Failed encrypted extraction leaves no result or workspace", arguments: ZipEncryption.allCases)
-    func failedExtraction(_ encryption: ZipEncryption) throws {
+    @Test(arguments: ZipEncryption.allCases)
+    func `Failed encrypted extraction leaves no result or workspace`(_ encryption: ZipEncryption) throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("Locked.zip")
             try withDescriptor(writing: archive) { descriptor in
@@ -90,20 +92,22 @@ struct ArchivePublicationTests {
             }
             let result = ArchiveJob(
                 request: JobRequest(kind: .extract, sources: [archive.path], destination: scratch.path, archive: ArchiveOptions(password: "wrong", organizeExtraction: true)),
-                operations: FileOperations(bootstrapRoot: "")
+                operations: FileOperations(bootstrapRoot: ""),
             ).run(report: { _ in })
             #expect(result.code == .wrongPassword)
             #expect(try FileManager.default.contentsOfDirectory(atPath: scratch.path) == ["Locked.zip"])
         }
     }
 
-    @Test("Empty and metadata-only archives do not leave an empty wrapper", arguments: [false, true])
-    func emptyArchive(_ metadata: Bool) throws {
+    @Test(arguments: [false, true])
+    func `Empty and metadata-only archives do not leave an empty wrapper`(_ metadata: Bool) throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("Empty.zip")
             try withDescriptor(writing: archive) { descriptor in
                 let writer = try ArchiveWriter(descriptor: descriptor)
-                if metadata { try writer.addData("__MACOSX/.DS_Store", Data("layout".utf8)) }
+                if metadata {
+                    try writer.addData("__MACOSX/.DS_Store", Data("layout".utf8))
+                }
                 try writer.finish()
             }
             try run(JobRequest(kind: .extract, sources: [archive.path], destination: scratch.path,
@@ -112,8 +116,8 @@ struct ArchivePublicationTests {
         }
     }
 
-    @Test("Cancellation leaves neither a published result nor a private workspace")
-    func cancellation() throws {
+    @Test
+    func `Cancellation leaves neither a published result nor a private workspace`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("Cancelled.zip")
             try withDescriptor(writing: archive) { descriptor in
@@ -124,7 +128,7 @@ struct ArchivePublicationTests {
             let job = ArchiveJob(
                 request: JobRequest(kind: .extract, sources: [archive.path], destination: scratch.path,
                                     archive: ArchiveOptions(organizeExtraction: true)),
-                operations: FileOperations(bootstrapRoot: "")
+                operations: FileOperations(bootstrapRoot: ""),
             )
             let result = job.run(report: { _ in job.cancel() })
             #expect(result.code == .cancelled)

@@ -28,8 +28,8 @@ struct LocalFileServiceTests {
     /// The sentence the user is shown turns on this probe, and the sandboxed
     /// half of it is the half no simulator run ever exercises — a simulator
     /// app can read its container's parent, so it always answers `.user`.
-    @Test("A container it cannot read out of reads as sandboxed")
-    func reachIsProbedNotAssumed() {
+    @Test
+    func `A container it cannot read out of reads as sandboxed`() {
         guard geteuid() != 0 else { return } // root can open anything; the probe means nothing then.
         let container = scratch.directory("Application/UUID")
         #expect(LocalFileService.probeReach(container: container) == .user)
@@ -39,8 +39,8 @@ struct LocalFileServiceTests {
         #expect(LocalFileService.probeReach(container: container) == .container)
     }
 
-    @Test("Lists a directory")
-    func lists() async throws {
+    @Test
+    func `Lists a directory`() async throws {
         scratch.file("one")
         scratch.file("two")
         let page = try await link().list(directory: scratch.root)
@@ -48,9 +48,11 @@ struct LocalFileServiceTests {
         #expect(page.isFinal)
     }
 
-    @Test("The client releases an abandoned listing through its selected backend")
-    func cancelsListing() async throws {
-        for index in 0 ... FilaProtocol.directoryPageEntryCount { scratch.file("entry-\(index)") }
+    @Test
+    func `The client releases an abandoned listing through its selected backend`() async throws {
+        for index in 0 ... FilaProtocol.directoryPageEntryCount {
+            scratch.file("entry-\(index)")
+        }
         let link = try await link()
         let page = try await link.list(directory: scratch.root)
         #expect(!page.isFinal)
@@ -64,8 +66,8 @@ struct LocalFileServiceTests {
         try await link.closeDirectory(cursor: replacement.cursor)
     }
 
-    @Test("Creates, stats and opens a file")
-    func createsAndReads() async throws {
+    @Test
+    func `Creates, stats and opens a file`() async throws {
         let link = try await link()
         try await link.create(.emptyFile, at: scratch.path("new.txt"))
 
@@ -82,8 +84,8 @@ struct LocalFileServiceTests {
         #expect(refreshed.node.size == 4)
     }
 
-    @Test("Renames, and reports the volume it renamed on")
-    func renamesAndReportsVolume() async throws {
+    @Test
+    func `Renames, and reports the volume it renamed on`() async throws {
         let link = try await link()
         scratch.file("before")
         try await link.rename(scratch.path("before"), to: scratch.path("after"), exclusive: true)
@@ -94,15 +96,15 @@ struct LocalFileServiceTests {
         #expect(!volume.mountPoint.isEmpty)
     }
 
-    @Test("A copy job runs and reports its completion on the stream")
-    func runsAJob() async throws {
+    @Test
+    func `A copy job runs and reports its completion on the stream`() async throws {
         let link = try await link()
         scratch.directory("tree/inner")
         scratch.file("tree/inner/leaf", contents: "bytes")
         let destination = scratch.directory("landing")
 
         let identifier = try await link.startJob(
-            JobRequest(kind: .copy, sources: [scratch.path("tree")], destination: destination)
+            JobRequest(kind: .copy, sources: [scratch.path("tree")], destination: destination),
         )
         var outcome: FilaFailure?
         for await update in link.jobEvents where update.identifier == identifier {
@@ -119,16 +121,16 @@ struct LocalFileServiceTests {
     /// and the guard is enforced all the same — it is the same
     /// `FileOperations` the daemon runs, and refusing to move `/usr` away is
     /// not about privilege, it is about the device still booting.
-    @Test("`FilaGuard` refuses a protected node here exactly as in the daemon")
-    func guardStillRefuses() async throws {
+    @Test
+    func `FilaGuard refuses a protected node here exactly as in the daemon`() async throws {
         let link = try await link()
         await #expect(throws: FilaFailure(code: .protectedPath, path: "/usr")) {
             try await link.rename("/usr", to: scratch.path("usr"))
         }
     }
 
-    @Test("A protected node is reported as protected so the app can grey it out")
-    func reportsProtection() async throws {
+    @Test
+    func `A protected node is reported as protected so the app can grey it out`() async throws {
         let details = try await link().details(of: "/usr")
         #expect(details.isDestructionProtected)
     }

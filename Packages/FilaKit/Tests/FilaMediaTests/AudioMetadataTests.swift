@@ -4,7 +4,7 @@ import Foundation
 import Testing
 
 struct AudioMetadataTests {
-    @Test func id3TagsKeepUsefulFieldsAndSkipEmptyFallbacks() async {
+    @Test func `id 3 tags keep useful fields and skip empty fallbacks`() async {
         func tag(_ identifier: AVMetadataIdentifier, _ text: String) -> AVMetadataItem {
             let item = AVMutableMetadataItem()
             item.identifier = identifier
@@ -26,7 +26,7 @@ struct AudioMetadataTests {
         #expect(metadata.discNumber == 2 && metadata.discCount == 4)
     }
 
-    @Test func trackAtomsAreBigEndianAndTruncationDoesNotInventNumbers() {
+    @Test func `track atoms are big endian and truncation does not invent numbers`() {
         let pair = AudioMetadata.numberPair(data: Data([0, 0, 1, 2, 1, 44, 0, 0]))
         #expect(pair?.number == 258 && pair?.count == 300)
         #expect(AudioMetadata.numberPair(data: Data([0, 0, 2])) == nil)

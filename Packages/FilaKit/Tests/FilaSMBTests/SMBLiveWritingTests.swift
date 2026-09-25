@@ -34,15 +34,17 @@ struct SMBLiveWritingTests {
         Set((try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? [])
     }
 
-    @Test("A file is uploaded in chunks, published exclusively, and replaced only when asked")
-    func writeFile() async throws {
+    @Test
+    func `A file is uploaded in chunks, published exclusively, and replaced only when asked`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let service = server.service()
             let size = 5 * Int(SMBFileService.writeChunk) + 321
             var payload = Data(count: size)
             payload.withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) in
-                for index in stride(from: 0, to: size, by: 1024) { buffer[index] = UInt8(truncatingIfNeeded: index / 1024) }
+                for index in stride(from: 0, to: size, by: 1024) {
+                    buffer[index] = UInt8(truncatingIfNeeded: index / 1024)
+                }
             }
             let (descriptor, local) = try localFile(payload)
             defer { close(descriptor); try? FileManager.default.removeItem(at: local) }
@@ -75,14 +77,14 @@ struct SMBLiveWritingTests {
             // An empty file is a file.
             let (empty, emptyURL) = try localFile(Data())
             defer { close(empty); try? FileManager.default.removeItem(at: emptyURL) }
-            try await service.writeFile(from: empty, size: 0, to: try ServicePath("\(name)/empty"), policy: .failIfExists) { _ in }
+            try await service.writeFile(from: empty, size: 0, to: ServicePath("\(name)/empty"), policy: .failIfExists) { _ in }
             #expect(try Data(contentsOf: directory.appendingPathComponent("empty")).isEmpty)
             await service.disconnect()
         }
     }
 
-    @Test("A cancelled upload leaves neither the name nor a temporary on the share")
-    func cancelledUpload() async throws {
+    @Test
+    func `A cancelled upload leaves neither the name nor a temporary on the share`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let service = server.service()
@@ -90,11 +92,13 @@ struct SMBLiveWritingTests {
             defer { close(descriptor); try? FileManager.default.removeItem(at: local) }
             let progress = ProgressLog()
             let upload = Task {
-                try await service.writeFile(from: descriptor, size: 64 * 1024 * 1024, to: try ServicePath("\(name)/big"), policy: .failIfExists) {
+                try await service.writeFile(from: descriptor, size: 64 * 1024 * 1024, to: ServicePath("\(name)/big"), policy: .failIfExists) {
                     progress.append($0)
                 }
             }
-            while progress.reports.count < 3 { try await Task.sleep(nanoseconds: 10_000_000) }
+            while progress.reports.count < 3 {
+                try await Task.sleep(nanoseconds: 10_000_000)
+            }
             upload.cancel()
             let outcome = await upload.result
             switch outcome {
@@ -109,8 +113,8 @@ struct SMBLiveWritingTests {
         }
     }
 
-    @Test("Directories are created, one node is removed at a time, and a full directory is refused")
-    func directoriesAndRemovals() async throws {
+    @Test
+    func `Directories are created, one node is removed at a time, and a full directory is refused`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let service = server.service()
@@ -127,7 +131,7 @@ struct SMBLiveWritingTests {
                 try await service.removeEmptyDirectory(made)
             }
             #expect(FileManager.default.fileExists(atPath: directory.appendingPathComponent("made/inside.txt").path), "nothing inside was touched")
-            try await service.removeFile(try ServicePath("\(name)/made/inside.txt"))
+            try await service.removeFile(ServicePath("\(name)/made/inside.txt"))
             try await service.removeEmptyDirectory(made)
             #expect(names(directory).isEmpty)
             await #expect(throws: WriteFailure.notFound(made)) {
@@ -137,8 +141,8 @@ struct SMBLiveWritingTests {
         }
     }
 
-    @Test("A rename on the share is exclusive unless asked to replace")
-    func move() async throws {
+    @Test
+    func `A rename on the share is exclusive unless asked to replace`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let service = server.service()
@@ -154,15 +158,15 @@ struct SMBLiveWritingTests {
             #expect(try Data(contentsOf: directory.appendingPathComponent("b.txt")) == Data("a".utf8))
             #expect(names(directory) == ["b.txt"])
             await #expect(throws: WriteFailure.notFound(a)) {
-                try await service.move(a, to: try ServicePath("\(name)/c.txt"), policy: .failIfExists)
+                try await service.move(a, to: ServicePath("\(name)/c.txt"), policy: .failIfExists)
             }
             await service.disconnect()
         }
     }
 
-    @Test("A tree moves from a local root to the share and back, complete at each end")
+    @Test
     @MainActor
-    func roundTrip() async throws {
+    func `A tree moves from a local root to the share and back, complete at each end`() async throws {
         guard let server = Server.configured else { return }
         try await withFixture(server) { name, directory in
             let local = LocalScratchRoot()
@@ -174,10 +178,10 @@ struct SMBLiveWritingTests {
             local.file("tree/sub/big.bin", contents: big)
             let localService = LocalFileServiceAdapter(access: LocalFileService(), rootPath: local.root, observation: DirectoryObservation())
             let remote = server.service()
-            let toShare = TransferRequest(
-                source: TransferSource(backend: BackendID("local"), service: localService, paths: [try ServicePath("tree")]),
-                destination: TransferDestination(backend: BackendID("smb"), service: remote, directory: try ServicePath(name)),
-                mode: .move, policy: .failIfExists
+            let toShare = try TransferRequest(
+                source: TransferSource(backend: BackendID("local"), service: localService, paths: [ServicePath("tree")]),
+                destination: TransferDestination(backend: BackendID("smb"), service: remote, directory: ServicePath(name)),
+                mode: .move, policy: .failIfExists,
             )
             let progress = ProgressLog2()
             let up = await FileTransfer.run(toShare, staging: staging.url) { progress.append($0) }
@@ -192,10 +196,10 @@ struct SMBLiveWritingTests {
             #expect(last.bytesDone == last.bytesTotal)
 
             // And back: the share is staged, two legs per file.
-            let toLocal = TransferRequest(
-                source: TransferSource(backend: BackendID("smb"), service: remote, paths: [try ServicePath("\(name)/tree")]),
+            let toLocal = try TransferRequest(
+                source: TransferSource(backend: BackendID("smb"), service: remote, paths: [ServicePath("\(name)/tree")]),
                 destination: TransferDestination(backend: BackendID("local"), service: localService, directory: .root),
-                mode: .move, policy: .failIfExists
+                mode: .move, policy: .failIfExists,
             )
             let back = ProgressLog2()
             let down = await FileTransfer.run(toLocal, staging: staging.url) { back.append($0) }
@@ -214,14 +218,21 @@ struct SMBLiveWritingTests {
 final class ProgressLog2: @unchecked Sendable {
     private let lock = NSLock()
     private var log: [TransferProgressReport] = []
-    func append(_ report: TransferProgressReport) { lock.lock(); log.append(report); lock.unlock() }
-    var reports: [TransferProgressReport] { lock.lock(); defer { lock.unlock() }; return log }
+    func append(_ report: TransferProgressReport) {
+        lock.lock(); log.append(report); lock.unlock()
+    }
+
+    var reports: [TransferProgressReport] {
+        lock.lock(); defer { lock.unlock() }; return log
+    }
 }
 
 /// A local directory for one test, gone with it.
 final class LocalScratchRoot {
     let root: String
-    var url: URL { URL(fileURLWithPath: root, isDirectory: true) }
+    var url: URL {
+        URL(fileURLWithPath: root, isDirectory: true)
+    }
 
     init() {
         root = "/private/tmp/fila-smb-tests-\(getpid())-\(UInt32.random(in: 0 ..< .max))"
@@ -230,7 +241,9 @@ final class LocalScratchRoot {
 
     deinit { try? FileManager.default.removeItem(atPath: root) }
 
-    func path(_ relative: String) -> String { root + "/" + relative }
+    func path(_ relative: String) -> String {
+        root + "/" + relative
+    }
 
     func directory(_ relative: String) {
         precondition((try? FileManager.default.createDirectory(atPath: path(relative), withIntermediateDirectories: true)) != nil)

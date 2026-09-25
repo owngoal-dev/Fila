@@ -1,5 +1,5 @@
-import FilaBackendUI
 import FilaBackendKit
+import FilaBackendUI
 import FilaLog
 import FilaProtocol
 import UIKit
@@ -41,7 +41,9 @@ extension RootSplitViewController {
                 return
             }
             FilaLog.info("following link \(url)")
-            if link == .activate { return }
+            if link == .activate {
+                return
+            }
             await FileSession.shared.ready()
             self.follow(link)
         }
@@ -142,8 +144,8 @@ extension RootSplitViewController {
                 self.presentAsSheet(
                     UINavigationController(rootViewController: PropertiesViewController(
                         details: details,
-                        link: session.link
-                    ))
+                        link: session.link,
+                    )),
                 )
             } catch let failure as FilaFailure {
                 self.report(failure)
@@ -168,7 +170,7 @@ extension RootSplitViewController {
             guard let app = await applications.locate(bundleIdentifier: bundle) else {
                 self.presentMessage(
                     String(localized: "App Not Found"),
-                    message: String(localized: "“\(bundle)” is not installed on this device.")
+                    message: String(localized: "“\(bundle)” is not installed on this device."),
                 )
                 return
             }
@@ -182,7 +184,7 @@ extension RootSplitViewController {
                 guard let data = app.dataPath else {
                     self.presentMessage(
                         String(localized: "No App Data"),
-                        message: String(localized: "Fila could not find App Data for \(app.name).")
+                        message: String(localized: "Fila could not find App Data for \(app.name)."),
                     )
                     return
                 }
@@ -199,7 +201,7 @@ extension RootSplitViewController {
         presentMessage(
             String(localized: "Unsupported Link"),
             message: String(localized: "Fila cannot open this link. Check the address and try again.")
-                + "\n\n" + String(url.absoluteString.prefix(200))
+                + "\n\n" + String(url.absoluteString.prefix(200)),
         )
     }
 }

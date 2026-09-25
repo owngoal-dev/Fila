@@ -13,9 +13,9 @@ struct SidebarPlace: Hashable {
     let title: String
     let icon: FilePresentation.Icon
 
-    @MainActor
     /// `besideBootstrapHome`: the bootstrap's own `mobile` is listed too, so
     /// the system's says which of the two it is.
+    @MainActor
     init(_ row: SidebarRow, in backend: LocalFileBackend, besideBootstrapHome: Bool = false) {
         self.backend = backend.id
         id = row.id
@@ -80,15 +80,15 @@ enum SidebarLocation {
         let session = FileSession.shared
         let local = session.local
         let rows = Dictionary(
-            uniqueKeysWithValues: BackendComposition.sidebar.contribution(of: local.id).places.map { ($0.id, $0) }
+            uniqueKeysWithValues: BackendComposition.sidebar.contribution(of: local.id).places.map { ($0.id, $0) },
         )
         let bootstrapHome = rows[LocalFileBackend.bootstrapHomeID]
         return local.orderedPresets.filter(local.isPresetEnabled).flatMap { preset -> [Destination] in
             switch preset {
             case .applications:
-                return [catalog(.applications)].compactMap { $0 }
+                return [catalog(.applications)].compactMap(\.self)
             case .music:
-                return [catalog(.musicLibrary)].compactMap { $0 }
+                return [catalog(.musicLibrary)].compactMap(\.self)
             case .mobile:
                 // The bootstrap's own `mobile` rides this preset, directly
                 // under the system's, and the two are worded apart.
@@ -96,11 +96,11 @@ enum SidebarLocation {
                     SidebarPlace($0, in: local, besideBootstrapHome: bootstrapHome != nil)
                 }
                 return [system, bootstrapHome.map { SidebarPlace($0, in: local) }]
-                    .compactMap { $0 }
+                    .compactMap(\.self)
                     .map(Destination.directory)
             default:
                 return [rows[LocalFileBackend.placeID(preset)]]
-                    .compactMap { $0 }
+                    .compactMap(\.self)
                     .map { .directory(SidebarPlace($0, in: local)) }
             }
         }

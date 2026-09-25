@@ -20,7 +20,9 @@ struct FileTransferTests {
     let destination = LocalScratch()
     let stagingScratch = LocalScratch()
 
-    private var staging: URL { URL(fileURLWithPath: stagingScratch.root, isDirectory: true) }
+    private var staging: URL {
+        URL(fileURLWithPath: stagingScratch.root, isDirectory: true)
+    }
 
     private func adapter(_ scratch: LocalScratch) -> LocalFileServiceAdapter {
         LocalFileServiceAdapter(access: LocalFileService(), rootPath: scratch.root, observation: DirectoryObservation())
@@ -32,21 +34,21 @@ struct FileTransferTests {
         policy: PublishPolicy = .failIfExists,
         source sourceService: (any FileService)? = nil,
         destination destinationService: (any WritableFileService)? = nil,
-        into directory: String = ""
+        into directory: String = "",
     ) throws -> TransferRequest {
-        TransferRequest(
+        try TransferRequest(
             source: TransferSource(
                 backend: BackendID("a"),
                 service: sourceService ?? adapter(source),
-                paths: try paths.map(ServicePath.init)
+                paths: paths.map(ServicePath.init),
             ),
             destination: TransferDestination(
                 backend: BackendID("b"),
                 service: destinationService ?? adapter(destination),
-                directory: try ServicePath(directory)
+                directory: ServicePath(directory),
             ),
             mode: mode,
-            policy: policy
+            policy: policy,
         )
     }
 
@@ -86,11 +88,11 @@ struct FileTransferTests {
 
     // MARK: - Copies
 
-    @Test("A file is copied, verified, and both ends say so")
-    func copiesFile() async throws {
+    @Test
+    func `A file is copied, verified, and both ends say so`() async throws {
         source.file("one.txt", contents: "hello")
         let progress = ReportLog()
-        let outcome = await run(try request(["one.txt"], mode: .copy), progress: progress)
+        let outcome = try await run(request(["one.txt"], mode: .copy), progress: progress)
         #expect(outcome.succeeded, "\(String(describing: outcome.failure))")
         #expect(outcome.publishedFiles == 1)
         #expect(contents(destination, "one.txt") == Data("hello".utf8))
@@ -107,22 +109,22 @@ struct FileTransferTests {
         #expect(!last.planning)
     }
 
-    @Test("A tree is copied with its hierarchy and its empty directories")
-    func copiesTree() async throws {
+    @Test
+    func `A tree is copied with its hierarchy and its empty directories`() async throws {
         let big = plantTree()
-        let outcome = await run(try request(["tree"], mode: .copy))
+        let outcome = try await run(request(["tree"], mode: .copy))
         #expect(outcome.succeeded, "\(String(describing: outcome.failure))")
         expectTree(in: destination, under: "tree", big: big)
         expectTree(in: source, under: "tree", big: big)
         #expect(outcome.publishedFiles == 2)
     }
 
-    @Test("A staged source counts both legs and leaves the staging directory empty")
-    func stagedSource() async throws {
+    @Test
+    func `A staged source counts both legs and leaves the staging directory empty`() async throws {
         let big = plantTree()
         let progress = ReportLog()
         let staged = StagedService(inner: adapter(source))
-        let outcome = await run(try request(["tree"], mode: .copy, source: staged), progress: progress)
+        let outcome = try await run(request(["tree"], mode: .copy, source: staged), progress: progress)
         #expect(outcome.succeeded, "\(String(describing: outcome.failure))")
         expectTree(in: destination, under: "tree", big: big)
         let last = try #require(progress.reports.last)
@@ -131,15 +133,15 @@ struct FileTransferTests {
         #expect(names(stagingScratch).isEmpty, "every staged file was removed")
     }
 
-    @Test("An occupied name is refused unless replacing, and replacing merges a directory")
-    func occupiedDestination() async throws {
+    @Test
+    func `An occupied name is refused unless replacing, and replacing merges a directory`() async throws {
         source.file("one.txt", contents: "new")
         destination.file("one.txt", contents: "old")
-        let refused = await run(try request(["one.txt"], mode: .copy))
-        #expect(refused.failure as? WriteFailure == .alreadyExists(try ServicePath("one.txt")))
+        let refused = try await run(request(["one.txt"], mode: .copy))
+        #expect(try refused.failure as? WriteFailure == .alreadyExists(ServicePath("one.txt")))
         #expect(contents(destination, "one.txt") == Data("old".utf8))
 
-        let replaced = await run(try request(["one.txt"], mode: .copy, policy: .replace))
+        let replaced = try await run(request(["one.txt"], mode: .copy, policy: .replace))
         #expect(replaced.succeeded, "\(String(describing: replaced.failure))")
         #expect(contents(destination, "one.txt") == Data("new".utf8))
 
@@ -147,67 +149,67 @@ struct FileTransferTests {
         let big = plantTree()
         destination.directory("tree")
         destination.file("tree/keep.txt", contents: "kept")
-        let merged = await run(try request(["tree"], mode: .copy, policy: .replace))
+        let merged = try await run(request(["tree"], mode: .copy, policy: .replace))
         #expect(merged.succeeded, "\(String(describing: merged.failure))")
         expectTree(in: destination, under: "tree", big: big)
         #expect(contents(destination, "tree/keep.txt") == Data("kept".utf8))
     }
 
-    @Test("Links are skipped and named, never dereferenced")
-    func skipsLinks() async throws {
+    @Test
+    func `Links are skipped and named, never dereferenced`() async throws {
         let big = plantTree()
         #expect(symlink(source.path("tree/a.txt"), source.path("tree/pointer")) == 0)
-        let outcome = await run(try request(["tree"], mode: .copy))
+        let outcome = try await run(request(["tree"], mode: .copy))
         let shortfall = try #require(outcome.failure as? TransferShortfall)
-        #expect(shortfall.skipped == [try ServicePath("tree/pointer")])
+        #expect(try shortfall.skipped == [ServicePath("tree/pointer")])
         #expect(shortfall.retained.isEmpty)
         expectTree(in: destination, under: "tree", big: big)
         #expect(!names(destination, "tree").contains("pointer"))
     }
 
-    @Test("Refusals are decided before the first byte")
-    func refusals() async throws {
+    @Test
+    func `Refusals are decided before the first byte`() async throws {
         let same = adapter(source)
         source.directory("dir")
         source.file("dir/x.txt")
-        let nothing = await run(try request([], mode: .copy))
+        let nothing = try await run(request([], mode: .copy))
         #expect(nothing.failure as? TransferRefusal == .nothingToTransfer)
-        let conflict = await run(TransferRequest(
-            source: TransferSource(backend: BackendID("a"), service: same, paths: [try ServicePath("dir"), try ServicePath("dir")]),
+        let conflict = try await run(TransferRequest(
+            source: TransferSource(backend: BackendID("a"), service: same, paths: [ServicePath("dir"), ServicePath("dir")]),
             destination: TransferDestination(backend: BackendID("b"), service: adapter(destination), directory: .root),
-            mode: .copy, policy: .failIfExists
+            mode: .copy, policy: .failIfExists,
         ))
         #expect(conflict.failure as? TransferRefusal == .conflictingNames("dir"))
-        let sameLocation = await run(TransferRequest(
-            source: TransferSource(backend: BackendID("a"), service: same, paths: [try ServicePath("dir")]),
+        let sameLocation = try await run(TransferRequest(
+            source: TransferSource(backend: BackendID("a"), service: same, paths: [ServicePath("dir")]),
             destination: TransferDestination(backend: BackendID("a"), service: same, directory: .root),
-            mode: .copy, policy: .failIfExists
+            mode: .copy, policy: .failIfExists,
         ))
-        #expect(sameLocation.failure as? TransferRefusal == .sameLocation(try ServicePath("dir")))
-        let inside = await run(TransferRequest(
-            source: TransferSource(backend: BackendID("a"), service: same, paths: [try ServicePath("dir")]),
-            destination: TransferDestination(backend: BackendID("a"), service: same, directory: try ServicePath("dir")),
-            mode: .copy, policy: .failIfExists
+        #expect(try sameLocation.failure as? TransferRefusal == .sameLocation(ServicePath("dir")))
+        let inside = try await run(TransferRequest(
+            source: TransferSource(backend: BackendID("a"), service: same, paths: [ServicePath("dir")]),
+            destination: TransferDestination(backend: BackendID("a"), service: same, directory: ServicePath("dir")),
+            mode: .copy, policy: .failIfExists,
         ))
-        #expect(inside.failure as? TransferRefusal == .insideSource(try ServicePath("dir")))
+        #expect(try inside.failure as? TransferRefusal == .insideSource(ServicePath("dir")))
         #expect(names(destination).isEmpty)
     }
 
     // MARK: - Moves
 
-    @Test("A moved tree is complete at the destination and gone from the source")
-    func movesTree() async throws {
+    @Test
+    func `A moved tree is complete at the destination and gone from the source`() async throws {
         let big = plantTree()
         source.file("beside.txt", contents: "stays")
-        let outcome = await run(try request(["tree"], mode: .move))
+        let outcome = try await run(request(["tree"], mode: .move))
         #expect(outcome.succeeded, "\(String(describing: outcome.failure))")
         expectTree(in: destination, under: "tree", big: big)
         #expect(names(source) == ["beside.txt"])
-        #expect(outcome.affected.contains(FileLocation(backend: BackendID("a"), path: try ServicePath("tree/sub"))))
+        #expect(try outcome.affected.contains(FileLocation(backend: BackendID("a"), path: ServicePath("tree/sub"))))
     }
 
-    @Test("A source that changed after it was read is copied but kept, and so is every directory above it")
-    func changedSourceIsRetained() async throws {
+    @Test
+    func `A source that changed after it was read is copied but kept, and so is every directory above it`() async throws {
         let big = plantTree()
         let hooked = HookedService(inner: adapter(source))
         // The hook runs off the main actor: it takes the path it touches,
@@ -218,57 +220,57 @@ struct FileTransferTests {
             var times = [timeval(tv_sec: 1_000_000, tv_usec: 0), timeval(tv_sec: 1_000_000, tv_usec: 0)]
             _ = utimes(touched, &times)
         }
-        let outcome = await run(try request(["tree"], mode: .move, source: hooked))
+        let outcome = try await run(request(["tree"], mode: .move, source: hooked))
         let shortfall = try #require(outcome.failure as? TransferShortfall)
-        #expect(shortfall.retained == [try ServicePath("tree/a.txt"), try ServicePath("tree")])
+        #expect(try shortfall.retained == [ServicePath("tree/a.txt"), ServicePath("tree")])
         expectTree(in: destination, under: "tree", big: big)
         #expect(contents(source, "tree/a.txt") == Data("alpha".utf8), "kept")
         #expect(!names(source, "tree").contains("sub"), "what matched was removed")
         #expect(!names(source, "tree").contains("empty"))
     }
 
-    @Test("A refused removal keeps the copy and reports the source as retained")
-    func refusedRemoval() async throws {
+    @Test
+    func `A refused removal keeps the copy and reports the source as retained`() async throws {
         source.file("one.txt", contents: "hello")
         let hooked = HookedService(inner: adapter(source))
         hooked.refuseRemovals = true
-        let outcome = await run(try request(["one.txt"], mode: .move, source: hooked))
+        let outcome = try await run(request(["one.txt"], mode: .move, source: hooked))
         let shortfall = try #require(outcome.failure as? TransferShortfall)
-        #expect(shortfall.retained == [try ServicePath("one.txt")])
+        #expect(try shortfall.retained == [ServicePath("one.txt")])
         #expect(contents(destination, "one.txt") == Data("hello".utf8))
         #expect(contents(source, "one.txt") == Data("hello".utf8))
     }
 
-    @Test("A move of links keeps the link and the directory it is in")
-    func moveKeepsLinks() async throws {
+    @Test
+    func `A move of links keeps the link and the directory it is in`() async throws {
         let big = plantTree()
         #expect(symlink(source.path("tree/a.txt"), source.path("tree/sub/pointer")) == 0)
-        let outcome = await run(try request(["tree"], mode: .move))
+        let outcome = try await run(request(["tree"], mode: .move))
         let shortfall = try #require(outcome.failure as? TransferShortfall)
-        #expect(shortfall.skipped == [try ServicePath("tree/sub/pointer")])
-        #expect(shortfall.retained == [try ServicePath("tree/sub"), try ServicePath("tree")])
+        #expect(try shortfall.skipped == [ServicePath("tree/sub/pointer")])
+        #expect(try shortfall.retained == [ServicePath("tree/sub"), ServicePath("tree")])
         expectTree(in: destination, under: "tree", big: big)
         #expect(names(source, "tree") == ["sub"])
         #expect(names(source, "tree/sub") == ["pointer"])
     }
 
-    @Test("A move without a writable source is refused before anything is copied")
-    func moveNeedsWritableSource() async throws {
+    @Test
+    func `A move without a writable source is refused before anything is copied`() async throws {
         source.file("one.txt")
-        let outcome = await run(try request(["one.txt"], mode: .move, source: ReadOnlyService(inner: adapter(source))))
+        let outcome = try await run(request(["one.txt"], mode: .move, source: ReadOnlyService(inner: adapter(source))))
         #expect(outcome.failure as? TransferRefusal == .sourceNotWritable)
         #expect(names(destination).isEmpty)
     }
 
-    @Test("A move within one backend is that backend's rename, root by root")
-    func sameBackendMove() async throws {
+    @Test
+    func `A move within one backend is that backend's rename, root by root`() async throws {
         let big = plantTree()
         source.directory("target")
         let same = adapter(source)
-        let outcome = await run(TransferRequest(
-            source: TransferSource(backend: BackendID("a"), service: same, paths: [try ServicePath("tree")]),
-            destination: TransferDestination(backend: BackendID("a"), service: same, directory: try ServicePath("target")),
-            mode: .move, policy: .failIfExists
+        let outcome = try await run(TransferRequest(
+            source: TransferSource(backend: BackendID("a"), service: same, paths: [ServicePath("tree")]),
+            destination: TransferDestination(backend: BackendID("a"), service: same, directory: ServicePath("target")),
+            mode: .move, policy: .failIfExists,
         ))
         #expect(outcome.succeeded, "\(String(describing: outcome.failure))")
         expectTree(in: source, under: "target/tree", big: big)
@@ -278,21 +280,21 @@ struct FileTransferTests {
 
     // MARK: - Interruptions
 
-    @Test("A lost publication reply stops the transfer with the name marked uncertain and keeps the source")
-    func lostPublication() async throws {
+    @Test
+    func `A lost publication reply stops the transfer with the name marked uncertain and keeps the source`() async throws {
         _ = plantTree()
         let flaky = FlakyDestination(inner: adapter(destination))
         flaky.loseReplyFor = try ServicePath("tree/a.txt")
-        let outcome = await run(try request(["tree"], mode: .move, destination: flaky))
+        let outcome = try await run(request(["tree"], mode: .move, destination: flaky))
         let shortfall = try #require(outcome.failure as? TransferShortfall)
-        #expect(shortfall.uncertain == [try ServicePath("tree/a.txt")])
+        #expect(try shortfall.uncertain == [ServicePath("tree/a.txt")])
         #expect(shortfall.retained.isEmpty, "nothing was cleaned up")
         #expect(contents(source, "tree/a.txt") == Data("alpha".utf8))
         #expect(names(source, "tree/sub") == ["big.bin"])
     }
 
-    @Test("Cancellation keeps what was published, and leaves no temporary or staging file")
-    func cancellation() async throws {
+    @Test
+    func `Cancellation keeps what was published, and leaves no temporary or staging file`() async throws {
         let huge = Data(count: 48 * LocalFileServiceAdapter.chunkSize)
         source.file("first.txt", contents: "first")
         FileManager.default.createFile(atPath: source.path("huge.bin"), contents: huge)
@@ -304,7 +306,9 @@ struct FileTransferTests {
         let task = Task {
             await FileTransfer.run(request, staging: staging) { report in
                 progress.append(report)
-                if report.bytesDone > 4 * Int64(LocalFileServiceAdapter.chunkSize) { progress.cancelOnce?() }
+                if report.bytesDone > 4 * Int64(LocalFileServiceAdapter.chunkSize) {
+                    progress.cancelOnce?()
+                }
             }
         }
         progress.cancelOnce = { task.cancel() }
@@ -318,8 +322,8 @@ struct FileTransferTests {
         #expect(names(source) == ["first.txt", "huge.bin"])
     }
 
-    @Test("A cancel during a move's cleanup is reported cancelled, never as a success with sources left behind")
-    func cancellationDuringCleanup() async throws {
+    @Test
+    func `A cancel during a move's cleanup is reported cancelled, never as a success with sources left behind`() async throws {
         source.file("one.txt", contents: "one")
         source.file("two.txt", contents: "two")
         let hooked = HookedService(inner: adapter(source))
@@ -340,23 +344,23 @@ struct FileTransferTests {
         #expect(names(source) == ["two.txt"], "the source not reached is still there")
     }
 
-    @Test("Replacing into a link to a directory is refused rather than written through")
-    func replaceRefusesLinkedDirectory() async throws {
+    @Test
+    func `Replacing into a link to a directory is refused rather than written through`() async throws {
         source.directory("tree")
         source.file("tree/a.txt", contents: "alpha")
         destination.directory("elsewhere")
         try FileManager.default.createSymbolicLink(atPath: destination.path("tree"), withDestinationPath: "elsewhere")
-        let outcome = await run(try request(["tree"], mode: .copy, policy: .replace))
-        guard case WriteFailure.alreadyExists(let path)? = outcome.failure else {
+        let outcome = try await run(request(["tree"], mode: .copy, policy: .replace))
+        guard case let WriteFailure.alreadyExists(path)? = outcome.failure else {
             Issue.record("expected alreadyExists, got \(String(describing: outcome.failure))")
             return
         }
-        #expect(path == (try ServicePath("tree")))
+        #expect(try path == ServicePath("tree"))
         #expect(names(destination, "elsewhere").isEmpty, "nothing was written where the link points")
     }
 
-    @Test("A source that grew before it was read is copied whole, and a move keeps it")
-    func grownSourceIsCopiedWhole() async throws {
+    @Test
+    func `A source that grew before it was read is copied whole, and a move keeps it`() async throws {
         source.file("log.txt", contents: "line one\n")
         let hooked = HookedService(inner: adapter(source))
         let appended = source.path("log.txt")
@@ -367,13 +371,13 @@ struct FileTransferTests {
             handle?.write(Data("line two\n".utf8))
             try? handle?.close()
         }
-        let copy = await run(try request(["log.txt"], mode: .copy, source: hooked))
+        let copy = try await run(request(["log.txt"], mode: .copy, source: hooked))
         #expect(copy.succeeded, "\(String(describing: copy.failure))")
         #expect(contents(destination, "log.txt") == Data("line one\nline two\n".utf8))
 
-        let move = await run(try request(["log.txt"], mode: .move, policy: .replace, source: hooked))
+        let move = try await run(request(["log.txt"], mode: .move, policy: .replace, source: hooked))
         let shortfall = try #require(move.failure as? TransferShortfall)
-        #expect(shortfall.retained == [try ServicePath("log.txt")])
+        #expect(try shortfall.retained == [ServicePath("log.txt")])
         #expect(contents(source, "log.txt") == Data("line one\nline two\nline two\n".utf8), "kept")
     }
 }
@@ -384,8 +388,14 @@ final class ReportLog: @unchecked Sendable {
     private let lock = NSLock()
     private var log: [TransferProgressReport] = []
     private var once: (@Sendable () -> Void)?
-    func append(_ report: TransferProgressReport) { lock.lock(); log.append(report); lock.unlock() }
-    var reports: [TransferProgressReport] { lock.lock(); defer { lock.unlock() }; return log }
+    func append(_ report: TransferProgressReport) {
+        lock.lock(); log.append(report); lock.unlock()
+    }
+
+    var reports: [TransferProgressReport] {
+        lock.lock(); defer { lock.unlock() }; return log
+    }
+
     var cancelOnce: (@Sendable () -> Void)? {
         get { lock.lock(); defer { lock.unlock() }; defer { once = nil }; return once }
         set { lock.lock(); once = newValue; lock.unlock() }
@@ -401,32 +411,55 @@ final class HookedService: WritableFileService, DescriptorFileService, @unchecke
     var refuseRemovals = false
     struct Refused: Error {}
 
-    init(inner: LocalFileServiceAdapter) { self.inner = inner }
+    init(inner: LocalFileServiceAdapter) {
+        self.inner = inner
+    }
 
-    func list(_ directory: ServicePath) async throws -> FileListing { try await inner.list(directory) }
-    func details(_ path: ServicePath) async throws -> FileEntry { try await inner.details(path) }
+    func list(_ directory: ServicePath) async throws -> FileListing {
+        try await inner.list(directory)
+    }
+
+    func details(_ path: ServicePath) async throws -> FileEntry {
+        try await inner.details(path)
+    }
+
     func copyContents(of path: ServicePath, to descriptor: Int32, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.copyContents(of: path, to: descriptor, progress: progress)
     }
-    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> { try await inner.changes(in: directory) }
+
+    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> {
+        try await inner.changes(in: directory)
+    }
+
     func openForReading(_ path: ServicePath) async throws -> Int32 {
         let descriptor = try await inner.openForReading(path)
         afterOpen?(path)
         return descriptor
     }
-    func createDirectory(_ directory: ServicePath) async throws { try await inner.createDirectory(directory) }
+
+    func createDirectory(_ directory: ServicePath) async throws {
+        try await inner.createDirectory(directory)
+    }
+
     func writeFile(from descriptor: Int32, size: Int64, to destination: ServicePath, policy: PublishPolicy, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.writeFile(from: descriptor, size: size, to: destination, policy: policy, progress: progress)
     }
+
     func removeFile(_ path: ServicePath) async throws {
-        if refuseRemovals { throw Refused() }
+        if refuseRemovals {
+            throw Refused()
+        }
         beforeRemoval?(path)
         try await inner.removeFile(path)
     }
+
     func removeEmptyDirectory(_ path: ServicePath) async throws {
-        if refuseRemovals { throw Refused() }
+        if refuseRemovals {
+            throw Refused()
+        }
         try await inner.removeEmptyDirectory(path)
     }
+
     func move(_ source: ServicePath, to destination: ServicePath, policy: PublishPolicy) async throws {
         try await inner.move(source, to: destination, policy: policy)
     }
@@ -436,19 +469,42 @@ final class HookedService: WritableFileService, DescriptorFileService, @unchecke
 /// every remote is.
 final class StagedService: WritableFileService, @unchecked Sendable {
     let inner: LocalFileServiceAdapter
-    init(inner: LocalFileServiceAdapter) { self.inner = inner }
-    func list(_ directory: ServicePath) async throws -> FileListing { try await inner.list(directory) }
-    func details(_ path: ServicePath) async throws -> FileEntry { try await inner.details(path) }
+    init(inner: LocalFileServiceAdapter) {
+        self.inner = inner
+    }
+
+    func list(_ directory: ServicePath) async throws -> FileListing {
+        try await inner.list(directory)
+    }
+
+    func details(_ path: ServicePath) async throws -> FileEntry {
+        try await inner.details(path)
+    }
+
     func copyContents(of path: ServicePath, to descriptor: Int32, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.copyContents(of: path, to: descriptor, progress: progress)
     }
-    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> { try await inner.changes(in: directory) }
-    func createDirectory(_ directory: ServicePath) async throws { try await inner.createDirectory(directory) }
+
+    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> {
+        try await inner.changes(in: directory)
+    }
+
+    func createDirectory(_ directory: ServicePath) async throws {
+        try await inner.createDirectory(directory)
+    }
+
     func writeFile(from descriptor: Int32, size: Int64, to destination: ServicePath, policy: PublishPolicy, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.writeFile(from: descriptor, size: size, to: destination, policy: policy, progress: progress)
     }
-    func removeFile(_ path: ServicePath) async throws { try await inner.removeFile(path) }
-    func removeEmptyDirectory(_ path: ServicePath) async throws { try await inner.removeEmptyDirectory(path) }
+
+    func removeFile(_ path: ServicePath) async throws {
+        try await inner.removeFile(path)
+    }
+
+    func removeEmptyDirectory(_ path: ServicePath) async throws {
+        try await inner.removeEmptyDirectory(path)
+    }
+
     func move(_ source: ServicePath, to destination: ServicePath, policy: PublishPolicy) async throws {
         try await inner.move(source, to: destination, policy: policy)
     }
@@ -457,13 +513,25 @@ final class StagedService: WritableFileService, @unchecked Sendable {
 /// A source that can only be read.
 final class ReadOnlyService: FileService, @unchecked Sendable {
     let inner: LocalFileServiceAdapter
-    init(inner: LocalFileServiceAdapter) { self.inner = inner }
-    func list(_ directory: ServicePath) async throws -> FileListing { try await inner.list(directory) }
-    func details(_ path: ServicePath) async throws -> FileEntry { try await inner.details(path) }
+    init(inner: LocalFileServiceAdapter) {
+        self.inner = inner
+    }
+
+    func list(_ directory: ServicePath) async throws -> FileListing {
+        try await inner.list(directory)
+    }
+
+    func details(_ path: ServicePath) async throws -> FileEntry {
+        try await inner.details(path)
+    }
+
     func copyContents(of path: ServicePath, to descriptor: Int32, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.copyContents(of: path, to: descriptor, progress: progress)
     }
-    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> { try await inner.changes(in: directory) }
+
+    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> {
+        try await inner.changes(in: directory)
+    }
 }
 
 /// A destination whose publication reply for one name never comes back —
@@ -472,20 +540,45 @@ final class ReadOnlyService: FileService, @unchecked Sendable {
 final class FlakyDestination: WritableFileService, @unchecked Sendable {
     let inner: LocalFileServiceAdapter
     var loseReplyFor: ServicePath?
-    init(inner: LocalFileServiceAdapter) { self.inner = inner }
-    func list(_ directory: ServicePath) async throws -> FileListing { try await inner.list(directory) }
-    func details(_ path: ServicePath) async throws -> FileEntry { try await inner.details(path) }
+    init(inner: LocalFileServiceAdapter) {
+        self.inner = inner
+    }
+
+    func list(_ directory: ServicePath) async throws -> FileListing {
+        try await inner.list(directory)
+    }
+
+    func details(_ path: ServicePath) async throws -> FileEntry {
+        try await inner.details(path)
+    }
+
     func copyContents(of path: ServicePath, to descriptor: Int32, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.copyContents(of: path, to: descriptor, progress: progress)
     }
-    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> { try await inner.changes(in: directory) }
-    func createDirectory(_ directory: ServicePath) async throws { try await inner.createDirectory(directory) }
+
+    func changes(in directory: ServicePath) async throws -> AsyncThrowingStream<Void, Error> {
+        try await inner.changes(in: directory)
+    }
+
+    func createDirectory(_ directory: ServicePath) async throws {
+        try await inner.createDirectory(directory)
+    }
+
     func writeFile(from descriptor: Int32, size: Int64, to destination: ServicePath, policy: PublishPolicy, progress: @escaping @Sendable (TransferProgress) -> Void) async throws {
         try await inner.writeFile(from: descriptor, size: size, to: destination, policy: policy, progress: progress)
-        if destination == loseReplyFor { throw WriteFailure.publicationUnknown(destination) }
+        if destination == loseReplyFor {
+            throw WriteFailure.publicationUnknown(destination)
+        }
     }
-    func removeFile(_ path: ServicePath) async throws { try await inner.removeFile(path) }
-    func removeEmptyDirectory(_ path: ServicePath) async throws { try await inner.removeEmptyDirectory(path) }
+
+    func removeFile(_ path: ServicePath) async throws {
+        try await inner.removeFile(path)
+    }
+
+    func removeEmptyDirectory(_ path: ServicePath) async throws {
+        try await inner.removeEmptyDirectory(path)
+    }
+
     func move(_ source: ServicePath, to destination: ServicePath, policy: PublishPolicy) async throws {
         try await inner.move(source, to: destination, policy: policy)
     }

@@ -9,8 +9,8 @@ private let trashTestRoots = ["/private/tmp"] + (ProcessInfo.processInfo.environ
 
 @Suite("Trash and Put Back")
 struct TrashTests {
-    @Test("A tree survives trash and restore with metadata and links", arguments: trashTestRoots)
-    func roundTrip(bootstrapParent: String) throws {
+    @Test(arguments: trashTestRoots)
+    func `A tree survives trash and restore with metadata and links`(bootstrapParent: String) throws {
         let source = Scratch()
         let bootstrap = Scratch(parent: bootstrapParent)
         let operations = FileOperations(bootstrapRoot: bootstrap.root)
@@ -38,8 +38,8 @@ struct TrashTests {
         #expect((metadata(of: source.path("tree/link"))?.st_mode ?? 0) & S_IFMT == S_IFLNK)
     }
 
-    @Test("Colliding trash names restore to their exact origins and refuse replacements", arguments: trashTestRoots)
-    func collisions(bootstrapParent: String) throws {
+    @Test(arguments: trashTestRoots)
+    func `Colliding trash names restore to their exact origins and refuse replacements`(bootstrapParent: String) throws {
         let source = Scratch()
         let bootstrap = Scratch(parent: bootstrapParent)
         let operations = FileOperations(bootstrapRoot: bootstrap.root)
@@ -65,8 +65,8 @@ struct TrashTests {
         #expect(exists(trash + "/same"))
     }
 
-    @Test("Restore refuses malformed origins, missing records, and paths outside a provider root")
-    func invalidOrigins() throws {
+    @Test
+    func `Restore refuses malformed origins, missing records, and paths outside a provider root`() throws {
         let scratch = Scratch()
         let root = scratch.directory("root")
         let trash = scratch.directory("root/.fila-trash")
@@ -85,8 +85,8 @@ struct TrashTests {
         #expect(!exists(scratch.path("outside")))
     }
 
-    @Test("Cancelled trash leaves the source and existing trash alone", arguments: trashTestRoots)
-    func cancellation(bootstrapParent: String) {
+    @Test(arguments: trashTestRoots)
+    func `Cancelled trash leaves the source and existing trash alone`(bootstrapParent: String) {
         let source = Scratch()
         let bootstrap = Scratch(parent: bootstrapParent)
         let file = source.file("payload")
@@ -98,8 +98,8 @@ struct TrashTests {
         #expect(!exists(FilaTrash.directory(under: bootstrap.root) + "/payload"))
     }
 
-    @Test("A failed cross-volume copy keeps the whole source and cleans staging", .enabled(if: trashTestRoots.count > 1 && geteuid() != 0))
-    func failedCopy() throws {
+    @Test(.enabled(if: trashTestRoots.count > 1 && geteuid() != 0))
+    func `A failed cross-volume copy keeps the whole source and cleans staging`() throws {
         let source = Scratch()
         let bootstrap = try Scratch(parent: #require(trashTestRoots.last))
         #expect(!filaSameVolume(source.root, bootstrap.root))
@@ -116,8 +116,8 @@ struct TrashTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: FilaTrash.directory(under: bootstrap.root)).isEmpty)
     }
 
-    @Test("Failed source removal retains a complete trash copy with its origin", .enabled(if: trashTestRoots.count > 1))
-    func failedRemoval() throws {
+    @Test(.enabled(if: trashTestRoots.count > 1))
+    func `Failed source removal retains a complete trash copy with its origin`() throws {
         let source = Scratch()
         let bootstrap = try Scratch(parent: #require(trashTestRoots.last))
         #expect(!filaSameVolume(source.root, bootstrap.root))

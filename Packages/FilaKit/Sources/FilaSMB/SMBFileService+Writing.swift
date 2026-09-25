@@ -39,7 +39,7 @@ extension SMBFileService: WritableFileService {
         size: Int64,
         to destination: ServicePath,
         policy: PublishPolicy,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) async throws {
         // The share root is a directory; a file cannot be published there.
         guard let parent = destination.parent else { throw WriteFailure.alreadyExists(destination) }
@@ -53,7 +53,7 @@ extension SMBFileService: WritableFileService {
                 shareAccess: [],
                 createDisposition: .create,
                 createOptions: [.nonDirectoryFile],
-                name: temporaryWire
+                name: temporaryWire,
             )
             return SMBConnection.Handle(client: client, fileId: response.fileId, size: 0)
         }
@@ -64,7 +64,9 @@ extension SMBFileService: WritableFileService {
             while true {
                 try Task.checkCancellation()
                 let chunk = try Self.read(descriptor, upTo: chunkLength)
-                if chunk.isEmpty { break }
+                if chunk.isEmpty {
+                    break
+                }
                 var written = 0
                 while written < chunk.count {
                     let piece = Data(chunk[(chunk.startIndex + written)...])
@@ -87,7 +89,9 @@ extension SMBFileService: WritableFileService {
             // retired session the delete reconnects to do it.
             await connection.closeHandle(handle)
             await discard(temporary)
-            if let smb = error as? SMBError { throw Self.classify(smb, at: destination) }
+            if let smb = error as? SMBError {
+                throw Self.classify(smb, at: destination)
+            }
             throw error
         }
         // Publication: the server's one rename. Exclusive by default — an
@@ -168,7 +172,7 @@ extension SMBFileService: WritableFileService {
                 try await client.session.deleteNode(path: wire, directory: false)
             }
         }
-        if (try? await cleanup.value) == nil {
+        if await (try? cleanup.value) == nil {
             FilaLog.warning("smb: temporary \(temporary) could not be removed")
         }
     }
@@ -177,10 +181,10 @@ extension SMBFileService: WritableFileService {
     /// error it was, shown with the server's own status.
     private static func classify(_ error: SMBError, at path: ServicePath) -> Error {
         switch error {
-        case .alreadyExists: return WriteFailure.alreadyExists(path)
-        case .notFound: return WriteFailure.notFound(path)
-        case .directoryNotEmpty: return WriteFailure.notEmpty(path)
-        default: return error
+        case .alreadyExists: WriteFailure.alreadyExists(path)
+        case .notFound: WriteFailure.notFound(path)
+        case .directoryNotEmpty: WriteFailure.notEmpty(path)
+        default: error
         }
     }
 
@@ -192,7 +196,9 @@ extension SMBFileService: WritableFileService {
             while true {
                 let result = Darwin.read(descriptor, raw.baseAddress, count)
                 if result < 0 {
-                    if errno == EINTR { continue }
+                    if errno == EINTR {
+                        continue
+                    }
                     throw SMBError.descriptorRead(code: errno)
                 }
                 return result

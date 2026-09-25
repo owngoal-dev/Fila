@@ -8,8 +8,8 @@ import Testing
 
 @Suite("Path normalisation")
 struct NormalizeTests {
-    @Test("Collapses to an absolute, separator-clean path")
-    func normalizes() {
+    @Test
+    func `Collapses to an absolute, separator-clean path`() {
         #expect(FilaGuard.normalize("/") == "/")
         #expect(FilaGuard.normalize("") == "/")
         #expect(FilaGuard.normalize("/private//var/") == "/private/var")
@@ -19,8 +19,8 @@ struct NormalizeTests {
         #expect(FilaGuard.normalize("private/var") == "/private/var")
     }
 
-    @Test("Ancestry is by component, not by string prefix")
-    func ancestry() {
+    @Test
+    func `Ancestry is by component, not by string prefix`() {
         #expect(FilaGuard.isAncestor("/private", of: "/private/var"))
         #expect(!FilaGuard.isAncestor("/priv", of: "/private/var"))
         #expect(!FilaGuard.isAncestor("/private/var", of: "/private/var"))
@@ -37,8 +37,8 @@ struct DestructionGuardTests {
         FilaGuard.isDestructionProtected(path, bootstrapRoot: bootstrap)
     }
 
-    @Test("Refuses the nodes that keep the device bootable")
-    func protectsBootableNodes() {
+    @Test
+    func `Refuses the nodes that keep the device bootable`() {
         #expect(isProtected("/"))
         #expect(isProtected("/private/var/mobile"))
         #expect(isProtected("/private"))
@@ -47,22 +47,22 @@ struct DestructionGuardTests {
         #expect(isProtected(bootstrap + "/usr"))
     }
 
-    @Test("Leaves everything inside them editable — which is the point of the app")
-    func allowsContents() {
+    @Test
+    func `Leaves everything inside them editable — which is the point of the app`() {
         #expect(!isProtected("/private/var/mobile/Media/DCIM"))
         #expect(!isProtected("/System/Library/CoreServices/SpringBoard.app"))
         #expect(!isProtected(bootstrap + "/usr/bin/dpkg"))
         #expect(!isProtected("/private/var/mobile/Documents"))
     }
 
-    @Test("Traversal is not a way around the list")
-    func resistsTraversal() {
+    @Test
+    func `Traversal is not a way around the list`() {
         #expect(isProtected("/private/var/mobile/.."))
         #expect(isProtected("/private/var/mobile/Media/../.."))
     }
 
-    @Test("A rootful layout has no bootstrap root of its own")
-    func rootfulLayout() {
+    @Test
+    func `A rootful layout has no bootstrap root of its own`() {
         #expect(FilaGuard.isDestructionProtected("/usr", bootstrapRoot: ""))
     }
 }
@@ -73,8 +73,8 @@ struct CanonicalPathTests {
     /// collapsed the symlinks Apple platforms ship. If that stopped holding,
     /// every entry under `/private` would be bypassable by spelling the path
     /// `/var/...` instead.
-    @Test("/var and /etc resolve into /private")
-    func appleSymlinksResolve() {
+    @Test
+    func `/var and /etc resolve into /private`() {
         #expect(realpathString("/var") == "/private/var")
         #expect(realpathString("/etc") == "/private/etc")
     }
@@ -82,8 +82,8 @@ struct CanonicalPathTests {
     /// A symlink pointing at a protected directory must not launder it: the
     /// daemon resolves before it decides, so the resolved path is what the
     /// guard sees.
-    @Test("A symlink to a protected directory does not launder it")
-    func symlinkDoesNotLaunder() throws {
+    @Test
+    func `A symlink to a protected directory does not launder it`() throws {
         let scratch = try makeScratchDirectory()
         defer { try? FileManager.default.removeItem(atPath: scratch) }
 

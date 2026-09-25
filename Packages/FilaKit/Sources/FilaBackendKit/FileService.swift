@@ -29,13 +29,23 @@ public struct ServicePath: Hashable, Sendable, Codable, CustomStringConvertible 
     /// is not.
     public init(_ string: String) throws {
         var pieces = string.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
-        if pieces.first == "" { pieces.removeFirst() }
-        if pieces.last == "" { pieces.removeLast() }
+        if pieces.first == "" {
+            pieces.removeFirst()
+        }
+        if pieces.last == "" {
+            pieces.removeLast()
+        }
         try self.init(components: pieces)
     }
 
-    public var isRoot: Bool { components.isEmpty }
-    public var name: String? { components.last }
+    public var isRoot: Bool {
+        components.isEmpty
+    }
+
+    public var name: String? {
+        components.last
+    }
+
     public var parent: ServicePath? {
         guard !isRoot else { return nil }
         return ServicePath(unchecked: Array(components.dropLast()))
@@ -52,7 +62,9 @@ public struct ServicePath: Hashable, Sendable, Codable, CustomStringConvertible 
 
     /// The path joined with `/`, without a leading separator; empty at the
     /// root. For display and for backends whose wire form is a POSIX path.
-    public var description: String { components.joined(separator: "/") }
+    public var description: String {
+        components.joined(separator: "/")
+    }
 
     private init(unchecked components: [String]) {
         self.components = components
@@ -65,9 +77,9 @@ public struct ServicePath: Hashable, Sendable, Codable, CustomStringConvertible 
         guard !component.utf8.contains(0) else { throw ServicePathError.nulInComponent }
     }
 
-    // Codable through the joined string keeps a stored bookmark readable.
+    /// Codable through the joined string keeps a stored bookmark readable.
     public init(from decoder: Decoder) throws {
-        try self.init(try decoder.singleValueContainer().decode(String.self))
+        try self.init(decoder.singleValueContainer().decode(String.self))
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -84,10 +96,10 @@ public enum ServicePathError: Error, Equatable, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .emptyComponent: return "empty path component"
-        case let .relativeComponent(name): return "path component \"\(name)\" is not a name"
-        case let .separatorInComponent(name): return "path component \"\(name)\" contains a separator"
-        case .nulInComponent: return "path component contains NUL"
+        case .emptyComponent: "empty path component"
+        case let .relativeComponent(name): "path component \"\(name)\" is not a name"
+        case let .separatorInComponent(name): "path component \"\(name)\" contains a separator"
+        case .nulInComponent: "path component contains NUL"
         }
     }
 }
@@ -141,9 +153,9 @@ public struct FileEntry: Hashable, Sendable {
     /// about whether a mutation may treat it as a directory.
     public var entersDirectory: Bool {
         switch kind {
-        case .directory: return true
-        case .symbolicLink(resolved: .directory): return true
-        default: return false
+        case .directory: true
+        case .symbolicLink(resolved: .directory): true
+        default: false
         }
     }
 }
@@ -182,7 +194,7 @@ public struct FileListing: AsyncSequence, Sendable {
 
         public init(
             next: @escaping @Sendable () async throws -> [FileEntry]?,
-            close: @escaping @Sendable () async -> Void
+            close: @escaping @Sendable () async -> Void,
         ) {
             self.next = next
             self.close = close
@@ -251,7 +263,10 @@ public struct FileListing: AsyncSequence, Sendable {
     private final class ConsumedOnce: @unchecked Sendable {
         private let lock = NSLock()
         private var entries: [FileEntry]?
-        init(_ entries: [FileEntry]) { self.entries = entries }
+        init(_ entries: [FileEntry]) {
+            self.entries = entries
+        }
+
         func take() -> [FileEntry]? {
             lock.lock(); defer { lock.unlock() }
             defer { entries = nil }
@@ -282,7 +297,7 @@ public protocol FileService: AnyObject, Sendable {
     func copyContents(
         of path: ServicePath,
         to descriptor: Int32,
-        progress: @escaping @Sendable (TransferProgress) -> Void
+        progress: @escaping @Sendable (TransferProgress) -> Void,
     ) async throws
 
     /// Invalidation hints for one directory: each element means "list it

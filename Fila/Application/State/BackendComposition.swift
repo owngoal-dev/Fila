@@ -1,6 +1,6 @@
 import FilaBackendKit
-import FilaLog
 import FilaFileOps
+import FilaLog
 import Foundation
 
 /// The app's composition root for backends.
@@ -42,10 +42,10 @@ enum BackendComposition {
         registry = BackendModuleDiscovery.bootstrap(
             BackendModuleDiscovery.embeddedCandidates(),
             hostVersion: version,
-            host: host
+            host: host,
         )
         FilaLog.info(
-            "backend modules: \(registry.modules.map(\.bundleIdentifier).joined(separator: ", "))"
+            "backend modules: \(registry.modules.map(\.bundleIdentifier).joined(separator: ", "))",
         )
     }
 }
@@ -83,7 +83,8 @@ final class AppBackendHost: BackendHost {
     var inboxDirectory: String? {
         if let identifier = Bundle.main.object(forInfoDictionaryKey: "FilaAppGroupIdentifier") as? String,
            let group = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier),
-           let inbox = try? SharedInbox.directory(in: group) {
+           let inbox = try? SharedInbox.directory(in: group)
+        {
             return inbox.path
         }
         let inbox = NSHomeDirectory() + "/Documents/Inbox"

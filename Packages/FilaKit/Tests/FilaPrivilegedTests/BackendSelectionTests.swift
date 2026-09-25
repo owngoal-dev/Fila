@@ -29,13 +29,13 @@ struct BackendSelectionTests {
         return bundle
     }
 
-    @Test("A deb layout with the daemon beside the app is a daemon install")
-    func findsTheInstalledDaemon() {
+    @Test
+    func `A deb layout with the daemon beside the app is a daemon install`() {
         #expect(DaemonInstallation.isInstalled(besideBundleAt: layout(withDaemon: true)))
     }
 
-    @Test("The same layout without the binary is not")
-    func daemonMustActuallyBeThere() {
+    @Test
+    func `The same layout without the binary is not`() {
         #expect(!DaemonInstallation.isInstalled(besideBundleAt: layout(withDaemon: false)))
     }
 
@@ -43,14 +43,14 @@ struct BackendSelectionTests {
     /// the runtime's equivalent. The check has to answer false without touching
     /// the filesystem — a sandboxed app asking about a path outside its
     /// container is a sandbox violation for no gain.
-    @Test("An app installed outside an `Applications` directory never is")
-    func containerInstallIsNotADaemonInstall() {
+    @Test
+    func `An app installed outside an Applications directory never is`() {
         let bundle = URL(fileURLWithPath: "/private/var/containers/Bundle/Application/UUID/Fila.app")
         #expect(!DaemonInstallation.isInstalled(besideBundleAt: bundle))
     }
 
-    @Test("A rootful layout resolves against the volume root")
-    func rootfulLayout() {
+    @Test
+    func `A rootful layout resolves against the volume root`() {
         // `/Applications/Fila.app` means `<empty prefix>/usr/libexec/filad`.
         // Nothing is installed there in a test run, so the answer is false —
         // what is under test is that it looks at `/usr/libexec/filad` rather
@@ -61,8 +61,8 @@ struct BackendSelectionTests {
     /// The half of the rule that keeps a jailbroken device from being demoted:
     /// with a daemon installed, a lookup that fails throws and `FileSession`
     /// goes on retrying. There is no path from here to the local backend.
-    @Test("A missing daemon that is installed keeps throwing rather than falling back")
-    func neverDemotesAnInstalledDaemon() async {
+    @Test
+    func `A missing daemon that is installed keeps throwing rather than falling back`() async {
         let link = DaemonLink(daemonIsInstalled: true)
         // However many times it is asked. There is no count that releases an
         // installed daemon, which is the difference between this and a timeout.
@@ -80,16 +80,16 @@ struct BackendSelectionTests {
     /// three quarters of a second to `ready(within:)`, which asks four times —
     /// so a Shortcut run at launch could settle for the unprivileged backend
     /// before launchd had finished starting the daemon.
-    @Test("Asking faster does not shorten the grace period")
-    func pollingRateDoesNotDemote() async {
+    @Test
+    func `Asking faster does not shorten the grace period`() async {
         let link = DaemonLink(daemonIsInstalled: false, grace: 60)
         for _ in 0 ..< 50 {
             await #expect(throws: (any Error).self) { try await link.hello() }
         }
     }
 
-    @Test("No daemon installed falls back in-process once the grace period is up, for good")
-    func fallsBackWhenNothingIsInstalled() async throws {
+    @Test
+    func `No daemon installed falls back in-process once the grace period is up, for good`() async throws {
         // Zero grace so the first miss starts the clock and the second is past
         // it. The rule under test is "the clock, not the count"; how long the
         // clock runs for in production is a constant, not a behaviour.
@@ -112,8 +112,8 @@ struct BackendSelectionTests {
     /// Once the link has fallen back, the requests it forwards and the
     /// events it reports are the in-process service's — on the streams the
     /// app was already reading before the handshake chose.
-    @Test("A fallen-back link lists and reports jobs through the streams it owned all along")
-    func fallbackWiring() async throws {
+    @Test
+    func `A fallen-back link lists and reports jobs through the streams it owned all along`() async throws {
         let link = DaemonLink(daemonIsInstalled: false, grace: 0)
         _ = try? await link.hello()
         _ = try await link.hello()

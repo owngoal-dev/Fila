@@ -1,5 +1,5 @@
-import FilaBackendKit
 import AlertController
+import FilaBackendKit
 import FilaBackendUI
 import FilaClient
 import FilaFormats
@@ -172,7 +172,7 @@ final class PropertiesViewController: TabContentViewController {
                 guard !Task.isCancelled else { return }
                 FeedbackAlert.show(
                     String(localized: "Unable to Read Item"),
-                    message: FailureMessage.text(for: error)
+                    message: FailureMessage.text(for: error),
                 )
             }
         }
@@ -255,7 +255,7 @@ final class PropertiesViewController: TabContentViewController {
                     image: image,
                     title: URL(fileURLWithPath: path).lastPathComponent,
                     kind: Self.name(of: node.kind),
-                    maximumSide: previewMaximumSide
+                    maximumSide: previewMaximumSide,
                 )
             }
             table.performBatchUpdates(nil)
@@ -271,7 +271,7 @@ final class PropertiesViewController: TabContentViewController {
         let node = details.node
         let actions = FileActions(
             presenter: self,
-            directory: (path as NSString).deletingLastPathComponent
+            directory: (path as NSString).deletingLastPathComponent,
         ) { [weak self] in
             self?.dismiss(animated: true)
         }
@@ -301,13 +301,13 @@ final class PropertiesViewController: TabContentViewController {
                 guard let self else { return cell }
                 let preview = table.dequeueReusableCell(
                     withIdentifier: "Preview",
-                    for: indexPath
+                    for: indexPath,
                 ) as! PropertiesPreviewCell
                 preview.show(
                     image: previewImage ?? FilePresentation.largeImage(for: FilePresentation.icon(for: details.node)),
                     title: URL(fileURLWithPath: details.path).lastPathComponent,
                     kind: Self.name(of: details.node.kind),
-                    maximumSide: previewMaximumSide
+                    maximumSide: previewMaximumSide,
                 )
                 return preview
 
@@ -397,7 +397,7 @@ final class PropertiesViewController: TabContentViewController {
                         rows.append(.fact(
                             label: String(localized: "Resolution"),
                             value: "\(width.formatted(.number.precision(.fractionLength(0)))) × \(height.formatted(.number.precision(.fractionLength(0))))",
-                            isMonospaced: false
+                            isMonospaced: false,
                         ))
                     }
                     if let duration = mediaInformation.duration {
@@ -408,14 +408,14 @@ final class PropertiesViewController: TabContentViewController {
                         rows.append(.fact(
                             label: String(localized: "Duration"),
                             value: formatter.string(from: duration) ?? "",
-                            isMonospaced: false
+                            isMonospaced: false,
                         ))
                     }
                     if let rate = mediaInformation.frameRate {
                         rows.append(.fact(
                             label: String(localized: "Frame Rate"),
                             value: String(localized: "\(rate.formatted(.number.precision(.fractionLength(0 ... 3)))) fps"),
-                            isMonospaced: false
+                            isMonospaced: false,
                         ))
                     }
                     if !rows.isEmpty {
@@ -434,7 +434,7 @@ final class PropertiesViewController: TabContentViewController {
                             ? String(localized: "Calculate Checksums")
                             : String(localized: "Cancel Calculation"),
                         value: checksumTask == nil ? "MD5, SHA-1, SHA-256" : String(localized: "Calculating…"),
-                        action: checksumTask == nil ? .calculateChecksums : .cancelChecksums
+                        action: checksumTask == nil ? .calculateChecksums : .cancelChecksums,
                     )]))
                 }
             }
@@ -444,7 +444,7 @@ final class PropertiesViewController: TabContentViewController {
             summary.append((.advanced, [.disclosure(
                 label: String(localized: "Advanced Information"),
                 value: String(localized: "Flags, extended attributes and identity"),
-                action: .advanced
+                action: .advanced,
             )]))
             result = summary
         }
@@ -455,7 +455,8 @@ final class PropertiesViewController: TabContentViewController {
             snapshot.appendItems(rows.map { Item(section: section, row: $0) }, toSection: section)
         }
         if snapshot.sectionIdentifiers.contains(.checksums),
-           dataSource.snapshot().sectionIdentifiers.contains(.checksums) {
+           dataSource.snapshot().sectionIdentifiers.contains(.checksums)
+        {
             snapshot.reloadSections([.checksums])
         }
         dataSource.apply(snapshot, animatingDifferences: animated)
@@ -470,7 +471,7 @@ final class PropertiesViewController: TabContentViewController {
         }
         if details.node.isImmutable {
             rows.append(.note(String(
-                localized: "This item is locked. Unlock it under Flags in Advanced Information to change or delete it."
+                localized: "This item is locked. Unlock it under Flags in Advanced Information to change or delete it.",
             )))
         }
         return rows
@@ -486,8 +487,8 @@ final class PropertiesViewController: TabContentViewController {
                 .fact(label: String(localized: "On Disk"), value: placeholder, isMonospaced: false),
             ]
         }
-        // While the walk runs, the short label and the word that says it is
-        // not final; the exact byte count only once it is.
+        /// While the walk runs, the short label and the word that says it is
+        /// not final; the exact byte count only once it is.
         func value(_ bytes: Int64) -> String {
             counting
                 ? String(localized: "\(FilePresentation.byteLabel(bytes)) (Counting…)")
@@ -500,12 +501,12 @@ final class PropertiesViewController: TabContentViewController {
             .fact(
                 label: String(localized: "Items"),
                 value: counting ? String(localized: "\(count) (Counting…)") : count,
-                isMonospaced: false
+                isMonospaced: false,
             ),
         ]
         if !counting, totals.unreadableFolders > 0 {
             rows.append(.note(String(
-                localized: "Some folders inside could not be read, so these totals leave out what they contain."
+                localized: "Some folders inside could not be read, so these totals leave out what they contain.",
             )))
         }
         return rows
@@ -516,14 +517,14 @@ final class PropertiesViewController: TabContentViewController {
             .fact(
                 label: String(localized: "Size"),
                 value: Self.bytes(details.node.size),
-                isMonospaced: false
+                isMonospaced: false,
             ),
             // Different from the size for anything sparse, APFS-cloned or
             // compressed, which on a phone is most of the system volume.
             .fact(
                 label: String(localized: "On Disk"),
                 value: Self.bytes(details.node.allocatedSize),
-                isMonospaced: false
+                isMonospaced: false,
             ),
         ]
     }
@@ -541,17 +542,17 @@ final class PropertiesViewController: TabContentViewController {
             .disclosure(
                 label: String(localized: "Mode"),
                 value: "\(Self.rwx(details.node.mode))  \(String(format: "%04o", details.node.mode & 0o7777))",
-                action: .mode
+                action: .mode,
             ),
             .disclosure(
                 label: String(localized: "Owner"),
                 value: Self.owner(details.node.ownerID),
-                action: .owner
+                action: .owner,
             ),
             .disclosure(
                 label: String(localized: "Group"),
                 value: Self.group(details.node.groupID),
-                action: .group
+                action: .group,
             ),
         ]
         if details.hasAccessControlList {
@@ -561,7 +562,7 @@ final class PropertiesViewController: TabContentViewController {
             rows.append(.fact(
                 label: String(localized: "Access Control List"),
                 value: String(localized: "Present"),
-                isMonospaced: false
+                isMonospaced: false,
             ))
         }
         if details.node.kind == .directory {
@@ -576,7 +577,7 @@ final class PropertiesViewController: TabContentViewController {
         var rows: [Row] = [.disclosure(
             label: String(localized: "Edit Flags"),
             value: enabled.isEmpty ? String(localized: "None") : enabled.joined(separator: ", "),
-            action: .flags
+            action: .flags,
         )]
         if details.node.kind == .directory {
             rows.append(.recursive(applyRecursively))
@@ -597,7 +598,7 @@ final class PropertiesViewController: TabContentViewController {
             rows.append(.fact(
                 label: String(localized: "System Flags"),
                 value: system.joined(separator: ", "),
-                isMonospaced: true
+                isMonospaced: true,
             ))
         }
         // Only when there is something in it. On the overwhelming majority of
@@ -607,7 +608,7 @@ final class PropertiesViewController: TabContentViewController {
             rows.append(.fact(
                 label: String(localized: "Raw Value"),
                 value: String(format: "0x%08x", flags),
-                isMonospaced: true
+                isMonospaced: true,
             ))
         }
         return rows
@@ -621,7 +622,7 @@ final class PropertiesViewController: TabContentViewController {
         rows.append(.fact(
             label: String(localized: "Resolves To"),
             value: link.resolvedKind.map(Self.name(of:)) ?? String(localized: "Does not exist"),
-            isMonospaced: false
+            isMonospaced: false,
         ))
         return rows
     }
@@ -638,7 +639,7 @@ final class PropertiesViewController: TabContentViewController {
             .disclosure(
                 label: attribute.name,
                 value: Self.bytes(attribute.byteCount),
-                action: .extendedAttribute(attribute.name)
+                action: .extendedAttribute(attribute.name),
             )
         }
     }
@@ -762,14 +763,14 @@ final class PropertiesViewController: TabContentViewController {
             ModeEditorViewController(mode: details.node.mode) { [weak self] mode in
                 self?.apply(AttributeChange(mode: mode))
             },
-            animated: true
+            animated: true,
         )
     }
 
     private func editOwner() {
         promptForIdentifier(
             title: String.LocalizationValue("Owner"),
-            current: details.node.ownerID
+            current: details.node.ownerID,
         ) { [weak self] value in
             self?.apply(AttributeChange(ownerID: uid_t(value)))
         }
@@ -778,7 +779,7 @@ final class PropertiesViewController: TabContentViewController {
     private func editGroup() {
         promptForIdentifier(
             title: String.LocalizationValue("Group"),
-            current: details.node.groupID
+            current: details.node.groupID,
         ) { [weak self] value in
             self?.apply(AttributeChange(groupID: gid_t(value)))
         }
@@ -790,14 +791,14 @@ final class PropertiesViewController: TabContentViewController {
     private func promptForIdentifier(
         title: String.LocalizationValue,
         current: UInt32,
-        apply: @escaping (UInt32) -> Void
+        apply: @escaping (UInt32) -> Void,
     ) {
         let alert = AlertInputViewController(
             title: title,
             message: String.LocalizationValue("Enter a numeric ID. 0 is root, 501 is mobile."),
             placeholder: String.LocalizationValue("Numeric ID"),
             text: String(current),
-            doneButtonText: String.LocalizationValue("Set")
+            doneButtonText: String.LocalizationValue("Set"),
         ) { text in
             guard let value = UInt32(text) else { return }
             apply(value)
@@ -814,7 +815,7 @@ final class PropertiesViewController: TabContentViewController {
                 await MainActor.run {
                     self?.navigationController?.pushViewController(
                         Self.viewer(for: name, value: value),
-                        animated: true
+                        animated: true,
                     )
                 }
             } catch {
@@ -837,7 +838,7 @@ final class PropertiesViewController: TabContentViewController {
     private func report(_ error: Error) {
         presentMessage(
             String(localized: "Unable to Change Item"),
-            message: FailureMessage.text(for: error, whileWriting: true)
+            message: FailureMessage.text(for: error, whileWriting: true),
         )
     }
 
@@ -847,7 +848,7 @@ final class PropertiesViewController: TabContentViewController {
         String(
             format: String(localized: "%@ (%lld bytes)"),
             FilePresentation.byteLabel(count),
-            count
+            count,
         )
     }
 
@@ -937,7 +938,7 @@ extension PropertiesViewController: UITableViewDelegate {
     func tableView(
         _: UITableView,
         contextMenuConfigurationForRowAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let row = dataSource.itemIdentifier(for: indexPath)?.row else { return nil }
         let value: String

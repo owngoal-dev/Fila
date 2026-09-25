@@ -13,8 +13,8 @@
 
     @Suite("Log on the wire")
     struct LogWireTests {
-        @Test("A poll carries its cursor and the level the daemon should capture at")
-        func request() {
+        @Test
+        func `A poll carries its cursor and the level the daemon should capture at`() {
             let request = xpc_dictionary_create(nil, nil, 0)
             FilaLog.Record.encodeRequest(since: 4211, level: .verbose, into: request)
 
@@ -23,8 +23,8 @@
             #expect(decoded.level == .verbose)
         }
 
-        @Test("A poll with no level named leaves the daemon's alone")
-        func requestWithoutLevel() {
+        @Test
+        func `A poll with no level named leaves the daemon's alone`() {
             // A client that only wants the lines must not be able to silently turn
             // the daemon's capture down as a side effect.
             let request = xpc_dictionary_create(nil, nil, 0)
@@ -35,8 +35,8 @@
             #expect(decoded.level == nil)
         }
 
-        @Test("Records survive the round trip whole")
-        func reply() {
+        @Test
+        func `Records survive the round trip whole`() {
             let records = [
                 FilaLog.Record(sequence: 1, time: 1_756_000_000.25, level: .verbose, source: .daemon, message: "list /"),
                 FilaLog.Record(
@@ -44,7 +44,7 @@
                     time: 1_756_000_000.5,
                     level: .error,
                     source: .daemon,
-                    message: "unlink /private/var/mobile/Library/Preferences/x.plist failed errno 1 Operation not permitted"
+                    message: "unlink /private/var/mobile/Library/Preferences/x.plist failed errno 1 Operation not permitted",
                 ),
                 FilaLog.Record(sequence: 3, time: 1_756_000_001, level: .warning, source: .daemon, message: "guard /"),
             ]
@@ -56,8 +56,8 @@
             #expect(decoded.records == records)
         }
 
-        @Test("An empty answer is an answer, not a failure")
-        func emptyReply() {
+        @Test
+        func `An empty answer is an answer, not a failure`() {
             // The common case once the screen has caught up: nothing new since the
             // cursor, and the poll must not read that as a broken link.
             let reply = xpc_dictionary_create(nil, nil, 0)
@@ -68,8 +68,8 @@
             #expect(decoded.dropped == 0)
         }
 
-        @Test("A whole ring fits in one message, so a poll is never paged")
-        func replyFitsOneMessage() {
+        @Test
+        func `A whole ring fits in one message, so a poll is never paged`() {
             // The daemon answers with everything after the cursor in one reply.
             // Worst case is a full ring of the shortest possible frames, which is
             // the most records `FilaProtocol.maximumMessageByteCount` ever has to
@@ -91,8 +91,8 @@
             #expect(FilaLog.Record.decodeReply(reply).records.count == records.count)
         }
 
-        @Test("The operation and the reply codes keep the names a log is searched by")
-        func vocabulary() {
+        @Test
+        func `The operation and the reply codes keep the names a log is searched by`() {
             // A log is only greppable if the words are fixed. These are on screen
             // and in files people paste into issues.
             #expect(FilaOperation.fetchLog.rawValue == 16)
@@ -102,8 +102,8 @@
             #expect(FilaReplyCode.notFound.name == "missing")
         }
 
-        @Test("The path in a log line is a path, never a value")
-        func requestPathCarriesNoPayload() {
+        @Test
+        func `The path in a log line is a path, never a value`() {
             // `setAttributes` carries an extended attribute's bytes in the same
             // dictionary the log line's path is read out of. Reading one into a
             // line is the exact mistake the privacy rule exists to prevent, so the

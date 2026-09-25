@@ -36,7 +36,9 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
     /// The framework bundle, for localized strings: the entry class is in
     /// the framework's own sources, so any class from this module resolves
     /// to it — and to the test bundle under `swift test`.
-    nonisolated static var bundle: Bundle { Bundle(for: ApplicationBackend.self) }
+    nonisolated static var bundle: Bundle {
+        Bundle(for: ApplicationBackend.self)
+    }
 
     public init(local: LocalFileBackend, storage: any DefaultStorage<ApplicationPreferences>) {
         self.local = local
@@ -45,7 +47,7 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
             location: .root(of: .applications),
             kind: .catalog,
             displayName: String(localized: "Applications", bundle: ApplicationBackend.bundle),
-            artworkName: "application"
+            artworkName: "application",
         )
         do {
             preferences = try storage.load() ?? ApplicationPreferences()
@@ -130,7 +132,7 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         guard let app = apps.first(where: { $0.bundleIdentifier.caseInsensitiveCompare(bundleIdentifier) == .orderedSame })
         else { return nil }
         return ApplicationLocation(
-            name: app.name, bundleIdentifier: app.bundleIdentifier, bundlePath: app.bundlePath, dataPath: app.dataPath
+            name: app.name, bundleIdentifier: app.bundleIdentifier, bundlePath: app.bundlePath, dataPath: app.dataPath,
         )
     }
 
@@ -150,7 +152,7 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
 
     public func decorationLookup() async -> (String) -> FolderDecoration? {
         guard isEnabled else { return { _ in nil } }
-        return ApplicationFolderDecorations.lookup(for: await applications())
+        return await ApplicationFolderDecorations.lookup(for: applications())
     }
 
     public func manifest(ofPackageAt url: URL) async throws -> PackageManifest {
@@ -221,7 +223,9 @@ public final class ApplicationBackend: Backend, ApplicationCapability {
         do {
             try storage.save(next)
             preferences = next
-            if publishes { publish() }
+            if publishes {
+                publish()
+            }
         } catch {
             FilaLog.error("application preferences not saved: \(error)")
         }

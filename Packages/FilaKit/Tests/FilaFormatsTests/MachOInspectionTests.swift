@@ -4,8 +4,8 @@ import Testing
 
 @Suite("Mach-O inspection")
 struct MachOInspectionTests {
-    @Test("The enhanced inspector decodes real segments, commands and build versions")
-    func inspectsSystemBinary() throws {
+    @Test
+    func `The enhanced inspector decodes real segments, commands and build versions`() throws {
         try withDescriptor(reading: URL(fileURLWithPath: "/bin/ls")) { descriptor in
             let image = try MachOImage(descriptor: descriptor)
             for slice in image.slices {
@@ -20,8 +20,8 @@ struct MachOInspectionTests {
         }
     }
 
-    @Test("An open descriptor remains the source after the pathname disappears")
-    func usesDescriptorAfterUnlink() throws {
+    @Test
+    func `An open descriptor remains the source after the pathname disappears`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("image")
             try FileManager.default.copyItem(at: URL(fileURLWithPath: "/bin/ls"), to: url)
@@ -34,8 +34,8 @@ struct MachOInspectionTests {
         }
     }
 
-    @Test("Inspection does not read or allocate a large sparse payload")
-    func sparsePayloadIsNotRead() throws {
+    @Test
+    func `Inspection does not read or allocate a large sparse payload`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("sparse-image")
             // A valid empty 64-bit object header; the remainder has no commands
@@ -58,8 +58,8 @@ struct MachOInspectionTests {
         }
     }
 
-    @Test("Truncated headers and command regions return errors")
-    func rejectsTruncation() throws {
+    @Test
+    func `Truncated headers and command regions return errors`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("truncated")
             for bytes in [words([0xFEED_FACF, 0x0100_000C, 0, 1, 1, 24, 0, 0]),
@@ -73,8 +73,8 @@ struct MachOInspectionTests {
         }
     }
 
-    @Test("Big-endian command decoding preserves distinct minimum and SDK versions")
-    func bigEndianVersions() throws {
+    @Test
+    func `Big-endian command decoding preserves distinct minimum and SDK versions`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("big-endian-object")
             let values: [UInt32] = [0xFEED_FACE, 18, 0, 1, 1, 16, 0,

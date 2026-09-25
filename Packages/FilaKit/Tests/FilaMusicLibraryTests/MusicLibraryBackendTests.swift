@@ -6,8 +6,8 @@ import Testing
 @Suite("Music library backend")
 @MainActor
 struct MusicLibraryBackendTests {
-    @Test("The root row is offered only where a library exists")
-    func gating() {
+    @Test
+    func `The root row is offered only where a library exists`() {
         #expect(MusicLibraryBackend(libraryExists: { false }).sidebar().places.isEmpty)
         let backend = MusicLibraryBackend(libraryExists: { true })
         #expect(backend.sidebar().places.map(\.kind) == [.root])
@@ -15,8 +15,8 @@ struct MusicLibraryBackendTests {
         #expect(backend.root.kind == .catalog)
     }
 
-    @Test("Export names are safe path components with the source extension")
-    func exportNames() {
+    @Test
+    func `Export names are safe path components with the source extension`() {
         #expect(MusicExportNaming.name(title: "A/B: C", sourcePath: "/x/y.m4a", untitled: "Untitled") == "A B  C.m4a")
         #expect(MusicExportNaming.name(title: "..", sourcePath: "/x/y", untitled: "Untitled") == "Untitled")
         #expect(MusicExportNaming.name(title: "", sourcePath: "/x/y.mp3", untitled: "Untitled") == "Untitled.mp3")
@@ -24,8 +24,8 @@ struct MusicLibraryBackendTests {
         #expect(long.utf8.count <= 184)
     }
 
-    @Test("Change hints arrive at once and on every library change")
-    func changes() async {
+    @Test
+    func `Change hints arrive at once and on every library change`() async {
         let backend = MusicLibraryBackend(libraryExists: { true })
         var iterator = backend.changes().makeAsyncIterator()
         #expect(await iterator.next() != nil)

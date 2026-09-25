@@ -37,8 +37,8 @@ struct TerminalLaunchTests {
         return try TerminalSpawn.run(plan, sessionHolder: TerminalSessionFixture.executable, columns: request.columns, rows: request.rows)
     }
 
-    @Test("launch confirmation distinguishes EOF, errno, and damaged reports")
-    func launchReports() throws {
+    @Test
+    func `launch confirmation distinguishes EOF, errno, and damaged reports`() throws {
         var failure: Int32 = ENOEXEC
         let full = withUnsafeBytes(of: &failure) { Data($0) }
         for payload in [Data(), Data(repeating: 0, count: 4), full, Data(full.prefix(2))] {
@@ -57,8 +57,8 @@ struct TerminalLaunchTests {
         #expect(unreadable?.systemError == EBADF)
     }
 
-    @Test("Login initialization admits root-controlled targets and rejects user-writable paths")
-    func rootControlledTargets() {
+    @Test
+    func `Login initialization admits root-controlled targets and rejects user-writable paths`() {
         #expect(TerminalPlan.isRootControlled("/bin/echo"))
         let scratch = Scratch()
         let executable = scratch.file("program", mode: 0o700)
@@ -67,8 +67,8 @@ struct TerminalLaunchTests {
         #expect(!TerminalPlan.isRootControlled("relative"))
     }
 
-    @Test("An account shell symlink is canonicalized before launch")
-    func canonicalShell() throws {
+    @Test
+    func `An account shell symlink is canonicalized before launch`() throws {
         let scratch = Scratch()
         scratch.directory("etc")
         let shell = scratch.link("sh", to: "/bin/sh")
@@ -78,8 +78,8 @@ struct TerminalLaunchTests {
         #expect(plan.targetExecutable == "/bin/sh")
     }
 
-    @Test("a child reports an executable format refusal instead of a successful launch")
-    func reportsExecFailure() throws {
+    @Test
+    func `a child reports an executable format refusal instead of a successful launch`() throws {
         let scratch = Scratch()
         let file = scratch.file("invalid-program", contents: "Fila format fixture\n", mode: 0o700)
         let failure = #expect(throws: FilaFailure.self) {
@@ -112,8 +112,8 @@ struct TerminalLaunchTests {
         return collected
     }
 
-    @Test("a program runs, and a child that exits at once is still reaped")
-    func runsAProgram() throws {
+    @Test
+    func `a program runs, and a child that exits at once is still reaped`() throws {
         // Through a symlink, because that is how a user reaches most things on
         // a jailbroken filesystem and the daemon reports what it actually ran.
         let scratch = Scratch()
@@ -132,8 +132,8 @@ struct TerminalLaunchTests {
         #expect(ended.wait(timeout: .now() + 10) == .success)
     }
 
-    @Test("the daemon's own environment reaches the program, and the client's does not")
-    func composesTheEnvironment() throws {
+    @Test
+    func `the daemon's own environment reaches the program, and the client's does not`() throws {
         // `sh` reading from the terminal is how the environment is inspected
         // without a way to pass arguments — which is the point being tested:
         // there is no arguments field on the request, so a caller cannot ask
@@ -148,8 +148,8 @@ struct TerminalLaunchTests {
         launch.process.terminate()
     }
 
-    @Test("a window-size change reaches the program")
-    func resizes() throws {
+    @Test
+    func `a window-size change reaches the program`() throws {
         let launch = try openTerminal(TerminalRequest(executable: "/bin/sh", columns: 80, rows: 24))
         defer { close(launch.descriptor) }
         var size = winsize(ws_row: 40, ws_col: 132, ws_xpixel: 0, ws_ypixel: 0)
@@ -160,8 +160,8 @@ struct TerminalLaunchTests {
         launch.process.terminate()
     }
 
-    @Test("nothing that is not an executable regular file starts")
-    func refusesWhatIsNotAProgram() throws {
+    @Test
+    func `nothing that is not an executable regular file starts`() throws {
         let scratch = Scratch()
         let text = scratch.file("notes.txt", contents: "hello", mode: 0o644)
 
@@ -180,8 +180,8 @@ struct TerminalLaunchTests {
         }
     }
 
-    @Test("terminate ends a program that would otherwise sit there forever")
-    func terminates() throws {
+    @Test
+    func `terminate ends a program that would otherwise sit there forever`() throws {
         let launch = try openTerminal(TerminalRequest(executable: "/bin/cat"))
         defer { close(launch.descriptor) }
         let pid = launch.process.processIdentifier
@@ -196,8 +196,8 @@ struct TerminalLaunchTests {
         #expect(kill(pid, 0) != 0)
     }
 
-    @Test("The controlling terminal handles interruption and does not inherit daemon descriptors")
-    func controllingTerminal() throws {
+    @Test
+    func `The controlling terminal handles interruption and does not inherit daemon descriptors`() throws {
         let scratch = Scratch()
         let original = Darwin.open(scratch.file("private"), O_RDONLY)
         try #require(original >= 0)
@@ -231,8 +231,8 @@ struct TerminalLaunchTests {
         #expect(readUntil(launch.descriptor, contains: "INTERRUPTED").contains("INTERRUPTED"))
     }
 
-    @Test("cleanup waits for the kill grace when the leader exits before its child")
-    func cleansUpAfterLeaderExits() throws {
+    @Test
+    func `cleanup waits for the kill grace when the leader exits before its child`() throws {
         let launch = try openTerminal(TerminalRequest(executable: "/bin/sh"))
         let holder = launch.process.processIdentifier
         let ended = DispatchGroup()
@@ -273,8 +273,8 @@ struct TerminalLaunchTests {
         #expect(kill(child, 0) != 0)
     }
 
-    @Test("a session reports the user it got, and the child is that user with no root in it")
-    func runsAsTheUserItReports() throws {
+    @Test
+    func `a session reports the user it got, and the child is that user with no root in it`() throws {
         for user in TerminalUser.allCases {
             let launch = try openTerminal(TerminalRequest(executable: "/bin/sh", user: user))
             defer { close(launch.descriptor) }
@@ -296,8 +296,8 @@ struct TerminalLaunchTests {
         }
     }
 
-    @Test("nothing is dropped when there is nothing to drop")
-    func dropsOnlyFromRoot() throws {
+    @Test
+    func `nothing is dropped when there is nothing to drop`() throws {
         // The credential is the flag that makes the child change identity, and
         // it is set from exactly one place. Off-device it must stay nil for
         // both users, because a `setuid` from an unprivileged process fails and
@@ -309,8 +309,8 @@ struct TerminalLaunchTests {
         }
     }
 
-    @Test("the account shell wins, with a bootstrap fallback for missing shells")
-    func prefersTheAccountShell() throws {
+    @Test
+    func `the account shell wins, with a bootstrap fallback for missing shells`() throws {
         let scratch = Scratch()
         scratch.directory("usr/libexec")
         scratch.directory("bin")
@@ -333,8 +333,8 @@ struct TerminalLaunchTests {
     /// `#!/bin/sh`, and a rootless device has no `/bin/sh` — the bootstrap's is
     /// at `/var/jb/bin/sh`. Without the redirect `execve` answers `ENOENT` and
     /// the script simply does not run.
-    @Test("a script runs through the bootstrap's copy of the interpreter it names")
-    func redirectsAScriptInterpreter() throws {
+    @Test
+    func `a script runs through the bootstrap's copy of the interpreter it names`() throws {
         let bootstrap = Scratch()
         bootstrap.directory("bin")
         bootstrap.directory("usr/bin")
@@ -345,11 +345,11 @@ struct TerminalLaunchTests {
 
         let scripts = Scratch()
         let script = try FilaPath.resolve(
-            scripts.file("job.sh", contents: "#!/bin/absent-sh\necho hi\n", mode: 0o755)
+            scripts.file("job.sh", contents: "#!/bin/absent-sh\necho hi\n", mode: 0o755),
         )
         let plan = try TerminalPlan(
             request: TerminalRequest(executable: script, redirectsScriptInterpreter: true),
-            layout: layout
+            layout: layout,
         )
         #expect(Array(plan.arguments.suffix(2)) == [shell, script])
 
@@ -359,8 +359,8 @@ struct TerminalLaunchTests {
         #expect(literal.arguments.last == script)
     }
 
-    @Test("a shebang that carries an argument is left to the kernel, not rewritten")
-    func ignoresShebangArguments() throws {
+    @Test
+    func `a shebang that carries an argument is left to the kernel, not rewritten`() throws {
         let bootstrap = Scratch()
         bootstrap.directory("usr/bin")
         let bash = bootstrap.file("usr/bin/absent-bash", contents: "#!/bin/sh\n", mode: 0o755)
@@ -372,11 +372,11 @@ struct TerminalLaunchTests {
         // without its abort-on-failure, as root, while the file says otherwise.
         // So the redirect stands aside and the file is exec'd as it is.
         let flagged = try FilaPath.resolve(
-            scripts.file("flagged.sh", contents: "#!/usr/bin/absent-bash -x\n", mode: 0o755)
+            scripts.file("flagged.sh", contents: "#!/usr/bin/absent-bash -x\n", mode: 0o755),
         )
         let plan = try TerminalPlan(
             request: TerminalRequest(executable: flagged, redirectsScriptInterpreter: true),
-            layout: layout
+            layout: layout,
         )
         #expect(plan.arguments.last == flagged)
 
@@ -384,11 +384,11 @@ struct TerminalLaunchTests {
         // — and it is itself missing on a rootless device, which is why the
         // word after it has to be resolved here rather than by exec'ing env.
         let viaEnv = try FilaPath.resolve(
-            scripts.file("env.sh", contents: "#!/usr/bin/env absent-bash\n", mode: 0o755)
+            scripts.file("env.sh", contents: "#!/usr/bin/env absent-bash\n", mode: 0o755),
         )
         let resolvedByName = try TerminalPlan(
             request: TerminalRequest(executable: viaEnv, redirectsScriptInterpreter: true),
-            layout: layout
+            layout: layout,
         )
         #expect(Array(resolvedByName.arguments.suffix(2)) == [bash, viaEnv])
 
@@ -403,14 +403,14 @@ struct TerminalLaunchTests {
             let path = try FilaPath.resolve(scripts.file("spelled.sh", contents: line, mode: 0o755))
             let unredirected = try TerminalPlan(
                 request: TerminalRequest(executable: path, redirectsScriptInterpreter: true),
-                layout: layout
+                layout: layout,
             )
             #expect(unredirected.arguments.last == path)
         }
     }
 
-    @Test("an interpreter the jbroot does not ship is still found on the system filesystem")
-    func findsASystemInterpreterUnderRoothide() throws {
+    @Test
+    func `an interpreter the jbroot does not ship is still found on the system filesystem`() throws {
         // roothide's own spelling of a bootstrap file is the file's plain name,
         // and `resolve` puts the jbroot in front of it — so the literal and the
         // bootstrap candidates are one string, and only `systemPath` reaches
@@ -425,21 +425,20 @@ struct TerminalLaunchTests {
 
         let scripts = Scratch()
         let script = try FilaPath.resolve(
-            scripts.file("job.pl", contents: "#!/usr/bin/absent-perl\n", mode: 0o755)
+            scripts.file("job.pl", contents: "#!/usr/bin/absent-perl\n", mode: 0o755),
         )
         let plan = try TerminalPlan(
             request: TerminalRequest(executable: script, redirectsScriptInterpreter: true),
-            layout: layout
+            layout: layout,
         )
         #expect(plan.executable == system)
         #expect(plan.arguments == [system, layout.systemPath(script)])
     }
 
     @Test(
-        "the shebang read refuses a fifo instead of waiting for a writer",
-        .timeLimit(.minutes(1))
+        .timeLimit(.minutes(1)),
     )
-    func refusesToReadAFifo() throws {
+    func `the shebang read refuses a fifo instead of waiting for a writer`() throws {
         // The shebang read is the one place the daemon opens a file the user
         // chose, and it runs on the control queue. The plan stats the file
         // first, so a FIFO never gets that far — but a FIFO put at that path in
@@ -458,20 +457,20 @@ struct TerminalLaunchTests {
         let failure = #expect(throws: FilaFailure.self) {
             try TerminalPlan(
                 request: TerminalRequest(executable: fifo, redirectsScriptInterpreter: true),
-                layout: BootstrapLayout(installRoot: "")
+                layout: BootstrapLayout(installRoot: ""),
             )
         }
         #expect(failure?.systemError == EACCES)
     }
 
-    @Test("a shebang naming an interpreter that is nowhere says which one")
-    func reportsAMissingInterpreter() throws {
+    @Test
+    func `a shebang naming an interpreter that is nowhere says which one`() throws {
         let scripts = Scratch()
         let script = scripts.file("job.sh", contents: "#!/usr/bin/absent-python\n", mode: 0o755)
         let failure = #expect(throws: FilaFailure.self) {
             try TerminalPlan(
                 request: TerminalRequest(executable: script, redirectsScriptInterpreter: true),
-                layout: BootstrapLayout(installRoot: "")
+                layout: BootstrapLayout(installRoot: ""),
             )
         }
         // The interpreter, not the script: the script is the one file here that
@@ -481,19 +480,19 @@ struct TerminalLaunchTests {
         #expect(failure?.systemError == ENOENT)
     }
 
-    @Test("a program with no shebang is still exec'd as itself")
-    func leavesBinariesAlone() throws {
+    @Test
+    func `a program with no shebang is still exec'd as itself`() throws {
         // The redirect reads a first line; a Mach-O has none, and turning the
         // setting on must not put an interpreter in front of every binary.
         let plan = try TerminalPlan(
             request: TerminalRequest(executable: "/bin/echo", redirectsScriptInterpreter: true),
-            layout: BootstrapLayout(installRoot: "")
+            layout: BootstrapLayout(installRoot: ""),
         )
         #expect(plan.arguments.last == "/bin/echo")
     }
 
-    @Test("the bootstrap vocabulary keeps the two spellings apart")
-    func bootstrapSpellings() {
+    @Test
+    func `the bootstrap vocabulary keeps the two spellings apart`() {
         let rootful = BootstrapLayout(installRoot: "")
         #expect(rootful.bootstrapPath("/bin/zsh") == "/bin/zsh")
         #expect(rootful.systemPath("/usr/bin") == "/usr/bin")
@@ -518,8 +517,8 @@ struct TerminalLaunchTests {
         #expect(notABootstrap.systemPath("/usr/bin") == "/usr/bin")
     }
 
-    @Test("a package falls back to direct dpkg when the account has no supported runnable shell")
-    func installsAPackage() throws {
+    @Test
+    func `a package falls back to direct dpkg when the account has no supported runnable shell`() throws {
         // A jbroot with a dpkg in it, and a package outside it — the common
         // case, a download in `/var/mobile`. The kernel gets the jbroot
         // spelling of dpkg; dpkg, being vroot-linked there, gets the `/rootfs`
@@ -564,8 +563,8 @@ struct TerminalLaunchTests {
         }
     }
 
-    @Test("package startup keeps kernel and bootstrap path spellings separate", arguments: ["zsh", "fish"])
-    func packageShellPaths(shell: String) throws {
+    @Test(arguments: ["zsh", "fish"])
+    func `package startup keeps kernel and bootstrap path spellings separate`(shell: String) throws {
         let bootstrap = Scratch()
         bootstrap.directory("usr/libexec")
         bootstrap.directory("usr/bin")
@@ -589,20 +588,20 @@ struct TerminalLaunchTests {
         }
     }
 
-    @Test("all execution modes load account startup files and preserve literal arguments", arguments: [
+    @Test(arguments: [
         "/bin/sh", "/bin/dash", "/bin/bash", "/bin/zsh", "/bin/ksh",
     ])
-    func loginEnvironment(shell: String) throws {
+    func `all execution modes load account startup files and preserve literal arguments`(shell: String) throws {
         try checkLoginEnvironment(shell: shell)
     }
 
-    @Test("fish execution uses its argv convention", .enabled(if: TerminalPlan.isExecutableFile("/opt/homebrew/bin/fish")))
-    func fishLoginEnvironment() throws {
+    @Test(.enabled(if: TerminalPlan.isExecutableFile("/opt/homebrew/bin/fish")))
+    func `fish execution uses its argv convention`() throws {
         try checkLoginEnvironment(shell: "/opt/homebrew/bin/fish")
     }
 
-    @Test("a failed shell startup does not retry installation directly")
-    func failedPackageShellStartup() throws {
+    @Test
+    func `a failed shell startup does not retry installation directly`() throws {
         let bootstrap = Scratch()
         bootstrap.directory("etc")
         bootstrap.directory("usr/bin")

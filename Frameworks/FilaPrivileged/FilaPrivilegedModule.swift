@@ -11,7 +11,7 @@ import Foundation
 /// ever answer, exactly as the app always has.
 @objc(FilaPrivilegedModule)
 public final class FilaPrivilegedModule: NSObject, BackendModule {
-    public required override init() {
+    override public required init() {
         super.init()
     }
 

@@ -30,7 +30,7 @@ struct SearchTests {
     private func search(_ query: SearchQuery, in roots: [String]? = nil) -> Found {
         let job = FileJob(
             request: JobRequest(kind: .search, sources: roots ?? [scratch.root], query: query),
-            operations: operations
+            operations: operations,
         )
         var matches: [SearchMatch] = []
         var limits: SearchLimits = []
@@ -44,8 +44,8 @@ struct SearchTests {
 
     // MARK: - Finding things
 
-    @Test("A match several levels down is found, with the directory it was in")
-    func findsADeepMatch() {
+    @Test
+    func `A match several levels down is found, with the directory it was in`() {
         scratch.directory("a/b/c/d/e")
         scratch.file("a/b/c/d/e/needle.plist", contents: "payload")
         scratch.file("a/b/decoy.txt")
@@ -61,8 +61,8 @@ struct SearchTests {
         #expect(found.matches.first?.node.size == 7)
     }
 
-    @Test("Every root given is searched, and the cap spans all of them")
-    func searchesEveryRoot() {
+    @Test
+    func `Every root given is searched, and the cap spans all of them`() {
         scratch.directory("left")
         scratch.directory("right")
         scratch.file("left/needle.txt")
@@ -71,28 +71,28 @@ struct SearchTests {
 
         let found = search(
             SearchQuery(text: "needle"),
-            in: [scratch.path("left"), scratch.path("right")]
+            in: [scratch.path("left"), scratch.path("right")],
         )
         #expect(found.outcome.code == .success)
         #expect(found.names == ["needle.txt", "needle.txt"])
     }
 
-    @Test("A root that cannot be opened fails the search — the user named it")
-    func aBadRootIsAnError() {
+    @Test
+    func `A root that cannot be opened fails the search — the user named it`() {
         let found = search(SearchQuery(text: "needle"), in: [scratch.path("nowhere")])
         #expect(found.outcome.code == .notFound)
     }
 
-    @Test("An empty query is refused rather than matching everything")
-    func anEmptyQueryIsRefused() {
+    @Test
+    func `An empty query is refused rather than matching everything`() {
         scratch.file("anything.txt")
         #expect(search(SearchQuery(text: "")).outcome.code == .invalidRequest)
     }
 
     // MARK: - The query
 
-    @Test("Case folding is the default, and the switch turns it off")
-    func caseSensitivityBothWays() {
+    @Test
+    func `Case folding is the default, and the switch turns it off`() {
         scratch.file("Info.plist")
         scratch.file("info.txt")
 
@@ -101,8 +101,8 @@ struct SearchTests {
         #expect(search(SearchQuery(text: "Info", isCaseSensitive: true)).names == ["Info.plist"])
     }
 
-    @Test("A substring matches anywhere in the name, a glob matches all of it")
-    func globAndSubstring() {
+    @Test
+    func `A substring matches anywhere in the name, a glob matches all of it`() {
         scratch.file("Info.plist")
         scratch.file("plist.txt")
 
@@ -113,8 +113,8 @@ struct SearchTests {
         #expect(search(SearchQuery(text: "*.PLIST", isCaseSensitive: true, isGlob: true)).names == [])
     }
 
-    @Test("Hidden entries are matched and walked into only when asked for")
-    func hiddenEntriesAreOptional() {
+    @Test
+    func `Hidden entries are matched and walked into only when asked for`() {
         scratch.directory(".config/deep")
         scratch.file(".config/deep/token.txt")
         scratch.file(".token.txt")
@@ -129,8 +129,8 @@ struct SearchTests {
 
     // MARK: - What the walk refuses to do
 
-    @Test("A symlink loop that would hang a following walk does not")
-    func doesNotFollowSymlinks() {
+    @Test
+    func `A symlink loop that would hang a following walk does not`() {
         scratch.directory("tree/inner")
         scratch.file("tree/inner/needle.txt")
         // Two loops a following walk would never come back from: one at its own
@@ -154,10 +154,9 @@ struct SearchTests {
     }
 
     @Test(
-        "A directory the walk cannot read is skipped and reported, not fatal",
-        .enabled(if: getuid() != 0, "root can read a mode-000 directory")
+        .enabled(if: getuid() != 0, "root can read a mode-000 directory"),
     )
-    func anUnreadableDirectoryIsSkipped() {
+    func `A directory the walk cannot read is skipped and reported, not fatal`() {
         scratch.directory("open")
         scratch.file("open/needle.txt")
         let closed = scratch.directory("closed")
@@ -172,8 +171,8 @@ struct SearchTests {
         #expect(found.limits == .unreadable)
     }
 
-    @Test("A branch deeper than the limit is left unwalked and said so")
-    func theDepthLimitIsReported() {
+    @Test
+    func `A branch deeper than the limit is left unwalked and said so`() {
         scratch.file("shallow-needle.txt")
         var relative = "deep"
         for _ in 0 ..< FilaProtocol.searchDepthLimit {
@@ -192,8 +191,8 @@ struct SearchTests {
 
     // MARK: - Limits and cancellation
 
-    @Test("The result cap is reported, not applied in silence")
-    func theResultCapIsReported() {
+    @Test
+    func `The result cap is reported, not applied in silence`() {
         scratch.directory("full")
         for index in 0 ..< FilaProtocol.searchResultLimit + 10 {
             scratch.file("full/hit-\(index)")
@@ -208,8 +207,8 @@ struct SearchTests {
         #expect(found.limits == .resultCount)
     }
 
-    @Test("Cancelling stops the walk between entries, not between directories")
-    func cancellationStopsTheWalkMidDirectory() {
+    @Test
+    func `Cancelling stops the walk between entries, not between directories`() {
         // One wide directory and nothing else: a walk that only looked at
         // cancellation on its way into a directory would have to read all
         // 2,000 entries before it noticed.
@@ -219,7 +218,7 @@ struct SearchTests {
 
         let job = FileJob(
             request: JobRequest(kind: .search, sources: [scratch.root], query: SearchQuery(text: "entry-")),
-            operations: operations
+            operations: operations,
         )
         var matches: [SearchMatch] = []
         let outcome = job.run(report: { _ in }) { batch in
@@ -236,8 +235,8 @@ struct SearchTests {
         #expect(matches.count < 2000)
     }
 
-    @Test("Progress counts the entries looked at and names the directory")
-    func progressCountsEntries() {
+    @Test
+    func `Progress counts the entries looked at and names the directory`() {
         scratch.directory("folder")
         for index in 0 ..< 200 {
             scratch.file("folder/entry-\(index).txt")
@@ -246,7 +245,7 @@ struct SearchTests {
         var last = JobProgress(bytesDone: 0, bytesTotal: 0, itemsDone: 0, itemsTotal: 0, currentPath: "")
         _ = FileJob(
             request: JobRequest(kind: .search, sources: [scratch.root], query: SearchQuery(text: "nothing-here")),
-            operations: operations
+            operations: operations,
         ).run { last = $0 }
 
         // 200 files plus the directory holding them. Bytes stay zero: a search

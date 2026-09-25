@@ -1,5 +1,5 @@
-import FilaBackendKit
 @testable import FilaApplications
+import FilaBackendKit
 @testable import FilaClient
 import Foundation
 import Testing
@@ -11,10 +11,10 @@ struct ApplicationBackendTests {
         LocalFileBackend(access: LocalFileService(), storage: MemoryStorage())
     }
 
-    @Test("The legacy switches keep their keys, and only changed keys are written")
-    func legacyKeys() throws {
+    @Test
+    func `The legacy switches keep their keys, and only changed keys are written`() throws {
         let name = "wiki.qaq.fila.tests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: name)!
+        let defaults = try #require(UserDefaults(suiteName: name))
         defer { defaults.removePersistentDomain(forName: name) }
         defaults.set("identifier", forKey: "appSort")
         let storage = ApplicationPreferencesDefaults(defaults: defaults)
@@ -26,8 +26,8 @@ struct ApplicationBackendTests {
         #expect(defaults.string(forKey: "appSort") == "identifier")
     }
 
-    @Test("The feature is off until the handshake and off in a container")
-    func gating() throws {
+    @Test
+    func `The feature is off until the handshake and off in a container`() {
         let files = local()
         let backend = ApplicationBackend(local: files, storage: MemoryStorage())
         #expect(!backend.isEnabled)
@@ -40,8 +40,8 @@ struct ApplicationBackendTests {
         #expect(backend.sidebar().places.first?.location == .root(of: .applications))
     }
 
-    @Test("Scopes tell user apps from system apps by their bundle container")
-    func scopes() {
+    @Test
+    func `Scopes tell user apps from system apps by their bundle container`() {
         let user = InstalledApp(name: "A", bundleIdentifier: "a", bundlePath: "/var/containers/Bundle/Application/X/A.app", dataPath: nil)
         let system = InstalledApp(name: "B", bundleIdentifier: "b", bundlePath: "/Applications/B.app", dataPath: nil)
         #expect(AppScope.user.includes(user) && !AppScope.user.includes(system))
@@ -51,14 +51,14 @@ struct ApplicationBackendTests {
         #expect(InstalledApp.name("Files", identifier: "x") == "Files")
     }
 
-    @Test("Folder decorations name containers by their owner and the lookup walks every installed app")
-    func decorations() async {
+    @Test
+    func `Folder decorations name containers by their owner and the lookup walks every installed app`() async throws {
         let app = InstalledApp(
             name: "Fila",
             bundleIdentifier: "wiki.qaq.fila",
             bundlePath: "/private/var/containers/Bundle/Application/AAAA/Fila.app",
             dataPath: "/var/mobile/Containers/Data/Application/DDDD",
-            groupPaths: ["group.wiki.qaq.fila": "/var/mobile/Containers/Shared/AppGroup/GGGG"]
+            groupPaths: ["group.wiki.qaq.fila": "/var/mobile/Containers/Shared/AppGroup/GGGG"],
         )
         let lookup = ApplicationFolderDecorations.lookup(for: [app])
         #expect(lookup("/var/containers/Bundle/Application/AAAA")?.name == "Fila")
@@ -68,13 +68,13 @@ struct ApplicationBackendTests {
         #expect(lookup("/etc") == nil)
 
         // An unknown data container is named from its own metadata plist.
-        let plist = try! PropertyListSerialization.data(
-            fromPropertyList: ["MCMMetadataIdentifier": "com.example.other"], format: .xml, options: 0
+        let plist = try PropertyListSerialization.data(
+            fromPropertyList: ["MCMMetadataIdentifier": "com.example.other"], format: .xml, options: 0,
         )
         let named = await ApplicationFolderDecorations.load(
             in: "/var/mobile/Containers/Data/Application",
             entries: [("DDDD", true), ("EEEE", true), ("file", false)],
-            apps: [app]
+            apps: [app],
         ) { path in path.hasPrefix("/var/mobile/Containers/Data/Application/EEEE/") ? plist : nil }
         #expect(named["DDDD"]?.name == "Fila")
         #expect(named["EEEE"]?.name == "other")
@@ -85,8 +85,8 @@ struct ApplicationBackendTests {
         #expect(plain.isEmpty)
     }
 
-    @Test("The catalogue is read once and dropped on a change hint or a new handshake")
-    func caching() async {
+    @Test
+    func `The catalogue is read once and dropped on a change hint or a new handshake`() async {
         let files = local()
         let backend = ApplicationBackend(local: files, storage: MemoryStorage())
         // Off: nothing is read and nothing is kept.
@@ -103,7 +103,9 @@ struct ApplicationBackendTests {
         // publish was still on its way.
         let landed = await withTaskGroup(of: Bool.self) { group in
             group.addTask {
-                for await snapshot in sidebar where !snapshot.places.isEmpty { return true }
+                for await snapshot in sidebar where !snapshot.places.isEmpty {
+                    return true
+                }
                 return false
             }
             group.addTask {
@@ -134,8 +136,8 @@ struct ApplicationBackendTests {
         #expect(backend.catalog == nil)
     }
 
-    @Test("Only a container root or a folder holding an app bundle can carry decorations")
-    func decorationPredicate() {
+    @Test
+    func `Only a container root or a folder holding an app bundle can carry decorations`() {
         #expect(ApplicationFolderDecorations.decorates("/private/var/containers/Bundle/Application", entries: []))
         #expect(ApplicationFolderDecorations.decorates("/var/mobile/Containers/Shared/AppGroup", entries: []))
         #expect(ApplicationFolderDecorations.decorates("/Applications", entries: [("Files.app", true)]))
@@ -143,8 +145,8 @@ struct ApplicationBackendTests {
         #expect(!ApplicationFolderDecorations.decorates("/etc", entries: [("hosts", false), ("ssh", true)]))
     }
 
-    @Test("The change stream hints at once and on every catalogue change")
-    func changes() async {
+    @Test
+    func `The change stream hints at once and on every catalogue change`() async {
         let backend = ApplicationBackend(local: local(), storage: MemoryStorage())
         var iterator = backend.changes().makeAsyncIterator()
         #expect(await iterator.next() != nil)

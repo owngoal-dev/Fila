@@ -14,7 +14,7 @@ import Foundation
 /// unsandboxed process still gets the full filesystem in-process.
 @objc(FilaLocalModule)
 public final class FilaLocalModule: NSObject, BackendModule {
-    public required override init() {
+    override public required init() {
         super.init()
     }
 
@@ -34,7 +34,7 @@ public final class FilaLocalModule: NSObject, BackendModule {
                 // The container root is a different namespace from the full
                 // root's, with its own record.
                 let container = UserDefaultsStorage<LocalFilePreferences>(
-                    defaults: host.defaults, key: "wiki.qaq.fila.local.container"
+                    defaults: host.defaults, key: "wiki.qaq.fila.local.container",
                 )
                 return [SandboxedLocalFileBackend(storage: container, environment: environment)]
             }

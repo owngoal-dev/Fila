@@ -66,13 +66,13 @@ public enum ApplicationCatalog {
                 name: InstalledApp.name(
                     proxy.value(forKey: "localizedName") as? String,
                     proxy.value(forKey: "localizedShortName") as? String,
-                    identifier: identifier
+                    identifier: identifier,
                 ),
                 bundleIdentifier: identifier,
                 bundlePath: bundleURL.path,
                 dataPath: (proxy.value(forKey: "dataContainerURL") as? URL)?.path,
                 groupPaths: groupPaths(for: proxy),
-                details: details(for: proxy)
+                details: details(for: proxy),
             )
         }
     }
@@ -130,7 +130,7 @@ public enum ApplicationCatalog {
                 name: name,
                 bundleIdentifier: container.name,
                 bundlePath: bundleRoot + "/" + container.name + "/" + bundle.name,
-                dataPath: nil
+                dataPath: nil,
             ))
         }
         return apps
@@ -140,7 +140,7 @@ public enum ApplicationCatalog {
 extension FileService {
     /// A complete listing, or a failure: a scan that read only part of a
     /// directory must not be presented as the whole of it.
-    func entries(in directory: ServicePath, limit: Int = 50_000) async throws -> [FileEntry] {
+    func entries(in directory: ServicePath, limit: Int = 50000) async throws -> [FileEntry] {
         var entries: [FileEntry] = []
         for try await batch in try await list(directory) {
             guard batch.count <= limit - entries.count else { throw FilaFailure(errno: E2BIG, path: directory.description) }

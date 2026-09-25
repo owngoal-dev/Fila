@@ -12,8 +12,8 @@ struct MusicImportMetadataTests {
         return item
     }
 
-    @Test("Album, artist, lyrics and embedded artwork survive extraction")
-    func textAndArtwork() async throws {
+    @Test
+    func `Album, artist, lyrics and embedded artwork survive extraction`() async throws {
         let cover = Data([1, 2, 3])
         let metadata = try await MusicImportMetadata.read(items: [
             item(.iTunesMetadataSongName, "歌曲" as NSString),
@@ -36,11 +36,11 @@ struct MusicImportMetadataTests {
         #expect(metadata.artwork == cover)
     }
 
-    @Test("M4A binary track and disc tags preserve totals")
-    func numberTags() async throws {
+    @Test
+    func `M4A binary track and disc tags preserve totals`() async throws {
         let metadata = try await MusicImportMetadata.read(items: [
-            item(.iTunesMetadataTrackNumber, Data([0,0,0,4,0,7,0,0]) as NSData),
-            item(.iTunesMetadataDiscNumber, Data([0,0,0,1,0,2]) as NSData),
+            item(.iTunesMetadataTrackNumber, Data([0, 0, 0, 4, 0, 7, 0, 0]) as NSData),
+            item(.iTunesMetadataDiscNumber, Data([0, 0, 0, 1, 0, 2]) as NSData),
             item(.iTunesMetadataReleaseDate, "2023-06-20" as NSString),
         ])
         #expect(metadata.numbers["TrackNumber"] == 4)
@@ -52,8 +52,8 @@ struct MusicImportMetadataTests {
         #expect(metadata.strings["ReleaseDate"] == "2023-06-20")
     }
 
-    @Test("ID3 text numbers and invalid values are handled without inventing tags")
-    func textNumbers() async throws {
+    @Test
+    func `ID3 text numbers and invalid values are handled without inventing tags`() async throws {
         let metadata = try await MusicImportMetadata.read(items: [
             item(.id3MetadataTrackNumber, " 4 / 7 " as NSString),
             item(.id3MetadataPartOfASet, "-1/invalid" as NSString),

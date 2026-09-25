@@ -48,8 +48,8 @@ struct JobTests {
 
     // MARK: - Copy
 
-    @Test("A copy keeps extended attributes and leaves a symlink a symlink")
-    func copyPreservesTheThingsAHandWrittenWalkLoses() throws {
+    @Test
+    func `A copy keeps extended attributes and leaves a symlink a symlink`() throws {
         scratch.directory("source/nested")
         let file = scratch.file("source/nested/data.bin", contents: "payload")
         setExtendedAttribute("wiki.qaq.fila.test", to: "kept", at: file)
@@ -59,7 +59,7 @@ struct JobTests {
         #expect(run(JobRequest(
             kind: .copy,
             sources: [scratch.path("source")],
-            destination: scratch.path("destination")
+            destination: scratch.path("destination"),
         )).code == .success)
 
         let copied = scratch.path("destination/source/nested/data.bin")
@@ -69,8 +69,8 @@ struct JobTests {
         #expect(FileKind(modeBits: link.st_mode) == .symbolicLink)
     }
 
-    @Test("Overwriting an existing destination preserves copied metadata")
-    func copyOverExisting() {
+    @Test
+    func `Overwriting an existing destination preserves copied metadata`() {
         scratch.directory("destination")
         let source = scratch.file("payload.txt", contents: "new contents")
         setExtendedAttribute("wiki.qaq.fila.test", to: "kept", at: source)
@@ -80,7 +80,7 @@ struct JobTests {
             kind: .copy,
             sources: [source],
             destination: scratch.path("destination"),
-            overwrite: true
+            overwrite: true,
         )).code == .success)
 
         let target = scratch.path("destination/payload.txt")
@@ -88,8 +88,8 @@ struct JobTests {
         #expect(extendedAttribute("wiki.qaq.fila.test", at: target) == "kept")
     }
 
-    @Test("A collision without overwrite fails and changes nothing")
-    func copyRefusesToClobber() {
+    @Test
+    func `A collision without overwrite fails and changes nothing`() {
         scratch.directory("destination")
         scratch.file("payload.txt", contents: "new")
         scratch.file("destination/payload.txt", contents: "stale")
@@ -97,14 +97,14 @@ struct JobTests {
         let outcome = run(JobRequest(
             kind: .copy,
             sources: [scratch.path("payload.txt")],
-            destination: scratch.path("destination")
+            destination: scratch.path("destination"),
         ))
         #expect(outcome.systemError == EEXIST)
         #expect(metadata(of: scratch.path("destination/payload.txt"))?.st_size == 5)
     }
 
-    @Test("Copy publishes a replacement inode and leaves existing hard links intact")
-    func copyPublishesAtomically() throws {
+    @Test
+    func `Copy publishes a replacement inode and leaves existing hard links intact`() throws {
         scratch.directory("destination")
         let source = scratch.file("payload.txt", contents: "replacement")
         let target = scratch.file("destination/payload.txt", contents: "original")
@@ -117,8 +117,8 @@ struct JobTests {
         #expect(metadata(of: target)?.st_ino != metadata(of: previous)?.st_ino)
     }
 
-    @Test("Copy and move reject an occupied target that appears after preflight", arguments: [FilaJobKind.copy, .move])
-    func transferPublishesExclusively(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `Copy and move reject an occupied target that appears after preflight`(_ kind: FilaJobKind) throws {
         scratch.directory("destination")
         let source = scratch.file("payload.txt", contents: "source")
         let target = scratch.path("destination/payload.txt")
@@ -133,8 +133,8 @@ struct JobTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: scratch.path("destination")) == ["payload.txt"])
     }
 
-    @Test("Conflicting or overlapping selections fail before changing any item", arguments: [FilaJobKind.copy, .move])
-    func transferPreflightsTheWholeSelection(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `Conflicting or overlapping selections fail before changing any item`(_ kind: FilaJobKind) throws {
         scratch.directory("first")
         scratch.directory("second")
         let first = scratch.file("first/payload.txt", contents: "one")
@@ -148,8 +148,8 @@ struct JobTests {
         }
     }
 
-    @Test("Same-directory paste leaves its source intact", arguments: [FilaJobKind.copy, .move])
-    func transferRefusesItself(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `Same-directory paste leaves its source intact`(_ kind: FilaJobKind) throws {
         let source = scratch.file("payload.txt", contents: "keep")
         for overwrite in [false, true] {
             let result = run(JobRequest(kind: kind, sources: [source], destination: scratch.root, overwrite: overwrite))
@@ -159,8 +159,8 @@ struct JobTests {
         }
     }
 
-    @Test("Same-item and descendant refusals survive aliases", arguments: [FilaJobKind.copy, .move])
-    func transferExplainsAliases(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `Same-item and descendant refusals survive aliases`(_ kind: FilaJobKind) throws {
         let source = scratch.file("payload.txt", contents: "keep")
         let alias = scratch.link("alias", to: scratch.root)
         #expect(run(JobRequest(kind: kind, sources: [source], destination: alias)).reason == .sameLocation)
@@ -176,8 +176,8 @@ struct JobTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: nested).isEmpty)
     }
 
-    @Test("File-folder conflicts reject the whole batch before writes", arguments: [FilaJobKind.copy, .move])
-    func transferExplainsIncompatibleTypes(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `File-folder conflicts reject the whole batch before writes`(_ kind: FilaJobKind) throws {
         let first = scratch.file("first.txt", contents: "first")
         let source = scratch.file("payload", contents: "keep")
         let destination = scratch.directory("destination")
@@ -192,8 +192,8 @@ struct JobTests {
         }
     }
 
-    @Test("A directory destination may be reached through a symlink", arguments: [FilaJobKind.copy, .move])
-    func transferUsesTheDestinationDirectory(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `A directory destination may be reached through a symlink`(_ kind: FilaJobKind) throws {
         let destination = scratch.directory("destination")
         let alias = scratch.link("alias", to: destination)
         let source = scratch.file("payload.txt", contents: "content")
@@ -202,8 +202,8 @@ struct JobTests {
         #expect(metadata(of: alias).map { FileKind(modeBits: $0.st_mode) } == .symbolicLink)
     }
 
-    @Test("An approved overwrite never merges a nonempty destination directory", arguments: [FilaJobKind.copy, .move])
-    func transferPreservesBothNonemptyTrees(_ kind: FilaJobKind) throws {
+    @Test(arguments: [FilaJobKind.copy, .move])
+    func `An approved overwrite never merges a nonempty destination directory`(_ kind: FilaJobKind) throws {
         let source = scratch.directory("tree")
         scratch.file("tree/new.txt", contents: "new")
         let destination = scratch.directory("destination")
@@ -214,8 +214,8 @@ struct JobTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: scratch.path("destination/tree")) == ["old.txt"])
     }
 
-    @Test("Cancelling an overwrite preserves the old destination")
-    func cancelledOverwritePreservesDestination() throws {
+    @Test
+    func `Cancelling an overwrite preserves the old destination`() throws {
         scratch.directory("destination")
         let source = scratch.file("payload.txt", contents: "new")
         let target = scratch.file("destination/payload.txt", contents: "old")
@@ -226,8 +226,8 @@ struct JobTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: scratch.path("destination")) == ["payload.txt"])
     }
 
-    @Test("A failed publication cleans the temporary tree including copied immutable items")
-    func failedPublicationCleansCopiedFlags() throws {
+    @Test
+    func `A failed publication cleans the temporary tree including copied immutable items`() throws {
         let source = scratch.directory("tree")
         let file = scratch.file("tree/kept.txt", contents: "source")
         try #require(lchflags(file, UInt32(UF_IMMUTABLE)) == 0)
@@ -245,8 +245,8 @@ struct JobTests {
         #expect(hasFlag(UF_IMMUTABLE, at: file))
     }
 
-    @Test("A copy that cannot read part of the tree fails instead of reporting success")
-    func partialCopyIsAFailure() throws {
+    @Test
+    func `A copy that cannot read part of the tree fails instead of reporting success`() throws {
         scratch.directory("source/readable")
         scratch.file("source/readable/data.bin", contents: "payload")
         scratch.directory("source/locked")
@@ -261,15 +261,15 @@ struct JobTests {
         let outcome = run(JobRequest(
             kind: .copy,
             sources: [scratch.path("source")],
-            destination: scratch.path("destination")
+            destination: scratch.path("destination"),
         ))
         #expect(outcome.code != .success)
         #expect(outcome.code != .cancelled)
         #expect(try FileManager.default.contentsOfDirectory(atPath: scratch.path("destination")).isEmpty)
     }
 
-    @Test("A cross-volume move never removes what it could not copy")
-    func failedMoveKeepsItsSource() {
+    @Test
+    func `A cross-volume move never removes what it could not copy`() {
         // Same volume here, so this exercises the ordering rather than the
         // cross-volume path: the copy has to come back clean before anything is
         // removed, and a destination inside the source makes the copy fail.
@@ -279,7 +279,7 @@ struct JobTests {
         let outcome = run(JobRequest(
             kind: .move,
             sources: [scratch.path("tree")],
-            destination: scratch.path("tree/inner")
+            destination: scratch.path("tree/inner"),
         ))
         #expect(outcome.code != .success)
         #expect(exists(payload))
@@ -287,15 +287,15 @@ struct JobTests {
 
     // MARK: - Move
 
-    @Test("A move on one volume is a rename")
-    func moveWithinAVolume() {
+    @Test
+    func `A move on one volume is a rename`() {
         scratch.directory("destination")
         scratch.file("payload.txt", contents: "bytes")
 
         #expect(run(JobRequest(
             kind: .move,
             sources: [scratch.path("payload.txt")],
-            destination: scratch.path("destination")
+            destination: scratch.path("destination"),
         )).code == .success)
 
         #expect(!exists(scratch.path("payload.txt")))
@@ -304,8 +304,8 @@ struct JobTests {
 
     // MARK: - Delete
 
-    @Test("A permanent delete takes the link, not what it points at")
-    func deleteDoesNotFollowLinks() {
+    @Test
+    func `A permanent delete takes the link, not what it points at`() {
         let target = scratch.file("target.txt")
         scratch.link("pointer", to: target)
 
@@ -314,8 +314,8 @@ struct JobTests {
         #expect(exists(target))
     }
 
-    @Test("A delete to the trash moves the file there, keeps it, and notes where it came from", .enabled(if: filaTrashIsReachable))
-    func deleteToTrash() throws {
+    @Test(.enabled(if: filaTrashIsReachable))
+    func `A delete to the trash moves the file there, keeps it, and notes where it came from`() throws {
         defer { emptyTestTrash(["keepsake.txt"]) }
         let doomed = scratch.file("keepsake.txt", contents: "recoverable")
 
@@ -325,8 +325,8 @@ struct JobTests {
         #expect(try extendedAttribute(FilaTrash.originAttribute, at: filaTrashDirectory + "/keepsake.txt") == (FilaPath.canonical(doomed)))
     }
 
-    @Test("Two deletes of one name both survive in the trash", .enabled(if: filaTrashIsReachable))
-    func trashDoesNotOverwriteItself() {
+    @Test(.enabled(if: filaTrashIsReachable))
+    func `Two deletes of one name both survive in the trash`() {
         defer { emptyTestTrash(["same-name.txt", "same-name.txt-1"]) }
         scratch.directory("first")
         scratch.directory("second")
@@ -341,8 +341,8 @@ struct JobTests {
 
     // MARK: - Cancellation
 
-    @Test("Cancellation at the first progress update is reported before publication")
-    func cancellationIsReported() {
+    @Test
+    func `Cancellation at the first progress update is reported before publication`() {
         scratch.directory("source")
         for index in 0 ..< 200 {
             scratch.file("source/entry-\(index)", contents: "some bytes here")
@@ -355,16 +355,16 @@ struct JobTests {
                 kind: .copy,
                 sources: [scratch.path("source")],
                 destination: scratch.path("destination"),
-                overwrite: true
+                overwrite: true,
             ),
-            operations: operations
+            operations: operations,
         )
         let outcome = job.run { _ in job.cancel() }
         #expect(outcome.code == .cancelled)
     }
 
-    @Test("A job cancelled before it starts never touches anything")
-    func cancellationBeforeTheFirstSource() {
+    @Test
+    func `A job cancelled before it starts never touches anything`() {
         let doomed = scratch.file("payload.txt")
         let job = FileJob(request: JobRequest(kind: .delete, sources: [doomed]), operations: operations)
         job.cancel()
@@ -374,8 +374,8 @@ struct JobTests {
 
     // MARK: - Progress
 
-    @Test("Progress arrives with unknown totals rather than a counting pre-pass")
-    func progressLeavesTotalsUnknown() {
+    @Test
+    func `Progress arrives with unknown totals rather than a counting pre-pass`() {
         scratch.directory("source")
         for index in 0 ..< 30 {
             scratch.file("source/entry-\(index)", contents: "bytes")
@@ -389,9 +389,9 @@ struct JobTests {
                 kind: .copy,
                 sources: [scratch.path("source")],
                 destination: scratch.path("destination"),
-                overwrite: true
+                overwrite: true,
             ),
-            report: { seen.append($0) }
+            report: { seen.append($0) },
         ).code == .success)
 
         #expect(!seen.values.isEmpty)

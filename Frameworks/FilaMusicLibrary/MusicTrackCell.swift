@@ -58,7 +58,9 @@ final class MusicTrackCell: UICollectionViewListCell {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("init(coder:) is not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not used")
+    }
 
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -78,14 +80,16 @@ final class MusicTrackCell: UICollectionViewListCell {
         updateSubtitle()
         coverView.show(id: track.id, pixelSize: 120)
         accessibilityLabel = [titleLabel.text, track.artist, track.album, durationLabel.text]
-            .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+            .compactMap(\.self).filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
     private func updateSubtitle() {
         guard let track else { return }
         let parts = bounds.width < 600 ? [track.artist] : [track.artist, track.album]
         let text = parts.filter { !$0.isEmpty }.joined(separator: " · ")
-        if subtitleLabel.text != text { subtitleLabel.text = text }
+        if subtitleLabel.text != text {
+            subtitleLabel.text = text
+        }
         subtitleLabel.isHidden = text.isEmpty
     }
 

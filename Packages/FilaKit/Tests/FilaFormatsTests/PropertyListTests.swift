@@ -17,24 +17,24 @@ struct PropertyListTests {
         ])
     }
 
-    @Test("Binary and XML both survive a round trip with their types intact", arguments: [PropertyListDocument.Format.binary, .xml])
-    func roundTrip(format: PropertyListDocument.Format) throws {
+    @Test(arguments: [PropertyListDocument.Format.binary, .xml])
+    func `Binary and XML both survive a round trip with their types intact`(format: PropertyListDocument.Format) throws {
         let document = PropertyListDocument(root: mixed, format: format)
         let restored = try PropertyListDocument(data: document.serialized())
         #expect(restored.format == format)
         #expect(restored.root == mixed)
     }
 
-    @Test("An integer does not come back as a real, which is what breaks a launchd job")
-    func integersStayIntegers() throws {
+    @Test
+    func `An integer does not come back as a real, which is what breaks a launchd job`() throws {
         let restored = try PropertyListDocument(data: PropertyListDocument(root: mixed, format: .binary).serialized())
         #expect(restored.root[[.key("Nice")]] == .integer(-5))
         #expect(restored.root[[.key("Ratio")]] == .real(0.5))
         #expect(restored.root[[.key("KeepAlive")]] == .boolean(true))
     }
 
-    @Test("Converting a binary plist to XML and back is the edit a jailbreak user wants")
-    func convertsBetweenFormats() throws {
+    @Test
+    func `Converting a binary plist to XML and back is the edit a jailbreak user wants`() throws {
         let binary = try PropertyListDocument(root: mixed, format: .binary).serialized()
         var document = try PropertyListDocument(data: binary)
         #expect(document.format == .binary)
@@ -45,8 +45,8 @@ struct PropertyListTests {
         #expect(try PropertyListDocument(data: xml).root == mixed)
     }
 
-    @Test("A path addresses a row, and assigning nil removes it")
-    func editsThroughPaths() {
+    @Test
+    func `A path addresses a row, and assigning nil removes it`() {
         var root = mixed
         root[[.key("Label")]] = .string("wiki.qaq.other")
         root[[.key("ProgramArguments"), .index(1)]] = .string("--verbose")
@@ -58,8 +58,8 @@ struct PropertyListTests {
         #expect(root[[.key("Nice")]] == nil)
     }
 
-    @Test("A path that leads nowhere reads nil and changes nothing")
-    func stalePathsAreInert() {
+    @Test
+    func `A path that leads nowhere reads nil and changes nothing`() {
         var root = mixed
         root[[.key("Nice"), .key("deeper")]] = .string("x")
         root[[.key("ProgramArguments"), .index(99)]] = .string("x")
@@ -67,8 +67,8 @@ struct PropertyListTests {
         #expect(root[[.index(0)]] == nil)
     }
 
-    @Test("A plist read from a descriptor is the same one")
-    func readsFromADescriptor() throws {
+    @Test
+    func `A plist read from a descriptor is the same one`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("job.plist")
             try PropertyListDocument(root: mixed, format: .binary).serialized().write(to: url)
@@ -78,8 +78,8 @@ struct PropertyListTests {
         }
     }
 
-    @Test("Anything that is not a property list fails as damaged, not as a crash")
-    func rejectsRubbish() {
+    @Test
+    func `Anything that is not a property list fails as damaged, not as a crash`() {
         #expect(throws: FormatFailure.self) { try PropertyListDocument(data: Data(repeating: 0xFF, count: 32)) }
     }
 }

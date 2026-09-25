@@ -1,5 +1,5 @@
-import FilaBackendUI
 import FilaBackendKit
+import FilaBackendUI
 import FilaProtocol
 import UIKit
 
@@ -34,7 +34,7 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         contextMenuConfigurationForItemAt indexPath: IndexPath,
-        point _: CGPoint
+        point _: CGPoint,
     ) -> UIContextMenuConfiguration? {
         guard let node = dataSource.itemIdentifier(for: indexPath) else { return nil }
         let path = path(of: node)
@@ -50,7 +50,7 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         willDisplayContextMenu _: UIContextMenuConfiguration,
-        animator _: UIContextMenuInteractionAnimating?
+        animator _: UIContextMenuInteractionAnimating?,
     ) {
         recordDirectoryUse()
     }
@@ -64,7 +64,7 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         willEndContextMenuInteraction _: UIContextMenuConfiguration,
-        animator: UIContextMenuInteractionAnimating?
+        animator: UIContextMenuInteractionAnimating?,
     ) {
         holdsReloads = true
         guard let animator else {
@@ -79,7 +79,7 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     /// all of them once any of their iOS 16 replacements is implemented.
     func collectionView(
         _: UICollectionView,
-        previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+        previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration,
     ) -> UITargetedPreview? {
         removalDismissalPreview(for: configuration)
     }
@@ -87,7 +87,7 @@ extension FileBrowserViewController: UICollectionViewDelegate {
     func collectionView(
         _: UICollectionView,
         willPerformPreviewActionForMenuWith _: UIContextMenuConfiguration,
-        animator: UIContextMenuInteractionCommitAnimating
+        animator: UIContextMenuInteractionCommitAnimating,
     ) {
         guard let preview = animator.previewViewController as? FolderDecorationPreviewViewController else { return }
         animator.addCompletion { [weak self] in

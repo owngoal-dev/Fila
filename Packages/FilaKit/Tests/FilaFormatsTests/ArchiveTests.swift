@@ -9,8 +9,8 @@ struct ArchivePathTests {
     /// here can be fixed by a library upgrade; this cannot, because the library
     /// deliberately hands back the name the archive declared and leaves the
     /// decision to whoever is about to join it to a directory.
-    @Test("A name that could land a write outside the destination is refused, not repaired")
-    func refusesHostileNames() {
+    @Test
+    func `A name that could land a write outside the destination is refused, not repaired`() {
         #expect(ArchivePath.validated("../escape") == nil)
         #expect(ArchivePath.validated("../../../../etc/passwd") == nil)
         #expect(ArchivePath.validated("/System/Library/x") == nil)
@@ -29,14 +29,14 @@ struct ArchivePathTests {
     /// carry `pwn` as a symlink to somewhere else entirely and then `pwn/loot`,
     /// and only something that remembers what it just created can see it. That
     /// memory lives in the extractor, not here.
-    @Test("A link and a name nested under it are both legal names, so the check cannot end here")
-    func acceptsBothHalvesOfALinkNesting() {
+    @Test
+    func `A link and a name nested under it are both legal names, so the check cannot end here`() {
         #expect(ArchivePath.validated("pwn") == "pwn")
         #expect(ArchivePath.validated("pwn/loot") == "pwn/loot")
     }
 
-    @Test("An ordinary name survives, tidied")
-    func keepsOrdinaryNames() {
+    @Test
+    func `An ordinary name survives, tidied`() {
         #expect(ArchivePath.validated("./a/./b") == "a/b")
         #expect(ArchivePath.validated("nested//deeper/") == "nested/deeper")
         #expect(ArchivePath.validated("top.txt") == "top.txt")
@@ -48,8 +48,8 @@ struct ArchivePathTests {
 
 @Suite("Zip")
 struct ZipTests {
-    @Test("A zip written here reads back with its tree, its modes and its symlink")
-    func roundTrip() throws {
+    @Test
+    func `A zip written here reads back with its tree, its modes and its symlink`() throws {
         try withScratch { scratch in
             let payload = samplePayload(byteCount: 300_000)
             let source = scratch.appendingPathComponent("payload.bin")
@@ -102,8 +102,8 @@ struct ZipTests {
         }
     }
 
-    @Test("An entry named ../../etc/passwd is listed and refused, because that is how an extractor writes into /System")
-    func refusesToEscape() throws {
+    @Test
+    func `An entry named ../../etc/passwd is listed and refused, because that is how an extractor writes into /System`() throws {
         try withScratch { scratch in
             // The fixture is written with legal names of the same length and
             // then patched, because the writer refuses to record a name that
@@ -131,8 +131,8 @@ struct ZipTests {
         }
     }
 
-    @Test("A name that is not UTF-8 lists with the bad bytes replaced and still extracts")
-    func toleratesNamesThatAreNotUTF8() throws {
+    @Test
+    func `A name that is not UTF-8 lists with the bad bytes replaced and still extracts`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("mojibake.zip")
             try withDescriptor(writing: archive) { descriptor in
@@ -158,8 +158,8 @@ struct ZipTests {
     /// shows up as an abort: freeing the libarchive handle in a throwing
     /// initialiser *and* in `deinit` frees it twice. Repeated, because a double
     /// free is only reliably fatal once the allocator reuses the block.
-    @Test("An initialiser that fails frees its handle exactly once")
-    func survivesAFailedOpen() {
+    @Test
+    func `An initialiser that fails frees its handle exactly once`() {
         for _ in 0 ..< 500 {
             // `archive_write_open_fd` stats the descriptor, so -1 fails it.
             #expect(throws: (any Error).self) { try ArchiveWriter(descriptor: -1, format: .zip) }
@@ -167,8 +167,8 @@ struct ZipTests {
         }
     }
 
-    @Test("An empty archive is still a zip")
-    func writesAnEmptyArchive() throws {
+    @Test
+    func `An empty archive is still a zip`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("empty.zip")
             try withDescriptor(writing: archive) { try ArchiveWriter(descriptor: $0, format: .zip).finish() }
@@ -177,8 +177,8 @@ struct ZipTests {
         }
     }
 
-    @Test("A progress handler that says stop stops, on both sides")
-    func cancels() throws {
+    @Test
+    func `A progress handler that says stop stops, on both sides`() throws {
         try withScratch { scratch in
             let source = scratch.appendingPathComponent("payload.bin")
             try samplePayload(byteCount: 400_000).write(to: source)
@@ -209,8 +209,8 @@ struct ZipTests {
         }
     }
 
-    @Test("Corruption fails loudly rather than extracting the wrong bytes")
-    func detectsCorruption() throws {
+    @Test
+    func `Corruption fails loudly rather than extracting the wrong bytes`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("corrupt.zip")
             try withDescriptor(writing: archive) { descriptor in
@@ -250,8 +250,8 @@ struct ZipTests {
     /// reader this replaced verified CRC-32 itself; this pins that libarchive
     /// does too, and that the result reaches the caller as a failure rather than
     /// as content.
-    @Test("A member whose checksum does not match fails instead of extracting the wrong bytes")
-    func refusesAMemberThatFailsItsChecksum() throws {
+    @Test
+    func `A member whose checksum does not match fails instead of extracting the wrong bytes`() throws {
         try withScratch { scratch in
             let good = try #require(Data(base64Encoded: Self.storedZip, options: .ignoreUnknownCharacters))
             let archive = scratch.appendingPathComponent("stored.zip")
@@ -274,8 +274,8 @@ struct ZipTests {
         }
     }
 
-    @Test("Something that is not an archive is not recognised")
-    func rejectsOtherFiles() throws {
+    @Test
+    func `Something that is not an archive is not recognised`() throws {
         try withScratch { scratch in
             let url = scratch.appendingPathComponent("random.bin")
             try samplePayload(byteCount: 4096).write(to: url)
@@ -294,8 +294,8 @@ struct ZipTests {
 
 @Suite("Tar")
 struct TarTests {
-    @Test("An explicit archive root is hidden without changing child member positions")
-    func rootDirectoryEntry() throws {
+    @Test
+    func `An explicit archive root is hidden without changing child member positions`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("control.tar.gz")
             // USTAR fixture made with Python tarfile: ./, ./control, .config/.
@@ -314,8 +314,8 @@ struct TarTests {
         }
     }
 
-    @Test("A tar written here reads back with its tree, its modes and its symlink")
-    func roundTrip() throws {
+    @Test
+    func `A tar written here reads back with its tree, its modes and its symlink`() throws {
         try withScratch { scratch in
             let payload = samplePayload(byteCount: 200_000)
             let source = scratch.appendingPathComponent("payload.bin")
@@ -359,8 +359,8 @@ struct TarTests {
     /// The extractor runs its writes through a daemon that is root. An archive
     /// that can plant a setuid-root binary just by being unpacked is a root
     /// shell for whoever built it, so the bit is recorded but never handed on.
-    @Test("A setuid bit survives into the listing and not out of it")
-    func stripsSetuidFromThePermissionsAnExtractorApplies() throws {
+    @Test
+    func `A setuid bit survives into the listing and not out of it`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("hostile.tar")
             try withDescriptor(writing: archive) { descriptor in
@@ -379,13 +379,13 @@ struct TarTests {
     /// `time_t(someDouble)` traps outside `time_t`'s range, and mtimes come off a
     /// filesystem people edit as root. A nonsense one has to produce a nonsense
     /// timestamp, not a crash.
-    @Test("An impossible modification time is clamped rather than trapped", arguments: [
+    @Test(arguments: [
         Date(timeIntervalSince1970: 1e300),
         Date(timeIntervalSince1970: -1e300),
         Date.distantFuture,
         Date.distantPast,
     ])
-    func survivesAnImpossibleTimestamp(stamp: Date) throws {
+    func `An impossible modification time is clamped rather than trapped`(stamp: Date) throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("stamped.tar")
             try withDescriptor(writing: archive) { descriptor in
@@ -398,8 +398,8 @@ struct TarTests {
         }
     }
 
-    @Test("A member streams into a descriptor without ever being held in memory")
-    func streamsIntoADescriptor() throws {
+    @Test
+    func `A member streams into a descriptor without ever being held in memory`() throws {
         try withScratch { scratch in
             let payload = samplePayload(byteCount: 500_000)
             let source = scratch.appendingPathComponent("payload.bin")
@@ -423,8 +423,8 @@ struct TarTests {
         }
     }
 
-    @Test("A tar.gz is read straight through, with no scratch file in between")
-    func readsACompressedTar() throws {
+    @Test
+    func `A tar.gz is read straight through, with no scratch file in between`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("data.tar.gz")
             try withDescriptor(writing: archive) { descriptor in
@@ -447,8 +447,8 @@ struct TarTests {
         }
     }
 
-    @Test("A tar.xz round trips, which is what iOS repositories ship")
-    func readsAnXzTar() throws {
+    @Test
+    func `A tar.xz round trips, which is what iOS repositories ship`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("data.tar.xz")
             try withDescriptor(writing: archive) { descriptor in
@@ -476,8 +476,8 @@ struct TarTests {
     lUoxHqlLW1gADAAA
     """
 
-    @Test("A hard link is reported as one, so an extractor can refuse it")
-    func reportsHardLinks() throws {
+    @Test
+    func `A hard link is reported as one, so an extractor can refuse it`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("hardlink.tar.gz")
             try #require(Data(base64Encoded: Self.hardLinkTarGzip, options: .ignoreUnknownCharacters))
@@ -508,8 +508,8 @@ struct ForeignFormatTests {
     AA==
     """
 
-    @Test("A 7z reads, which nothing hand-written here was ever going to do")
-    func readsSevenZip() throws {
+    @Test
+    func `A 7z reads, which nothing hand-written here was ever going to do`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("fixture.7z")
             try #require(Data(base64Encoded: Self.sevenZip, options: .ignoreUnknownCharacters)).write(to: archive)
@@ -543,8 +543,8 @@ struct ForeignFormatTests {
     /// to the file's own.
     private static let lonelyGzip = "H4sIAAAAAAACAwtITM5OTE+1UijPzM7UK0ws1EvLzEnkCkstKs7Mz7NSMNQz4AIAgpAVfiQAAAA="
 
-    @Test("A gzip that wraps a plain file lists as its one member")
-    func readsALoneGzip() throws {
+    @Test
+    func `A gzip that wraps a plain file lists as its one member`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("payload.txt.gz")
             try #require(Data(base64Encoded: Self.lonelyGzip, options: .ignoreUnknownCharacters)).write(to: archive)
@@ -562,8 +562,8 @@ struct ForeignFormatTests {
         }
     }
 
-    @Test("An oversized member is refused before it is allocated, size in the header or not")
-    func refusesToAllocateForALargeMember() throws {
+    @Test
+    func `An oversized member is refused before it is allocated, size in the header or not`() throws {
         try withScratch { scratch in
             let archive = scratch.appendingPathComponent("payload.txt.gz")
             try #require(Data(base64Encoded: Self.lonelyGzip, options: .ignoreUnknownCharacters)).write(to: archive)
@@ -602,8 +602,8 @@ struct ArTests {
         return archive
     }
 
-    @Test("A .deb lists its members, and the control tarball opens through a second reader")
-    func readsADeb() throws {
+    @Test
+    func `A .deb lists its members, and the control tarball opens through a second reader`() throws {
         try withScratch { scratch in
             let control = scratch.appendingPathComponent("control.tar.gz")
             try withDescriptor(writing: control) { descriptor in
@@ -670,8 +670,8 @@ extension Data {
 
 @Suite("Compression choices", .serialized)
 struct CompressionChoiceTests {
-    @Test("Every offered writer round trips file content and a directory")
-    func offeredFormats() throws {
+    @Test
+    func `Every offered writer round trips file content and a directory`() throws {
         // Sequential: maximum compression codecs own large dictionaries.
         for format in ArchiveFormat.allCases {
             try withScratch { scratch in
@@ -702,8 +702,8 @@ struct CompressionChoiceTests {
         }
     }
 
-    @Test("ZIP choices produce the declared storage method and readable data")
-    func zipModes() throws {
+    @Test
+    func `ZIP choices produce the declared storage method and readable data`() throws {
         for mode in ZipCompression.allCases {
             try withScratch { scratch in
                 let archive = scratch.appendingPathComponent("mode.zip")

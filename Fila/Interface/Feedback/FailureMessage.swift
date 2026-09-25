@@ -33,21 +33,21 @@ enum FailureMessage {
     private static func message(for refusal: TransferRefusal) -> String {
         switch refusal {
         case .nothingToTransfer:
-            return String(localized: "There is nothing to transfer.")
+            String(localized: "There is nothing to transfer.")
         case let .conflictingNames(name):
-            return String(localized: "Two selected items are both named “\(name)” and would use the same destination. Rename one or transfer them separately.")
+            String(localized: "Two selected items are both named “\(name)” and would use the same destination. Rename one or transfer them separately.")
         case .sameLocation:
-            return String(localized: "This item is already in the destination folder. Choose another folder.")
+            String(localized: "This item is already in the destination folder. Choose another folder.")
         case .insideSource:
-            return String(localized: "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder.")
+            String(localized: "A folder cannot be copied or moved into itself or one of its subfolders. Choose a destination outside this folder.")
         case .sourceNotWritable:
-            return String(localized: "Items on this server can be copied but not moved. They cannot be deleted from this location.")
+            String(localized: "Items on this server can be copied but not moved. They cannot be deleted from this location.")
         case .destinationNotWritable:
-            return String(localized: "This location does not accept files. Choose another folder.")
+            String(localized: "This location does not accept files. Choose another folder.")
         case let .insufficientStagingSpace(needed, available):
-            return String(localized: "Transferring between servers needs \(FilePresentation.byteLabel(needed)) of free space on this device for a temporary copy, and only \(FilePresentation.byteLabel(available)) is free. Free up space and try again.")
+            String(localized: "Transferring between servers needs \(FilePresentation.byteLabel(needed)) of free space on this device for a temporary copy, and only \(FilePresentation.byteLabel(available)) is free. Free up space and try again.")
         case let .sizeMismatch(path, expected, found):
-            return String(localized: "“\(path.name ?? path.description)” is \(FilePresentation.byteLabel(found)) at the destination instead of \(FilePresentation.byteLabel(expected)). The original was kept. Look in the destination folder before trying again.")
+            String(localized: "“\(path.name ?? path.description)” is \(FilePresentation.byteLabel(found)) at the destination instead of \(FilePresentation.byteLabel(expected)). The original was kept. Look in the destination folder before trying again.")
         }
     }
 
@@ -71,13 +71,13 @@ enum FailureMessage {
     private static func message(for write: WriteFailure) -> String {
         switch write {
         case let .alreadyExists(path):
-            return String(localized: "“\(path.name ?? path.description)” already exists at the destination. Rename it or choose another folder.")
+            String(localized: "“\(path.name ?? path.description)” already exists at the destination. Rename it or choose another folder.")
         case let .notFound(path):
-            return String(localized: "“\(path.name ?? path.description)” no longer exists.")
+            String(localized: "“\(path.name ?? path.description)” no longer exists.")
         case let .notEmpty(path):
-            return String(localized: "The folder “\(path.name ?? path.description)” is not empty and cannot be replaced. Rename it or choose another folder.")
+            String(localized: "The folder “\(path.name ?? path.description)” is not empty and cannot be replaced. Rename it or choose another folder.")
         case let .publicationUnknown(path):
-            return String(localized: "The server did not confirm saving “\(path.name ?? path.description)”. Look in the destination folder before trying again.")
+            String(localized: "The server did not confirm saving “\(path.name ?? path.description)”. Look in the destination folder before trying again.")
         }
     }
 
@@ -105,7 +105,7 @@ enum FailureMessage {
         case ENOTEMPTY: return String(localized: "The destination folder is not empty and cannot be replaced. Rename the item or choose another folder.")
         case ENOTDIR:
             return String(
-                localized: "Part of the path is a file instead of a folder. Choose an existing destination folder."
+                localized: "Part of the path is a file instead of a folder. Choose an existing destination folder.",
             )
         case ELOOP: return String(localized: "A symbolic link in this path cannot be followed. Choose the item's real location.")
         default: break
@@ -126,7 +126,7 @@ enum FailureMessage {
             lines.append(String(localized: "Fila could not complete this request. Try again."))
         case .wrongPassword:
             lines.append(
-                String(localized: "The archive password is missing or incorrect. Enter the password and try again.")
+                String(localized: "The archive password is missing or incorrect. Enter the password and try again."),
             )
         case .success, .operationFailed:
             break
@@ -155,7 +155,7 @@ enum FailureMessage {
             String(
                 format: String(localized: "This file is too large (%@). The viewer supports files up to %@."),
                 FilePresentation.byteLabel(byteCount),
-                FilePresentation.byteLabel(limit)
+                FilePresentation.byteLabel(limit),
             )
         case .cancelled:
             String(localized: "Cancelled.")
@@ -164,7 +164,7 @@ enum FailureMessage {
         case let .system(code):
             String(
                 format: String(localized: "The operation failed: %@."),
-                String(cString: strerror(code))
+                String(cString: strerror(code)),
             )
         }
     }

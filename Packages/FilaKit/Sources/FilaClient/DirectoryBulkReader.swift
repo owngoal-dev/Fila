@@ -113,7 +113,7 @@ public enum DirectoryBulkReader {
         in directory: DirectoryDescriptor,
         path: String,
         limit: Int = .max,
-        resolveLink: (@Sendable (_ name: String) async -> FileKind?)? = nil
+        resolveLink: (@Sendable (_ name: String) async -> FileKind?)? = nil,
     ) -> AsyncThrowingStream<[FileNode], Error> {
         AsyncThrowingStream(bufferingPolicy: .unbounded) { continuation in
             let task = Task.detached(priority: .userInitiated) {
@@ -163,9 +163,11 @@ public enum DirectoryBulkReader {
                 guard next < names.count else { return }
                 let index = next
                 next += 1
-                group.addTask { (index, await resolveLink(names[index])) }
+                group.addTask { await (index, resolveLink(names[index])) }
             }
-            for _ in 0 ..< 4 { start() }
+            for _ in 0 ..< 4 {
+                start()
+            }
             var kinds: [Int: FileKind?] = [:]
             while let (index, kind) = await group.next() {
                 kinds[index] = kind
@@ -201,14 +203,16 @@ public enum DirectoryBulkReader {
         var error: Int32 = 0
         repeat {
             count = getattrlistbulk(
-                descriptor, &request, buffer, bufferByteCount, UInt64(FSOPT_NOFOLLOW | FSOPT_PACK_INVAL_ATTRS)
+                descriptor, &request, buffer, bufferByteCount, UInt64(FSOPT_NOFOLLOW | FSOPT_PACK_INVAL_ATTRS),
             )
             error = count < 0 ? Darwin.errno : 0
             // A cancelled listing in a process taking signals — a profiler's
             // `SIGPROF` — must not spin here; it ends as a listing ends.
         } while error == EINTR && !Task.isCancelled
         guard count >= 0 else {
-            if error == EINTR { return nil }
+            if error == EINTR {
+                return nil
+            }
             throw FilaFailure(errno: error, path: path)
         }
         guard count > 0 else { return nil }
@@ -286,7 +290,7 @@ public enum DirectoryBulkReader {
     /// the wrong field; the check turns that into an entry not listed, and
     /// `read` turns a call of nothing but those into a failure.
     private static func parse(
-        _ base: UnsafeMutableRawPointer, upTo end: UnsafeMutableRawPointer, in descriptor: Int32, of path: String
+        _ base: UnsafeMutableRawPointer, upTo end: UnsafeMutableRawPointer, in descriptor: Int32, of path: String,
     ) -> Parsed {
         var field = base
         let returned = field.loadUnaligned(as: attribute_set_t.self)
@@ -295,7 +299,9 @@ public enum DirectoryBulkReader {
             guard field + MemoryLayout<UInt32>.size <= end else { return .unreadable }
             let error = field.loadUnaligned(as: UInt32.self)
             field += MemoryLayout<UInt32>.size
-            if error != 0 { return .removed }
+            if error != 0 {
+                return .removed
+            }
         }
         guard returned.has(common: ATTR_CMN_NAME), returned.has(common: ATTR_CMN_OBJTYPE) else { return .unreadable }
         // The name's reference and the object type sit first; the type says
@@ -398,7 +404,7 @@ public enum DirectoryBulkReader {
             systemFlags: flags,
             linkCount: UInt64(links),
             inode: inode,
-            link: link
+            link: link,
         )
         return .entry(Entry(node: node, followRefused: followRefused))
     }

@@ -21,16 +21,16 @@ struct GuardEnforcementTests {
         FileJob(request: request, operations: operations).run { _ in }
     }
 
-    @Test("A protected node cannot be deleted")
-    func refusesDelete() {
+    @Test
+    func `A protected node cannot be deleted`() {
         scratch.directory("usr/lib")
         let outcome = run(JobRequest(kind: .delete, sources: [scratch.path("usr")]))
         #expect(outcome.code == .protectedPath)
         #expect(exists(scratch.path("usr")))
     }
 
-    @Test("A protected node cannot be moved away")
-    func refusesRenameAway() {
+    @Test
+    func `A protected node cannot be moved away`() {
         scratch.directory("usr")
         scratch.directory("elsewhere")
         #expect(throws: FilaFailure.self) {
@@ -39,8 +39,8 @@ struct GuardEnforcementTests {
         #expect(exists(scratch.path("usr")))
     }
 
-    @Test("A protected node cannot be replaced")
-    func refusesReplace() {
+    @Test
+    func `A protected node cannot be replaced`() {
         scratch.directory("usr")
         scratch.file("usr-new")
         let failure = #expect(throws: FilaFailure.self) {
@@ -49,8 +49,8 @@ struct GuardEnforcementTests {
         #expect(failure?.code == .protectedPath)
     }
 
-    @Test("Everything one level inside a protected node stays editable")
-    func permitsInside() throws {
+    @Test
+    func `Everything one level inside a protected node stays editable`() throws {
         scratch.directory("usr/lib")
         scratch.file("usr/lib/keep")
         scratch.file("usr/lib/doomed")
@@ -64,24 +64,24 @@ struct GuardEnforcementTests {
         #expect(!exists(scratch.path("usr/lib/doomed")))
     }
 
-    @Test("The override releases a protected node")
-    func overrideWorks() {
+    @Test
+    func `The override releases a protected node`() {
         scratch.directory("usr/lib")
         let outcome = run(JobRequest(kind: .delete, sources: [scratch.path("usr")], overrideGuard: true))
         #expect(outcome.code == .success)
         #expect(!exists(scratch.path("usr")))
     }
 
-    @Test("The override does not release the volume root")
-    func overrideStopsAtTheVolumeRoot() {
+    @Test
+    func `The override does not release the volume root`() {
         let failure = #expect(throws: FilaFailure.self) {
             _ = try operations.resolveForDestruction("/", overrideGuard: true)
         }
         #expect(failure?.code == .protectedPath)
     }
 
-    @Test("The override does not release the bootstrap root")
-    func overrideStopsAtTheBootstrap() {
+    @Test
+    func `The override does not release the bootstrap root`() {
         let failure = #expect(throws: FilaFailure.self) {
             _ = try operations.resolveForDestruction(scratch.root, overrideGuard: true)
         }
@@ -89,8 +89,8 @@ struct GuardEnforcementTests {
         #expect(exists(scratch.root))
     }
 
-    @Test("The override does not release what contains the bootstrap root either")
-    func overrideStopsAboveTheBootstrap() {
+    @Test
+    func `The override does not release what contains the bootstrap root either`() {
         // Deleting `/private/var` takes `/var/jb` with it, so an override that
         // stopped only at the exact bootstrap path would leave the hole open.
         let parent = FilaPath.directory(of: scratch.root)
@@ -101,8 +101,8 @@ struct GuardEnforcementTests {
         #expect(exists(parent))
     }
 
-    @Test("A symlink to a protected node is judged by what it points at")
-    func guardsThroughATopLevelLink() {
+    @Test
+    func `A symlink to a protected node is judged by what it points at`() {
         // This is `/var`: the guard's list spells that directory
         // `/private/var`, and the link is what the device boots through.
         // Canonicalising only the parent leaves the link spelled as itself, so
@@ -115,8 +115,8 @@ struct GuardEnforcementTests {
         #expect(exists(link))
     }
 
-    @Test("A symlink to an ordinary node is still deletable, and only the link goes")
-    func deletesAnOrdinaryLink() {
+    @Test
+    func `A symlink to an ordinary node is still deletable, and only the link goes`() {
         let target = scratch.file("ordinary.txt")
         let link = scratch.link("ordinary-link", to: target)
 
@@ -125,8 +125,8 @@ struct GuardEnforcementTests {
         #expect(exists(target))
     }
 
-    @Test("A temporary that is a protected node cannot be renamed away by a replace")
-    func refusesReplaceThatMovesAProtectedTemporary() {
+    @Test
+    func `A temporary that is a protected node cannot be renamed away by a replace`() {
         scratch.directory("usr")
         let failure = #expect(throws: FilaFailure.self) {
             try operations.replaceItem(at: scratch.path("usr-x"), withTemporary: scratch.path("usr"))
@@ -136,8 +136,8 @@ struct GuardEnforcementTests {
         #expect(!exists(scratch.path("usr-x")))
     }
 
-    @Test("A job refuses before it destroys the items it would have reached first")
-    func settlesEveryPathBeforeTouchingAny() {
+    @Test
+    func `A job refuses before it destroys the items it would have reached first`() {
         // The second source lands on the protected `usr`; the first lands on an
         // ordinary file. Resolving inside the loop would overwrite the ordinary
         // one and only then refuse.
@@ -151,28 +151,28 @@ struct GuardEnforcementTests {
             kind: .copy,
             sources: [scratch.path("source/first"), scratch.path("source/usr")],
             destination: scratch.root,
-            overwrite: true
+            overwrite: true,
         ))
         #expect(outcome.code == .protectedPath)
         #expect(metadata(of: scratch.path("first"))?.st_size == 5)
     }
 
-    @Test("A destination inside its own source is refused, not recursed into")
-    func refusesDestinationInsideSource() {
+    @Test
+    func `A destination inside its own source is refused, not recursed into`() {
         scratch.directory("tree/inner")
         scratch.file("tree/payload.txt")
 
         let outcome = run(JobRequest(
             kind: .copy,
             sources: [scratch.path("tree")],
-            destination: scratch.path("tree/inner")
+            destination: scratch.path("tree/inner"),
         ))
         #expect(outcome.systemError == EINVAL)
         #expect(!exists(scratch.path("tree/inner/tree")))
     }
 
-    @Test("A path that walks in through `..` is judged after the kernel resolves it")
-    func canonicalisesBeforeDeciding() {
+    @Test
+    func `A path that walks in through .. is judged after the kernel resolves it`() {
         scratch.directory("usr/lib")
         let sideways = scratch.path("usr/lib/../../usr")
         #expect(throws: FilaFailure.self) {
@@ -180,8 +180,8 @@ struct GuardEnforcementTests {
         }
     }
 
-    @Test("Overwriting a protected node is destroying it")
-    func guardsTheOverwrittenDestination() {
+    @Test
+    func `Overwriting a protected node is destroying it`() {
         scratch.directory("usr")
         scratch.directory("source")
         scratch.file("source/usr")
@@ -189,13 +189,13 @@ struct GuardEnforcementTests {
             kind: .copy,
             sources: [scratch.path("source/usr")],
             destination: scratch.root,
-            overwrite: true
+            overwrite: true,
         ))
         #expect(outcome.code == .protectedPath)
     }
 
-    @Test("Copying out of a protected node is not destruction and is allowed")
-    func copyingFromProtectedIsAllowed() {
+    @Test
+    func `Copying out of a protected node is not destruction and is allowed`() {
         scratch.directory("usr")
         scratch.file("usr/payload", contents: "bytes")
         scratch.directory("out")

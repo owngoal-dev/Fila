@@ -12,7 +12,9 @@ import UniformTypeIdentifiers
 /// implementation and no module builds these for itself.
 @MainActor
 final class AppBackendShell: BackendShell {
-    private var session: FileSession { .shared }
+    private var session: FileSession {
+        .shared
+    }
 
     func browser(for location: BackendLocation) -> UIViewController? {
         guard let backend = BackendComposition.backends.first(where: { $0.id == location.backend }) as? LocalFileBackend,
@@ -44,7 +46,7 @@ final class AppBackendShell: BackendShell {
             JobRequest(kind: .copy, sources: [source.path], destination: directory),
             kind: .copy,
             subtitle: subtitle,
-            feedback: .silent
+            feedback: .silent,
         )
         guard result.code == .success else { throw result }
     }
@@ -54,7 +56,7 @@ final class AppBackendShell: BackendShell {
             JobRequest(kind: .delete, sources: [path]),
             kind: .delete,
             subtitle: subtitle,
-            feedback: .silent
+            feedback: .silent,
         )
         guard result.code == .success || result.systemError == ENOENT else { throw result }
     }
@@ -72,10 +74,10 @@ final class AppBackendShell: BackendShell {
         title: String,
         message: String,
         confirmTitle: String,
-        confirmed: @escaping () -> Void
+        confirmed: @escaping () -> Void,
     ) {
         PermanentDeleteConfirmation.present(
-            from: presenter, title: title, message: message, confirmTitle: confirmTitle, confirm: confirmed
+            from: presenter, title: title, message: message, confirmTitle: confirmTitle, confirm: confirmed,
         )
     }
 
@@ -100,7 +102,7 @@ final class AppBackendShell: BackendShell {
         message: String,
         cancellable: Bool,
         from presenter: UIViewController,
-        operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T
+        operation: @escaping @MainActor (_ update: @escaping @MainActor (String) -> Void) async throws -> T,
     ) async throws -> T {
         try await ProgressCard.run(title: title, message: message, cancellable: cancellable, from: presenter, operation: operation)
     }
@@ -112,13 +114,12 @@ final class AppBackendShell: BackendShell {
     func preview(_ file: URL, title: String, from presenter: UIViewController, released: @escaping () -> Void) {
         Task { @MainActor in
             await presenter.openFile(at: file.path, session: session)
-            let shown: UIViewController?
-            if let top = presenter.navigationController?.topViewController, top !== presenter {
-                shown = top
+            let shown: UIViewController? = if let top = presenter.navigationController?.topViewController, top !== presenter {
+                top
             } else if let presented = presenter.presentedViewController {
-                shown = presented
+                presented
             } else {
-                shown = nil
+                nil
             }
             guard let shown else {
                 released()
@@ -130,7 +131,7 @@ final class AppBackendShell: BackendShell {
             // share's folders does what it does on the share's screen.
             if let content = shown as? TabContentViewController, let source = presenter as? TabContentViewController {
                 content.decorationSource = DetailDecoration(
-                    parent: source, title: title, target: file.path, icon: fileIcon(named: title, isDirectory: false)
+                    parent: source, title: title, target: file.path, icon: fileIcon(named: title, isDirectory: false),
                 )
             }
         }
@@ -203,7 +204,7 @@ final class AppBackendShell: BackendShell {
         _ items: [UIDragItem],
         conformingTo types: [UTType],
         from presenter: UIViewController,
-        _ receive: @escaping @MainActor ([String]) async -> Void
+        _ receive: @escaping @MainActor ([String]) async -> Void,
     ) {
         FileDrop.receiveFiles(items, conformingTo: types, from: presenter, receive)
     }

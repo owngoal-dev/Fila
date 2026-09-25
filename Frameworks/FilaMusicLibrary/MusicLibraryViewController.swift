@@ -24,7 +24,9 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         cell.show(track)
     }
 
-    private var bundle: Bundle { MusicLibraryBackend.bundle }
+    private var bundle: Bundle {
+        MusicLibraryBackend.bundle
+    }
 
     init(backend: MusicLibraryBackend, local: LocalFileBackend?) {
         self.backend = backend
@@ -45,7 +47,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         PathBarView.Crumb(
             title: title ?? String(localized: "Music", bundle: bundle),
             target: backend.id.rawValue,
-            icon: BackendScreens.shell?.rootArtwork(for: backend.root)
+            icon: BackendScreens.shell?.rootArtwork(for: backend.root),
         )
     }
 
@@ -62,7 +64,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
                 UIAction(
                     title: String(localized: "Import Music", bundle: bundle),
                     image: UIImage(systemName: "square.and.arrow.down"),
-                    attributes: isChangingLibrary || backend.files == nil ? .disabled : []
+                    attributes: isChangingLibrary || backend.files == nil ? .disabled : [],
                 ) { [weak self] _ in
                     self?.chooseMusic()
                 },
@@ -70,7 +72,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
             UIMenu(options: .displayInline, children: local == nil ? [] : [
                 UIAction(
                     title: String(localized: "Show Library Folder", bundle: bundle),
-                    image: UIImage(systemName: "folder")
+                    image: UIImage(systemName: "folder"),
                 ) { [weak self] _ in
                     self?.showLibraryFolder()
                 },
@@ -118,7 +120,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
-                    continuation.yield(try await MusicLibraryEditor.shared.tracks())
+                    try await continuation.yield(MusicLibraryEditor.shared.tracks())
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
@@ -132,7 +134,9 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         let hints = backend.changes()
         return AsyncThrowingStream { continuation in
             let task = Task {
-                for await _ in hints { continuation.yield(()) }
+                for await _ in hints {
+                    continuation.yield(())
+                }
                 continuation.finish()
             }
             continuation.onTermination = { _ in task.cancel() }
@@ -153,7 +157,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
             return .message(
                 symbol: "music.note",
                 title: String(localized: "Music Unavailable", bundle: bundle),
-                detail: loadFailure.localizedDescription
+                detail: loadFailure.localizedDescription,
             )
         }
         if isLoading, items.isEmpty {
@@ -165,7 +169,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
             title: filter.isEmpty ? String(localized: "No Music", bundle: bundle) : String(localized: "No Matches", bundle: bundle),
             detail: filter.isEmpty
                 ? String(localized: "Import an audio file to add it to this device’s music library.", bundle: bundle)
-                : nil
+                : nil,
         )
     }
 
@@ -173,7 +177,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         guard hadRows else { return }
         BackendScreens.shell?.alert(
             title: String(localized: "Unable to Refresh", bundle: bundle),
-            message: error.localizedDescription
+            message: error.localizedDescription,
         )
     }
 
@@ -203,7 +207,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
         guard !isChangingLibrary, let track = dataSource.itemIdentifier(for: indexPath) else { return nil }
         let action = UIContextualAction(
             style: .destructive,
-            title: String(localized: "Delete", bundle: bundle)
+            title: String(localized: "Delete", bundle: bundle),
         ) { [weak self] _, _, completion in
             completion(false)
             guard let self else { return }
@@ -256,7 +260,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
                 message: String(localized: "Keep Fila open until the import finishes.", bundle: bundle),
                 // Half an import is a file in the library with no row.
                 cancellable: false,
-                from: self
+                from: self,
             ) { _ in
                 for path in paths {
                     _ = try await MusicLibraryEditor.shared.importTrack(from: path, files: files)
@@ -279,7 +283,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
             from: presenter,
             title: String(localized: "Delete from Library", bundle: bundle),
             message: String(localized: "“\(track.title)” will be deleted from this device’s music library.", bundle: bundle),
-            confirmTitle: String(localized: "Delete", bundle: bundle)
+            confirmTitle: String(localized: "Delete", bundle: bundle),
         ) { [weak self, weak presenter] in
             guard let self, let presenter else { return }
             deleteMusic(track, from: presenter)
@@ -296,7 +300,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
                     title: String(localized: "Deleting…", bundle: bundle),
                     message: String(localized: "Keep Fila open until the library update finishes.", bundle: bundle),
                     cancellable: false,
-                    from: presenter
+                    from: presenter,
                 ) { _ in
                     _ = try await MusicLibraryEditor.shared.deleteTrack(id: track.id)
                 }
@@ -333,7 +337,7 @@ final class MusicLibraryViewController: BackendListViewController<MusicLibraryTr
 /// imports a picked file.
 extension MusicLibraryViewController: UICollectionViewDropDelegate {
     func collectionView(
-        _: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath _: IndexPath?
+        _: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath _: IndexPath?,
     ) -> UICollectionViewDropProposal {
         guard !isChangingLibrary, backend.files != nil else { return UICollectionViewDropProposal(operation: .forbidden) }
         return UICollectionViewDropProposal(operation: FileReference.proposal(for: session, into: nil, types: Self.importedTypes))

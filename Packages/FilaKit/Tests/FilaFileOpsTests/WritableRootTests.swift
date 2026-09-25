@@ -24,8 +24,8 @@ struct WritableRootTests {
         FileJob(request: request, operations: operations).run { _ in }
     }
 
-    @Test("Outside files remain readable but all mutating open flags are refused")
-    func readOnlyOutside() throws {
+    @Test
+    func `Outside files remain readable but all mutating open flags are refused`() throws {
         let file = scratch.file("outside/keep", contents: "unchanged")
         let descriptor = try operations.open(file, flags: O_RDONLY, mode: 0)
         close(descriptor)
@@ -45,8 +45,8 @@ struct WritableRootTests {
         #expect(!exists(scratch.path("outside/new")))
     }
 
-    @Test("Canonical parents, root aliases and component boundaries determine the write scope")
-    func canonicalBoundary() throws {
+    @Test
+    func `Canonical parents, root aliases and component boundaries determine the write scope`() throws {
         let alias = scratch.link("alias", to: root)
         let aliased = FileOperations(bootstrapRoot: alias, writableRoot: alias)
         try aliased.create(.emptyFile, at: alias + "/allowed")
@@ -62,8 +62,8 @@ struct WritableRootTests {
         #expect(!exists(scratch.path("bootstrap-extra/new")))
     }
 
-    @Test("Final links can be renamed or removed but never opened for writing")
-    func finalSymlink() throws {
+    @Test
+    func `Final links can be renamed or removed but never opened for writing`() throws {
         let outside = scratch.file("outside/keep", contents: "unchanged")
         let link = scratch.link("bootstrap/link", to: outside)
         #expect(throws: FilaFailure.self) {
@@ -82,8 +82,8 @@ struct WritableRootTests {
         #expect(!exists(scratch.path("outside/missing")))
     }
 
-    @Test("Creation, metadata, rename and replacement cannot write outside")
-    func everyMutationUsesBoundary() throws {
+    @Test
+    func `Creation, metadata, rename and replacement cannot write outside`() throws {
         let outside = scratch.file("outside/keep", contents: "unchanged")
         let inside = scratch.file("bootstrap/source", contents: "inside")
         for template in [NodeTemplate.directory, .emptyFile, .symbolicLink(target: inside), .hardLink(existing: inside)] {
@@ -107,8 +107,8 @@ struct WritableRootTests {
         #expect(!exists(scratch.path("outside/new")))
     }
 
-    @Test("Jobs permit read-only imports and preflight every destructive source")
-    func jobBoundary() {
+    @Test
+    func `Jobs permit read-only imports and preflight every destructive source`() {
         let outside = scratch.file("outside/import", contents: "outside")
         let inside = scratch.file("bootstrap/keep", contents: "inside")
         #expect(run(JobRequest(kind: .copy, sources: [outside], destination: root)).code == .success)
@@ -121,8 +121,8 @@ struct WritableRootTests {
         #expect(!exists(scratch.path("outside/keep")))
     }
 
-    @Test("Bootstrap contents are editable but its node survives every override")
-    func rootSurvives() {
+    @Test
+    func `Bootstrap contents are editable but its node survives every override`() {
         scratch.directory("bootstrap/usr/lib")
         #expect(run(JobRequest(kind: .delete, sources: [root + "/usr"])).code == .success)
         #expect(run(JobRequest(kind: .delete, sources: [root], overrideGuard: true)).code == .protectedPath)
@@ -130,8 +130,8 @@ struct WritableRootTests {
         #expect(exists(root))
     }
 
-    @Test("Outside hard links cannot be imported or changed through existing inside names")
-    func sharedInodeIsReadOnly() throws {
+    @Test
+    func `Outside hard links cannot be imported or changed through existing inside names`() throws {
         let outside = scratch.file("outside/shared", contents: "unchanged")
         #expect(throws: FilaFailure.self) { try operations.create(.hardLink(existing: outside), at: root + "/new-link") }
         let shared = root + "/shared"
@@ -148,8 +148,8 @@ struct WritableRootTests {
         #expect(exists(outside))
     }
 
-    @Test("Hard-linked symlink metadata cannot change through an inside name")
-    func sharedSymlinkMetadataIsReadOnly() throws {
+    @Test
+    func `Hard-linked symlink metadata cannot change through an inside name`() throws {
         let outside = scratch.link("outside/shared-link", to: "target")
         let inside = root + "/shared-link"
         try filaCheck(inside) { linkat(AT_FDCWD, outside, AT_FDCWD, inside, 0) }
@@ -167,8 +167,8 @@ struct WritableRootTests {
         #expect(metadata(of: outside)?.st_ctimespec.tv_nsec == before.st_ctimespec.tv_nsec)
     }
 
-    @Test("Atomic save and copy replace only the inside name of a shared inode")
-    func atomicPublicationKeepsOutsideInode() throws {
+    @Test
+    func `Atomic save and copy replace only the inside name of a shared inode`() throws {
         let outside = scratch.file("outside/shared", contents: "original")
         let target = root + "/shared"
         try filaCheck(target) { Darwin.link(outside, target) }
@@ -192,8 +192,8 @@ struct WritableRootTests {
         #expect(exists(sharedTemporary))
     }
 
-    @Test("Trash stays within the writable root, notes the origin, and rejects an outside directory link")
-    func trashBoundary() {
+    @Test
+    func `Trash stays within the writable root, notes the origin, and rejects an outside directory link`() {
         let source = scratch.file("bootstrap/first")
         #expect(run(JobRequest(kind: .delete, sources: [source], useTrash: true)).code == .success)
         #expect(!exists(source))
@@ -211,8 +211,8 @@ struct WritableRootTests {
         #expect(!exists(scratch.path("outside/keep")))
     }
 
-    @Test("Unconfigured local and rootful backends retain their previous write access")
-    func unconfiguredBackendIsUnchanged() throws {
+    @Test
+    func `Unconfigured local and rootful backends retain their previous write access`() throws {
         let local = FileOperations(bootstrapRoot: "")
         let file = scratch.path("outside/local")
         try local.create(.emptyFile, at: file)
@@ -224,8 +224,8 @@ struct WritableRootTests {
         #expect(!exists(root + "/refused"))
     }
 
-    @Test("Path checks reject strings that C syscalls would truncate")
-    func rejectsEmbeddedNUL() {
+    @Test
+    func `Path checks reject strings that C syscalls would truncate`() {
         let malformed = root + "/\0"
         let failure = #expect(throws: FilaFailure.self) { _ = try operations.resolveForDestruction(malformed, overrideGuard: true) }
         #expect(failure?.code == .invalidRequest)

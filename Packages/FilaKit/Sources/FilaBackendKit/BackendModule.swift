@@ -116,10 +116,10 @@ public final class BackendRegistration {
         listTitle: String,
         owns: @escaping @MainActor (BackendID) -> Bool,
         makeScreen: @escaping @MainActor (BackendID?) -> AnyObject?,
-        remove: @escaping @MainActor (BackendID) throws -> Void
+        remove: @escaping @MainActor (BackendID) throws -> Void,
     ) {
         connectionSetups.append(BackendConnectionSetup(
-            module: module, title: title, listTitle: listTitle, owns: owns, makeScreen: makeScreen, remove: remove
+            module: module, title: title, listTitle: listTitle, owns: owns, makeScreen: makeScreen, remove: remove,
         ))
     }
 }
@@ -197,9 +197,13 @@ public struct BackendModuleIdentity: Hashable, Sendable, CustomStringConvertible
         self.displayNameKey = displayNameKey
     }
 
-    public var entryClassName: String { frameworkName + "Module" }
+    public var entryClassName: String {
+        frameworkName + "Module"
+    }
 
-    public var description: String { bundleIdentifier }
+    public var description: String {
+        bundleIdentifier
+    }
 }
 
 public enum BackendModuleError: Error, Equatable, CustomStringConvertible {
@@ -218,27 +222,27 @@ public enum BackendModuleError: Error, Equatable, CustomStringConvertible {
     public var description: String {
         switch self {
         case let .manifest(reason):
-            return "manifest: \(reason)"
+            "manifest: \(reason)"
         case let .schemaMismatch(found):
-            return "manifest schema \(found), host reads \(FilaBackendKit.manifestSchemaVersion)"
+            "manifest schema \(found), host reads \(FilaBackendKit.manifestSchemaVersion)"
         case let .contractMismatch(found):
-            return "contract \(found), host is \(FilaBackendKit.contractVersion)"
+            "contract \(found), host is \(FilaBackendKit.contractVersion)"
         case let .versionMismatch(module, host):
-            return "module version \(module) differs from host \(host)"
+            "module version \(module) differs from host \(host)"
         case let .entryClassMissing(name):
-            return "entry class \(name) not found"
+            "entry class \(name) not found"
         case let .entryClassForeign(name):
-            return "entry class \(name) belongs to another bundle"
+            "entry class \(name) belongs to another bundle"
         case let .entryClassNotConforming(name):
-            return "entry class \(name) does not conform to BackendModule"
+            "entry class \(name) does not conform to BackendModule"
         case let .duplicateProvider(name):
-            return "provider \(name) already registered"
+            "provider \(name) already registered"
         case let .duplicateRoute(backend):
-            return "screen route for \(backend) already registered"
+            "screen route for \(backend) already registered"
         case let .duplicateModule(identifier):
-            return "module \(identifier) already registered"
+            "module \(identifier) already registered"
         case let .registration(reason):
-            return "registration failed: \(reason)"
+            "registration failed: \(reason)"
         }
     }
 }

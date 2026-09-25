@@ -12,8 +12,8 @@ import UniformTypeIdentifiers
 /// of them would prove nothing about the only thing that can go wrong.
 @Suite("Thumbnails")
 struct ThumbnailTests {
-    @Test("Executable artwork uses content, not filenames or 0777 permissions")
-    func executableArtwork() async throws {
+    @Test
+    func `Executable artwork uses content, not filenames or 0777 permissions`() async throws {
         try await withScratchAsync { directory in
             let file = directory.appendingPathComponent("launchd")
             let service = ThumbnailService()
@@ -28,8 +28,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("Image metadata reports dimensions without making a thumbnail")
-    func imageInformation() async throws {
+    @Test
+    func `Image metadata reports dimensions without making a thumbnail`() async throws {
         try await withScratchAsync { directory in
             let file = directory.appendingPathComponent("wide.png")
             try writePNG(width: 900, height: 300, to: file)
@@ -42,8 +42,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("Background thumbnails do not promote a named image into PDF decoding")
-    func misleadingPDFName() async throws {
+    @Test
+    func `Background thumbnails do not promote a named image into PDF decoding`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("wallpaper.png")
             try writePDF(to: url)
@@ -59,8 +59,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("Full image previews downsample an ordinary large image before display")
-    func previewPixelLimit() throws {
+    @Test
+    func `Full image previews downsample an ordinary large image before display`() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("wide-preview.png")
             try writePNG(width: 8192, height: 64, to: url)
@@ -70,8 +70,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("An image thumbnail comes back inside the pixel bound")
-    func imageThumbnail() throws {
+    @Test
+    func `An image thumbnail comes back inside the pixel bound`() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("wide.png")
             try writePNG(width: 900, height: 300, to: url)
@@ -86,8 +86,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("The provider outlives the caller's descriptor, because it dups")
-    func providerOwnsItsDescriptor() throws {
+    @Test
+    func `The provider outlives the caller's descriptor, because it dups`() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("closed.png")
             try writePNG(width: 200, height: 200, to: url)
@@ -101,8 +101,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("A PDF's first page renders, on white rather than on nothing")
-    func pdfFirstPage() throws {
+    @Test
+    func `A PDF's first page renders, on white rather than on nothing`() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("one.pdf")
             try writePDF(to: url)
@@ -115,8 +115,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("Something that is not a picture fails to nil rather than to an error")
-    func unsupportedIsSilent() throws {
+    @Test
+    func `Something that is not a picture fails to nil rather than to an error`() throws {
         try withScratch { directory in
             let url = directory.appendingPathComponent("notes.txt")
             try Data("just words".utf8).write(to: url)
@@ -126,8 +126,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("The service caches on path, time and size together")
-    func cacheKey() async throws {
+    @Test
+    func `The service caches on path, time and size together`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("cached.png")
             try writePNG(width: 120, height: 120, to: url)
@@ -141,7 +141,7 @@ struct ThumbnailTests {
                     modified: modified,
                     byteCount: size,
                     maxPixelSize: 32,
-                    open: { await opens.bump(); return try openForReading(url) }
+                    open: { await opens.bump(); return try openForReading(url) },
                 )
             }
 
@@ -155,8 +155,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("A rotated page is drawn upright, not on its side")
-    func rotatedPDF() throws {
+    @Test
+    func `A rotated page is drawn upright, not on its side`() throws {
         try withScratch { directory in
             let upright = directory.appendingPathComponent("upright.pdf")
             let sideways = directory.appendingPathComponent("sideways.pdf")
@@ -168,7 +168,7 @@ struct ThumbnailTests {
                     let image = try #require(try DescriptorImage.firstPage(
                         descriptor: descriptor,
                         byteCount: byteCount(of: url),
-                        maxPixelSize: 64
+                        maxPixelSize: 64,
                     ))
                     return (image.width, image.height)
                 }
@@ -184,8 +184,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("A daemon that has not started yet is not remembered as a failure")
-    func openFailureIsNotCached() async throws {
+    @Test
+    func `A daemon that has not started yet is not remembered as a failure`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("later.png")
             try writePNG(width: 120, height: 120, to: url)
@@ -200,7 +200,7 @@ struct ThumbnailTests {
                 path: url.path,
                 modified: 1,
                 byteCount: size,
-                open: { await attempts.bump(); throw NotUpYet() }
+                open: { await attempts.bump(); throw NotUpYet() },
             )
             #expect(refused == nil)
 
@@ -208,15 +208,15 @@ struct ThumbnailTests {
                 path: url.path,
                 modified: 1,
                 byteCount: size,
-                open: { await attempts.bump(); return try openForReading(url) }
+                open: { await attempts.bump(); return try openForReading(url) },
             )
             #expect(second != nil, "the refusal must not have been cached")
             #expect(await attempts.value == 2)
         }
     }
 
-    @Test("A file that produces nothing is not re-opened on every pass")
-    func failuresAreRemembered() async throws {
+    @Test
+    func `A file that produces nothing is not re-opened on every pass`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("notes.txt")
             try Data("just words".utf8).write(to: url)
@@ -227,7 +227,7 @@ struct ThumbnailTests {
                     path: url.path,
                     modified: 1,
                     byteCount: 10,
-                    open: { await opens.bump(); return try openForReading(url) }
+                    open: { await opens.bump(); return try openForReading(url) },
                 )
                 #expect(image == nil)
             }
@@ -237,8 +237,8 @@ struct ThumbnailTests {
 
     /// QuickLook answers an unreadable text file with a blank page, not a
     /// failure, so the service must not ask it by path. Root reads everything.
-    @Test("QuickLook is never asked for a path this process cannot read", .enabled(if: getuid() != 0))
-    func quickLookNeedsReadAccess() async throws {
+    @Test(.enabled(if: getuid() != 0))
+    func `QuickLook is never asked for a path this process cannot read`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("private.txt")
             try Data("root only".utf8).write(to: url)
@@ -246,14 +246,14 @@ struct ThumbnailTests {
             #expect(chmod(url.path, 0) == 0)
             let refused = await service.quickLookThumbnail(
                 path: url.path, modified: 1, byteCount: 9,
-                workspace: { directory }, open: { try openForReading(url) }
+                workspace: { directory }, open: { try openForReading(url) },
             )
             #expect(refused == nil)
             // The refusal is not remembered: a chmod leaves the key unchanged.
             #expect(chmod(url.path, 0o644) == 0)
             let page = await service.quickLookThumbnail(
                 path: url.path, modified: 1, byteCount: 9,
-                workspace: { throw OpenFailed(path: "readable", code: 0) }, open: { throw OpenFailed(path: "readable", code: 0) }
+                workspace: { throw OpenFailed(path: "readable", code: 0) }, open: { throw OpenFailed(path: "readable", code: 0) },
             )
             #expect(page != nil, "a readable path goes to QuickLook as it is, with nothing staged")
         }
@@ -261,8 +261,8 @@ struct ThumbnailTests {
 
     /// The daemon's descriptor stands in for the path: the copy QuickLook
     /// reads is made through it, and is gone again once the page is drawn.
-    @Test("An unreadable file is staged through its descriptor and the copy removed", .enabled(if: getuid() != 0))
-    func quickLookStagesUnreadable() async throws {
+    @Test(.enabled(if: getuid() != 0))
+    func `An unreadable file is staged through its descriptor and the copy removed`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("private.txt")
             try Data("root only\nsecond line".utf8).write(to: url)
@@ -278,7 +278,7 @@ struct ThumbnailTests {
                     try FileManager.default.createDirectory(at: workspace, withIntermediateDirectories: false)
                     return workspace
                 },
-                open: { dup(descriptor) }
+                open: { dup(descriptor) },
             )
             let image = try #require(page)
             #expect(image.width == image.height)
@@ -286,8 +286,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("A cell's thumbnail is square; a preview's is whole")
-    func squareThumbnail() async throws {
+    @Test
+    func `A cell's thumbnail is square; a preview's is whole`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("wide.png")
             try writePNG(width: 900, height: 300, to: url)
@@ -295,20 +295,20 @@ struct ThumbnailTests {
             let service = ThumbnailService()
             let square = try #require(await service.thumbnail(
                 path: url.path, modified: 1, byteCount: size, maxPixelSize: 90, square: true,
-                open: { try openForReading(url) }
+                open: { try openForReading(url) },
             ))
             #expect(square.width == square.height)
             let whole = try #require(await service.thumbnail(
                 path: url.path, modified: 1, byteCount: size, maxPixelSize: 90,
-                open: { try openForReading(url) }
+                open: { try openForReading(url) },
             ))
             #expect(whole.width == 90)
             #expect(whole.height == 30)
         }
     }
 
-    @Test("A cancelled row opens nothing")
-    func cancellationOpensNothing() async throws {
+    @Test
+    func `A cancelled row opens nothing`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("scrolled.png")
             try writePNG(width: 120, height: 120, to: url)
@@ -321,7 +321,7 @@ struct ThumbnailTests {
                     path: url.path,
                     modified: 1,
                     byteCount: size,
-                    open: { await opens.bump(); return try openForReading(url) }
+                    open: { await opens.bump(); return try openForReading(url) },
                 )
             }
             task.cancel()
@@ -330,8 +330,8 @@ struct ThumbnailTests {
         }
     }
 
-    @Test("Never more than the bound in flight at once")
-    func concurrencyIsBounded() async throws {
+    @Test
+    func `Never more than the bound in flight at once`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("crowd.png")
             try writePNG(width: 400, height: 400, to: url)
@@ -352,7 +352,7 @@ struct ThumbnailTests {
                             open: {
                                 await peak.observe(service.activeCount)
                                 return try openForReading(url)
-                            }
+                            },
                         )
                     }
                 }
@@ -394,7 +394,7 @@ private func writePNG(width: Int, height: Int, to url: URL) throws {
         bitsPerComponent: 8,
         bytesPerRow: 0,
         space: CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
     )!
     context.setFillColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 1)
     context.fill(CGRect(x: 0, y: 0, width: width, height: height))
@@ -403,7 +403,7 @@ private func writePNG(width: Int, height: Int, to url: URL) throws {
         url as CFURL,
         UTType.png.identifier as CFString,
         1,
-        nil
+        nil,
     )!
     CGImageDestinationAddImage(destination, image, nil)
     guard CGImageDestinationFinalize(destination) else { throw FixtureFailed() }

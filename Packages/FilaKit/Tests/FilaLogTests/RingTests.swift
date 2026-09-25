@@ -13,8 +13,8 @@ private let smallCapacity = FilaLogRing.headerByteCount + FilaLogRing.maximumMes
 
 @Suite("Log ring")
 struct RingTests {
-    @Test("Reads back what was written")
-    func roundTrip() {
+    @Test
+    func `Reads back what was written`() {
         var ring = FilaLogRing(capacityBytes: 64 * 1024)
         ring.append(level: .warning, source: .daemon, message: "guard refused /private/var")
         ring.append(level: .error, source: .app, message: "open failed errno 1")
@@ -33,8 +33,8 @@ struct RingTests {
         #expect(ring.droppedCount == 0)
     }
 
-    @Test("A cursor returns only what came after it")
-    func cursor() {
+    @Test
+    func `A cursor returns only what came after it`() {
         var ring = FilaLogRing(capacityBytes: 64 * 1024)
         for index in 1 ... 10 {
             ring.append(level: .info, source: .app, message: "line \(index)")
@@ -48,8 +48,8 @@ struct RingTests {
         #expect(ring.records(since: 999).isEmpty)
     }
 
-    @Test("Never exceeds its capacity, however much is logged")
-    func ceiling() {
+    @Test
+    func `Never exceeds its capacity, however much is logged`() {
         var ring = FilaLogRing(capacityBytes: smallCapacity)
         // Far more than fits: the point is that the ceiling holds regardless.
         for index in 1 ... 5000 {
@@ -65,8 +65,8 @@ struct RingTests {
         #expect(ring.droppedCount == UInt64(5000 - records.count))
     }
 
-    @Test("Evicts oldest first and keeps the newest intact across the wrap")
-    func wrapping() {
+    @Test
+    func `Evicts oldest first and keeps the newest intact across the wrap`() {
         var ring = FilaLogRing(capacityBytes: smallCapacity)
         // Odd-length messages so frames land at every offset in the storage,
         // which is what puts a header across the seam.
@@ -85,8 +85,8 @@ struct RingTests {
         }
     }
 
-    @Test("Truncates an over-long message rather than growing for it")
-    func truncation() {
+    @Test
+    func `Truncates an over-long message rather than growing for it`() {
         var ring = FilaLogRing(capacityBytes: 64 * 1024)
         ring.append(level: .info, source: .app, message: String(repeating: "p", count: 10000))
 
@@ -94,8 +94,8 @@ struct RingTests {
         #expect(message.utf8.count == FilaLogRing.maximumMessageByteCount)
     }
 
-    @Test("A cut multi-byte scalar decodes rather than throwing the line away")
-    func truncatedUTF8() {
+    @Test
+    func `A cut multi-byte scalar decodes rather than throwing the line away`() {
         // The cut lands mid-scalar for at least one of these lengths. What is
         // *stored* is always at most the maximum; what decodes back can be a
         // byte or two longer, because a split scalar becomes U+FFFD — which is
@@ -107,7 +107,7 @@ struct RingTests {
                 level: .info,
                 source: .app,
                 message: String(repeating: "a", count: FilaLogRing.maximumMessageByteCount - padding)
-                    + String(repeating: "文", count: 4)
+                    + String(repeating: "文", count: 4),
             )
             #expect(ring.usedBytes == FilaLogRing.headerByteCount + FilaLogRing.maximumMessageByteCount)
             let message = ring.records(since: 0)[0].message
@@ -116,8 +116,8 @@ struct RingTests {
         }
     }
 
-    @Test("Clearing keeps the sequence, so a poller is never handed a number twice")
-    func clearing() {
+    @Test
+    func `Clearing keeps the sequence, so a poller is never handed a number twice`() {
         var ring = FilaLogRing(capacityBytes: 64 * 1024)
         for index in 1 ... 5 {
             ring.append(level: .info, source: .app, message: "\(index)")
@@ -129,8 +129,8 @@ struct RingTests {
         #expect(ring.records(since: 0).map(\.sequence) == [6])
     }
 
-    @Test("A capacity too small for one frame is raised to fit one")
-    func minimumCapacity() {
+    @Test
+    func `A capacity too small for one frame is raised to fit one`() {
         var ring = FilaLogRing(capacityBytes: 8)
         #expect(ring.capacityBytes >= FilaLogRing.headerByteCount + FilaLogRing.maximumMessageByteCount)
         ring.append(level: .info, source: .app, message: "still recorded")
@@ -142,8 +142,8 @@ struct RingTests {
 /// what a log is — so its tests share state and have to run one at a time.
 @Suite("Log levels and writing", .serialized)
 struct FilaLogTests {
-    @Test("Order runs verbose → error, and the threshold filters from below")
-    func ordering() {
+    @Test
+    func `Order runs verbose → error, and the threshold filters from below`() {
         #expect(FilaLog.Level.verbose < FilaLog.Level.info)
         #expect(FilaLog.Level.info < FilaLog.Level.warning)
         #expect(FilaLog.Level.warning < FilaLog.Level.error)
@@ -153,8 +153,8 @@ struct FilaLogTests {
         #expect(FilaLog.Level.allCases.map(\.rawValue) == [0, 1, 2, 3])
     }
 
-    @Test("Verbose is off by default and switches at runtime")
-    func threshold() {
+    @Test
+    func `Verbose is off by default and switches at runtime`() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
 
@@ -171,8 +171,8 @@ struct FilaLogTests {
         #expect(FilaLog.isEnabled(.error))
     }
 
-    @Test("A message below the threshold is never even built")
-    func autoclosure() {
+    @Test
+    func `A message below the threshold is never even built`() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
         FilaLog.minimumLevel = .warning
@@ -189,8 +189,8 @@ struct FilaLogTests {
         #expect(counter.value == 1)
     }
 
-    @Test("Lines land in the shared ring and come back through the cursor")
-    func endToEnd() {
+    @Test
+    func `Lines land in the shared ring and come back through the cursor`() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
         FilaLog.start(.app, capacityBytes: 64 * 1024)
@@ -215,8 +215,8 @@ struct FilaLogTests {
         #expect(tail.map(\.message) == ["open /private/var errno 13"])
     }
 
-    @Test("A credential is scrubbed on the way in, so no copy is kept anywhere")
-    func redactsOnWrite() {
+    @Test
+    func `A credential is scrubbed on the way in, so no copy is kept anywhere`() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
         FilaLog.start(.daemon, capacityBytes: 64 * 1024)
@@ -238,8 +238,8 @@ struct FilaLogTests {
         #expect(messages[0].contains("dav.example.com"))
     }
 
-    @Test("Concurrent writers neither lose a line nor corrupt one")
-    func concurrency() {
+    @Test
+    func `Concurrent writers neither lose a line nor corrupt one`() {
         let original = FilaLog.minimumLevel
         defer { FilaLog.minimumLevel = original }
         // Big enough that nothing is evicted, so a lost line is visible as a

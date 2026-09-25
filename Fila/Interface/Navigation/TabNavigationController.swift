@@ -24,35 +24,35 @@ final class TabNavigationController: UINavigationController {
         content.bar = bar
     }
 
-    override func setToolbarHidden(_ hidden: Bool, animated: Bool) {
+    override func setToolbarHidden(_: Bool, animated: Bool) {
         let hasItems = topViewController?.toolbarItems?.isEmpty == false
         super.setToolbarHidden(!hasItems, animated: animated)
     }
 
     // MARK: - Transitions that wait for their destination
 
-    /// An animated transition to a screen that fetches on the way in — a
-    /// push of a new screen, or a pop back to one that has never listed —
-    /// waits for its first rows, up to `preparationBudget`, about twelve
-    /// frames, so the transition lands on content rather than on a wait
-    /// that turns into content a moment later. Past the budget the screen
-    /// goes up with its loading status and the rows animate in. A pop goes
-    /// back to a screen that has never listed more often than it sounds: a
-    /// restored tab's parents are made without being shown, and Back at a
-    /// jump's root makes the parent it goes to.
-    ///
-    /// While one transition is waiting, every push queues behind it in the
-    /// order it was asked for — a file tapped right after a folder must not
-    /// land under the folder. A pop or a stack replacement calls the queue
-    /// off, and a queued transition lands only on the stack it was asked
-    /// against: the top is still the screen that was on top. A tab switched
-    /// away from during the wait keeps its stack in place, so the transition
-    /// still lands there — without animation, since nothing is on screen to
-    /// animate.
-    ///
-    /// The interactive pop cannot wait — the finger is already dragging the
-    /// screen in — so it goes at once, its destination's listing started
-    /// beside it; `prepareBeneathTop` makes that rare.
+    // An animated transition to a screen that fetches on the way in — a
+    // push of a new screen, or a pop back to one that has never listed —
+    // waits for its first rows, up to `preparationBudget`, about twelve
+    // frames, so the transition lands on content rather than on a wait
+    // that turns into content a moment later. Past the budget the screen
+    // goes up with its loading status and the rows animate in. A pop goes
+    // back to a screen that has never listed more often than it sounds: a
+    // restored tab's parents are made without being shown, and Back at a
+    // jump's root makes the parent it goes to.
+    //
+    // While one transition is waiting, every push queues behind it in the
+    // order it was asked for — a file tapped right after a folder must not
+    // land under the folder. A pop or a stack replacement calls the queue
+    // off, and a queued transition lands only on the stack it was asked
+    // against: the top is still the screen that was on top. A tab switched
+    // away from during the wait keeps its stack in place, so the transition
+    // still lands there — without animation, since nothing is on screen to
+    // animate.
+    //
+    // The interactive pop cannot wait — the finger is already dragging the
+    // screen in — so it goes at once, its destination's listing started
+    // beside it; `prepareBeneathTop` makes that rare.
 
     /// Screens whose push is waiting on their first rows, in order. A
     /// caller deciding whether a screen is already on its way looks here as
@@ -66,7 +66,9 @@ final class TabNavigationController: UINavigationController {
 
     /// Whether a transition is waiting for its destination. The interactive
     /// pop does not begin over one.
-    var isTransitionPending: Bool { pendingTransition != nil }
+    var isTransitionPending: Bool {
+        pendingTransition != nil
+    }
 
     /// Runs `perform` once `destination` has had its chance at first rows:
     /// now, when it is ready or does not fetch and nothing is waiting ahead
@@ -79,7 +81,7 @@ final class TabNavigationController: UINavigationController {
         to destination: UIViewController,
         animated: Bool,
         onto expectedTop: UIViewController?,
-        perform: @escaping (_ animated: Bool) -> Void
+        perform: @escaping (_ animated: Bool) -> Void,
     ) {
         let content = destination as? PreparableContent
         let interactive = interactivePopGestureRecognizer.map { $0.state == .began || $0.state == .changed } ?? false
@@ -142,7 +144,9 @@ final class TabNavigationController: UINavigationController {
         }
         if let coordinator = transitionCoordinator {
             coordinator.animate(alongsideTransition: nil) { context in
-                if !context.isCancelled { prepare() }
+                if !context.isCancelled {
+                    prepare()
+                }
             }
         } else {
             prepare()
@@ -173,9 +177,9 @@ final class TabNavigationController: UINavigationController {
         super.setViewControllers(viewControllers, animated: animated)
     }
 
-    /// The pops return what they will pop: a caller that must know the
-    /// screen is gone waits for the transition, as it would for the
-    /// animation.
+    // The pops return what they will pop: a caller that must know the
+    // screen is gone waits for the transition, as it would for the
+    // animation.
 
     override func popViewController(animated: Bool) -> UIViewController? {
         guard viewControllers.count > 1, let destination = viewControllers.dropLast().last else { return nil }

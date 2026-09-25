@@ -11,8 +11,8 @@ import Testing
 struct RedactionTests {
     private let placeholder = FilaLog.redactedPlaceholder
 
-    @Test("Leaves an ordinary line exactly as it was")
-    func passesThroughOrdinaryLines() {
+    @Test
+    func `Leaves an ordinary line exactly as it was`() {
         // Also the fast path: none of these carries `@`, `=` or `:`.
         for line in [
             "stat /private/var/db/dslocal refused errno 13 Permission denied",
@@ -25,28 +25,28 @@ struct RedactionTests {
         }
     }
 
-    @Test("An Authorization header loses its whole value")
-    func authorizationHeader() {
+    @Test
+    func `An Authorization header loses its whole value`() {
         #expect(
             FilaLog.redacting("PROPFIND / Authorization: Basic Ym9iOmh1bnRlcjI=")
-                == "PROPFIND / Authorization: \(placeholder)"
+                == "PROPFIND / Authorization: \(placeholder)",
         )
         // Case is the client's choice, not ours.
         #expect(FilaLog.redacting("authorization: Bearer eyJhbGciOi").hasSuffix(placeholder))
         #expect(!FilaLog.redacting("Authorization: Basic Ym9iOmh1bnRlcjI=").contains("Ym9i"))
     }
 
-    @Test("A bare auth scheme takes the token after it")
-    func bareScheme() {
+    @Test
+    func `A bare auth scheme takes the token after it`() {
         #expect(FilaLog.redacting("sent Basic Ym9iOnB3") == "sent Basic \(placeholder)")
         #expect(FilaLog.redacting("sent Bearer eyJhbGciOi") == "sent Bearer \(placeholder)")
     }
 
-    @Test("A URL keeps its user and loses its password")
-    func urlUserInfo() {
+    @Test
+    func `A URL keeps its user and loses its password`() {
         #expect(
             FilaLog.redacting("mount https://bob:hunter2@dav.example.com/share")
-                == "mount https://bob:\(placeholder)@dav.example.com/share"
+                == "mount https://bob:\(placeholder)@dav.example.com/share",
         )
         // Without a scheme too — that is how a credential reaches an argv.
         #expect(FilaLog.redacting("bob:hunter2@host") == "bob:\(placeholder)@host")
@@ -55,8 +55,8 @@ struct RedactionTests {
         #expect(FilaLog.redacting("peer bob@host") == "peer bob@host")
     }
 
-    @Test("An assignment whose key names a secret loses its value")
-    func assignments() {
+    @Test
+    func `An assignment whose key names a secret loses its value`() {
         #expect(FilaLog.redacting("GET /dav?password=hunter2") == "GET /dav?password=\(placeholder)")
         #expect(FilaLog.redacting("db_password=hunter2") == "db_password=\(placeholder)")
         #expect(FilaLog.redacting("token:hunter2") == "token:\(placeholder)")
@@ -67,13 +67,13 @@ struct RedactionTests {
         #expect(FilaLog.redacting("mode=0644 uid=501") == "mode=0644 uid=501")
     }
 
-    @Test("A spawned command's password flag takes the argument after it")
-    func commandArguments() {
+    @Test
+    func `A spawned command's password flag takes the argument after it`() {
         // Execution is no longer forbidden in this project, and an argv is the
         // most reliable place in any program for a password to end up.
         #expect(
             FilaLog.redacting("spawn /usr/bin/mount_webdav --password hunter2 /mnt")
-                == "spawn /usr/bin/mount_webdav --password \(placeholder) /mnt"
+                == "spawn /usr/bin/mount_webdav --password \(placeholder) /mnt",
         )
         #expect(FilaLog.redacting("run tool -p hunter2") == "run tool -p \(placeholder)")
         // Runs of spaces must not let the value slip past as an empty token.
@@ -81,8 +81,8 @@ struct RedactionTests {
         #expect(!FilaLog.redacting("run tool -p   hunter2").contains("hunter2"))
     }
 
-    @Test("Truncation cannot resurrect a secret by cutting the scrubber short")
-    func withOverLongLines() {
+    @Test
+    func `Truncation cannot resurrect a secret by cutting the scrubber short`() {
         // The scrubber runs before the ring truncates, so a very long line is
         // scrubbed whole and only then cut.
         let padding = String(repeating: "a", count: FilaLogRing.maximumMessageByteCount)

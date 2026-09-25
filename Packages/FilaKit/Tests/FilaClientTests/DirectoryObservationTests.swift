@@ -10,9 +10,17 @@ struct DirectoryObservationTests {
         private let lock = NSLock()
         private var value: Double = 1
         private var calls = 0
-        func tick() { lock.lock(); value += 1; lock.unlock() }
-        func read() -> Double { lock.lock(); defer { lock.unlock() }; calls += 1; return value }
-        var reads: Int { lock.lock(); defer { lock.unlock() }; return calls }
+        func tick() {
+            lock.lock(); value += 1; lock.unlock()
+        }
+
+        func read() -> Double {
+            lock.lock(); defer { lock.unlock() }; calls += 1; return value
+        }
+
+        var reads: Int {
+            lock.lock(); defer { lock.unlock() }; return calls
+        }
 
         /// True once the poller has read this many times. A fixed sleep
         /// followed by a count asserts the scheduler's speed as well as the
@@ -21,7 +29,9 @@ struct DirectoryObservationTests {
         func reached(_ count: Int, within seconds: Double) async -> Bool {
             let deadline = Date().addingTimeInterval(seconds)
             while Date() < deadline {
-                if reads >= count { return true }
+                if reads >= count {
+                    return true
+                }
                 try? await Task.sleep(nanoseconds: 5_000_000)
             }
             return reads >= count
@@ -35,7 +45,9 @@ struct DirectoryObservationTests {
         private let lock = NSLock()
         private var value = 0
         private var task: Task<Void, Never>?
-        var count: Int { lock.lock(); defer { lock.unlock() }; return value }
+        var count: Int {
+            lock.lock(); defer { lock.unlock() }; return value
+        }
 
         init(_ stream: AsyncThrowingStream<Void, Error>) {
             task = Task { [weak self] in
@@ -58,7 +70,9 @@ struct DirectoryObservationTests {
         func hinted(after: Int, within seconds: Double) async -> Bool {
             let deadline = Date().addingTimeInterval(seconds)
             while Date() < deadline {
-                if count > after { return true }
+                if count > after {
+                    return true
+                }
                 try? await Task.sleep(nanoseconds: 5_000_000)
             }
             return count > after
@@ -74,8 +88,8 @@ struct DirectoryObservationTests {
         deinit { task?.cancel() }
     }
 
-    @Test("A subscription yields once at start, then only when hinted")
-    func initialAndHints() async throws {
+    @Test
+    func `A subscription yields once at start, then only when hinted`() async {
         let observation = DirectoryObservation(interval: 3600)
         let clock = Clock()
         let hints = Hints(observation.subscribe("/tmp/a") { clock.read() })
@@ -97,8 +111,8 @@ struct DirectoryObservationTests {
         #expect(hints.count <= before + 3)
     }
 
-    @Test("Cancelling removes the subscriber; the last one releases the watch")
-    func lifecycle() async throws {
+    @Test
+    func `Cancelling removes the subscriber; the last one releases the watch`() async throws {
         let observation = DirectoryObservation(interval: 3600)
         let clock = Clock()
         let one = Task {
@@ -120,8 +134,8 @@ struct DirectoryObservationTests {
         #expect(observation.watchedDirectories.isEmpty)
     }
 
-    @Test("Polling baselines at once, hints only when the modification time moves, and not while paused")
-    func polling() async throws {
+    @Test
+    func `Polling baselines at once, hints only when the modification time moves, and not while paused`() async throws {
         let observation = DirectoryObservation(interval: 0.02)
         let clock = Clock()
         let hints = Hints(observation.subscribe("/tmp/a") { clock.read() })
@@ -158,13 +172,13 @@ struct DirectoryObservationTests {
         #expect(await clock.reached(reads + 1, within: 10))
     }
 
-    @Test("The adapter's changes(in:) resolves the directory and reports a real modification")
-    func adapterPolling() async throws {
+    @Test
+    func `The adapter's changes(in:) resolves the directory and reports a real modification`() async throws {
         let scratch = LocalScratch()
         scratch.directory("watched")
         let observation = DirectoryObservation(interval: 0.02)
         let adapter = LocalFileServiceAdapter(access: LocalFileService(), rootPath: scratch.root, observation: observation)
-        let hints = Hints(try await adapter.changes(in: try ServicePath("watched")))
+        let hints = try await Hints(adapter.changes(in: ServicePath("watched")))
         #expect(await hints.hinted(after: 0, within: 10))
         // The baseline is taken at subscription, so a change during the first
         // interval is seen. mtime resolution is a second on some filesystems:

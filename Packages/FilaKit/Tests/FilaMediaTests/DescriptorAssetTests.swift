@@ -9,8 +9,8 @@ import Testing
 /// failing, and nothing else in this project would catch that.
 @Suite("Descriptor-backed assets")
 struct DescriptorAssetTests {
-    @Test("Video properties include duration, display dimensions and frame rate")
-    func videoInformation() async throws {
+    @Test
+    func `Video properties include duration, display dimensions and frame rate`() async throws {
         try await withScratchAsync { directory in
             let file = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: file, frames: 30)
@@ -24,8 +24,8 @@ struct DescriptorAssetTests {
         }
     }
 
-    @Test("Audio properties report duration without inventing video dimensions")
-    func audioInformation() async throws {
+    @Test
+    func `Audio properties report duration without inventing video dimensions`() async throws {
         try await withScratchAsync { directory in
             let file = directory.appendingPathComponent("tone.wav")
             var data = Data()
@@ -50,8 +50,8 @@ struct DescriptorAssetTests {
         }
     }
 
-    @Test("A movie plays through a descriptor, with nothing copied anywhere")
-    func assetOverDescriptor() async throws {
+    @Test
+    func `A movie plays through a descriptor, with nothing copied anywhere`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: url, frames: 30)
@@ -64,8 +64,8 @@ struct DescriptorAssetTests {
         }
     }
 
-    @Test("Every sample survives the round trip, not just the header")
-    func everySampleArrives() async throws {
+    @Test
+    func `Every sample survives the round trip, not just the header`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: url, frames: 30)
@@ -91,8 +91,8 @@ struct DescriptorAssetTests {
         }
     }
 
-    @Test("A frame comes back for video and never for audio")
-    func frameGeneration() async throws {
+    @Test
+    func `A frame comes back for video and never for audio`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: url, frames: 30)
@@ -116,8 +116,8 @@ struct DescriptorAssetTests {
     /// Pinned rather than worked around: the fix belongs in `FileFormat`, and
     /// when someone adds `ftyp` there this test is what tells them the second
     /// half now passes.
-    @Test("A video thumbnail needs the extension, because detection has no media signature")
-    func videoThumbnailRoutesByName() async throws {
+    @Test
+    func `A video thumbnail needs the extension, because detection has no media signature`() async throws {
         try await withScratchAsync { directory in
             let url = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: url, frames: 20)
@@ -129,7 +129,7 @@ struct DescriptorAssetTests {
                 modified: 1,
                 byteCount: size.int64Value,
                 maxPixelSize: 48,
-                open: { try openForReading(url) }
+                open: { try openForReading(url) },
             )
             #expect(named != nil)
 
@@ -140,14 +140,14 @@ struct DescriptorAssetTests {
                 modified: 1,
                 byteCount: size.int64Value,
                 maxPixelSize: 48,
-                open: { try openForReading(anonymous) }
+                open: { try openForReading(anonymous) },
             )
             #expect(unnamed == nil, "no media signature in FileFormat, so this falls back to the icon")
         }
     }
 
-    @Test("An extensionless movie is still recognised, by its container")
-    func typeFromSignature() async throws {
+    @Test
+    func `An extensionless movie is still recognised, by its container`() async throws {
         try await withScratchAsync { directory in
             let named = directory.appendingPathComponent("clip.mov")
             try await writeMovie(to: named, frames: 10)
@@ -177,7 +177,7 @@ private func writeMovie(to url: URL, frames: Int) async throws {
     input.expectsMediaDataInRealTime = false
     let adaptor = AVAssetWriterInputPixelBufferAdaptor(
         assetWriterInput: input,
-        sourcePixelBufferAttributes: [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+        sourcePixelBufferAttributes: [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA],
     )
     writer.add(input)
     writer.startWriting()

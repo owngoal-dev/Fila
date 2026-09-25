@@ -42,9 +42,13 @@ public enum SMBError: Error, Sendable, Equatable {
     case descriptorRead(code: Int32)
 
     /// The `SMBError` for what the vendor threw while touching `path`.
-    static func map(_ error: Error, path: String?, operation: String) -> SMBError {
-        if let known = error as? SMBError { return known }
-        if error is CancellationError { return .disconnected }
+    static func map(_ error: Error, path: String?, operation _: String) -> SMBError {
+        if let known = error as? SMBError {
+            return known
+        }
+        if error is CancellationError {
+            return .disconnected
+        }
         if let response = error as? ErrorResponse {
             let status = NTStatus(response.header.status)
             switch status {
@@ -85,8 +89,8 @@ public enum SMBError: Error, Sendable, Equatable {
     /// failure does not.
     var retiresSession: Bool {
         switch self {
-        case .connectionFailed, .timedOut, .disconnected: return true
-        default: return false
+        case .connectionFailed, .timedOut, .disconnected: true
+        default: false
         }
     }
 }

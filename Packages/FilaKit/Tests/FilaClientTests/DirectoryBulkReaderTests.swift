@@ -21,7 +21,7 @@ struct DirectoryBulkReaderTests {
 
     private func readAll(_ path: String, resolveLink: (@Sendable (String) async -> FileKind?)? = nil) async throws -> [[FileNode]] {
         var batches: [[FileNode]] = []
-        for try await batch in DirectoryBulkReader.entries(in: try open(path), path: path, resolveLink: resolveLink) {
+        for try await batch in try DirectoryBulkReader.entries(in: open(path), path: path, resolveLink: resolveLink) {
             batches.append(batch)
         }
         return batches
@@ -53,8 +53,8 @@ struct DirectoryBulkReaderTests {
         Double(time.tv_sec) + Double(time.tv_nsec) / 1_000_000_000
     }
 
-    @Test("Every entry reads as lstat describes it, whatever its kind")
-    func entriesMatchStat() async throws {
+    @Test
+    func `Every entry reads as lstat describes it, whatever its kind`() async throws {
         let root = scratch.directory("mixed")
         let file = scratch.file("mixed/notes.txt", contents: String(repeating: "x", count: 1234))
         scratch.directory("mixed/folder")
@@ -67,7 +67,7 @@ struct DirectoryBulkReaderTests {
         chflags(flagged, UInt32(UF_HIDDEN))
         chmod(file, 0o640)
 
-        let nodes = try await readAll(root).flatMap { $0 }
+        let nodes = try await readAll(root).flatMap(\.self)
         let byName = Dictionary(uniqueKeysWithValues: nodes.map { ($0.name, $0) })
         #expect(Set(byName.keys) == ["notes.txt", "folder", ".dotfile", "to-notes", "to-folder", "dangling", "pipe", "flagged"])
         for node in nodes {
@@ -89,9 +89,9 @@ struct DirectoryBulkReaderTests {
     /// the field is still in the buffer, and a parser that read the returned
     /// set as presence would slide every later field: device nodes with
     /// four-gigabyte sizes and nonsense owners.
-    @Test("A volume that lacks an attribute leaves every other field where it is")
-    func unsupportedAttributeKeepsLayout() async throws {
-        let nodes = try await readAll("/dev").flatMap { $0 }
+    @Test
+    func `A volume that lacks an attribute leaves every other field where it is`() async throws {
+        let nodes = try await readAll("/dev").flatMap(\.self)
         let null = try #require(nodes.first { $0.name == "null" })
         var expected = stat()
         #expect(lstat("/dev/null", &expected) == 0)
@@ -106,8 +106,8 @@ struct DirectoryBulkReaderTests {
         #expect(null.created == 0)
     }
 
-    @Test("A name that is not UTF-8 still appears, repaired, as the daemon lists it")
-    func invalidNameIsListed() async throws {
+    @Test
+    func `A name that is not UTF-8 still appears, repaired, as the daemon lists it`() async throws {
         let root = scratch.directory("bytes")
         let raw: [UInt8] = Array(root.utf8) + [0x2F, 0x62, 0xFF, 0x61, 0x64, 0x00] // "/b\xFFad"
         let descriptor = raw.withUnsafeBufferPointer { bytes in
@@ -117,22 +117,22 @@ struct DirectoryBulkReaderTests {
         // volumes that do not, and there is nothing to test where it cannot exist.
         guard descriptor >= 0 else { return }
         close(descriptor)
-        let names = try await readAll(root).flatMap { $0 }.map(\.name)
+        let names = try await readAll(root).flatMap(\.self).map(\.name)
         #expect(names.count == 1)
         #expect(names.first?.hasPrefix("b") == true)
         #expect(names.first?.hasSuffix("ad") == true)
         #expect(names.first?.contains("\u{FFFD}") == true)
     }
 
-    @Test("A long directory streams in batches with no entry twice")
-    func streamsInBatches() async throws {
+    @Test
+    func `A long directory streams in batches with no entry twice`() async throws {
         let root = scratch.directory("many")
         for index in 0 ..< 1500 {
             scratch.file("many/entry-\(index)", contents: "")
         }
         let batches = try await readAll(root)
         #expect(batches.count > 1)
-        let names = batches.flatMap { $0 }.map(\.name)
+        let names = batches.flatMap(\.self).map(\.name)
         #expect(names.count == 1500)
         #expect(Set(names).count == 1500)
     }
@@ -142,15 +142,15 @@ struct DirectoryBulkReaderTests {
     /// batch that crosses the cap is delivered whole, so the consumer sees
     /// more than its cap and knows the listing was cut; a directory of
     /// exactly the cap is not cut.
-    @Test("The reader stops once it has yielded past the limit")
-    func stopsPastLimit() async throws {
+    @Test
+    func `The reader stops once it has yielded past the limit`() async throws {
         let root = scratch.directory("capped")
         for index in 0 ..< 1500 {
             scratch.file("capped/entry-\(index)", contents: "")
         }
         var yielded = 0
         var batches = 0
-        for try await batch in DirectoryBulkReader.entries(in: try open(root), path: root, limit: 100) {
+        for try await batch in try DirectoryBulkReader.entries(in: open(root), path: root, limit: 100) {
             yielded += batch.count
             batches += 1
         }
@@ -158,7 +158,7 @@ struct DirectoryBulkReaderTests {
         #expect(yielded > 100)
         #expect(yielded < 1500)
 
-        let exact = try await DirectoryBulkReader.entries(in: try open(root), path: root, limit: 1500)
+        let exact = try await DirectoryBulkReader.entries(in: open(root), path: root, limit: 1500)
             .reduce(into: 0) { $0 += $1.count }
         #expect(exact == 1500)
     }
@@ -166,10 +166,10 @@ struct DirectoryBulkReaderTests {
     /// `getattrlistbulk` describes the directory a mount covers, `stat` the
     /// mounted volume's root; the browser shows the latter, as the daemon
     /// did. The Data volume is mounted on every Mac this runs on.
-    @Test("A mount point reads as the mounted volume, as the daemon listed it")
-    func mountPointIsTheMountedVolume() async throws {
+    @Test
+    func `A mount point reads as the mounted volume, as the daemon listed it`() async throws {
         let parent = "/System/Volumes"
-        let nodes = try await readAll(parent).flatMap { $0 }
+        let nodes = try await readAll(parent).flatMap(\.self)
         let data = try #require(nodes.first { $0.name == "Data" })
         var mounted = stat()
         #expect(stat("\(parent)/Data", &mounted) == 0)
@@ -183,8 +183,8 @@ struct DirectoryBulkReaderTests {
 
     // Root can enter anything: the refusals below cannot happen to it.
 
-    @Test("A link into a folder this process cannot enter is resolved through the backend", .enabled(if: geteuid() != 0))
-    func refusedLinkIsResolvedByCallback() async throws {
+    @Test(.enabled(if: geteuid() != 0))
+    func `A link into a folder this process cannot enter is resolved through the backend`() async throws {
         let root = scratch.directory("links")
         scratch.directory("links/locked")
         scratch.file("links/locked/secret", contents: "s")
@@ -193,21 +193,21 @@ struct DirectoryBulkReaderTests {
         chmod(scratch.path("links/locked"), 0)
         defer { chmod(scratch.path("links/locked"), 0o755) }
 
-        let unresolved = try await readAll(root).flatMap { $0 }
+        let unresolved = try await readAll(root).flatMap(\.self)
         #expect(unresolved.first { $0.name == "into-locked" }?.link == SymbolicLink(target: "locked/secret", resolvedKind: nil))
 
         let asked = LockedBox<[String]>([])
         let resolved = try await readAll(root) { name in
             asked.mutate { $0.append(name) }
             return .regular
-        }.flatMap { $0 }
+        }.flatMap(\.self)
         #expect(resolved.first { $0.name == "into-locked" }?.link?.resolvedKind == .regular)
         // The refused link, and only that: a dangling one is not asked about.
         #expect(asked.value == ["into-locked"])
     }
 
-    @Test("Letting go of the stream closes the descriptor")
-    func abandonmentClosesDescriptor() async throws {
+    @Test
+    func `Letting go of the stream closes the descriptor`() async throws {
         let root = scratch.directory("abandoned")
         for index in 0 ..< 3000 {
             scratch.file("abandoned/entry-\(index)", contents: "")
@@ -227,8 +227,8 @@ struct DirectoryBulkReaderTests {
         #expect(directory.fileDescriptor == -1)
     }
 
-    @Test("A directory the process may not search fails before any entry, with the errno", .enabled(if: geteuid() != 0))
-    func unsearchableDirectoryFails() async throws {
+    @Test(.enabled(if: geteuid() != 0))
+    func `A directory the process may not search fails before any entry, with the errno`() async throws {
         let root = scratch.directory("sealed")
         scratch.file("sealed/inside", contents: "")
         chmod(root, 0o400)
