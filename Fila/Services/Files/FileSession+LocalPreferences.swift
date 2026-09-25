@@ -30,16 +30,7 @@ extension FileSession {
     }
 
     var favoritePaths: [String] {
-        local.favoriteBookmarks.map(local.absolutePath)
-    }
-
-    /// `/jbroot/...` is a saved display path; a click resolves it with the
-    /// daemon root from this launch, never with a prior absolute prefix.
-    func resolveFavoritePath(_ path: String) -> String? {
-        guard let bookmark = local.servicePath(forAbsolute: path),
-              let actual = local.resolveFavoriteBookmark(bookmark)
-        else { return nil }
-        return local.absolutePath(actual)
+        local.favorites.map(local.absolutePath)
     }
 
     /// Newest first; undated history after dated visits, in its stored order.
@@ -56,14 +47,21 @@ extension FileSession {
         record("favorite") { try local.setFavorite(location, included: !local.isFavorite(location)) }
     }
 
-    var showsHidden: Bool { local.showsHidden }
+    var showsHidden: Bool {
+        local.showsHidden
+    }
 
     func setShowsHidden(_ shows: Bool) {
         record("hidden files") { try local.setShowsHidden(shows) }
     }
 
-    var sortKey: FileSortKey { local.sortKey }
-    var sortAscending: Bool { local.sortAscending }
+    var sortKey: FileSortKey {
+        local.sortKey
+    }
+
+    var sortAscending: Bool {
+        local.sortAscending
+    }
 
     func setSort(key: FileSortKey, ascending: Bool) {
         record("sort") { try local.setSort(key: key, ascending: ascending) }

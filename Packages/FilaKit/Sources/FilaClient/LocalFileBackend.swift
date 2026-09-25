@@ -81,13 +81,15 @@ public class LocalFileBackend: FileBackend {
         artworkName: String,
         storage: any DefaultStorage<LocalFilePreferences>,
         environment: Environment,
-        defaultFavorites: [ServicePath]
+        defaultFavorites: [ServicePath],
     ) {
         precondition(rootPath.hasPrefix("/"), "a local root is an absolute path")
         id = LocalFileBackend.identifier
         self.access = access
         var normalized = rootPath
-        while normalized.count > 1, normalized.hasSuffix("/") { normalized.removeLast() }
+        while normalized.count > 1, normalized.hasSuffix("/") {
+            normalized.removeLast()
+        }
         self.rootPath = normalized
         self.storage = storage
         self.environment = environment
@@ -96,7 +98,7 @@ public class LocalFileBackend: FileBackend {
             location: .root(of: LocalFileBackend.identifier),
             kind: .filesystem,
             displayName: displayName,
-            artworkName: artworkName
+            artworkName: artworkName,
         )
         do {
             preferences = try storage.load() ?? LocalFilePreferences()
@@ -112,7 +114,7 @@ public class LocalFileBackend: FileBackend {
     public convenience init(
         access: any LocalFileAccess,
         storage: any DefaultStorage<LocalFilePreferences>,
-        environment: Environment = Environment()
+        environment: Environment = Environment(),
     ) {
         self.init(
             access: access,
@@ -121,7 +123,7 @@ public class LocalFileBackend: FileBackend {
             artworkName: "drive-internal",
             storage: storage,
             environment: environment,
-            defaultFavorites: LocalFileBackend.fullRootFavorites
+            defaultFavorites: LocalFileBackend.fullRootFavorites,
         )
     }
 
@@ -157,6 +159,9 @@ public class LocalFileBackend: FileBackend {
     public func handshakeLanded(_ hello: LocalHello) {
         guard self.hello?.backend != hello.backend else { return }
         self.hello = hello
+        if case let .daemon(installRoot) = hello.backend, !installRoot.isEmpty {
+            followInstallRoot(installRoot)
+        }
         publish()
     }
 
@@ -180,67 +185,94 @@ public class LocalFileBackend: FileBackend {
 
     /// Absent means the user never touched them and the defaults apply;
     /// an empty list means they removed every one, and stays empty.
-    public var favoriteBookmarks: [ServicePath] {
+    public var favorites: [ServicePath] {
         preferences.files.favorites ?? defaultFavorites
     }
 
-    /// Browser and sidebar callers use real paths. The saved bookmark remains
-    /// `/jbroot/...` and is resolved against the daemon's current root.
-    public var favorites: [ServicePath] {
-        favoriteBookmarks.compactMap(resolveFavoriteBookmark)
-    }
-
-    public func resolveFavoriteBookmark(_ bookmark: ServicePath) -> ServicePath? {
-        guard rootPath == "/", bookmark.components.first == "jbroot" else { return bookmark }
-        guard let currentRoot = currentBootstrapRoot else { return nil }
-        let suffix = try? ServicePath(components: Array(bookmark.components.dropFirst()))
-        return suffix.map(currentRoot.appending)
-    }
-
-    private var currentBootstrapRoot: ServicePath? {
-        guard case let .daemon(installRoot) = hello?.backend,
-              !installRoot.isEmpty,
-              let root = try? ServicePath(installRoot), !root.isRoot
-        else { return nil }
-        return root
-    }
-
-    private func bookmark(for path: ServicePath) -> ServicePath {
-        guard rootPath == "/", path.components.first != "jbroot",
-              let root = currentBootstrapRoot
-        else { return path }
-        let components = Self.bookmarkComponents(path)
-        let rootComponents = Self.bookmarkComponents(root)
-        guard components.starts(with: rootComponents) else { return path }
-        return (try? ServicePath(components: ["jbroot"] + Array(components.dropFirst(rootComponents.count)))) ?? path
-    }
-
-    /// Resolve the filesystem's top-level alias (`/var` -> `/private/var`)
-    /// on both sides. Keep the suffix lexical: bootstrap children may be
-    /// symlinks out of the bootstrap, and a bookmark must keep that route.
-    private static func bookmarkComponents(_ path: ServicePath) -> [String] {
-        guard let first = path.components.first,
-              let resolved = try? FilaPath.resolve("/" + first),
-              let prefix = try? ServicePath(resolved)
-        else { return path.components }
-        return prefix.components + path.components.dropFirst()
-    }
-
     public func isFavorite(_ path: ServicePath) -> Bool {
-        favoriteBookmarks.contains(path) || favoriteBookmarks.contains(bookmark(for: path))
+        favorites.contains(path)
     }
 
     public func setFavorite(_ path: ServicePath, included: Bool) throws {
-        let saved = bookmark(for: path)
-        var list = favoriteBookmarks
+        var list = favorites
         if included {
-            guard !list.contains(path), !list.contains(saved) else { return }
-            list.append(saved)
+            guard !list.contains(path) else { return }
+            list.append(path)
         } else {
-            guard list.contains(path) || list.contains(saved) else { return }
-            list.removeAll { $0 == path || $0 == saved }
+            guard list.contains(path) else { return }
+            list.removeAll { $0 == path }
         }
         try update { $0.files.favorites = list }
+    }
+
+    /// roothide and rootless both put the bootstrap in a new random directory
+    /// on every jailbreak, so a favourite inside the old one points at
+    /// nothing. When a daemon reports a root other than the one the
+    /// favourites were saved under, each favourite under the old root moves
+    /// to the same place under the new one. Favourites stay real paths; a
+    /// route through a stable link such as `/var/jb` is not under the old
+    /// root and is left alone, because it still works.
+    ///
+    /// The first root a daemon reports is recorded without moving anything:
+    /// a favourite saved before the root was recorded cannot be matched to
+    /// the jailbreak it came from. Nor does anything move while the old root
+    /// is still on disk: two bootstraps side by side are two places, and a
+    /// favourite in each is not a duplicate.
+    private func followInstallRoot(_ installRoot: String) {
+        guard rootPath == "/", loadFailure == nil,
+              preferences.favoritesInstallRoot != installRoot,
+              let newRoot = try? ServicePath(installRoot), !newRoot.isRoot
+        else { return }
+        let oldRoot = preferences.favoritesInstallRoot
+            .flatMap { Self.isGone($0) ? try? ServicePath($0) : nil }
+        do {
+            try update(publishes: false) { next in
+                next.favoritesInstallRoot = installRoot
+                guard let saved = next.files.favorites else { return }
+                var seen = Set<ServicePath>()
+                next.files.favorites = saved
+                    .map { Self.favorite($0, movedFrom: oldRoot, to: newRoot) }
+                    .filter { seen.insert($0).inserted }
+            }
+        } catch {
+            FilaLog.error("favourites not moved to the new install root: \(error)")
+        }
+    }
+
+    /// `path` under `newRoot` when it was under `oldRoot`, otherwise `path`.
+    /// A development build once saved bootstrap favourites as `jbroot/…`, a
+    /// path that exists on no layout with a relocated root; those move too.
+    ///
+    /// The daemon reports its root canonically (`/private/var/…`), while a
+    /// favourite may have been saved through the top-level alias (`/var/…`).
+    /// It is matched canonically and keeps its own spelling after the move,
+    /// because the browser compares favourites by the path it shows, and it
+    /// reaches the new root by the same route the user took to the old one.
+    static func favorite(_ path: ServicePath, movedFrom oldRoot: ServicePath?, to newRoot: ServicePath) -> ServicePath {
+        if path.components.first == "jbroot" {
+            let suffix = path.components.dropFirst()
+            return (try? ServicePath(components: Array(suffix))).map(newRoot.appending) ?? path
+        }
+        guard let oldRoot, let first = path.components.first else { return path }
+        // Only the first component is resolved: the old root is gone, so
+        // nothing below it could be.
+        let alias = (try? FilaPath.resolve("/" + first)).flatMap { try? ServicePath($0) }?.components ?? [first]
+        let canonical = alias + path.components.dropFirst()
+        guard canonical.starts(with: oldRoot.components) else { return path }
+        var moved = newRoot.components + canonical.dropFirst(oldRoot.components.count)
+        if alias != [first], moved.starts(with: alias) {
+            moved = [first] + moved.dropFirst(alias.count)
+        }
+        return (try? ServicePath(components: moved)) ?? path
+    }
+
+    /// Whether nothing is at `absolute` any more. Anything but `ENOENT` —
+    /// a directory this process may not read, say — counts as still there,
+    /// so a favourite is never moved on a guess.
+    private static func isGone(_ absolute: String) -> Bool {
+        guard !absolute.utf8.contains(0) else { return false }
+        var info = stat()
+        return lstat(absolute, &info) != 0 && errno == ENOENT
     }
 
     public var recents: [FileBackendPreferences.Visit] {
@@ -281,9 +313,17 @@ public class LocalFileBackend: FileBackend {
         try update(publishes: false) { $0.files.lastDirectory = path }
     }
 
-    public var sortKey: FileSortKey { preferences.files.sortKey }
-    public var sortAscending: Bool { preferences.files.sortAscending }
-    public var showsHidden: Bool { preferences.files.showsHidden }
+    public var sortKey: FileSortKey {
+        preferences.files.sortKey
+    }
+
+    public var sortAscending: Bool {
+        preferences.files.sortAscending
+    }
+
+    public var showsHidden: Bool {
+        preferences.files.showsHidden
+    }
 
     public func setSort(key: FileSortKey, ascending: Bool) throws {
         try update(publishes: false) {
@@ -350,7 +390,7 @@ public class LocalFileBackend: FileBackend {
             favorites: favorites.map { path in
                 SidebarRow(id: "favorite:\(path)", location: location(path), path: path, kind: .favorite)
             },
-            recents: recents.map { SidebarVisit(location: location($0.path), path: $0.path, visited: $0.visited) }
+            recents: recents.map { SidebarVisit(location: location($0.path), path: $0.path, visited: $0.visited) },
         )
     }
 
@@ -367,7 +407,7 @@ public class LocalFileBackend: FileBackend {
         guard let backend = hello?.backend else { return [] }
         let available = availablePlaces(backend: backend)
         return orderedPresets.filter(isPresetEnabled).flatMap { preset in
-            [available[preset], preset == .mobile ? bootstrapHome(backend: backend) : nil].compactMap { $0 }
+            [available[preset], preset == .mobile ? bootstrapHome(backend: backend) : nil].compactMap(\.self)
         }
     }
 
@@ -446,7 +486,9 @@ public class LocalFileBackend: FileBackend {
     /// Save first, publish only on success, and never over a record that
     /// could not be read.
     private func update(publishes: Bool = true, _ change: (inout LocalFilePreferences) -> Void) throws {
-        if let loadFailure { throw loadFailure }
+        if let loadFailure {
+            throw loadFailure
+        }
         var next = preferences
         change(&next)
         guard next != preferences else { return }
@@ -486,7 +528,7 @@ public final class SandboxedLocalFileBackend: LocalFileBackend {
         access: LocalFileService = LocalFileService(),
         documents: URL? = nil,
         storage: any DefaultStorage<LocalFilePreferences>,
-        environment: Environment = Environment()
+        environment: Environment = Environment(),
     ) {
         super.init(
             access: access,
@@ -495,7 +537,7 @@ public final class SandboxedLocalFileBackend: LocalFileBackend {
             artworkName: "folder",
             storage: storage,
             environment: environment,
-            defaultFavorites: []
+            defaultFavorites: [],
         )
     }
 

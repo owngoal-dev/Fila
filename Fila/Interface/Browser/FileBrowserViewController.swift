@@ -54,8 +54,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     /// the menu is gone so the row is not pulled out from under it.
     var rearrangesWhenMenuCloses = false
 
-    override var maximumItemCount: Int { DirectoryReader.maximumEntryCount }
-    override var traceName: String { directory }
+    override var maximumItemCount: Int {
+        DirectoryReader.maximumEntryCount
+    }
+
+    override var traceName: String {
+        directory
+    }
 
     private lazy var clipboardItem = makeClipboardItem { [weak self] mode in self?.paste(mode: mode) }
     /// The list's own footer, once one has been dequeued. Weak because the
@@ -77,24 +82,16 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         return URL(fileURLWithPath: directory).lastPathComponent
     }
 
-    private lazy var favoritesMenu = UIMenu(children: [
-        FilaMenu.favoriteItems { [weak self] path in self?.open(directory: path) },
-    ])
+    private lazy var favoritesMenu = makeCurrentCrumbMenu()
+    private lazy var placesMenu = makeCurrentCrumbPlacesMenu()
 
-    private lazy var placesMenu = UIMenu(title: String(localized: "Places"), children: [
-        UIDeferredMenuElement.uncached { [weak self] completion in
-            completion(FilaMenu.placeActions(
-                open: { [weak self] path in self?.open(directory: path) },
-                openLocation: { [weak self] location in
-                    guard let screen = SidebarLocation.screen(for: location) else { return }
-                    self?.shell?.replace(screen)
-                }
-            ))
-        },
-    ])
+    override var currentCrumbMenu: UIMenu? {
+        favoritesMenu
+    }
 
-    override var currentCrumbMenu: UIMenu? { favoritesMenu }
-    override var currentCrumbLongPressMenu: UIMenu? { placesMenu }
+    override var currentCrumbLongPressMenu: UIMenu? {
+        placesMenu
+    }
 
     /// An entry a `fila://reveal` link asked for, cleared the first time it is
     /// found. It survives across pages because the listing streams: the row it
@@ -152,7 +149,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         // registration created inside one — and only here, because the
         // provider is its one consumer.
         let footer = UICollectionView.SupplementaryRegistration<BrowserFooterView>(
-            elementKind: UICollectionView.elementKindSectionFooter
+            elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] view, _, _ in
             guard let self else { return }
             footerView = view
@@ -166,21 +163,21 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             self,
             selector: #selector(preferencesChanged(_:)),
             name: .filaPreferencesChanged,
-            object: nil
+            object: nil,
         )
 
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(refreshTaskIcon),
             name: .filaOperationsChanged,
-            object: nil
+            object: nil,
         )
 
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(sceneDidEnterBackground(_:)),
             name: UIScene.didEnterBackgroundNotification,
-            object: nil
+            object: nil,
         )
     }
 
@@ -225,7 +222,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         guard let scene = note.object as? UIScene, scene === viewIfLoaded?.window?.windowScene else { return }
         recordDirectoryUse()
     }
-
 
     override func setEditing(_ editing: Bool, animated: Bool) {
         let modeChanged = editing != isEditing
@@ -358,10 +354,10 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1),
-                heightDimension: .estimated(44)
+                heightDimension: .estimated(44),
             ),
             elementKind: UICollectionView.elementKindSectionFooter,
-            alignment: .bottom
+            alignment: .bottom,
         )
     }
 
@@ -395,16 +391,16 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 let columns = max(2, Int(environment.container.effectiveContentSize.width / 112))
                 let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
-                    heightDimension: .fractionalHeight(1)
+                    heightDimension: .fractionalHeight(1),
                 ))
                 let height = 84 + UIFont.preferredFont(forTextStyle: .footnote).lineHeight * 2
                 let group = NSCollectionLayoutGroup.horizontal(
                     layoutSize: NSCollectionLayoutSize(
                         widthDimension: .fractionalWidth(1),
-                        heightDimension: .absolute(height)
+                        heightDimension: .absolute(height),
                     ),
                     subitem: item,
-                    count: columns
+                    count: columns,
                 )
                 group.interItemSpacing = .fixed(FilaUI.Spacing.small)
                 let section = NSCollectionLayoutSection(group: group)
@@ -413,7 +409,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                     top: FilaUI.Spacing.small,
                     leading: FilaUI.Spacing.medium,
                     bottom: FilaUI.Spacing.small,
-                    trailing: FilaUI.Spacing.medium
+                    trailing: FilaUI.Spacing.medium,
                 )
                 section.boundarySupplementaryItems = [Self.footerItem()]
                 return section
@@ -445,7 +441,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 node: node,
                 path: path(of: node),
                 session: session,
-                decoration: appFolders[node.name]
+                decoration: appFolders[node.name],
             )
         }
     }
@@ -491,13 +487,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                     artwork: "trash-empty-large",
                     title: String(localized: "No Trash Yet"),
                     detail: String(localized: "Deleted items are moved here so they can be put back."),
-                    button: String(localized: "Create Trash")
+                    button: String(localized: "Create Trash"),
                 )
             }
             return .message(
                 symbol: "exclamationmark.triangle",
                 title: String(localized: "Unable to Read Folder"),
-                detail: listingFailure.map(FailureText.summary) ?? loadFailure.localizedDescription
+                detail: listingFailure.map(FailureText.summary) ?? loadFailure.localizedDescription,
             )
         }
         // No detail: the daemon may still be launching, and there is nothing
@@ -510,7 +506,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             return .message(
                 symbol: "eye.slash",
                 title: String(localized: "Only Hidden Items"),
-                detail: String(localized: "Turn on Show Hidden Files to see them.")
+                detail: String(localized: "Turn on Show Hidden Files to see them."),
             )
         }
         if isTrash {
@@ -518,7 +514,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 symbol: "trash",
                 artwork: "trash-empty-large",
                 title: String(localized: "Trash Is Empty"),
-                detail: String(localized: "Deleted items are moved here so they can be put back.")
+                detail: String(localized: "Deleted items are moved here so they can be put back."),
             )
         }
         return .message(symbol: "folder", title: String(localized: "Folder Is Empty"))
@@ -567,7 +563,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         let failure = error as? FilaFailure
         FilaLog.log(
             failure.map { FilaLog.level(for: $0.code) } ?? .error,
-            "listing \(directory) \(failure.map(FilaLog.describe) ?? String(describing: error))"
+            "listing \(directory) \(failure.map(FilaLog.describe) ?? String(describing: error))",
         )
         // With rows already listed it is a refresh that went wrong halfway,
         // which nothing on screen would show; with none the panel says it.
@@ -591,7 +587,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             FilaLog.verbose(
                 "listed \(directory): \(received) entr(ies)"
                     + (isTruncated ? " (truncated)" : "")
-                    + " in \(Int(elapsed * 1000))ms"
+                    + " in \(Int(elapsed * 1000))ms",
             )
         }
         decoratedWithApplications = SystemCapabilities.showsApplications
@@ -602,7 +598,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         volumeTask = Task { [weak self] in await self?.loadVolume() }
         let appFolders = await SystemCapabilities.applications?.decorations(
             in: directory,
-            entries: items.map { (name: $0.name, isDirectory: $0.kind == .directory) }
+            entries: items.map { (name: $0.name, isDirectory: $0.kind == .directory) },
         ) ?? [:]
         guard !Task.isCancelled else { return }
         let refreshAppFolders = !self.appFolders.isEmpty || !appFolders.isEmpty
@@ -686,7 +682,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             showsHidden: session.showsHidden,
             sortKey: session.sortKey,
             ascending: session.sortAscending,
-            excluded: removingNames.union(removedNames.keys)
+            excluded: removingNames.union(removedNames.keys),
         )
     }
 
@@ -733,7 +729,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         guard footerView != nil else { return }
         let context = UICollectionViewLayoutInvalidationContext()
         context.invalidateSupplementaryElements(
-            ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: 0)]
+            ofKind: UICollectionView.elementKindSectionFooter, at: [IndexPath(item: 0, section: 0)],
         )
         collectionView.collectionViewLayout.invalidateLayout(with: context)
     }
@@ -799,7 +795,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             // Two verbs in the trash: back where it came from, or gone for good.
             setToolbarOverride(
                 [items.selectAll, .flexibleSpace(), items.putBack, .flexibleSpace(), items.delete],
-                animated: false
+                animated: false,
             )
         } else if #available(iOS 26.0, *) {
             setToolbarOverride(
@@ -812,7 +808,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                     .flexibleSpace(),
                     items.delete,
                 ],
-                animated: animated
+                animated: animated,
             )
         } else {
             setToolbarOverride(
@@ -827,7 +823,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                     .flexibleSpace(),
                     items.delete,
                 ],
-                animated: false
+                animated: false,
             )
         }
     }
@@ -840,23 +836,23 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         move: UIBarButtonItem,
         compress: UIBarButtonItem,
         putBack: UIBarButtonItem,
-        delete: UIBarButtonItem
+        delete: UIBarButtonItem,
     ) = {
         let selectAll = UIBarButtonItem(
             image: UIImage(systemName: "checkmark.circle"),
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
                 setAllSelected(selectedCount != visible.count)
-            }
+            },
         )
         let copy = UIBarButtonItem(
             image: UIImage(systemName: "doc.on.doc"),
-            primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: false) }
+            primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: false) },
         )
         copy.accessibilityLabel = String(localized: "Copy")
         let move = UIBarButtonItem(
             image: UIImage(systemName: "scissors"),
-            primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: true) }
+            primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: true) },
         )
         move.accessibilityLabel = String(localized: "Move")
         let compress = UIBarButtonItem(
@@ -864,7 +860,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
                 FileActions(presenter: self, directory: directory).promptCompress(selectedPaths())
-            }
+            },
         )
         compress.accessibilityLabel = String(localized: "Compress")
         let putBack = UIBarButtonItem(
@@ -872,7 +868,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             primaryAction: UIAction { [weak self] _ in
                 guard let self else { return }
                 self.putBack(selectedPaths())
-            }
+            },
         )
         putBack.accessibilityLabel = String(localized: "Put Back")
         let delete = UIBarButtonItem(image: UIImage(systemName: "trash"), primaryAction: UIAction { [weak self] _ in
@@ -898,7 +894,6 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         return (selectAll, copy, move, compress, putBack, delete)
     }()
 
-
     /// The trailing bar item groups creation, display preferences, and navigation.
     /// While transfers run, the glyph is
     /// their count — the one place the bar says so without another button.
@@ -910,14 +905,14 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 let select = UIAction(
                     title: String(localized: "Select"),
                     image: UIImage(systemName: "checkmark.circle"),
-                    attributes: visible.isEmpty ? .disabled : []
+                    attributes: visible.isEmpty ? .disabled : [],
                 ) { [weak self] _ in self?.setEditing(true, animated: true) }
                 let running = session.operations.operations.filter(\.isRunning).count
                 let transfers: [UIMenuElement] = running > 0 ? [UIMenu(options: .displayInline, children: [
                     UIAction(
                         title: String(localized: "Tasks"),
                         subtitle: String(localized: "\(running) in progress"),
-                        image: UIImage(systemName: "tray.and.arrow.down.fill")
+                        image: UIImage(systemName: "tray.and.arrow.down.fill"),
                     ) { _ in TransfersViewController.presentAsSheet() },
                 ])] : []
                 let folder: UIMenuElement = isTrash ? emptyTrashAction() : newMenu()
@@ -983,25 +978,25 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 title: String(localized: "Refresh"),
                 action: #selector(commandRefresh),
                 input: "r",
-                modifierFlags: .command
+                modifierFlags: .command,
             ),
             UIKeyCommand(
                 title: String(localized: "Go to Path…"),
                 action: #selector(commandGoToPath),
                 input: "g",
-                modifierFlags: [.command, .shift]
+                modifierFlags: [.command, .shift],
             ),
             UIKeyCommand(
                 title: String(localized: "Search Here…"),
                 action: #selector(commandSearch),
                 input: "f",
-                modifierFlags: [.command, .shift]
+                modifierFlags: [.command, .shift],
             ),
             UIKeyCommand(
                 title: String(localized: "Show Hidden Files"),
                 action: #selector(commandToggleHidden),
                 input: ".",
-                modifierFlags: .command
+                modifierFlags: .command,
             ),
         ]
         // Nothing is created in or pasted into the trash, so the keys are not
@@ -1011,13 +1006,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 title: String(localized: "New Folder"),
                 action: #selector(commandNewFolder),
                 input: "n",
-                modifierFlags: [.command, .shift]
+                modifierFlags: [.command, .shift],
             ))
             commands.append(UIKeyCommand(
                 title: String(localized: "Paste"),
                 action: #selector(commandPaste),
                 input: "v",
-                modifierFlags: .command
+                modifierFlags: .command,
             ))
         }
         return commands

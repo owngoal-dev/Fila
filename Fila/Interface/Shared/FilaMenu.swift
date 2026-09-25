@@ -1,5 +1,5 @@
-import FilaBackendUI
 import FilaBackendKit
+import FilaBackendUI
 import UIKit
 
 @MainActor
@@ -12,7 +12,7 @@ enum FilaMenu {
     static func destinations(
         goToPath: @escaping () -> Void,
         open: @escaping (String) -> Void,
-        openLocation: ((BackendLocation) -> Void)?
+        openLocation: ((BackendLocation) -> Void)?,
     ) -> [UIMenuElement] {
         let path = UIAction(title: String(localized: "Go to Path…")) { _ in goToPath() }
         return groups(sidebar(open: open, openLocation: openLocation), [path])
@@ -26,21 +26,17 @@ enum FilaMenu {
     static func sidebar(
         attributes: UIMenuElement.Attributes = [],
         open: @escaping (String) -> Void,
-        openLocation: ((BackendLocation) -> Void)?
+        openLocation: ((BackendLocation) -> Void)?,
     ) -> [UIMenuElement] {
         let places = placeActions(attributes: attributes, open: open, openLocation: openLocation)
-        let servers = SidebarLocation.servers.compactMap { root -> UIAction? in
-            openLocation.map { openLocation in
-                UIAction(title: root.displayName, image: SidebarLocation.image(for: root), attributes: attributes) { _ in
-                    openLocation(root.location)
-                }
-            }
+        let servers = SidebarLocation.servers.compactMap {
+            root($0, attributes: attributes, openLocation: openLocation)
         }
         func submenu(_ title: String, _ actions: [UIAction]) -> [UIMenu] {
             actions.isEmpty ? [] : [UIMenu(
                 title: title,
                 image: compositeIcon(actions.compactMap(\.image)) ?? FilePresentation.image(for: .artwork("folder")),
-                children: actions
+                children: actions,
             )]
         }
         return submenu(String(localized: "Places"), places)
@@ -53,18 +49,28 @@ enum FilaMenu {
     static func placeActions(
         attributes: UIMenuElement.Attributes = [],
         open: @escaping (String) -> Void,
-        openLocation: ((BackendLocation) -> Void)?
+        openLocation: ((BackendLocation) -> Void)?,
     ) -> [UIAction] {
         SidebarLocation.orderedDestinations.compactMap { destination in
             switch destination {
             case let .directory(place):
                 UIAction(title: place.title, image: preview(for: place), attributes: attributes) { _ in open(place.path) }
             case let .catalog(catalog):
-                openLocation.map { openLocation in
-                    UIAction(title: catalog.displayName, image: SidebarLocation.image(for: catalog), attributes: attributes) { _ in
-                        openLocation(catalog.location)
-                    }
-                }
+                root(catalog, attributes: attributes, openLocation: openLocation)
+            }
+        }
+    }
+
+    /// A catalogue or a server: a row only where the menu can open a
+    /// location, not just a folder.
+    private static func root(
+        _ root: BackendRoot,
+        attributes: UIMenuElement.Attributes,
+        openLocation: ((BackendLocation) -> Void)?,
+    ) -> UIAction? {
+        openLocation.map { openLocation in
+            UIAction(title: root.displayName, image: SidebarLocation.image(for: root), attributes: attributes) { _ in
+                openLocation(root.location)
             }
         }
     }
@@ -106,13 +112,13 @@ enum FilaMenu {
                     x: inset + CGFloat(index % columns) * (cell + gap),
                     y: top + CGFloat(index / columns) * (cell + gap),
                     width: cell,
-                    height: cell
+                    height: cell,
                 )
                 // Aspect fit: the artwork is square, but a symbol is not.
                 let scale = min(box.width / max(picture.size.width, 1), box.height / max(picture.size.height, 1))
                 let size = CGSize(width: picture.size.width * scale, height: picture.size.height * scale)
                 picture.draw(in: CGRect(
-                    x: box.midX - size.width / 2, y: box.midY - size.height / 2, width: size.width, height: size.height
+                    x: box.midX - size.width / 2, y: box.midY - size.height / 2, width: size.width, height: size.height,
                 ))
             }
         }
@@ -123,34 +129,33 @@ enum FilaMenu {
         FilePresentation.image(kind: .directory, name: (name as NSString).lastPathComponent)
     }
 
-    /// The same checked folder rows used by Go > Favorites and the browser title.
-    /// Read the paths when the menu opens so a saved change is visible at once.
-    static func favoriteItems(open: @escaping (String) -> Void) -> UIDeferredMenuElement {
-        folders(
-            { FileSession.shared.favoritePaths },
-            resolve: { FileSession.shared.resolveFavoritePath($0) },
-            emptyTitle: String(localized: "Favorites"), open: open
-        )
+    /// The favourites as checked folder rows: Go › Favorites and the current
+    /// breadcrumb's menu. The list is read when the menu opens, so a change
+    /// made since the menu was built is already there.
+    static func favoriteItems(
+        attributes: UIMenuElement.Attributes = [],
+        open: @escaping (String) -> Void,
+    ) -> UIDeferredMenuElement {
+        folders({ FileSession.shared.favoritePaths }, attributes: attributes, open: open)
     }
 
     private static func folders(
         _ paths: @escaping @MainActor () -> [String],
-        resolve: @escaping @MainActor (String) -> String? = { $0 },
-        attributes: UIMenuElement.Attributes = [],
-        emptyTitle: String? = nil,
-        open: @escaping (String) -> Void
+        attributes: UIMenuElement.Attributes,
+        open: @escaping (String) -> Void,
     ) -> UIDeferredMenuElement {
         UIDeferredMenuElement.uncached { completion in
             Task { @MainActor in
                 let session = FileSession.shared
+                // After the handshake, which moves favourites that were inside
+                // a bootstrap the jailbreak has since replaced.
                 await session.ready()
                 let decoration = await SystemCapabilities.applications?.decorationLookup() ?? { _ in nil }
                 var actions: [UIMenuElement] = []
                 for path in paths() {
-                    guard let actual = resolve(path),
-                          let details = try? await session.perform({ try await $0.details(of: actual) }),
+                    guard let details = try? await session.perform({ try await $0.details(of: path) }),
                           details.node.isNavigable else { continue }
-                    let presentation = decoration(actual)
+                    let presentation = decoration(path)
                     var image = FilePresentation.image(for: details.node)
                     if let identifier = presentation?.applicationIdentifier,
                        let artwork = SystemCapabilities.applicationArtwork
@@ -162,13 +167,8 @@ enum FilaMenu {
                         title: name,
                         subtitle: path,
                         image: image,
-                        attributes: attributes
-                    ) { _ in
-                        if let actual = resolve(path) { open(actual) }
-                    })
-                }
-                if actions.isEmpty, let emptyTitle {
-                    actions.append(UIAction(title: emptyTitle, attributes: .disabled) { _ in })
+                        attributes: attributes,
+                    ) { _ in open(path) })
                 }
                 completion(actions)
             }
@@ -179,7 +179,7 @@ enum FilaMenu {
         let session = FileSession.shared
         let mounts = UIDeferredMenuElement.uncached { completion in
             Task { @MainActor in
-                let mounts = (try? await FileSession.shared.perform { try await $0.mountPoints() }) ?? []
+                let mounts = await (try? FileSession.shared.perform { try await $0.mountPoints() }) ?? []
                 completion(mounts.map { mount in
                     let name = mount.path == "/"
                         ? String(localized: "Root")
@@ -188,7 +188,7 @@ enum FilaMenu {
                         title: name,
                         subtitle: mount.path,
                         image: UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal),
-                        attributes: attributes
+                        attributes: attributes,
                     ) { _ in open(mount.path) }
                 })
             }
@@ -204,11 +204,7 @@ enum FilaMenu {
             menus.append(UIMenu(
                 title: String(localized: "Favorites"),
                 image: compositeIcon(favorites.compactMap(folderIcon(named:))) ?? folder,
-                children: [folders(
-                    { FileSession.shared.favoritePaths },
-                    resolve: { FileSession.shared.resolveFavoritePath($0) },
-                    attributes: attributes, open: open
-                )]
+                children: [favoriteItems(attributes: attributes, open: open)],
             ))
         }
         if let backend = session.hello?.backend, backend != .local(reach: .container) {
@@ -217,14 +213,14 @@ enum FilaMenu {
                 // "volumes" with the drive picture, four up.
                 title: String(localized: "Mount Points"),
                 image: compositeIcon(Array(repeating: drive, count: 4).compactMap(\.self)) ?? drive,
-                children: [mounts]
+                children: [mounts],
             ))
         }
         if !recents.isEmpty {
             menus.append(UIMenu(
                 title: String(localized: "Recents"),
                 image: compositeIcon(recents.compactMap(folderIcon(named:))) ?? folder,
-                children: [folders({ recents }, attributes: attributes, open: open)]
+                children: [folders({ recents }, attributes: attributes, open: open)],
             ))
         }
         return menus

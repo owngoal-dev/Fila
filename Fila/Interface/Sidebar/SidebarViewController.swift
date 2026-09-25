@@ -1,5 +1,5 @@
-import FilaBackendUI
 import FilaBackendKit
+import FilaBackendUI
 import FilaProtocol
 import SnapKit
 import Then
@@ -78,7 +78,7 @@ final class SidebarViewController: UIViewController {
             image: UIImage(systemName: "tray.and.arrow.down.fill"),
             primaryAction: UIAction { [weak self] _ in
                 self?.presentTasks()
-            }
+            },
         )
         item.accessibilityLabel = String(localized: "Tasks")
         return item
@@ -150,7 +150,7 @@ final class SidebarViewController: UIViewController {
         }
         collectionView = UICollectionView(
             frame: .zero,
-            collectionViewLayout: layout
+            collectionViewLayout: layout,
         )
         collectionView.delegate = self
         view.addSubview(collectionView)
@@ -175,13 +175,13 @@ final class SidebarViewController: UIViewController {
             self,
             selector: #selector(probeTrash),
             name: .filaJobFinished,
-            object: nil
+            object: nil,
         )
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(loadMounts),
             name: UIApplication.didBecomeActiveNotification,
-            object: nil
+            object: nil,
         )
         rebuild()
         Task { [weak self] in
@@ -304,7 +304,9 @@ final class SidebarViewController: UIViewController {
         case let .mount(path):
             guard let mount = mounts.first(where: { $0.path == path }) else { return }
             name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
-            if mount.isReadOnly { name += " · " + String(localized: "Read Only") }
+            if mount.isReadOnly {
+                name += " · " + String(localized: "Read Only")
+            }
             image = UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal)
         case let .catalog(id):
             guard let root = BackendComposition.registry.backend(id)?.root else { return }
@@ -415,7 +417,7 @@ final class SidebarViewController: UIViewController {
         _ outlines: [(Section, NSDiffableDataSourceSectionSnapshot<Item>)],
         at start: Int,
         generation: UUID,
-        animated: Bool
+        animated: Bool,
     ) {
         guard rebuildGeneration == generation else {
             isApplyingSnapshot = false
@@ -452,9 +454,7 @@ final class SidebarViewController: UIViewController {
     private func loadRecentImages(refresh: Bool = false) {
         recentImageTask?.cancel()
         guard !isApplyingSnapshot, viewIfLoaded?.window != nil else { return }
-        let favoritePaths = session.favoritePaths
-        let favorites = Set(favoritePaths)
-        let paths = (favoritePaths + session.recentPaths(limit: 8))
+        let paths = (session.favoritePaths + session.recentPaths(limit: 8))
             .filter { refresh || recentItems[$0] == nil }
         guard !paths.isEmpty else { return }
         recentImageTask = Task { [weak self, session] in
@@ -464,14 +464,13 @@ final class SidebarViewController: UIViewController {
             var didLoad = false
             for path in paths where loaded.insert(path).inserted {
                 guard !Task.isCancelled else { return }
-                guard let actual = favorites.contains(path) ? session.resolveFavoritePath(path) : path else { continue }
                 guard let details = try? await session.perform(
                     retryOnDisconnect: true,
-                    { try await $0.details(of: actual) }
+                    { try await $0.details(of: path) },
                 ) else { continue }
                 guard !Task.isCancelled else { return }
                 let node = details.node
-                let presentation = decoration(actual)
+                let presentation = decoration(path)
                 var image = FilePresentation.image(for: node)
                 if let identifier = presentation?.applicationIdentifier,
                    let artwork = SystemCapabilities.applicationArtwork
@@ -520,7 +519,7 @@ final class SidebarViewController: UIViewController {
         tasks.navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "xmark"), primaryAction: UIAction { [weak navigation] _ in
                 navigation?.dismiss(animated: true)
-            }
+            },
         )
         tasks.navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close")
         presentAsSheet(navigation)
@@ -556,9 +555,7 @@ extension SidebarViewController: UICollectionViewDelegate {
             break
         case let .place(place):
             open(place.path)
-        case let .favorite(path):
-            openFavorite(path)
-        case let .mount(path):
+        case let .favorite(path), let .mount(path):
             open(path)
         case let .recent(path):
             openRecent(path)
@@ -579,15 +576,6 @@ extension SidebarViewController: UICollectionViewDelegate {
             await FileSession.shared.ready()
             guard !Task.isCancelled else { return }
             self?.shell?.open(path)
-        }
-    }
-
-    private func openFavorite(_ path: String) {
-        openTask = Task { [weak self] in
-            let session = FileSession.shared
-            await session.ready()
-            guard !Task.isCancelled, let actual = session.resolveFavoritePath(path) else { return }
-            self?.shell?.open(actual)
         }
     }
 }

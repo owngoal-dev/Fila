@@ -11,7 +11,9 @@ import Foundation
 /// as before, and read back as paths relative to `/`. Visit times are the
 /// one addition, under `recentVisits`, beside the path array rather than in
 /// place of it: an older build reading these defaults still finds its list.
-/// Bootstrap favourites use stable `/jbroot/...` paths in the same array.
+/// `favoritesInstallRoot` is added the same way: the favourites stay real
+/// absolute paths, and the install root they were saved under sits beside
+/// them.
 ///
 /// Only the full root uses this. The sandboxed backend is a different
 /// namespace and stores its own record under its own key, so an old absolute
@@ -68,13 +70,18 @@ public final class LocalPreferencesDefaults: DefaultStorage {
         })
         let order = (defaults.array(forKey: "presetOrder") as? [Int] ?? []).compactMap(LocalPreset.init(rawValue:))
         let hidden = Set((defaults.array(forKey: "hiddenPresets") as? [Int] ?? []).compactMap(LocalPreset.init(rawValue:)))
-        return LocalFilePreferences(files: files, presetOrder: order, hiddenPresets: hidden)
+        return LocalFilePreferences(
+            files: files,
+            presetOrder: order,
+            hiddenPresets: hidden,
+            favoritesInstallRoot: defaults.string(forKey: "favoritesInstallRoot"),
+        )
     }
 
     public func save(_ value: LocalFilePreferences) throws {
         let files = value.files
         let was = known
-        func changed<T: Equatable>(_ keyPath: KeyPath<LocalFilePreferences, T>) -> Bool {
+        func changed(_ keyPath: KeyPath<LocalFilePreferences, some Equatable>) -> Bool {
             guard let was else { return true }
             return was[keyPath: keyPath] != value[keyPath: keyPath]
         }
@@ -103,18 +110,37 @@ public final class LocalPreferencesDefaults: DefaultStorage {
                 defaults.removeObject(forKey: "lastDirectory")
             }
         }
-        if changed(\.files.sortKey) { defaults.set(files.sortKey.rawValue, forKey: "sortKey") }
-        if changed(\.files.sortAscending) { defaults.set(files.sortAscending, forKey: "sortAscending") }
-        if changed(\.files.showsHidden) { defaults.set(files.showsHidden, forKey: "showsHidden") }
-        if changed(\.files.layout) { defaults.set(files.layout.rawValue, forKey: "layout") }
+        if changed(\.files.sortKey) {
+            defaults.set(files.sortKey.rawValue, forKey: "sortKey")
+        }
+        if changed(\.files.sortAscending) {
+            defaults.set(files.sortAscending, forKey: "sortAscending")
+        }
+        if changed(\.files.showsHidden) {
+            defaults.set(files.showsHidden, forKey: "showsHidden")
+        }
+        if changed(\.files.layout) {
+            defaults.set(files.layout.rawValue, forKey: "layout")
+        }
         if changed(\.files.folderLayouts) {
             defaults.set(
                 Dictionary(uniqueKeysWithValues: files.folderLayouts.map { (Self.absolute($0.key), $0.value.rawValue) }),
-                forKey: "folderLayouts"
+                forKey: "folderLayouts",
             )
         }
-        if changed(\.presetOrder) { defaults.set(value.presetOrder.map(\.rawValue), forKey: "presetOrder") }
-        if changed(\.hiddenPresets) { defaults.set(value.hiddenPresets.map(\.rawValue).sorted(), forKey: "hiddenPresets") }
+        if changed(\.presetOrder) {
+            defaults.set(value.presetOrder.map(\.rawValue), forKey: "presetOrder")
+        }
+        if changed(\.hiddenPresets) {
+            defaults.set(value.hiddenPresets.map(\.rawValue).sorted(), forKey: "hiddenPresets")
+        }
+        if changed(\.favoritesInstallRoot) {
+            if let root = value.favoritesInstallRoot {
+                defaults.set(root, forKey: "favoritesInstallRoot")
+            } else {
+                defaults.removeObject(forKey: "favoritesInstallRoot")
+            }
+        }
         known = value
     }
 

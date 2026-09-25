@@ -19,15 +19,22 @@ public struct LocalFilePreferences: Codable, Equatable, Sendable {
     /// declared order by the backend at read time.
     public var presetOrder: [LocalPreset]
     public var hiddenPresets: Set<LocalPreset>
+    /// The relocated install root the favourites were last checked against.
+    /// roothide and rootless both randomize it per jailbreak, so a favourite
+    /// saved under the old one is moved to the new one when a daemon reports
+    /// a different root. Nil until a relocated daemon has answered once.
+    public var favoritesInstallRoot: String?
 
     public init(
         files: FileBackendPreferences = FileBackendPreferences(),
         presetOrder: [LocalPreset] = [],
-        hiddenPresets: Set<LocalPreset> = []
+        hiddenPresets: Set<LocalPreset> = [],
+        favoritesInstallRoot: String? = nil,
     ) {
         self.files = files
         self.presetOrder = presetOrder
         self.hiddenPresets = hiddenPresets
+        self.favoritesInstallRoot = favoritesInstallRoot
     }
 
     /// Saved order first, then every preset the user never placed, so a

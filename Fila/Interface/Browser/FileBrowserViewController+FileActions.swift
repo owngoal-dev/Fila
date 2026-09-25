@@ -31,7 +31,7 @@ extension FileBrowserViewController {
         if node.isNavigable, !isTrash {
             file.append(UIAction(
                 title: String(localized: "Open in New Tab"),
-                image: UIImage(systemName: "plus.square.on.square")
+                image: UIImage(systemName: "plus.square.on.square"),
             ) { [weak self] _ in
                 self?.shell?.openInNewTab(path)
             })
@@ -47,7 +47,7 @@ extension FileBrowserViewController {
                 title: String(localized: "Show Original"),
                 subtitle: broken ? String(localized: "The original item no longer exists.") : nil,
                 image: UIImage(systemName: "arrowshape.turn.up.right.circle"),
-                attributes: broken ? .disabled : []
+                attributes: broken ? .disabled : [],
             ) { [weak self] _ in
                 guard let self, let original = originalPath(of: node) else { return }
                 // A directory is somewhere to be, a file is something to be
@@ -65,8 +65,8 @@ extension FileBrowserViewController {
                 for: path,
                 node: node,
                 additional: file,
-                preview: { [weak self] in self?.preview(node) }
-            )
+                preview: { [weak self] in self?.preview(node) },
+            ),
         )
     }
 
@@ -77,7 +77,7 @@ extension FileBrowserViewController {
         UIAction(
             title: String(localized: "Empty Trash"),
             image: UIImage(systemName: "trash"),
-            attributes: items.isEmpty || isLoading ? [.destructive, .disabled] : .destructive
+            attributes: items.isEmpty || isLoading ? [.destructive, .disabled] : .destructive,
         ) { [weak self] _ in
             guard let self else { return }
             // Every entry, hidden ones included: the trash is emptied, not the
@@ -111,7 +111,7 @@ extension FileBrowserViewController {
             UIAction(
                 title: layout == .grid ? String(localized: "Grid") : String(localized: "List"),
                 image: UIImage(systemName: layout == .grid ? "square.grid.2x2" : "list.bullet"),
-                state: session.layout(for: directory) == layout ? .on : .off
+                state: session.layout(for: directory) == layout ? .on : .off,
             ) { [weak self] _ in
                 guard let self else { return }
                 session.setLayout(layout, for: directory)
@@ -123,7 +123,7 @@ extension FileBrowserViewController {
         let hidden = [true, false].map { showsHidden in
             UIAction(
                 title: showsHidden ? String(localized: "Show") : String(localized: "Hide"),
-                state: session.showsHidden == showsHidden ? .on : .off
+                state: session.showsHidden == showsHidden ? .on : .off,
             ) { [weak self] _ in
                 guard let self else { return }
                 session.setShowsHidden(showsHidden)
@@ -135,34 +135,26 @@ extension FileBrowserViewController {
                 title: String(localized: "View"),
                 image: UIImage(systemName: "square.grid.2x2"),
                 options: .singleSelection,
-                children: layouts
+                children: layouts,
             ),
             UIMenu(
                 title: String(localized: "Hidden Files"),
                 image: UIImage(systemName: "eye.slash"),
                 options: .singleSelection,
-                children: hidden
+                children: hidden,
             ),
             UIMenu(
                 title: String(localized: "Sort By"),
                 image: UIImage(systemName: "arrow.up.arrow.down"),
-                children: sortMenuElements()
+                children: sortMenuElements(),
             ),
         ])
         let more: [UIMenuElement] = [
             selectAction,
-            UIAction(
-                title: session.isFavorite(directory)
-                    ? String(localized: "Remove from Favorites")
-                    : String(localized: "Add to Favorites"),
-                image: UIImage(systemName: session.isFavorite(directory) ? "star.slash" : "star")
-            ) { [weak self] _ in
-                guard let self else { return }
-                session.toggleFavorite(directory)
-            },
+            favoriteToggleAction(),
             UIAction(
                 title: String(localized: "Open in New Tab"),
-                image: UIImage(systemName: "plus.square.on.square")
+                image: UIImage(systemName: "plus.square.on.square"),
             ) { [weak self] _ in
                 guard let self else { return }
                 shell?.openInNewTab(directory)
@@ -175,11 +167,55 @@ extension FileBrowserViewController {
             UIMenu(
                 title: String(localized: "Go"),
                 image: UIImage(systemName: "arrow.right.circle"),
-                children: goMenuElements()
+                children: goMenuElements(),
             ),
             UIMenu(title: String(localized: "More"), image: UIImage(systemName: "ellipsis.circle"), children: more),
         ]
         return FilaMenu.groups([folderAction]) + [view] + FilaMenu.groups(navigation)
+    }
+
+    /// This folder into or out of the favourites, worded for its state when
+    /// the menu is built.
+    private func favoriteToggleAction() -> UIAction {
+        let favorite = session.isFavorite(directory)
+        return UIAction(
+            title: favorite
+                ? String(localized: "Remove from Favorites")
+                : String(localized: "Add to Favorites"),
+            image: UIImage(systemName: favorite ? "star.slash" : "star"),
+        ) { [weak self] _ in
+            guard let self else { return }
+            session.toggleFavorite(directory)
+        }
+    }
+
+    /// A tap on the current breadcrumb: this folder in or out of the
+    /// favourites, then the favourites to jump to. The toggle means the menu
+    /// is never empty, and it is what the star beside the crumb promises.
+    func makeCurrentCrumbMenu() -> UIMenu {
+        UIMenu(children: [
+            UIMenu(options: .displayInline, children: [
+                UIDeferredMenuElement.uncached { [weak self] completion in
+                    completion(self.map { [$0.favoriteToggleAction()] } ?? [])
+                },
+            ]),
+            UIMenu(options: .displayInline, children: [
+                FilaMenu.favoriteItems { [weak self] path in self?.open(directory: path) },
+            ]),
+        ])
+    }
+
+    /// A long press on the current breadcrumb: the rows of Go › Places,
+    /// built when the menu opens so the capabilities are current.
+    func makeCurrentCrumbPlacesMenu() -> UIMenu {
+        UIMenu(title: String(localized: "Places"), children: [
+            UIDeferredMenuElement.uncached { [weak self] completion in
+                completion(FilaMenu.placeActions(
+                    open: { [weak self] path in self?.open(directory: path) },
+                    openLocation: { [weak self] location in self?.openLocation(location) },
+                ))
+            },
+        ])
     }
 
     private func goMenuElements() -> [UIMenuElement] {
@@ -188,10 +224,14 @@ extension FileBrowserViewController {
         } open: { [weak self] path in
             self?.open(directory: path)
         } openLocation: { [weak self] location in
-            // A catalogue or a share replaces the tab's page, as its sidebar row does.
-            guard let screen = SidebarLocation.screen(for: location) else { return }
-            self?.shell?.replace(screen)
+            self?.openLocation(location)
         }
+    }
+
+    /// A catalogue or a share replaces the tab's page, as its sidebar row does.
+    private func openLocation(_ location: BackendLocation) {
+        guard let screen = SidebarLocation.screen(for: location) else { return }
+        shell?.replace(screen)
     }
 
     func sortMenuElements() -> [UIMenuElement] {
@@ -204,7 +244,7 @@ extension FileBrowserViewController {
         let keys = FileSortKey.allCases.map { key in
             UIAction(
                 title: titles[key] ?? key.rawValue,
-                state: session.sortKey == key ? .on : .off
+                state: session.sortKey == key ? .on : .off,
             ) { [weak self] _ in
                 guard let self else { return }
                 session.setSort(key: key, ascending: session.sortAscending)
@@ -214,7 +254,7 @@ extension FileBrowserViewController {
         let directions = [true, false].map { ascending in
             UIAction(
                 title: ascending ? String(localized: "Ascending") : String(localized: "Descending"),
-                state: session.sortAscending == ascending ? .on : .off
+                state: session.sortAscending == ascending ? .on : .off,
             ) { [weak self] _ in
                 guard let self else { return }
                 session.setSort(key: session.sortKey, ascending: ascending)
@@ -231,38 +271,38 @@ extension FileBrowserViewController {
         UIMenu(title: String(localized: "New"), image: UIImage(systemName: "plus"), children: FilaMenu.groups([
             UIAction(
                 title: String(localized: "Folder"),
-                image: UIImage(systemName: "folder.badge.plus")
+                image: UIImage(systemName: "folder.badge.plus"),
             ) { [weak self] _ in
                 self?.promptCreate(.directory)
             },
             UIAction(
                 title: String(localized: "Text File"),
-                image: UIImage(systemName: "doc.badge.plus")
+                image: UIImage(systemName: "doc.badge.plus"),
             ) { [weak self] _ in
                 self?.promptCreate(.emptyFile)
             },
             UIAction(
                 title: String(localized: "Symbolic Link"),
-                image: UIImage(systemName: "arrowshape.turn.up.right")
+                image: UIImage(systemName: "arrowshape.turn.up.right"),
             ) { [weak self] _ in
                 self?.promptCreateLink()
             },
         ], [
             UIAction(
                 title: String(localized: "Import Photos…"),
-                image: UIImage(systemName: "photo.on.rectangle")
+                image: UIImage(systemName: "photo.on.rectangle"),
             ) { [weak self] _ in
                 self?.importPhotos()
             },
             UIAction(
                 title: String(localized: "Import Files…"),
-                image: UIImage(systemName: "square.and.arrow.down")
+                image: UIImage(systemName: "square.and.arrow.down"),
             ) { [weak self] _ in
                 self?.importDocuments()
             },
             UIAction(
                 title: String(localized: "Download from URL…"),
-                image: UIImage(systemName: "arrow.down.circle")
+                image: UIImage(systemName: "arrow.down.circle"),
             ) { [weak self] _ in
                 self?.promptDownload()
             },
@@ -311,7 +351,7 @@ extension FileBrowserViewController {
                 ? String.LocalizationValue("Folder name")
                 : String.LocalizationValue("File name"),
             initial: initial,
-            confirm: String.LocalizationValue("Create")
+            confirm: String.LocalizationValue("Create"),
         ) { [weak self] name in
             guard let self, !name.isEmpty else { return }
             let path = path(ofName: name)
@@ -324,7 +364,7 @@ extension FileBrowserViewController {
     func promptCreateLink() {
         let picker = SaveDestinationViewController(
             picksFiles: true,
-            link: session.link
+            link: session.link,
         ) { [weak self] target in
             guard let self else { return }
             prompt(
@@ -332,7 +372,7 @@ extension FileBrowserViewController {
                 message: String.LocalizationValue("Enter a name for the link to the item you chose."),
                 placeholder: String.LocalizationValue("Link name"),
                 initial: target.lastPathComponent,
-                confirm: String.LocalizationValue("Create")
+                confirm: String.LocalizationValue("Create"),
             ) { [weak self] name in
                 guard let self, !name.isEmpty else { return }
                 let path = path(ofName: name)
@@ -353,7 +393,7 @@ extension FileBrowserViewController {
             message: String.LocalizationValue("Enter an http or https URL. The file is saved in this folder."),
             placeholder: String.LocalizationValue("URL"),
             initial: "https://",
-            confirm: String.LocalizationValue("Download")
+            confirm: String.LocalizationValue("Download"),
         ) { [weak self] text in
             guard let self,
                   let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
@@ -373,7 +413,7 @@ extension FileBrowserViewController {
             message: String.LocalizationValue("Enter a path starting with a slash."),
             placeholder: String.LocalizationValue("Absolute path"),
             initial: directory,
-            confirm: String.LocalizationValue("Go")
+            confirm: String.LocalizationValue("Go"),
         ) { [weak self] path in
             guard let self, path.hasPrefix("/") else { return }
             open(directory: path)
@@ -386,7 +426,7 @@ extension FileBrowserViewController {
         placeholder: String.LocalizationValue,
         initial: String,
         confirm: String.LocalizationValue,
-        handler: @escaping (String) -> Void
+        handler: @escaping (String) -> Void,
     ) {
         let alert = AlertInputViewController(
             title: title,
@@ -394,7 +434,7 @@ extension FileBrowserViewController {
             placeholder: placeholder,
             text: initial,
             doneButtonText: confirm,
-            onConfirm: handler
+            onConfirm: handler,
         )
         present(alert, animated: true)
     }
