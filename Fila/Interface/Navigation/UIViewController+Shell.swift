@@ -20,7 +20,7 @@ extension UIViewController {
                 x: view.bounds.midX,
                 y: view.bounds.midY,
                 width: 0,
-                height: 0
+                height: 0,
             )
         }
     }
@@ -33,24 +33,26 @@ extension UIViewController {
     /// now, which is what "a tab can be covered by a preview, an editor or a
     /// terminal" means — and it is what lets Back out of a viewer land in the
     /// folder it came from rather than in a panel that never went away.
-    func openFile(at path: String, session: FileSession) async {
+    ///
+    /// A gallery lets an image viewer page through the folder's other images.
+    func openFile(at path: String, session: FileSession, gallery: ImageGallery? = nil) async {
         do {
             let details = try await session.perform(retryOnDisconnect: true) { try await $0.details(of: path) }
             if details.node.isNavigable {
                 session.noteVisit(directory: path)
             }
-            await openFile(details, session: session)
+            await openFile(details, session: session, gallery: gallery)
         } catch let failure as FilaFailure {
             report(failure)
         } catch {}
     }
 
     /// The same dispatcher when the caller already holds the item's details.
-    func openFile(_ details: FileDetails, session: FileSession) async {
+    func openFile(_ details: FileDetails, session: FileSession, gallery: ImageGallery? = nil) async {
         let shell = shell
         let navigation = navigationController ?? shell?.content.navigation
         let source = navigation?.topViewController
-        let viewer = await ViewerRegistry.makeViewer(for: details, link: session.link)
+        let viewer = await ViewerRegistry.makeViewer(for: details, link: session.link, gallery: gallery)
             ?? PropertiesViewController(details: details, link: session.link)
         // Opening may await the backend. A later tap or tab switch must not
         // put this document on a different page's navigation stack.

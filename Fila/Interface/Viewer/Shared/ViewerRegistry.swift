@@ -20,11 +20,17 @@ enum ViewerRegistry {
     ///
     /// Prepare the selected viewer and its navigation items before the caller
     /// pushes it. Format detection must not add editor buttons mid-transition.
+    ///
+    /// A gallery is the folder's other images; only the image viewer reads it.
     @MainActor
-    static func makeViewer(for details: FileDetails, link: any LocalFileAccess) async -> UIViewController? {
+    static func makeViewer(
+        for details: FileDetails,
+        link: any LocalFileAccess,
+        gallery: ImageGallery? = nil,
+    ) async -> UIViewController? {
         let kind = details.node.kind == .symbolicLink ? details.node.link?.resolvedKind : details.node.kind
         guard kind == .regular else { return nil }
-        let viewer = ViewerContainerViewController(details: details, link: link)
+        let viewer = ViewerContainerViewController(details: details, link: link, gallery: gallery)
         await viewer.prepare()
         return viewer
     }
@@ -34,7 +40,8 @@ enum ViewerRegistry {
         for format: FileFormat,
         details: FileDetails,
         file: DescriptorFile,
-        link: any LocalFileAccess
+        link: any LocalFileAccess,
+        gallery: ImageGallery?,
     ) -> UIViewController {
         switch format {
         case .propertyList:
@@ -44,7 +51,7 @@ enum ViewerRegistry {
         case .archive:
             ArchiveBrowserViewController(details: details, file: file, link: link)
         case .image:
-            ImageViewerViewController(details: details, file: file)
+            ImageViewerViewController(details: details, file: file, gallery: gallery)
         case .audio:
             MediaPlayerViewController(details: details, file: file, isAudio: true)
         case .video:
@@ -78,13 +85,16 @@ final class ViewerContainerViewController: TabContentViewController {
     /// needed. Closing a clean background tab never needs to display its page.
     var confirmReplacement: ((_ prepareToPresent: () -> Void, _ replace: @escaping () -> Void) -> Void)?
 
-    private let details: FileDetails
+    /// The file on screen. A gallery moves it when the user swipes to another
+    /// image (`follow`), and everything the screen does to "this file" reads it.
+    private var details: FileDetails
     private let link: any LocalFileAccess
+    private var gallery: ImageGallery?
     /// Shown until the child is embedded or the open fails, which are the only
     /// two ways `load()` ends.
     private lazy var status = StatusView(content: .loading(
         String(localized: "Opening…"),
-        detail: fileName + " · " + FilePresentation.byteLabel(details.node.size)
+        detail: fileName + " · " + FilePresentation.byteLabel(details.node.size),
     ))
     private var child: UIViewController?
     private var detectedFormat: FileFormat?
@@ -98,9 +108,10 @@ final class ViewerContainerViewController: TabContentViewController {
         (details.path as NSString).lastPathComponent
     }
 
-    init(details: FileDetails, link: any LocalFileAccess) {
+    init(details: FileDetails, link: any LocalFileAccess, gallery: ImageGallery? = nil) {
         self.details = details
         self.link = link
+        self.gallery = gallery
         super.init(nibName: nil, bundle: nil)
         title = fileName
         trailingNavigationItems = [menuItem]
@@ -156,7 +167,7 @@ final class ViewerContainerViewController: TabContentViewController {
         // view is being made and clearing afterwards would wipe it.
         childMenuElements = []
         confirmReplacement = nil
-        embed(ViewerRegistry.viewer(for: format, details: details, file: file, link: link))
+        embed(ViewerRegistry.viewer(for: format, details: details, file: file, link: link, gallery: gallery))
         refreshBarItems()
         menuItem.isEnabled = true
     }
@@ -226,13 +237,32 @@ final class ViewerContainerViewController: TabContentViewController {
             children: choices.map { format in
                 UIAction(
                     title: Self.name(of: format),
-                    state: format == detectedFormat ? .on : .off
+                    state: format == detectedFormat ? .on : .off,
                 ) { [weak self] _ in self?.reopen(as: format) }
-            }
+            },
         )
         menuItem.menu = UIMenu(
-            children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs]) + [settingsMenuElement]
+            children: fileMenuElements(presenting: self, additional: childMenuElements + [openAs]) + [settingsMenuElement],
         )
+    }
+
+    /// The image viewer swiped to another image in its gallery. The title, the
+    /// breadcrumb and the file menu move with it. Until that file's details
+    /// arrive — or if they never do — the menu stays off: everything in it
+    /// acts on `details`, and that is still the image just left.
+    func follow(_ details: FileDetails?, galleryIndex: Int) {
+        guard var gallery, gallery.names.indices.contains(galleryIndex) else { return }
+        gallery.index = galleryIndex
+        self.gallery = gallery
+        if let details {
+            self.details = details
+            decorationSource = LocalPathDecoration(path: details.path, icon: FilePresentation.image(for: details.node))
+        } else {
+            decorationSource = LocalPathDecoration(path: gallery.path(at: galleryIndex), icon: nil)
+        }
+        title = child?.title ?? fileName
+        refreshBarItems()
+        menuItem.isEnabled = details != nil
     }
 
     /// Nested editors and virtual archive directories use their real file's
@@ -265,7 +295,7 @@ final class ViewerContainerViewController: TabContentViewController {
             groupsFileOperations: true,
             // The archive browser offers its own, which can also take a selection.
             offersExtraction: detectedFormat != .archive,
-            confirm: confirmBlock
+            confirm: confirmBlock,
         )
     }
 
@@ -347,7 +377,7 @@ final class ViewerFailureViewController: TabContentViewController {
         let status = StatusView(content: .message(
             symbol: "exclamationmark.triangle",
             title: String(localized: "Unable to Open This File"),
-            detail: message
+            detail: message,
         ))
         view.addSubview(status)
         status.snp.makeConstraints { make in

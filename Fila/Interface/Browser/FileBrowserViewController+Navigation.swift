@@ -88,6 +88,12 @@ extension FileBrowserViewController {
             return
         }
         recordDirectoryUse()
-        Task { await openFile(at: path(of: node), session: session) }
+        // The rows as shown, so a swipe in the image viewer follows the sort.
+        let rows = visible
+        let directory = directory
+        Task {
+            let gallery = await ImageGallery.collect(rows, in: directory, around: node.name)
+            await openFile(at: path(of: node), session: session, gallery: gallery)
+        }
     }
 }
