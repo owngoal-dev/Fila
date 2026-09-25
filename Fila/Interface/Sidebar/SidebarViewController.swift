@@ -452,7 +452,9 @@ final class SidebarViewController: UIViewController {
     private func loadRecentImages(refresh: Bool = false) {
         recentImageTask?.cancel()
         guard !isApplyingSnapshot, viewIfLoaded?.window != nil else { return }
-        let paths = (session.favoritePaths + session.recentPaths(limit: 8))
+        let favoritePaths = session.favoritePaths
+        let favorites = Set(favoritePaths)
+        let paths = (favoritePaths + session.recentPaths(limit: 8))
             .filter { refresh || recentItems[$0] == nil }
         guard !paths.isEmpty else { return }
         recentImageTask = Task { [weak self, session] in
@@ -462,13 +464,14 @@ final class SidebarViewController: UIViewController {
             var didLoad = false
             for path in paths where loaded.insert(path).inserted {
                 guard !Task.isCancelled else { return }
+                guard let actual = favorites.contains(path) ? session.resolveFavoritePath(path) : path else { continue }
                 guard let details = try? await session.perform(
                     retryOnDisconnect: true,
-                    { try await $0.details(of: path) }
+                    { try await $0.details(of: actual) }
                 ) else { continue }
                 guard !Task.isCancelled else { return }
                 let node = details.node
-                let presentation = decoration(path)
+                let presentation = decoration(actual)
                 var image = FilePresentation.image(for: node)
                 if let identifier = presentation?.applicationIdentifier,
                    let artwork = SystemCapabilities.applicationArtwork
@@ -553,7 +556,9 @@ extension SidebarViewController: UICollectionViewDelegate {
             break
         case let .place(place):
             open(place.path)
-        case let .favorite(path), let .mount(path):
+        case let .favorite(path):
+            openFavorite(path)
+        case let .mount(path):
             open(path)
         case let .recent(path):
             openRecent(path)
@@ -574,6 +579,15 @@ extension SidebarViewController: UICollectionViewDelegate {
             await FileSession.shared.ready()
             guard !Task.isCancelled else { return }
             self?.shell?.open(path)
+        }
+    }
+
+    private func openFavorite(_ path: String) {
+        openTask = Task { [weak self] in
+            let session = FileSession.shared
+            await session.ready()
+            guard !Task.isCancelled, let actual = session.resolveFavoritePath(path) else { return }
+            self?.shell?.open(actual)
         }
     }
 }

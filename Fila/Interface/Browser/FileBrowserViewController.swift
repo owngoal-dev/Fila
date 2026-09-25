@@ -77,6 +77,25 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         return URL(fileURLWithPath: directory).lastPathComponent
     }
 
+    private lazy var favoritesMenu = UIMenu(children: [
+        FilaMenu.favoriteItems { [weak self] path in self?.open(directory: path) },
+    ])
+
+    private lazy var placesMenu = UIMenu(title: String(localized: "Places"), children: [
+        UIDeferredMenuElement.uncached { [weak self] completion in
+            completion(FilaMenu.placeActions(
+                open: { [weak self] path in self?.open(directory: path) },
+                openLocation: { [weak self] location in
+                    guard let screen = SidebarLocation.screen(for: location) else { return }
+                    self?.shell?.replace(screen)
+                }
+            ))
+        },
+    ])
+
+    override var currentCrumbMenu: UIMenu? { favoritesMenu }
+    override var currentCrumbLongPressMenu: UIMenu? { placesMenu }
+
     /// An entry a `fila://reveal` link asked for, cleared the first time it is
     /// found. It survives across pages because the listing streams: the row it
     /// names may be on the fourth page, or on none of them.
