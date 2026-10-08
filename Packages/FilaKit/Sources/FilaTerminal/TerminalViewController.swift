@@ -177,15 +177,17 @@
             view.addSubview(terminalView)
             view.addSubview(sessionNotice)
             view.addSubview(statusLabel)
+            // The grid inside the safe area on every side: on iPad the content
+            // column runs under the floating sidebar, and columns drawn there
+            // cannot be read. The view's own background fills the margin.
             terminalView.snp.makeConstraints { make in
-                make.top.equalTo(view.safeAreaLayoutGuide)
-                make.leading.trailing.equalToSuperview()
+                make.top.leading.trailing.equalTo(view.safeAreaLayoutGuide)
                 // The keyboard guide, not the safe area: an on-screen keyboard that
                 // covered the last rows would hide the line being typed.
                 make.bottom.equalTo(sessionNotice.snp.top)
             }
             sessionNotice.snp.makeConstraints { make in
-                make.leading.trailing.equalToSuperview()
+                make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
                 make.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
             }
             statusLabel.snp.makeConstraints { make in

@@ -166,13 +166,16 @@ final class TextViewerViewController: TabContentViewController {
             view.keyboardLayoutGuide.usesBottomSafeArea = false
         }
 
-        // Up to the screen edge, not the safe area: the text view is a scroll
+        // Up to the top edge, not the safe area: the text view is a scroll
         // view and insets its own content under the bar, which leaves the
         // gutter running the full height behind it instead of stopping short
-        // in a white band.
+        // in a white band. Sideways it stays in the safe area: on iPad the
+        // floating sidebar covers the column's leading edge, and the gutter
+        // and the first characters would run under it. The view takes the
+        // theme's background so that margin is the editor's colour.
         stack.snp.makeConstraints { make in
             make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview()
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
             make.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
         }
 
@@ -307,6 +310,7 @@ final class TextViewerViewController: TabContentViewController {
             textView.setState(TextViewState(text: text, theme: theme))
         }
         textView.backgroundColor = theme.backgroundColor
+        view.backgroundColor = theme.backgroundColor
     }
 
     /// Tree-sitter parses the whole string before the first line is drawn.
@@ -347,6 +351,7 @@ final class TextViewerViewController: TabContentViewController {
         let theme = ScaledEditorTheme.theme(for: traitCollection)
         textView.theme = theme
         textView.backgroundColor = theme.backgroundColor
+        view.backgroundColor = theme.backgroundColor
     }
 
     // MARK: - The bar, and the two modes

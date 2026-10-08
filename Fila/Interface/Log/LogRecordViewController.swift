@@ -39,8 +39,12 @@ final class LogRecordViewController: UIViewController {
             $0.textContainerInset = FilaUI.textContainerInset
         }
         view.addSubview(textView)
+        // Sideways in the safe area: a text view insets its content only
+        // along the axis it scrolls, so on iPad the floating sidebar would
+        // cover the start of every line.
         textView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.bottom.equalToSuperview()
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
         }
     }
 }

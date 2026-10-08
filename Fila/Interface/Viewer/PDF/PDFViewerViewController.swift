@@ -45,8 +45,10 @@ final class PDFViewerViewController: TabContentViewController {
         }
         view.addSubview(pdfView)
         view.addSubview(pageLabel)
+        // Inside the safe area sideways: the floating sidebar on iPad would
+        // otherwise cover part of a page that autoscaling fitted to the width.
         pdfView.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview()
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
             make.top.equalTo(view.safeAreaLayoutGuide)
             make.bottom.equalTo(pageLabel.snp.top).offset(-FilaUI.Spacing.small)
         }

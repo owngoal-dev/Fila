@@ -57,9 +57,11 @@ final class ImageViewerViewController: TabContentViewController {
         }
         addChild(host)
         view.addSubview(host.view)
+        // The whole safe area: on iPad the floating sidebar covers the
+        // column's leading edge, and an image fitted to the full width would
+        // be centred partly behind it.
         host.view.snp.makeConstraints { make in
-            make.leading.trailing.equalToSuperview()
-            make.top.bottom.equalTo(view.safeAreaLayoutGuide)
+            make.edges.equalTo(view.safeAreaLayoutGuide)
         }
         host.didMove(toParent: self)
         // Decoded now, while the container is still preparing the push, so

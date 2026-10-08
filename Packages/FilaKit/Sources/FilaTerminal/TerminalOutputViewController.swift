@@ -50,9 +50,10 @@
                 $0.configuration = TerminalSurfaceOptions(backend: .inMemory(session), waitAfterCommand: false)
             }
             view.addSubview(terminalView)
+            // Inside the safe area on every side, like the terminal: on iPad
+            // the floating sidebar covers the column's leading edge.
             terminalView.snp.makeConstraints { make in
-                make.top.bottom.equalTo(view.safeAreaLayoutGuide)
-                make.leading.trailing.equalToSuperview()
+                make.edges.equalTo(view.safeAreaLayoutGuide)
             }
             session.receive("\u{1B}[?25l")
         }
