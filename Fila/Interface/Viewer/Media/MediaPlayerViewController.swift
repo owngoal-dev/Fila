@@ -113,8 +113,16 @@ final class MediaPlayerViewController: TabContentViewController {
         }
         addChild(controller)
         view.addSubview(controller.view)
+        // Sideways in the safe area: on iPad the floating sidebar covers the
+        // column's leading edge, and a video fitted to the full width would
+        // play partly behind it.
         controller.view.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
+            make.top.bottom.equalToSuperview()
+            make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+        }
+        // The player's own black, so the margin beside a video is not white.
+        if !isAudio {
+            view.backgroundColor = .black
         }
         controller.didMove(toParent: self)
         player = controller

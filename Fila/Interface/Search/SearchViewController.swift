@@ -36,6 +36,7 @@ final class SearchViewController: TabContentViewController {
     private var revealsLoadingAt = Date.distantPast
     private var shownStatus: StatusView.Content?
     private var showsLoading = false
+    private var isCrossfading = false
     private var folderEntries: [FileNode]?
     private var loadingFolderEntries: [FileNode] = []
     private var searchID = UUID()
@@ -46,8 +47,8 @@ final class SearchViewController: TabContentViewController {
     /// A subtree walk a newer search in this tab stopped; run again when this
     /// page appears.
     private var isInterrupted = false
-    /// A subtree walk Cancel or an interruption stopped before its end, so
-    /// Search on the keyboard runs it again.
+    /// A walk or a folder listing that Cancel or an interruption stopped
+    /// before its end, so Search on the keyboard runs it again.
     private var isStopped = false
     private var isSearching = false
     private var failure: String?
@@ -212,6 +213,9 @@ final class SearchViewController: TabContentViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        // Whatever the user did elsewhere — a delete in a folder opened from
+        // here, a new file from the terminal — the cached results do not know.
+        finished = []
         if navigationController?.viewControllers.contains(where: { $0 === self }) != true {
             stopSearch()
         }
@@ -319,6 +323,7 @@ final class SearchViewController: TabContentViewController {
         updateMenu()
         // What the other scope found says nothing complete about this one.
         stopSearch()
+        isStopped = false
         finished = []
         update(needle: query)
     }
@@ -508,8 +513,10 @@ final class SearchViewController: TabContentViewController {
         renderedQuery = query
         renderedScope = scope
         let onScreen = view.window != nil
-        let appends = !shown.isEmpty && hits.starts(with: shown)
-        let update = { [self] in
+        // A footer that comes or goes changes the layout, which is not an
+        // append either.
+        let appends = !shown.isEmpty && hits.starts(with: shown) && (footerText != nil) == hasFooterLayout
+        let update = { [self] (animatesStatus: Bool) in
             dataSource.apply(snapshot, animatingDifferences: onScreen && appends)
             let showsFooter = footerText != nil
             if showsFooter != hasFooterLayout {
@@ -519,18 +526,32 @@ final class SearchViewController: TabContentViewController {
                 // Same layout, possibly a new confession: redraw the footer text.
                 collectionView.collectionViewLayout.invalidateLayout()
             }
-            updateStatus()
+            updateStatus(animated: animatesStatus)
         }
-        guard onScreen, !appends, !(shown.isEmpty && hits.isEmpty) else {
-            update()
+        if !onScreen || appends || (shown.isEmpty && hits.isEmpty) {
+            update(true)
+        } else {
+            crossfade { update(false) }
+        }
+    }
+
+    /// Blends the list's picture before and after `changes`. One at a time:
+    /// a second transition would start again from a half-blended frame, so
+    /// a change made while one runs lands in the picture it is fading to.
+    private func crossfade(_ changes: @escaping () -> Void) {
+        guard view.window != nil, !isCrossfading else {
+            changes()
             return
         }
+        isCrossfading = true
         UIView.transition(
             with: collectionView,
             duration: 0.2,
-            options: [.transitionCrossDissolve, .allowUserInteraction, .beginFromCurrentState],
-            animations: update,
-        )
+            options: [.transitionCrossDissolve, .allowUserInteraction],
+            animations: changes,
+        ) { [weak self] _ in
+            self?.isCrossfading = false
+        }
     }
 
     /// What the list does not show: nil when it is complete. Only a subtree
@@ -578,17 +599,27 @@ final class SearchViewController: TabContentViewController {
         }
     }
 
-    private func updateStatus() {
+    /// `animated` crossfades a change from one panel to another — a message
+    /// to "Searching…", a message to nothing — and leaves a changing detail,
+    /// such as the folder being searched, to update in place.
+    private func updateStatus(animated: Bool = true) {
         // Typing past a message would otherwise flash "Searching…" between
-        // it and the next one for every keystroke.
-        let holds = isSearching && hits.isEmpty && Date() < revealsLoadingAt
+        // it and the next one for every keystroke. Only a message is held:
+        // with rows on screen before, there is nothing worth keeping.
+        let holds = shownStatus != nil && isSearching && hits.isEmpty && Date() < revealsLoadingAt
+        let previous = shownStatus
         if !holds {
             shownStatus = status
-            showsLoading = isSearching && hits.isEmpty && failure == nil
+            showsLoading = isSearching && hits.isEmpty && failure == nil && !matcher.isEmpty
         }
         // The empty states are read while the keyboard is up; centre them in
         // the band above it instead of behind it.
-        collectionView.showStatus(shownStatus, followsKeyboard: true)
+        let show = { [self] in collectionView.showStatus(shownStatus, followsKeyboard: true) }
+        if animated, Self.panel(of: previous) != Self.panel(of: shownStatus) {
+            crossfade(show)
+        } else {
+            show()
+        }
         // Wherever the page is not already showing its loading state, the
         // search field's magnifier is the one slot that can say more may
         // come without adding a row.
@@ -603,7 +634,7 @@ final class SearchViewController: TabContentViewController {
     }
 
     private func stopSearch() {
-        isStopped = walk != nil && scope == .subfolders
+        isStopped = walk != nil
         walk?.cancel()
         walk = nil
         searchID = UUID()
@@ -629,6 +660,16 @@ final class SearchViewController: TabContentViewController {
         isInterrupted = true
     }
 
+    /// Which panel a status is, for deciding whether a change is a new
+    /// panel or new text in the same one.
+    private static func panel(of content: StatusView.Content?) -> String? {
+        switch content {
+        case nil: nil
+        case .loading: "loading"
+        case let .message(_, _, title, _, _): title
+        }
+    }
+
     private var status: StatusView.Content? {
         guard hits.isEmpty else { return nil }
         if let failure {
@@ -638,9 +679,8 @@ final class SearchViewController: TabContentViewController {
                 detail: failure,
             )
         }
-        if isSearching {
-            return .loading(String(localized: "Searching…"), detail: currentDirectory)
-        }
+        // Before "Searching…": with nothing typed, a folder still being
+        // listed has nothing to search for yet.
         guard !matcher.isEmpty else {
             return .message(
                 symbol: "magnifyingglass",
@@ -649,6 +689,9 @@ final class SearchViewController: TabContentViewController {
                     : String(localized: "Search Subfolders"),
                 detail: String(localized: "Type a name. Filters in the menu narrow what it finds."),
             )
+        }
+        if isSearching {
+            return .loading(String(localized: "Searching…"), detail: currentDirectory)
         }
         let detail = scope == .folder
             ? String(localized: "Nothing in this folder matches “\(query)”.")
@@ -685,7 +728,10 @@ extension SearchViewController: UISearchBarDelegate {
     /// or runs again a walk that Cancel stopped.
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
-        if scope == .subfolders, isStopped {
+        guard isStopped else { return }
+        if scope == .folder {
+            loadFolder()
+        } else {
             startWalk(delay: false)
         }
     }

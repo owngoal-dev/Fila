@@ -103,7 +103,7 @@ final class FileSearchMatcher {
     /// cutoffs need no comparing: with the same filter, a later matcher's
     /// cutoff is the same or later, which only narrows it further.
     func narrows(_ other: FileSearchMatcher) -> Bool {
-        filter == other.filter && (other.needle.isEmpty || Self.contains(needle, other.needle))
+        filter == other.filter && Self.contains(needle, other.needle)
     }
 
     func matches(_ node: FileNode) -> Bool {

@@ -36,6 +36,9 @@ final class TextViewerViewController: TabContentViewController {
 
     let textView = RunestoneEditorView.new()
     let findBar = FindBar()
+    /// The safe-area margin on the gutter's side, in the gutter's colour, so
+    /// the gutter reads as reaching the edge of the column.
+    private let gutterMargin = UIView()
     private var pendingNotice: String?
     /// A grammar the reader picked by hand for this document, by its name in
     /// `TextSyntax.choices`. Nil means the file's own detection decides.
@@ -171,12 +174,18 @@ final class TextViewerViewController: TabContentViewController {
         // gutter running the full height behind it instead of stopping short
         // in a white band. Sideways it stays in the safe area: on iPad the
         // floating sidebar covers the column's leading edge, and the gutter
-        // and the first characters would run under it. The view takes the
-        // theme's background so that margin is the editor's colour.
+        // and the first characters would run under it. The margins take the
+        // theme's colours: the gutter's on its side, the editor's on the other.
         stack.snp.makeConstraints { make in
             make.top.equalToSuperview()
             make.leading.trailing.equalTo(view.safeAreaLayoutGuide)
             make.bottom.equalTo(view.keyboardLayoutGuide.snp.top)
+        }
+        view.addSubview(gutterMargin)
+        gutterMargin.snp.makeConstraints { make in
+            make.top.bottom.equalTo(stack)
+            make.leading.equalToSuperview()
+            make.trailing.equalTo(stack.snp.leading)
         }
 
         // With the gutter running under the bar, the bar needs a background of
@@ -311,6 +320,7 @@ final class TextViewerViewController: TabContentViewController {
         }
         textView.backgroundColor = theme.backgroundColor
         view.backgroundColor = theme.backgroundColor
+        gutterMargin.backgroundColor = theme.gutterBackgroundColor
     }
 
     /// Tree-sitter parses the whole string before the first line is drawn.
@@ -352,6 +362,7 @@ final class TextViewerViewController: TabContentViewController {
         textView.theme = theme
         textView.backgroundColor = theme.backgroundColor
         view.backgroundColor = theme.backgroundColor
+        gutterMargin.backgroundColor = theme.gutterBackgroundColor
     }
 
     // MARK: - The bar, and the two modes

@@ -134,8 +134,11 @@
             // So: fill the available width, but never more than a comfortable
             // measure. The fill is not required, so it yields in a column narrower
             // than the margins rather than overflowing it.
+            // Centred in the margins, which follow the safe area: on iPad the
+            // floating sidebar covers the leading edge, and a panel centred on
+            // the full width would sit off-centre beside it.
             stack.snp.makeConstraints { make in
-                make.centerX.equalToSuperview()
+                make.centerX.equalTo(layoutMarginsGuide)
                 make.centerY.equalTo(band.snp.centerY)
                 make.leading.greaterThanOrEqualTo(layoutMarginsGuide)
                 make.trailing.lessThanOrEqualTo(layoutMarginsGuide)

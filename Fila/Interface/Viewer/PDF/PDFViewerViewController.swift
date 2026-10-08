@@ -28,7 +28,9 @@ final class PDFViewerViewController: TabContentViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        // The pages' surround, so the margin the safe area leaves beside
+        // them — under the iPad sidebar, or in landscape — is not a white band.
+        view.backgroundColor = .secondarySystemBackground
 
         pdfView.do {
             $0.autoScales = true
