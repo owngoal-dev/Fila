@@ -748,6 +748,18 @@ sentence. The same script fails on a missing or `""` message.
   substituted at package time, `@FLAVOR@` and friends in `DEBIAN/control`.
   `Packaging/Fila-Info.plist` is merged into the generated Info.plist and holds
   only the keys Xcode has no `INFOPLIST_KEY_*` setting for.
+- **The app's data folder is `~/Documents/wiki.qaq.fila`, and the package
+  makes it.** The app has no container, so its home is mobile's —
+  `<jbroot>/var/mobile` on roothide, `/var/mobile` on rootless — shared with
+  every other app without one. Anything it keeps there goes in a folder named
+  for its bundle id, the isolation a container would give, inside a
+  `Documents` mobile owns, which a container would have had too. The postinst
+  (dpkg, as root) makes each missing level — home, `Documents`, the folder —
+  and hands it to mobile on its own, leaves a level that exists alone, and
+  never follows a symlink. Never `mkdir -p` as root: it leaves every level
+  above the last one root's, and Irisin 4.3.4–4.5.25 left a roothide
+  bootstrap's `Documents` root's that way, so no other app without a
+  container could make anything there.
 - Both packagers ad-hoc sign every library under `Fila.app/Frameworks` first
   (`Scripts/sign-frameworks.sh`). The unsigned build leaves the Swift
   compatibility dylibs the toolchain copies in for older OSes carrying Apple's
