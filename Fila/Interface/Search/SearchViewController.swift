@@ -4,17 +4,38 @@ import SnapKit
 import Then
 import UIKit
 
-/// One search entry point: instant filtering of this folder, or a submitted subtree search.
+/// One search entry point: this folder or its whole subtree, by name and by
+/// filter, searched as the user types.
 final class SearchViewController: TabContentViewController {
     enum Scope {
         case folder
         case subfolders
     }
 
+    /// How long typing has to pause before a subtree walk starts. Each
+    /// keystroke cancels the walk before it; this keeps a fast typist from
+    /// starting and stopping a walk of `/` for every letter.
+    private static let typingPause: TimeInterval = 0.3
+
     private let root: String
     private let session = FileSession.shared
     private let initialQuery: String?
     private var scope: Scope
+    private var filter = FileSearchFilter()
+    private var matcher = FileSearchMatcher(needle: "", filter: FileSearchFilter())
+    /// Subtree walks that ran to their end below the result limit, newest
+    /// last, with everything each matched. A search any of them contains —
+    /// a longer name, or the name before the last keystroke — is a filter
+    /// of those rows rather than another walk, so backspacing does not
+    /// empty the list and fill it again.
+    private var finished: [(matcher: FileSearchMatcher, hits: [FileSearchResult], skippedLinks: Int)] = []
+    private static let finishedLimit = 8
+    /// When an empty page may trade what it shows for "Searching…": a walk
+    /// that answers sooner goes straight to its result, without a flash of
+    /// the loading state between two messages.
+    private var revealsLoadingAt = Date.distantPast
+    private var shownStatus: StatusView.Content?
+    private var showsLoading = false
     private var folderEntries: [FileNode]?
     private var loadingFolderEntries: [FileNode] = []
     private var searchID = UUID()
@@ -24,8 +45,10 @@ final class SearchViewController: TabContentViewController {
     private var walk: Task<Void, Never>?
     /// A subtree walk a newer search in this tab stopped; run again when this
     /// page appears.
-    private var interruptedQuery: String?
-    private var query = ""
+    private var isInterrupted = false
+    /// A subtree walk Cancel or an interruption stopped before its end, so
+    /// Search on the keyboard runs it again.
+    private var isStopped = false
     private var isSearching = false
     private var failure: String?
     /// Links to directories the walk passed over. Nonzero means something
@@ -34,6 +57,10 @@ final class SearchViewController: TabContentViewController {
     private var currentDirectory = ""
     private var lastProgressDraw = Date.distantPast
     private var lastHitsDraw = Date.distantPast
+
+    private var query: String {
+        matcher.needle
+    }
 
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Int, FileSearchResult>!
@@ -45,14 +72,15 @@ final class SearchViewController: TabContentViewController {
 
     private var magnifier: UIView?
 
-    init(root: String, query: String? = nil, scope: Scope = .subfolders) {
+    /// `scope` nil is the one the user last chose.
+    init(root: String, query: String? = nil, scope: Scope? = nil) {
         self.root = root
         initialQuery = query
-        self.scope = scope
+        self.scope = scope ?? (AppPreferences.shared.searchIncludesSubfolders ? .subfolders : .folder)
         super.init(nibName: nil, bundle: nil)
         title = String(localized: "Search")
         trailingNavigationItems = [Self.actionsItem(menu: nil)]
-        updateScopeMenu()
+        updateMenu()
         // The folder being searched, then this screen; a crumb on the
         // folder or an ancestor goes back to its browser.
         decorationSource = LocalPathDecoration(
@@ -136,7 +164,7 @@ final class SearchViewController: TabContentViewController {
             collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
         }
         search.searchBar.text = initialQuery
-        start(initialQuery ?? "")
+        update(needle: initialQuery ?? "")
     }
 
     /// An empty search page has one thing to do; put the caret in the field.
@@ -161,8 +189,8 @@ final class SearchViewController: TabContentViewController {
     /// cancelled sends both pages `viewWillAppear`, and each would restart
     /// its walk and stop the other's over a gesture that went nowhere.
     private func resumeWalk() {
-        if let query = interruptedQuery {
-            start(query)
+        if isInterrupted {
+            startWalk(delay: false)
         } else if walk != nil, scope == .subfolders {
             interruptOtherWalks()
         }
@@ -189,104 +217,261 @@ final class SearchViewController: TabContentViewController {
         }
     }
 
-    private func updateScopeMenu() {
-        let options: [(Scope, String)] = [
-            (.folder, String(localized: "This Folder")),
-            (.subfolders, String(localized: "Subfolders")),
-        ]
-        let actions = options.map { option, title in
-            UIAction(
-                title: title,
-                image: UIImage(systemName: option == .folder ? "folder" : "square.stack.3d.up"),
-                state: scope == option ? .on : .off,
-            ) { [weak self] _ in
+    // MARK: - Menu
+
+    /// Where to search, with checkmarks, then what to keep. No Settings:
+    /// this menu is the search's form, and Settings is one Back away.
+    private func updateMenu() {
+        let scopes = [
+            (Scope.folder, String(localized: "This Folder")),
+            (Scope.subfolders, String(localized: "Include Subfolders")),
+        ].map { option, title in
+            UIAction(title: title, state: scope == option ? .on : .off) { [weak self] _ in
                 self?.selectScope(option)
             }
         }
-        navigationItem.rightBarButtonItem?.menu = UIMenu(children: [
-            FilaMenu.selection(title: String(localized: "Search In"), actions: actions),
-            settingsMenuElement,
+        let filters = UIMenu(title: String(localized: "Filter"), options: .displayInline, children: [
+            filterMenu(String(localized: "Kind"), \.kind, [
+                (.any, String(localized: "Any Kind"), nil),
+                (.folders, String(localized: "Folders"), nil),
+                (.files, String(localized: "Files"), nil),
+                (.images, String(localized: "Images"), nil),
+                (.videos, String(localized: "Videos"), nil),
+                (.audio, String(localized: "Audio"), nil),
+                (.text, String(localized: "Text"), nil),
+                (.archives, String(localized: "Archives"), nil),
+                (.documents, String(localized: "Documents"), nil),
+            ]),
+            filterMenu(String(localized: "Size"), \.size, FileSearchFilter.Size.allCases.map {
+                ($0, Self.title(of: $0), Self.range(of: $0))
+            }),
+            filterMenu(String(localized: "Date Modified"), \.age, [
+                (.any, String(localized: "Any Date"), nil),
+                (.today, String(localized: "Today"), nil),
+                (.week, String(localized: "Past Week"), nil),
+                (.month, String(localized: "Past Month"), nil),
+                (.year, String(localized: "Past Year"), nil),
+            ]),
         ])
+        var sections: [UIMenuElement] = [
+            UIMenu(title: String(localized: "Search In"), options: [.displayInline, .singleSelection], children: scopes),
+            filters,
+        ]
+        if filter.isActive {
+            sections.append(UIMenu(options: .displayInline, children: [
+                UIAction(title: String(localized: "Clear Filters")) { [weak self] _ in
+                    self?.changeFilter { $0 = FileSearchFilter() }
+                },
+            ]))
+        }
+        navigationItem.rightBarButtonItem?.menu = UIMenu(children: sections)
+    }
+
+    /// One filter as a submenu whose subtitle is its current choice, so the
+    /// closed menu still says what is on.
+    private func filterMenu<Value: Hashable>(
+        _ title: String,
+        _ keyPath: WritableKeyPath<FileSearchFilter, Value>,
+        _ options: [(Value, String, String?)],
+    ) -> UIMenu {
+        let selected = filter[keyPath: keyPath]
+        let actions = options.map { value, label, detail in
+            let action = UIAction(title: label, state: value == selected ? .on : .off) { [weak self] _ in
+                self?.changeFilter { $0[keyPath: keyPath] = value }
+            }
+            // A band's range under its name; iOS 15 shows the name alone.
+            if #available(iOS 16.0, *) {
+                action.subtitle = detail
+            }
+            return action
+        }
+        let menu = UIMenu(title: title, options: .singleSelection, children: actions)
+        menu.subtitle = options.first { $0.0 == selected }?.1
+        return menu
+    }
+
+    private static func title(of size: FileSearchFilter.Size) -> String {
+        switch size {
+        case .any: String(localized: "Any Size")
+        case .empty: String(localized: "Empty")
+        case .tiny: String(localized: "Tiny")
+        case .small: String(localized: "Small")
+        case .medium: String(localized: "Medium")
+        case .large: String(localized: "Large")
+        case .huge: String(localized: "Huge")
+        }
+    }
+
+    /// The band in the units the rows show sizes in. Empty needs none.
+    private static func range(of size: FileSearchFilter.Size) -> String? {
+        guard size != .empty, let bounds = size.bounds else { return nil }
+        let lower = FilePresentation.byteLabel(bounds.lower)
+        guard let upper = bounds.upper.map(FilePresentation.byteLabel) else {
+            return String(localized: "Over \(lower)")
+        }
+        return bounds.lower == 0 ? String(localized: "Under \(upper)") : String(localized: "\(lower) – \(upper)")
     }
 
     private func selectScope(_ scope: Scope) {
         guard self.scope != scope else { return }
         self.scope = scope
-        updateScopeMenu()
-        // A subtree walk is deliberate; switching the scope must not start one.
-        start(scope == .folder ? navigationItem.searchController?.searchBar.text ?? "" : "")
+        AppPreferences.shared.searchIncludesSubfolders = scope == .subfolders
+        updateMenu()
+        // What the other scope found says nothing complete about this one.
+        stopSearch()
+        finished = []
+        update(needle: query)
     }
 
-    private func start(_ needle: String) {
+    private func changeFilter(_ change: (inout FileSearchFilter) -> Void) {
+        var filter = filter
+        change(&filter)
+        guard filter != self.filter else { return }
+        self.filter = filter
+        updateMenu()
+        update(needle: query)
+    }
+
+    // MARK: - Searching
+
+    /// Every change to what is searched for — a keystroke, a filter, the
+    /// scope — comes here. The rows that still match stay where they are at
+    /// once, so the list narrows under the user's typing instead of
+    /// emptying; a walk then finds the rest unless the rows already hold it.
+    private func update(needle: String, delay: Bool = false) {
+        let matcher = FileSearchMatcher(needle: needle, filter: filter)
+        self.matcher = matcher
+        if scope == .folder {
+            if let folderEntries {
+                filterFolder(folderEntries)
+            } else if walk != nil {
+                // Refilter the pages already received while the next one
+                // waits; widening must also bring their hidden matches back.
+                filterFolder(loadingFolderEntries)
+            } else {
+                loadFolder()
+            }
+            return
+        }
+        if let known = finished.last(where: { matcher.narrows($0.matcher) }) {
+            // Stops a walk for the previous name; this one is already known.
+            _ = beginSearch()
+            isSearching = false
+            hits = known.hits.filter { matcher.matches($0.node) }
+            skippedLinks = known.skippedLinks
+            apply()
+        } else {
+            hits = matcher.isEmpty ? [] : hits.filter { matcher.matches($0.node) }
+            startWalk(delay: delay)
+        }
+    }
+
+    /// This Folder lists the folder once and filters that listing for every
+    /// change after.
+    private func loadFolder() {
+        let searchID = beginSearch()
+        loadingFolderEntries = []
+        // Rows a subtree walk found elsewhere are not this folder's; its own
+        // stay until the listing lists them again.
+        hits.removeAll { $0.directory != root }
+        isSearching = true
+        holdStatus(for: StatusView.revealDelay)
+        apply()
+        walk = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await page in DirectoryReader.pages(in: root, session: session) {
+                    guard !Task.isCancelled, self.searchID == searchID else { return }
+                    guard page.count <= DirectoryReader.maximumEntryCount - loadingFolderEntries.count else {
+                        throw FilaFailure(errno: E2BIG, path: root)
+                    }
+                    loadingFolderEntries.append(contentsOf: page)
+                    filterFolder(loadingFolderEntries)
+                }
+                guard !Task.isCancelled, self.searchID == searchID else { return }
+                folderEntries = loadingFolderEntries
+                loadingFolderEntries = []
+            } catch let failure as FilaFailure {
+                guard !Task.isCancelled, self.searchID == searchID else { return }
+                // The failure is the page's status, which rows would hide.
+                hits = []
+                self.failure = FailureText.summary(for: failure)
+            } catch {}
+            guard !Task.isCancelled, self.searchID == searchID else { return }
+            walk = nil
+            isSearching = false
+            if let folderEntries {
+                filterFolder(folderEntries)
+            } else {
+                apply()
+            }
+        }
+    }
+
+    /// Stops whatever runs, starts a subtree walk for `matcher`, and keeps
+    /// the rows already listed: the walk finds them again and passes over
+    /// them, so a row never leaves and comes back.
+    private func startWalk(delay: Bool) {
+        let searchID = beginSearch()
+        let matcher = matcher
+        isSearching = !matcher.isEmpty
+        if isSearching {
+            holdStatus(for: (delay ? Self.typingPause : 0) + StatusView.revealDelay)
+        }
+        apply()
+        guard isSearching else { return }
+        interruptOtherWalks()
+        walk = Task { [weak self] in
+            if delay {
+                try? await Task.sleep(nanoseconds: UInt64(Self.typingPause * 1_000_000_000))
+            }
+            guard let self, !Task.isCancelled, self.searchID == searchID else { return }
+            let listed = Set(hits.map(\.path))
+            let skipped = await FileSearch.run(root: root, matcher: matcher, session: session) { directory in
+                guard !Task.isCancelled, self.searchID == searchID else { return }
+                self.currentDirectory = directory
+                guard Date().timeIntervalSince(self.lastProgressDraw) > 0.2 else { return }
+                self.lastProgressDraw = Date()
+                self.updateStatus()
+            } onHit: { hit in
+                // Rows kept from before count toward the limit as well.
+                guard !Task.isCancelled, self.searchID == searchID, !listed.contains(hit.path),
+                      self.hits.count < FileSearch.resultLimit
+                else { return }
+                self.hits.append(hit)
+                // By time, not by count: an apply costs by the rows already
+                // listed, and thousands of hits a few at a time would spend
+                // the main thread diffing the same list over and over.
+                guard self.hits.count == 1 || Date().timeIntervalSince(self.lastHitsDraw) > 0.25 else { return }
+                self.lastHitsDraw = Date()
+                self.apply()
+            }
+            guard !Task.isCancelled, self.searchID == searchID else { return }
+            skippedLinks = skipped
+            walk = nil
+            isSearching = false
+            if hits.count < FileSearch.resultLimit {
+                finished.append((matcher, hits, skipped))
+                finished.removeFirst(max(0, finished.count - Self.finishedLimit))
+            }
+            apply()
+        }
+    }
+
+    /// Cancels the running search and returns the identity the next one
+    /// checks its callbacks against.
+    private func beginSearch() -> UUID {
         walk?.cancel()
         walk = nil
         let searchID = UUID()
         self.searchID = searchID
-        interruptedQuery = nil
-        loadingFolderEntries = []
-        hits = []
-        query = needle
+        isInterrupted = false
+        isStopped = false
         failure = nil
-        skippedLinks = 0
+        // `skippedLinks` stays until the next walk ends: the rows kept on
+        // screen are the previous walk's, and so is the footer about them.
         currentDirectory = root
-        isSearching = scope == .folder ? folderEntries == nil : !needle.isEmpty
-        if scope == .folder, let folderEntries {
-            filterFolder(folderEntries)
-            return
-        }
-        apply()
-        guard isSearching else { return }
-        if scope == .subfolders {
-            interruptOtherWalks()
-        }
-        walk = Task { [weak self, scope] in
-            guard let self, !Task.isCancelled, self.searchID == searchID else { return }
-            if scope == .folder {
-                do {
-                    for try await page in DirectoryReader.pages(in: root, session: session) {
-                        guard !Task.isCancelled, self.searchID == searchID else { return }
-                        guard page.count <= DirectoryReader.maximumEntryCount - loadingFolderEntries.count else {
-                            throw FilaFailure(errno: E2BIG, path: root)
-                        }
-                        loadingFolderEntries.append(contentsOf: page)
-                        filterFolder(loadingFolderEntries)
-                    }
-                    guard !Task.isCancelled, self.searchID == searchID else { return }
-                    folderEntries = loadingFolderEntries
-                    loadingFolderEntries = []
-                } catch let failure as FilaFailure {
-                    guard !Task.isCancelled, self.searchID == searchID else { return }
-                    self.failure = FailureText.summary(for: failure)
-                } catch {}
-            } else {
-                let skipped = await FileSearch.run(
-                    root: root,
-                    needle: needle,
-                    session: session,
-                ) { directory in
-                    guard !Task.isCancelled, self.searchID == searchID else { return }
-                    self.currentDirectory = directory
-                    guard Date().timeIntervalSince(self.lastProgressDraw) > 0.2 else { return }
-                    self.lastProgressDraw = Date()
-                    self.updateStatus()
-                } onHit: { hit in
-                    guard !Task.isCancelled, self.searchID == searchID else { return }
-                    self.hits.append(hit)
-                    // By time, not by count: an apply costs by the rows already
-                    // listed, and thousands of hits a few at a time would spend
-                    // the main thread diffing the same list over and over.
-                    guard self.hits.count == 1 || Date().timeIntervalSince(self.lastHitsDraw) > 0.25 else { return }
-                    self.lastHitsDraw = Date()
-                    self.apply()
-                }
-                guard !Task.isCancelled, self.searchID == searchID else { return }
-                skippedLinks = skipped
-            }
-            guard !Task.isCancelled, self.searchID == searchID else { return }
-            walk = nil
-            isSearching = false
-            apply()
-        }
+        return searchID
     }
 
     /// In the order the folder's own page shows: the arrangement dedups by
@@ -298,33 +483,54 @@ final class SearchViewController: TabContentViewController {
             sortKey: session.sortKey,
             ascending: session.sortAscending,
         )
-        let matches = query.isEmpty ? [] : entries.filter { $0.name.localizedStandardContains(query) }
+        let matches = matcher.isEmpty ? [] : entries.filter { matcher.matches($0) }
         hits = arrangement.arrange(matches).map { FileSearchResult(directory: root, node: $0) }
         apply()
     }
 
+    /// Two animations, chosen by the change. Rows a walk appends to a list
+    /// already on screen slide in below it. Anything else — the first rows
+    /// replacing a message, a narrower name, a different order — crossfades
+    /// the whole list: the diffable fade would take most rows out at once
+    /// and leave the page white for a few frames, and a crossfade blends
+    /// the two pictures instead.
     private func apply() {
         var snapshot = NSDiffableDataSourceSnapshot<Int, FileSearchResult>()
         snapshot.appendSections([0])
         snapshot.appendItems(hits)
+        let shown = dataSource.snapshot().itemIdentifiers
         // Identity describes the file, not the highlighted query. Retained
         // rows must be configured again even when the result set is unchanged.
         if renderedQuery != query || renderedScope != scope {
-            let existing = Set(dataSource.snapshot().itemIdentifiers)
+            let existing = Set(shown)
             snapshot.reconfigureItems(hits.filter { existing.contains($0) })
         }
         renderedQuery = query
         renderedScope = scope
-        dataSource.apply(snapshot, animatingDifferences: false)
-        let showsFooter = footerText != nil
-        if showsFooter != hasFooterLayout {
-            hasFooterLayout = showsFooter
-            collectionView.setCollectionViewLayout(makeLayout(), animated: false)
-        } else if showsFooter {
-            // Same layout, possibly a new confession: redraw the footer text.
-            collectionView.collectionViewLayout.invalidateLayout()
+        let onScreen = view.window != nil
+        let appends = !shown.isEmpty && hits.starts(with: shown)
+        let update = { [self] in
+            dataSource.apply(snapshot, animatingDifferences: onScreen && appends)
+            let showsFooter = footerText != nil
+            if showsFooter != hasFooterLayout {
+                hasFooterLayout = showsFooter
+                collectionView.setCollectionViewLayout(makeLayout(), animated: false)
+            } else if showsFooter {
+                // Same layout, possibly a new confession: redraw the footer text.
+                collectionView.collectionViewLayout.invalidateLayout()
+            }
+            updateStatus()
         }
-        updateStatus()
+        guard onScreen, !appends, !(shown.isEmpty && hits.isEmpty) else {
+            update()
+            return
+        }
+        UIView.transition(
+            with: collectionView,
+            duration: 0.2,
+            options: [.transitionCrossDissolve, .allowUserInteraction, .beginFromCurrentState],
+            animations: update,
+        )
     }
 
     /// What the list does not show: nil when it is complete. Only a subtree
@@ -363,16 +569,31 @@ final class SearchViewController: TabContentViewController {
         }
     }
 
+    /// Keeps the empty page's current message for `delay` before it may
+    /// say "Searching…", then looks again.
+    private func holdStatus(for delay: TimeInterval) {
+        revealsLoadingAt = Date().addingTimeInterval(delay)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            self?.updateStatus()
+        }
+    }
+
     private func updateStatus() {
+        // Typing past a message would otherwise flash "Searching…" between
+        // it and the next one for every keystroke.
+        let holds = isSearching && hits.isEmpty && Date() < revealsLoadingAt
+        if !holds {
+            shownStatus = status
+            showsLoading = isSearching && hits.isEmpty && failure == nil
+        }
         // The empty states are read while the keyboard is up; centre them in
         // the band above it instead of behind it.
-        collectionView.showStatus(status, followsKeyboard: true)
-        // Empty results already show their own loading indicator. Once hits
-        // arrive, the only remaining question is whether more may come, and
-        // the search field's magnifier is the one slot that can say so
-        // without adding a row.
+        collectionView.showStatus(shownStatus, followsKeyboard: true)
+        // Wherever the page is not already showing its loading state, the
+        // search field's magnifier is the one slot that can say more may
+        // come without adding a row.
         let field = navigationItem.searchController?.searchBar.searchTextField
-        if isSearching, !hits.isEmpty {
+        if isSearching, !showsLoading {
             spinner.startAnimating()
             field?.leftView = spinner
         } else {
@@ -382,6 +603,7 @@ final class SearchViewController: TabContentViewController {
     }
 
     private func stopSearch() {
+        isStopped = walk != nil && scope == .subfolders
         walk?.cancel()
         walk = nil
         searchID = UUID()
@@ -404,7 +626,7 @@ final class SearchViewController: TabContentViewController {
     private func interruptWalk() {
         guard walk != nil, scope == .subfolders else { return }
         stopSearch()
-        interruptedQuery = query
+        isInterrupted = true
     }
 
     private var status: StatusView.Content? {
@@ -419,21 +641,21 @@ final class SearchViewController: TabContentViewController {
         if isSearching {
             return .loading(String(localized: "Searching…"), detail: currentDirectory)
         }
-        guard !query.isEmpty else {
+        guard !matcher.isEmpty else {
             return .message(
                 symbol: "magnifyingglass",
                 title: scope == .folder
                     ? String(localized: "Search This Folder")
                     : String(localized: "Search Subfolders"),
-                detail: scope == .subfolders
-                    ? String(localized: "Enter a name, then tap Search to include subfolders.")
-                    : nil,
+                detail: String(localized: "Type a name. Filters in the menu narrow what it finds."),
             )
         }
         let detail = scope == .folder
             ? String(localized: "Nothing in this folder matches “\(query)”.")
             : String(localized: "Nothing in this folder or its subfolders matches “\(query)”.")
-        return .message(symbol: "magnifyingglass", title: String(localized: "No Matches"), detail: detail)
+        // A name that is there but filtered out must not read as absent.
+        let hint = filter.isActive ? "\n" + String(localized: "Try clearing the filters.") : ""
+        return .message(symbol: "magnifyingglass", title: String(localized: "No Matches"), detail: detail + hint)
     }
 }
 
@@ -453,26 +675,19 @@ extension SearchViewController: UISearchControllerDelegate {
 }
 
 extension SearchViewController: UISearchBarDelegate {
+    /// Live in both scopes. A keystroke stops a running subtree walk at
+    /// once; the next starts when typing pauses.
     func searchBar(_: UISearchBar, textDidChange searchText: String) {
-        guard scope == .folder else {
-            start("")
-            return
-        }
-        query = searchText
-        if let folderEntries {
-            filterFolder(folderEntries)
-        } else if isSearching {
-            // Refilter the pages already received while the next one waits;
-            // widening the query must also bring their hidden matches back.
-            filterFolder(loadingFolderEntries)
-        } else {
-            start(searchText)
-        }
+        update(needle: searchText, delay: scope == .subfolders)
     }
 
+    /// The search has already started; Search only puts the keyboard away,
+    /// or runs again a walk that Cancel stopped.
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
-        start(searchBar.text ?? "")
+        if scope == .subfolders, isStopped {
+            startWalk(delay: false)
+        }
     }
 
     func searchBarCancelButtonClicked(_: UISearchBar) {
@@ -524,6 +739,9 @@ extension SearchViewController: UICollectionViewDelegate {
                 guard let self else { return }
                 hits.removeAll { $0 == hit }
                 folderEntries?.removeAll { $0 == hit.node }
+                // A rename or a move may have given it a name the next
+                // search has to find by walking.
+                finished = []
                 apply()
             }
             return UIMenu(

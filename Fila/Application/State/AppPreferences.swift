@@ -95,6 +95,14 @@ final class AppPreferences {
         }
     }
 
+    /// Search's scope as last chosen, so a user who always searches the
+    /// subtree does not choose it again on every search. The filters are not
+    /// kept: one left on from last time would hide files without a word.
+    var searchIncludesSubfolders: Bool {
+        get { defaults.bool(forKey: "searchIncludesSubfolders") }
+        set { defaults.set(newValue, forKey: "searchIncludesSubfolders") }
+    }
+
     // MARK: - File operations
 
     /// The regular delete action follows this choice; items already in the trash

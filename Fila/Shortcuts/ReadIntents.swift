@@ -232,7 +232,12 @@ struct FindFilesIntent: AppIntent {
         // cost a full search.
         let wanted = min(limit, FileSearch.resultLimit)
         var found: [FileEntity] = []
-        await FileSearch.run(root: root, needle: needle, session: session, limit: wanted) { _ in } onHit: { hit in
+        await FileSearch.run(
+            root: root,
+            matcher: FileSearchMatcher(needle: needle, filter: FileSearchFilter()),
+            session: session,
+            limit: wanted,
+        ) { _ in } onHit: { hit in
             found.append(FileEntity(directory: hit.directory, node: hit.node))
         }
         return .result(value: found)

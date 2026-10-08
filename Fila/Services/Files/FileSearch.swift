@@ -45,18 +45,18 @@ enum FileSearch {
     @discardableResult
     static func run(
         root: String,
-        needle: String,
+        matcher: FileSearchMatcher,
         session: FileSession,
         limit: Int = resultLimit,
         onVisit: @MainActor (String) -> Void,
         onHit: @MainActor (FileSearchResult) -> Void,
     ) async -> Int {
-        let needle = needle.lowercased()
-        guard !needle.isEmpty, limit > 0 else { return 0 }
+        guard !matcher.isEmpty, limit > 0 else { return 0 }
+        let needle = matcher.needle
         // The needle is what the user typed, not a path and not content. A
         // search that "found nothing" is nearly always a search of the wrong
         // root, and this is the pair of lines that shows it.
-        FilaLog.info("search \"\(needle)\" under \(root)")
+        FilaLog.info("search \"\(needle)\" under \(root)" + (matcher.filter.isActive ? ", filtered" : ""))
         let startedAt = Date()
         // Read from `next` rather than shifted off the front: a search of `/`
         // queues tens of thousands of folders, and removing the first of an
@@ -96,7 +96,7 @@ enum FileSearch {
                     for node in page where seen.insert(node.name).inserted {
                         guard !Task.isCancelled else { return skippedLinks }
                         let hit = FileSearchResult(directory: directory, node: node)
-                        if node.name.lowercased().contains(needle) {
+                        if matcher.matches(node) {
                             onHit(hit)
                             found += 1
                             if found >= limit {

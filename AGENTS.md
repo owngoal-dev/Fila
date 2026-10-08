@@ -898,7 +898,9 @@ belong in the shared `ellipsis` menu (not `ellipsis.circle`); preserve the same
 file operations in previews and editors as in the browser. Every page's ellipsis
 ends with the page's `settingsMenuElement` (the browser's inside More), because
 the tab overview has no bar to hold Settings; a sheet's own menu (the
-clipboard's) does not. Settings and the clipboard sheet open over the tapping
+clipboard's) does not, and neither does Search's, which is the search's form:
+its scope with checkmarks first, then the Kind, Size and Date Modified
+filters. A filter narrows a name search and never starts one. Settings and the clipboard sheet open over the tapping
 page's window, never twice. A menu that jumps somewhere — Go, the overview's
 plus — is `FilaMenu.sidebar`: the sidebar's own sections, empty ones left out.
 

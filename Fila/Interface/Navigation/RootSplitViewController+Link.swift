@@ -174,7 +174,7 @@ extension RootSplitViewController {
     }
 
     private func search(_ query: String, in root: String) {
-        push(SearchViewController(root: root, query: query))
+        push(SearchViewController(root: root, query: query, scope: .subfolders))
     }
 
     private func openApp(bundle: String, container: FilaLink.AppContainer) {

@@ -334,7 +334,7 @@ extension FileBrowserViewController {
 
     func presentSearch() {
         recordDirectoryUse()
-        navigationController?.pushViewController(SearchViewController(root: directory, scope: .folder), animated: true)
+        navigationController?.pushViewController(SearchViewController(root: directory), animated: true)
     }
 
     // MARK: - Prompts
