@@ -2,7 +2,7 @@
 // Renders the app icon as a small mark, light and dark, into
 // `Fila/Resources/Assets.xcassets/AppIconMark.imageset`.
 //
-// Run on a Mac, by hand, when `Fila/Resources/AppIcon.icon` changes:
+// Run on a Mac, by hand, when `Documentation/Icon/AppIcon.icon` changes:
 //
 //     swift Scripts/make-app-mark.swift
 //
@@ -17,7 +17,7 @@
 import AppKit
 
 let repository = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-let document = repository.appendingPathComponent("Fila/Resources/AppIcon.icon")
+let document = repository.appendingPathComponent("Documentation/Icon/AppIcon.icon")
 let output = repository.appendingPathComponent("Fila/Resources/Assets.xcassets/AppIconMark.imageset")
 
 struct Layer {
