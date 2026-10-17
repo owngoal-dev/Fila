@@ -23,8 +23,10 @@ import WebKit
 /// JavaScript stays on, because a workbook switches sheets with the
 /// converter's own script.
 ///
-/// When WebKit declines the type or fails to draw it, the file opens as its
-/// bytes alone would have — see `openWithoutDocumentViewer`.
+/// When WebKit declines the type or fails to draw it, the screen says so —
+/// see `documentViewerFailed`. It does not open the file as its bytes: a
+/// `.docx` is a ZIP, and dropping someone into its parts reads as Fila
+/// mistaking their document for an archive.
 final class DocumentViewerViewController: TabContentViewController, WKNavigationDelegate {
     private let handler: DocumentSchemeHandler?
     private lazy var webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration().then {
@@ -100,7 +102,7 @@ final class DocumentViewerViewController: TabContentViewController, WKNavigation
         }
     }
 
-    /// Hands the file back to its container to open without WebKit, once.
+    /// Tells the container WebKit could not show the document, once.
     /// Deferred a turn: the container replaces this controller, and doing it
     /// from inside a WebKit callback or `viewDidLoad` would pull the view out
     /// from under its own caller.
@@ -111,7 +113,7 @@ final class DocumentViewerViewController: TabContentViewController, WKNavigation
         webView.stopLoading()
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            (parent as? ViewerContainerViewController)?.openWithoutDocumentViewer(from: self)
+            (parent as? ViewerContainerViewController)?.documentViewerFailed(from: self)
         }
     }
 

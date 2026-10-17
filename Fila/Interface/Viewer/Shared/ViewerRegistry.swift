@@ -102,7 +102,7 @@ final class ViewerContainerViewController: TabContentViewController {
     private var detectedFormat: FileFormat?
     /// What the bytes alone say, without the name — the archive browser for a
     /// ZIP, hex for an OLE compound file, text for RTF. A document opens in
-    /// it when WebKit declines it, when it is empty, or when it is too large.
+    /// it when it is empty or too large; one WebKit declines does not.
     private var contentFormat: FileFormat = .binary
     private lazy var menuItem: UIBarButtonItem = {
         let item = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu())
@@ -188,13 +188,28 @@ final class ViewerContainerViewController: TabContentViewController {
     }
 
     private func present(failure: Error) {
-        childMenuElements = []
-        confirmReplacement = nil
         // Never `localizedDescription`: this is usually a `FilaFailure` from the
         // open, and that type has no `LocalizedError`, so the raw description is
         // "(FilaProtocol.FilaFailure error 1.)" — filling the screen with the
         // one message a user can neither read nor act on.
-        embed(ViewerFailureViewController(message: FailureMessage.text(for: failure)))
+        let message = FailureMessage.text(for: failure)
+        if canChangePermissions(after: failure) {
+            present(failurePage: ViewerFailureViewController(
+                message: message + "\n\n"
+                    + String(localized: "Change the file's permissions in Properties, then open it again."),
+                button: String(localized: "Change Permissions…"),
+            ) { [weak self] in
+                self?.showProperties()
+            })
+        } else {
+            present(failurePage: ViewerFailureViewController(message: message))
+        }
+    }
+
+    private func present(failurePage: ViewerFailureViewController) {
+        childMenuElements = []
+        confirmReplacement = nil
+        embed(failurePage)
         refreshBarItems()
         menuItem.isEnabled = true
     }
@@ -320,17 +335,39 @@ final class ViewerContainerViewController: TabContentViewController {
     }
 
     /// The document viewer's way out: WebKit declined the file or failed to
-    /// draw it, so the file opens as its bytes alone would have — the archive
-    /// browser for a ZIP, hex for an OLE compound file. Nothing is said about
-    /// it; Open As still offers Document.
+    /// draw it. The screen says so and opens nothing else — a `.docx` shown
+    /// as the ZIP it is reads as Fila mistaking it for an archive. Open As
+    /// stays, for whoever does want the parts, and offers Document again.
     ///
     /// Only from the viewer on screen, and only while nothing else is being
     /// opened: an Open As chosen during the conversion has already replaced
-    /// the document, and a second open racing it could land on top.
-    func openWithoutDocumentViewer(from viewer: UIViewController) {
+    /// the document, and a failure page landing on top would hide it.
+    func documentViewerFailed(from viewer: UIViewController) {
         guard child === viewer, detectedFormat == .document, menuItem.isEnabled else { return }
-        FilaLog.info("open \(details.path) as \(contentFormat): WebKit declined the document")
-        open(as: contentFormat)
+        FilaLog.info("open \(details.path): WebKit could not display the document")
+        detectedFormat = nil
+        present(failurePage: ViewerFailureViewController(
+            title: String(localized: "Unable to Display This Document"),
+            message: String(localized: "iOS could not display this document. To see what is inside it, choose another format under Open As."),
+        ))
+    }
+
+    /// Whether the open was refused for the file's mode or flags, and
+    /// Properties could change them: the daemon changes anything as root,
+    /// and without it the app changes only what its own user owns. Not the
+    /// daemon refusing the app, which carries no errno.
+    private func canChangePermissions(after error: Error) -> Bool {
+        guard let failure = error as? FilaFailure,
+              failure.systemError == EACCES || failure.systemError == EPERM else { return false }
+        return FileSession.shared.hello?.isPrivileged == true || details.node.ownerID == getuid()
+    }
+
+    /// Through the same path as Properties in the menu, which reads the
+    /// file's details again: the ones this screen holds predate the refusal.
+    private func showProperties() {
+        guard presentedViewController == nil else { return }
+        let directory = URL(fileURLWithPath: details.path).deletingLastPathComponent().path
+        FileActions(presenter: self, directory: directory).showProperties(details.path)
     }
 
     private func reopen(as format: FileFormat) {
@@ -389,14 +426,27 @@ final class ViewerContainerViewController: TabContentViewController {
     }
 }
 
-/// What a viewer shows when the file could not be read at all. Not a connection
-/// failure — those are never surfaced — but a real refusal from the kernel,
-/// which the user can act on by changing a mode or a flag.
+/// What a viewer shows when the file could not be opened, or when a document
+/// could not be drawn. Not a connection failure — those are never surfaced —
+/// but a refusal from the kernel, or WebKit declining the document. Only the
+/// caller knows whether there is something to do about it, so the button is
+/// the caller's.
 final class ViewerFailureViewController: TabContentViewController {
+    private let heading: String
     private let message: String
+    private let button: String?
+    private let action: (() -> Void)?
 
-    init(message: String) {
+    init(
+        title: String = String(localized: "Unable to Open This File"),
+        message: String,
+        button: String? = nil,
+        action: (() -> Void)? = nil,
+    ) {
+        heading = title
         self.message = message
+        self.button = button
+        self.action = action
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -411,9 +461,11 @@ final class ViewerFailureViewController: TabContentViewController {
 
         let status = StatusView(content: .message(
             symbol: "exclamationmark.triangle",
-            title: String(localized: "Unable to Open This File"),
+            title: heading,
             detail: message,
+            button: button,
         ))
+        status.action = action
         view.addSubview(status)
         status.snp.makeConstraints { make in
             make.edges.equalToSuperview()
