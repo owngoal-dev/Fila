@@ -234,7 +234,7 @@ check:
 			&& { echo "error: $$hook must not call uicache; uikittools triggers register the app" >&2; exit 65; } || true; \
 	done
 	@targets="$$(xcodebuild -project "$(PROJECT)" -list)" || exit $$?; \
-	for target in Filad FilaArchive Fila FilaSandboxed FilaCore FilaLocal FilaPrivileged FilaApplications FilaMusicLibrary FilaSMB; do \
+	for target in Filad FilaArchive Fila FilaSandboxed FilaCore FilaLocal FilaPrivileged FilaApplications FilaMusicLibrary FilaSMB FilaWebDAV; do \
 		grep -Eq "^[[:space:]]*$$target[[:space:]]*$$" <<<"$$targets" \
 			|| { echo "error: missing Xcode target $$target" >&2; exit 65; }; \
 	done

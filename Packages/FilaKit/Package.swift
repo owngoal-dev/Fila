@@ -193,6 +193,28 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)],
         ),
 
+        // One saved WebDAV server as a file backend — Alist, Nextcloud, a NAS:
+        // the profile, the URL session that streams every body through a
+        // descriptor, and the PROPFIND reader. Foundation only. Like FilaSMB,
+        // **not a product**: `FilaWebDAV.framework` compiles this directory
+        // itself and is embedded by both compositions.
+        .target(
+            name: "FilaWebDAV",
+            dependencies: ["FilaBackendKit", "FilaLog"],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+        ),
+        // FilaRemote and FilaFileOps as well: the suite runs Fila's own
+        // WebDAV server on loopback over a scratch directory and carries
+        // files to it and back through `FileTransfer`, both ends real.
+        .testTarget(
+            name: "FilaWebDAVTests",
+            dependencies: [
+                "FilaWebDAV", "FilaBackendKit", "FilaClient", "FilaRemote",
+                "FilaFileOps", "FilaProtocol", "CRemoveFile",
+            ],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+        ),
+
         // Readers and writers that work over a descriptor the daemon handed
         // back: plist, Mach-O, hex, archives. These allocate by content size,
         // which is exactly why they run in the app and never in the daemon —

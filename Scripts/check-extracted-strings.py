@@ -41,6 +41,7 @@ TARGETS = [
     ("FilaApplications", "Fila.build", "Frameworks/FilaApplications/Resources/Localizable.xcstrings"),
     ("FilaMusicLibrary", "Fila.build", "Frameworks/FilaMusicLibrary/Resources/Localizable.xcstrings"),
     ("FilaSMB", "Fila.build", "Frameworks/FilaSMB/Resources/Localizable.xcstrings"),
+    ("FilaWebDAV", "Fila.build", "Frameworks/FilaWebDAV/Resources/Localizable.xcstrings"),
     (
         "FilaFormats",
         "FilaKit.build",

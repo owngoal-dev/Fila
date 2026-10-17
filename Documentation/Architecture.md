@@ -334,11 +334,14 @@ to live in `FilaClient`; `FilaSMB` implements the contract over SMBClient: one
 saved share is one `SMBBackend`, its session serialises every request and
 retires itself on a timeout or cancellation, directories are pulled one server
 response at a time and files are read in bounded chunks into a staging
-descriptor. Implementations depend on the shared contract. No module framework
-is linked into filad.
+descriptor; `FilaWebDAV` implements it over `URLSession`: one saved server —
+Alist, Nextcloud, a NAS — is one `WebDAVBackend`, a folder is one depth-1
+PROPFIND, and every file body is streamed between the network and a descriptor.
+Implementations depend on the shared contract. No module framework is linked
+into filad.
 
 Backend implementations ship as separate bundled dynamic frameworks: FilaLocal,
-FilaPrivileged, FilaSMB, FilaApplications and FilaMusicLibrary, all under
+FilaPrivileged, FilaSMB, FilaWebDAV, FilaApplications and FilaMusicLibrary, all under
 `Frameworks/`. Included frameworks are
 retained as startup Mach-O dependencies and loaded by dyld before main. In main,
 BackendModuleDiscovery reads each embedded module's static manifest
@@ -448,7 +451,7 @@ compile, link and embed time, including their native bridges, controllers and
 indirect dependencies. `FilaApplications` and `FilaMusicLibrary` appear only
 in the full composition. The app target `FilaSandboxed` excludes
 `FilaPrivileged` as well: it is a second application target over the same
-`Fila/` sources that links and embeds `FilaCore`, `FilaLocal` and `FilaSMB` alone, built
+`Fila/` sources that links and embeds `FilaCore`, `FilaLocal`, `FilaSMB` and `FilaWebDAV` alone, built
 into its own DerivedData by `make build-sandboxed`, and `make ipa` packages
 it. The existing `Fila` target serves the deb and tipa with runtime backend
 selection. This revises the former shared-app-binary assumption for the

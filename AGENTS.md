@@ -267,7 +267,7 @@ between the app and the kernel with nothing in between.
   back; libarchive and MachOKit live here), `FilaMedia` (AVFoundation and
   ImageIO over the same descriptors), `FilaTerminal` (the pty pump and
   libghostty), `FilaRemote` (the WebDAV server and URL download),
-  `FilaApplications`, `FilaMusicLibrary`, `FilaSMB`, and the `C*` shims.
+  `FilaApplications`, `FilaMusicLibrary`, `FilaSMB`, `FilaWebDAV`, and the `C*` shims.
 
   The daemon links **only** `FilaProtocol`, `FilaFileOps` and `FilaLog` — that
   list is a budget, not a habit, and everything else is app-side because
@@ -281,7 +281,7 @@ between the app and the kernel with nothing in between.
   `Packages/FilaKit/Tests/`. Core code must build and test on macOS with plain
   SwiftPM, without building the iOS app or daemon. UIKit-only code stays behind
   `canImport(UIKit)`; the host harness does not create a macOS product.
-- `Frameworks/` — the dynamic images the app actually links. Six Xcode
+- `Frameworks/` — the dynamic images the app actually links. Seven Xcode
   framework targets, each compiling package sources rather than depending on a
   package product:
   - `FilaCore` is one file of `@_exported import` and nothing else. Every
@@ -291,15 +291,15 @@ between the app and the kernel with nothing in between.
     Linking a package product from two images would give the process two
     copies of every class, and Swift conformance lookup and the Objective-C
     runtime both misbehave on duplicate definitions.
-  - `FilaLocal`, `FilaPrivileged`, `FilaApplications`, `FilaMusicLibrary` and
-    `FilaSMB` are the backend modules: the module's screens, its
+  - `FilaLocal`, `FilaPrivileged`, `FilaApplications`, `FilaMusicLibrary`,
+    `FilaSMB` and `FilaWebDAV` are the backend modules: the module's screens, its
     `FilaBackendModule.plist` manifest and its own string catalogue, over the
     matching `Packages/FilaKit/Sources/<Name>` directory.
 
   **A backend module lives in two places on purpose.** The package target is
   the source and the `swift test` surface; the framework target compiles that
-  same directory. `FilaPrivileged`, `FilaApplications`, `FilaMusicLibrary` and
-  `FilaSMB` are deliberately **not** package products — a product would drag
+  same directory. `FilaPrivileged`, `FilaApplications`, `FilaMusicLibrary`,
+  `FilaSMB` and `FilaWebDAV` are deliberately **not** package products — a product would drag
   its whole closure into the framework beside the copy already in `FilaCore`.
   Read the comments in `Package.swift` before changing that shape.
 
@@ -601,7 +601,7 @@ sentence. The same script fails on a missing or `""` message.
   a whole core, so keep such waits short or move them onto a thread of their
   own, and wait for a condition with a generous bound rather than sleeping a
   fixed time and asserting it happened.
-- `make check` — project and packaging validation: the ten Xcode targets must
+- `make check` — project and packaging validation: the eleven Xcode targets must
   all exist, versions and the deployment target must live in `Configuration/`,
   the string catalogues must match what the compiler extracted, and the
   UI-library grep must come back empty (no `UIAlertController`, no
@@ -668,12 +668,13 @@ sentence. The same script fails on a missing or `""` message.
   frameworks; what differs is the link line. Both embed `FilaCore` — that one
   is not a backend and is never excluded. `Fila` then links and embeds every
   module framework (`FilaLocal`, `FilaPrivileged`, `FilaApplications`,
-  `FilaMusicLibrary`, `FilaSMB`) as `-needed_framework` startup dependencies
-  and serves the `.deb` and the `.tipa`; `FilaSandboxed` links `FilaLocal`
-  and `FilaSMB` alone and serves the `.ipa`, so the archive a free developer
-  account re-signs contains no private API. `FilaSMB` is public API
-  throughout — Network.framework, CommonCrypto and the vendored
-  `Packages/SMBClient` — which is why it ships in both. Never add a build flag, a compilation condition
+  `FilaMusicLibrary`, `FilaSMB`, `FilaWebDAV`) as `-needed_framework` startup
+  dependencies and serves the `.deb` and the `.tipa`; `FilaSandboxed` links
+  `FilaLocal`, `FilaSMB` and `FilaWebDAV` alone and serves the `.ipa`, so the
+  archive a free developer account re-signs contains no private API.
+  `FilaSMB` is public API throughout — Network.framework, CommonCrypto and the
+  vendored `Packages/SMBClient` — and `FilaWebDAV` is `URLSession` alone,
+  which is why both ship in both. Never add a build flag, a compilation condition
   or a per-packaging source variant to tell wrappers apart: a module that is
   not linked is not registered, and a screen that is not registered is not
   offered. The one platform condition is the simulator's container pin in
@@ -1058,11 +1059,11 @@ rather than scraped. `FilaFormats`, `FilaMedia`, `FilaTerminal` and
 bundles.
 
 A **module framework** is a third case, and the intermediates are where it
-shows: `FilaApplications`, `FilaMusicLibrary` and `FilaSMB` are compiled by
+shows: `FilaApplications`, `FilaMusicLibrary`, `FilaSMB` and `FilaWebDAV` are compiled by
 their Xcode framework targets rather than by SwiftPM, so their `.stringsdata`
 lands under `Fila.build/`, not `FilaKit.build/`. `FilaSaveAction` is an
 extension with its own catalogue for the same reason. The table in
-`Scripts/check-extracted-strings.py` names all nine checked targets and where
+`Scripts/check-extracted-strings.py` names all ten checked targets and where
 each one's intermediates live. Add a new target to that table when it grows
 its first string; a target missing from it is not checked at all.
 

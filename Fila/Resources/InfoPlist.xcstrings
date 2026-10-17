@@ -116,79 +116,79 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يحتاج Fila إلى الشبكة المحلية لمشاركة ملفات هذا الجهاز. المشاركة متوقفة حتى تشغّلها من الإعدادات."
+            "value" : "يستخدم Fila الشبكة المحلية لمشاركة ملفات هذا الجهاز وللاتصال بالخوادم التي تضيفها. المشاركة متوقفة حتى تشغّلها من الإعدادات."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila benötigt das lokale Netzwerk, um die Dateien dieses Geräts zu teilen. Die Freigabe ist aus, bis du sie in den Einstellungen aktivierst."
+            "value" : "Fila nutzt das lokale Netzwerk, um die Dateien dieses Geräts zu teilen und sich mit Servern zu verbinden, die du hinzufügst. Die Freigabe ist aus, bis du sie in den Einstellungen aktivierst."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila needs the local network to share this device’s files. Sharing is off until you turn it on in Settings."
+            "value" : "Fila uses the local network to share this device’s files and to connect to servers you add. Sharing is off until you turn it on in Settings."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila necesita la red local para compartir los archivos de este dispositivo. La compartición está desactivada hasta que la actives en Ajustes."
+            "value" : "Fila usa la red local para compartir los archivos de este dispositivo y conectarse a los servidores que añadas. La compartición está desactivada hasta que la actives en Ajustes."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila a besoin du réseau local pour partager les fichiers de cet appareil. Le partage reste désactivé tant que vous ne l’activez pas dans Réglages."
+            "value" : "Fila utilise le réseau local pour partager les fichiers de cet appareil et se connecter aux serveurs que vous ajoutez. Le partage reste désactivé tant que vous ne l’activez pas dans Réglages."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila ha bisogno della rete locale per condividere i file di questo dispositivo. La condivisione è disattivata finché non la attivi in Impostazioni."
+            "value" : "Fila usa la rete locale per condividere i file di questo dispositivo e connettersi ai server che aggiungi. La condivisione è disattivata finché non la attivi in Impostazioni."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila はこのデバイスのファイルを共有するためにローカルネットワークを使用します。共有は「設定」でオンにするまで無効です。"
+            "value" : "Fila は、このデバイスのファイルを共有するため、また追加したサーバに接続するためにローカルネットワークを使用します。共有は「設定」でオンにするまで無効です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila는 이 기기의 파일을 공유하는 데 로컬 네트워크가 필요합니다. 공유는 설정에서 켜기 전까지 꺼져 있습니다."
+            "value" : "Fila는 이 기기의 파일을 공유하고 사용자가 추가한 서버에 연결하는 데 로컬 네트워크를 사용합니다. 공유는 설정에서 켜기 전까지 꺼져 있습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Fila precisa da rede local para compartilhar os arquivos deste dispositivo. O compartilhamento fica desativado até você ativá-lo nos Ajustes."
+            "value" : "O Fila usa a rede local para compartilhar os arquivos deste dispositivo e se conectar aos servidores que você adicionar. O compartilhamento fica desativado até você ativá-lo nos Ajustes."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila нужна локальная сеть, чтобы делиться файлами этого устройства. Общий доступ выключен, пока вы не включите его в Настройках."
+            "value" : "Fila использует локальную сеть, чтобы делиться файлами этого устройства и подключаться к добавленным вами серверам. Общий доступ выключен, пока вы не включите его в Настройках."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila cần mạng nội bộ để chia sẻ tệp trên thiết bị này. Chia sẻ luôn tắt cho đến khi bạn bật trong Cài đặt."
+            "value" : "Fila dùng mạng cục bộ để chia sẻ tệp của thiết bị này và kết nối với các máy chủ bạn thêm. Chia sẻ sẽ tắt cho đến khi bạn bật trong Cài đặt."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 需要本地网络，才能共享这台设备上的文件。共享默认关闭，请在“设置”中开启。"
+            "value" : "Fila 使用本地网络共享这台设备上的文件，并连接你添加的服务器。共享默认关闭，请在“设置”中开启。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 需要區域網路，才能分享這台裝置上的檔案。分享預設關閉，請在「設定」中開啟。"
+            "value" : "Fila 使用區域網路分享這台裝置上的檔案，並連線至你加入的伺服器。分享預設關閉，請在「設定」中開啟。"
           }
         }
       }

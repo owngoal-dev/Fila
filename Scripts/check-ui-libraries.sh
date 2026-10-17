@@ -32,6 +32,7 @@ ui_roots=(
     "$root/Packages/FilaKit/Sources/FilaApplications"
     "$root/Packages/FilaKit/Sources/FilaMusicLibrary"
     "$root/Packages/FilaKit/Sources/FilaSMB"
+    "$root/Packages/FilaKit/Sources/FilaWebDAV"
     "$root/Packages/FilaKit/Sources/FilaTerminal"
 )
 

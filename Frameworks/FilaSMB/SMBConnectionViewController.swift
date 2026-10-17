@@ -82,7 +82,7 @@ final class SMBConnectionViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "row")
-        tableView.register(FieldCell.self, forCellReuseIdentifier: "field")
+        tableView.register(FormFieldCell.self, forCellReuseIdentifier: "field")
         tableView.keyboardDismissMode = .interactive
         refreshSaveButton()
     }
@@ -126,8 +126,8 @@ final class SMBConnectionViewController: UITableViewController {
         tableView.reloadRows(at: [indexPath], with: .none)
     }
 
-    private func fieldCell(for row: Row) -> FieldCell? {
-        indexPath(of: row).flatMap { tableView.cellForRow(at: $0) as? FieldCell }
+    private func fieldCell(for row: Row) -> FormFieldCell? {
+        indexPath(of: row).flatMap { tableView.cellForRow(at: $0) as? FormFieldCell }
     }
 
     /// The Name row's placeholder is the share and server while no name is
@@ -192,7 +192,7 @@ final class SMBConnectionViewController: UITableViewController {
             cell.selectionStyle = .none
             return cell
         case .host, .port, .share, .domain, .username, .password, .name:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "field", for: indexPath) as! FieldCell
+            let cell = tableView.dequeueReusableCell(withIdentifier: "field", for: indexPath) as! FormFieldCell
             cell.configure(field(for: row)) { [weak self] text in
                 self?.apply(text, to: row)
             }
@@ -210,7 +210,7 @@ final class SMBConnectionViewController: UITableViewController {
             chooseShare()
         case .guest, .host, .port, .share, .domain, .username, .password, .name:
             // Tapping the row's title focuses its field.
-            (tableView.cellForRow(at: indexPath) as? FieldCell)?.beginEditing()
+            (tableView.cellForRow(at: indexPath) as? FormFieldCell)?.beginEditing()
         }
     }
 
@@ -235,7 +235,7 @@ final class SMBConnectionViewController: UITableViewController {
 
     // MARK: - Editing
 
-    private func field(for row: Row) -> FieldCell.Configuration {
+    private func field(for row: Row) -> FormFieldCell.Configuration {
         switch row {
         case .host:
             return .init(
@@ -503,93 +503,5 @@ final class SMBConnectionViewController: UITableViewController {
                 message: BackendScreens.shell?.failureText(for: error) ?? error.localizedDescription,
             )
         }
-    }
-}
-
-/// One labelled text field in a grouped row: the title leading, the value
-/// typed trailing, the way Settings lays out a form.
-private final class FieldCell: UITableViewCell {
-    struct Configuration {
-        var title: String
-        var placeholder: String
-        var text: String
-        var keyboard: UIKeyboardType = .default
-        var isSecure = false
-    }
-
-    private let titleLabel = UILabel().then {
-        $0.font = .preferredFont(forTextStyle: .body)
-        $0.adjustsFontForContentSizeCategory = true
-        $0.setContentHuggingPriority(.required, for: .horizontal)
-        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
-    }
-
-    private let field = UITextField().then {
-        $0.font = .preferredFont(forTextStyle: .body)
-        $0.adjustsFontForContentSizeCategory = true
-        $0.textAlignment = .right
-        $0.autocapitalizationType = .none
-        $0.autocorrectionType = .no
-        $0.spellCheckingType = .no
-        $0.smartQuotesType = .no
-        $0.smartDashesType = .no
-        $0.smartInsertDeleteType = .no
-        $0.clearButtonMode = .whileEditing
-        $0.returnKeyType = .done
-    }
-
-    private var onChange: ((String) -> Void)?
-
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        selectionStyle = .none
-        field.addTarget(self, action: #selector(changed), for: .editingChanged)
-        field.addTarget(self, action: #selector(finishTextEntry(_:)), for: .editingDidEndOnExit)
-        let row = UIStackView(arrangedSubviews: [titleLabel, field]).then {
-            $0.axis = .horizontal
-            $0.alignment = .center
-            $0.spacing = FilaUI.Spacing.large
-        }
-        contentView.addSubview(row)
-        row.snp.makeConstraints { make in
-            make.edges.equalTo(contentView.layoutMarginsGuide)
-            make.height.greaterThanOrEqualTo(FilaUI.minimumTapTarget - 2 * FilaUI.Spacing.small)
-        }
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    func configure(_ configuration: Configuration, onChange: @escaping (String) -> Void) {
-        titleLabel.text = configuration.title
-        field.do {
-            $0.text = configuration.text
-            $0.placeholder = configuration.placeholder
-            $0.accessibilityLabel = configuration.title
-            $0.keyboardType = configuration.keyboard
-            $0.isSecureTextEntry = configuration.isSecure
-            $0.textContentType = configuration.isSecure ? .password : nil
-        }
-        self.onChange = onChange
-    }
-
-    func beginEditing() {
-        field.becomeFirstResponder()
-    }
-
-    /// A placeholder that changes under a live field, without a reload that
-    /// would take the keyboard away.
-    func setPlaceholder(_ placeholder: String) {
-        field.placeholder = placeholder
-    }
-
-    @objc private func changed() {
-        onChange?(field.text ?? "")
-    }
-
-    @objc private func finishTextEntry(_ sender: UITextField) {
-        sender.resignFirstResponder()
     }
 }

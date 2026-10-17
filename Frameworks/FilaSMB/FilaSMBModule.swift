@@ -101,10 +101,25 @@ public final class FilaSMBModule: NSObject, BackendModule {
         // they had, never with neither.
         try store.save(profile, password: password)
         let backend = makeBackend(profile, host: host)
-        try host.addBackend(backend) { [weak self] location in self?.screen(for: location) }
+        do {
+            try host.addBackend(backend) { [weak self] location in self?.screen(for: location) }
+        } catch {
+            // Not live, so not saved: the record and its password go again,
+            // or the next Save would add a second copy beside it.
+            try? store.remove(profile.id)
+            throw error
+        }
         backends[backend.id] = backend
         if let previous {
-            try remove(previous.id)
+            // The save already happened: the new entry is live. An old one
+            // that will not go stays in the sidebar for the user to remove,
+            // rather than turning a saved edit into a reported failure that
+            // invites saving it a second time.
+            do {
+                try remove(previous.id)
+            } catch {
+                FilaLog.warning("smb: the entry \(previous.id) was replaced but could not be removed: \(error)")
+            }
         }
         return backend
     }
