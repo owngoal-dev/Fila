@@ -2056,6 +2056,89 @@
         }
       }
     },
+    "%@ will be copied into the folder you choose." : {
+      "comment" : "Note above the folder panel when files shared to Fila are being imported. %@ is the quoted file names. They are copied, never moved: the original stays where it was.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيتم نسخ %@ إلى المجلد الذي تختاره."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wird in den Ordner kopiert, den du auswählst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ will be copied into the folder you choose."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ se copiará a la carpeta que selecciones."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sera copié dans le dossier que vous choisissez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fila copierà %@ nella cartella che scegli."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@は選択したフォルダにコピーされます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@이(가) 선택한 폴더로 복사됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ será copiado para a pasta que você escolher."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ будет скопировано в выбранную вами папку."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ sẽ được sao chép vào thư mục bạn chọn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 将拷贝到你选择的文件夹。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 會拷貝到你選擇的檔案夾中。"
+          }
+        }
+      }
+    },
     "%@ will be moved into the folder you choose." : {
       "comment" : "Note above the folder panel when files shared to Fila are being imported. %@ is the quoted file names.",
       "localizations" : {
