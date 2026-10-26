@@ -312,15 +312,30 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
-    /// Replaces the current tab's whole stack with `viewController`, with no
-    /// transition. The sidebar's Applications entry is a jump like `open`, and
-    /// a jump that pushed read as a descent from wherever the tab happened to be.
+    /// A catalogue or a server replaces the tab's page, with no transition —
+    /// the sidebar's row and the Go menu both land here.
+    ///
+    /// In a regular layout that is the whole story: the sidebar column stays on
+    /// screen, so another row is one tap away and the page needs no history of
+    /// its own. In a collapsed one the sidebar is a sheet that leaves with the
+    /// tap, and a catalogue root has no folder and no parent — a stack holding
+    /// nothing but itself had no way back. There the page lands *on top of* the
+    /// one it was made from instead.
     func replace(_ viewController: UIViewController) {
         confirmLeavingContent { [weak self] in
             guard let self else { return }
             dismissSidebarSheet()
-            content.navigation?.setViewControllers([viewController], animated: false)
-            if !isCollapsed {
+            if isCollapsed {
+                var stack = content.navigation?.viewControllers ?? []
+                // The same catalogue twice is the same place: a second tap on
+                // its row replaces the page rather than stacking another copy.
+                if let top = stack.last, type(of: top) == type(of: viewController) {
+                    stack.removeLast()
+                }
+                stack.append(viewController)
+                content.navigation?.setViewControllers(stack, animated: false)
+            } else {
+                content.navigation?.setViewControllers([viewController], animated: false)
                 show(.secondary)
             }
         }
@@ -355,19 +370,21 @@ final class RootSplitViewController: UISplitViewController {
         }
     }
 
-    /// A module's root screen in a new tab. The tab store records a
-    /// directory per tab, so the catalogue tab restores to the current
-    /// directory if the screen itself cannot be restored.
+    /// A catalogue or a server in a tab of its own, as the switcher's plus
+    /// says. In a collapsed layout the default folder — where a new tab opens
+    /// anyway — sits beneath it, so Back and the edge swipe have a page to
+    /// return to, and the tab records that folder, which is what it restores
+    /// to. In a regular one the page stands alone, as it always has: the
+    /// sidebar column is the way out.
     func openInNewTab(location: BackendLocation) {
-        guard let screen = SidebarLocation.screen(for: location) else { return }
-        openInNewTab(screen, directory: FileSession.shared.lastDirectoryPath)
-    }
-
-    func openInNewTab(_ controller: UIViewController, directory: String) {
-        guard !tabs.isFull else { return }
+        guard let screen = SidebarLocation.screen(for: location), !tabs.isFull else { return }
         content.captureCurrentTab()
+        let directory = AppPreferences.shared.launchDirectory
         guard tabs.open(directory) != nil else { return }
-        content.showCurrentTab(root: controller)
+        content.showCurrentTab(
+            root: screen,
+            beneath: isCollapsed ? FileBrowserViewController(directory: directory) : nil,
+        )
     }
 
     /// A new tab asked for at the cap: the folder opens in the current tab

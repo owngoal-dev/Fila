@@ -84,6 +84,12 @@
         /// Shows the screen a module routes for `location` in the current
         /// tab, the way the sidebar's rows do.
         func open(_ location: BackendLocation)
+        /// The favourites, as the menu a crumb offers on a tap: the folders
+        /// saved for one. Built when it is opened, so what it holds is current
+        /// then.
+        var favoritesMenu: UIMenu { get }
+        /// Every destination the sidebar holds, for a crumb's long press.
+        var placesMenu: UIMenu { get }
         /// The app's Settings, over whatever is on top of `presenter`'s window;
         /// nothing when they are already open there.
         func presentSettings(from presenter: UIViewController)

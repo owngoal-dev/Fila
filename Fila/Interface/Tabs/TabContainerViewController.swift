@@ -58,11 +58,6 @@ final class TabContainerViewController: UIViewController {
         installedTabID.flatMap { tabs[$0]?.navigation }
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-    }
-
     /// Re-installs this window's own tab — the page the user is looking at
     /// — for the callers that need a live navigation and must not switch
     /// tabs: closing the overview without choosing, and a push or replace
@@ -166,8 +161,14 @@ final class TabContainerViewController: UIViewController {
         removeClosedTabs()
     }
 
-    func showCurrentTab(root: UIViewController) {
-        showTab(store.currentID) { makeNavigation([root]) }
+    /// Installs the current tab with `root` on top and, when there is one, the
+    /// page `beneath` it. A catalogue opened from the switcher's plus is a tab
+    /// of its own — that is what the plus says — and Back on it needs a page
+    /// under it to return to.
+    func showCurrentTab(root: UIViewController, beneath: UIViewController? = nil) {
+        showTab(store.currentID) {
+            makeNavigation(beneath.map { [$0, root] } ?? [root])
+        }
         removeClosedTabs()
     }
 

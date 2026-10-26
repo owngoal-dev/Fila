@@ -68,6 +68,23 @@
             String(describing: type(of: self))
         }
 
+        // MARK: - The crumb of a catalogue root
+
+        /// A module catalogue's trail is one crumb — the screen itself — so the
+        /// crumb offers what a folder's does, minus the folder: a tap gives the
+        /// favourites to jump to and a long press gives the places. Without a
+        /// menu at all `PathBarView` hides its tap target, which is how this
+        /// crumb came to swallow both gestures.
+        ///
+        /// `FileBrowserViewController` answers both with its own folder menus.
+        open override var currentCrumbMenu: UIMenu? {
+            crumbs.count == 1 ? BackendScreens.shell?.favoritesMenu : nil
+        }
+
+        open override var currentCrumbLongPressMenu: UIMenu? {
+            crumbs.count == 1 ? BackendScreens.shell?.placesMenu : nil
+        }
+
         public private(set) var loadTask: Task<Void, Never>?
         private var changesTask: Task<Void, Never>?
 

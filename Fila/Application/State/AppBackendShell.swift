@@ -139,8 +139,41 @@ final class AppBackendShell: BackendShell {
 
     func open(_ location: BackendLocation) {
         guard let screen = SidebarLocation.screen(for: location) else { return }
+        front?.replace(screen)
+    }
+
+    /// The favourites as one menu: what a catalogue root's crumb offers on a
+    /// tap, the way a folder's crumb does. A catalogue has no folder of its own
+    /// to save and nothing above it in the trail, so the saved folders are the
+    /// whole of the menu — and with none saved it would open empty, which is
+    /// why the places stand in for it then.
+    var favoritesMenu: UIMenu {
+        guard !FileSession.shared.favoritePaths.isEmpty else { return placesMenu }
+        return UIMenu(children: [
+            FilaMenu.favoriteItems { [weak self] path in self?.front?.open(path) },
+        ])
+    }
+
+    /// The sidebar's destinations as one menu: a catalogue root's crumb on a
+    /// long press. A folder opens in the tab it is picked in; a catalogue or a
+    /// server goes through the same jump its row in the sidebar does.
+    var placesMenu: UIMenu {
+        UIMenu(title: String(localized: "Places"), children: [
+            UIDeferredMenuElement.uncached { [weak self] done in
+                done(FilaMenu.placeActions(
+                    open: { [weak self] path in self?.front?.open(path) },
+                    openLocation: { [weak self] location in self?.open(location) },
+                ))
+            },
+        ])
+    }
+
+    /// The split view of the front window. A module screen lives inside it, but
+    /// on a phone the sidebar is a sheet it presented, and a presented screen
+    /// has no split view above it to ask.
+    private var front: RootSplitViewController? {
         (UIApplication.shared.connectedScenes.first { $0.activationState == .foregroundActive } as? UIWindowScene)?
-            .windows.first { $0.isKeyWindow }?.rootViewController?.shell?.replace(screen)
+            .windows.first { $0.isKeyWindow }?.rootViewController as? RootSplitViewController
     }
 
     /// Over whatever is on top of the page's window: a page's More can be on
