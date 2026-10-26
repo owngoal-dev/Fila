@@ -134,6 +134,15 @@ final class ArchiveBrowserViewController: TabContentViewController {
         view.backgroundColor = .systemBackground
 
         let configuration = UICollectionLayoutListConfiguration(appearance: .plain).with {
+            // Nothing above the first row: the top of the list is the screen's
+            // own edge, and a hairline there reads as a line with nothing above
+            // it.
+            $0.itemSeparatorHandler = { indexPath, section in
+                guard indexPath.item == 0 else { return section }
+                var configuration = section
+                configuration.topSeparatorVisibility = .hidden
+                return configuration
+            }
             $0.backgroundColor = .clear
             $0.footerMode = .supplementary
         }

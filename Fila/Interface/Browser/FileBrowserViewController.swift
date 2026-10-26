@@ -385,6 +385,15 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 // empty/loading panel lives. Clearing it is what keeps "Reading
                 // this folder…" visible; the cells carry their own background.
                 $0.backgroundColor = .clear
+                // Nothing above the first row: the top of the list is the
+                // screen's own edge, and a hairline there reads as a line that
+                // belongs to nothing.
+                $0.itemSeparatorHandler = { indexPath, section in
+                    guard indexPath.item == 0 else { return section }
+                    var configuration = section
+                    configuration.topSeparatorVisibility = .hidden
+                    return configuration
+                }
                 $0.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
                     guard let self, let node = dataSource.itemIdentifier(for: indexPath) else { return nil }
                     let title = isTrash ? String(localized: "Delete Permanently") : deleteTitle
