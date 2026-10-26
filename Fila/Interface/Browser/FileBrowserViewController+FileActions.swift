@@ -119,7 +119,7 @@ extension FileBrowserViewController {
     func browserMenuElements(folderAction: UIMenuElement, selectAction: UIAction) -> [UIMenuElement] {
         let actions: [UIMenuElement] = [
             selectAction,
-            favoriteToggleAction(),
+            favoriteToggleAction(keepsMenuOpen: true),
             UIAction(
                 title: String(localized: "Open in New Tab"),
                 image: UIImage(systemName: "plus.square.on.square"),
@@ -196,16 +196,26 @@ extension FileBrowserViewController {
 
     /// This folder into or out of the favourites, worded for its state when
     /// the menu is built.
-    private func favoriteToggleAction() -> UIAction {
+    ///
+    /// `keepsMenuOpen` is for the ellipsis, a bar button item: handing its item
+    /// a rebuilt menu repaints the presented menu where it stands, so the row
+    /// flips under the finger. The breadcrumb's current crumb is a `UIButton`,
+    /// and its menu is presented again when it is handed a new one — there the
+    /// row would blink closed and open, so that menu closes as it always has.
+    private func favoriteToggleAction(keepsMenuOpen: Bool = false) -> UIAction {
         let favorite = session.isFavorite(directory)
         return UIAction(
             title: favorite
                 ? String(localized: "Remove from Favorites")
                 : String(localized: "Add to Favorites"),
             image: UIImage(systemName: favorite ? "star.slash" : "star"),
+            attributes: keepsMenuOpen ? Self.staysOpenWhileToggling : [],
         ) { [weak self] _ in
             guard let self else { return }
             session.toggleFavorite(directory)
+            if keepsMenuOpen {
+                refreshMoreMenu()
+            }
         }
     }
 
@@ -227,8 +237,10 @@ extension FileBrowserViewController {
 
     /// A long press on the current breadcrumb: the rows of Go › Places,
     /// built when the menu opens so the capabilities are current.
+    /// No title: the menu is the places, and a heading over them says nothing
+    /// the rows do not.
     func makeCurrentCrumbPlacesMenu() -> UIMenu {
-        UIMenu(title: String(localized: "Places"), children: [
+        UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] completion in
                 completion(FilaMenu.placeActions(
                     open: { [weak self] path in self?.open(directory: path) },
