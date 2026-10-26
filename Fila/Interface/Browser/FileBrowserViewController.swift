@@ -924,7 +924,17 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     /// While transfers run, the glyph is
     /// their count — the one place the bar says so without another button.
     private lazy var moreButton: UIBarButtonItem = {
-        let more = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: UIMenu(children: [
+        let more = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: makeMoreMenu())
+        more.accessibilityLabel = String(localized: "More")
+        return more
+    }()
+
+    /// The ellipsis menu, built for each presentation and again after a switch
+    /// inside it: a menu that stays presented — which is what the two display
+    /// switches ask for — is not re-read by UIKit, so the mark would otherwise
+    /// be the one from before the tap until the menu was opened again.
+    func makeMoreMenu() -> UIMenu {
+        UIMenu(children: [
             UIDeferredMenuElement.uncached { [weak self] done in
                 guard let self else { done([]); return }
                 recordDirectoryUse()
@@ -944,10 +954,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
                 let folder: UIMenuElement = isTrash ? emptyTrashAction() : newMenu()
                 done(browserMenuElements(folderAction: folder, selectAction: select) + transfers)
             },
-        ]))
-        more.accessibilityLabel = String(localized: "More")
-        return more
-    }()
+        ])
+    }
+
+    /// Hands the item a freshly built menu so a switch's mark is drawn again.
+    func refreshMoreMenu() {
+        moreButton.menu = makeMoreMenu()
+    }
 
     private var displayedTaskCount: Int?
 

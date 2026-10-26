@@ -67,6 +67,7 @@ extension FileBrowserViewController {
                 for: path,
                 node: node,
                 additional: file,
+                select: isEditing ? nil : { [weak self] in self?.select(node) },
                 preview: { [weak self] in self?.preview(node) },
             ),
         )
@@ -108,50 +109,15 @@ extension FileBrowserViewController {
         return URL(fileURLWithPath: joined).standardizedFileURL.path
     }
 
+    /// The ellipsis menu, top to bottom: what acts on this folder, then its
+    /// display as two switches, then creating something, then where to go.
+    ///
+    /// "More" used to hold the row actions one level down, and View and Hidden
+    /// Files were two-option submenus of a two-option kind: a menu that is
+    /// opened for a folder should say what can be done with it in its first
+    /// group, and a choice of two belongs in one switch, not a submenu.
     func browserMenuElements(folderAction: UIMenuElement, selectAction: UIAction) -> [UIMenuElement] {
-        let layouts = BrowserLayout.allCases.map { layout in
-            UIAction(
-                title: layout == .grid ? String(localized: "Grid") : String(localized: "List"),
-                image: UIImage(systemName: layout == .grid ? "square.grid.2x2" : "list.bullet"),
-                state: session.layout(for: directory) == layout ? .on : .off,
-            ) { [weak self] _ in
-                guard let self else { return }
-                session.setLayout(layout, for: directory)
-                viewPreferenceChanged(relayout: true)
-            }
-        }
-        // These are ordinary submenus on every OS: keep the home menu's
-        // creation, display preferences, and navigation groups in this order.
-        let hidden = [true, false].map { showsHidden in
-            UIAction(
-                title: showsHidden ? String(localized: "Show") : String(localized: "Hide"),
-                state: session.showsHidden == showsHidden ? .on : .off,
-            ) { [weak self] _ in
-                guard let self else { return }
-                session.setShowsHidden(showsHidden)
-                viewPreferenceChanged(relayout: false)
-            }
-        }
-        let view = UIMenu(options: .displayInline, children: [
-            UIMenu(
-                title: String(localized: "View"),
-                image: UIImage(systemName: "square.grid.2x2"),
-                options: .singleSelection,
-                children: layouts,
-            ),
-            UIMenu(
-                title: String(localized: "Hidden Files"),
-                image: UIImage(systemName: "eye.slash"),
-                options: .singleSelection,
-                children: hidden,
-            ),
-            UIMenu(
-                title: String(localized: "Sort By"),
-                image: UIImage(systemName: "arrow.up.arrow.down"),
-                children: sortMenuElements(),
-            ),
-        ])
-        let more: [UIMenuElement] = [
+        let actions: [UIMenuElement] = [
             selectAction,
             favoriteToggleAction(),
             UIAction(
@@ -161,19 +127,71 @@ extension FileBrowserViewController {
                 guard let self else { return }
                 shell?.openInNewTab(directory)
             },
-            settingsMenuElement,
         ]
-        // The browser's Go menu changes the current location; More acts on
-        // the current folder. Keep these separate from the overview's new-tab menu.
+        let display: [UIMenuElement] = [
+            layoutToggleAction(),
+            hiddenFilesToggleAction(),
+            UIMenu(
+                title: String(localized: "Sort By"),
+                image: UIImage(systemName: "arrow.up.arrow.down"),
+                children: sortMenuElements(),
+            ),
+        ]
         let navigation: [UIMenuElement] = [
             UIMenu(
                 title: String(localized: "Go"),
                 image: UIImage(systemName: "arrow.right.circle"),
                 children: goMenuElements(),
             ),
-            UIMenu(title: String(localized: "More"), image: UIImage(systemName: "ellipsis.circle"), children: more),
+            settingsMenuElement,
         ]
-        return FilaMenu.groups([folderAction]) + [view] + FilaMenu.groups(navigation)
+        return FilaMenu.groups(actions, display, [folderAction], navigation)
+    }
+
+    /// The layout as one switch rather than a submenu of two rows. The label
+    /// names the mode the check mark describes and does not change under the
+    /// finger: tapping flips the mode with the menu still open, so the mark is
+    /// what moves.
+    private func layoutToggleAction() -> UIAction {
+        let isList = session.layout(for: directory) == .list
+        return UIAction(
+            title: String(localized: "Show as List"),
+            image: UIImage(systemName: "list.bullet"),
+            attributes: Self.staysOpenWhileToggling,
+            state: isList ? .on : .off,
+        ) { [weak self] _ in
+            guard let self else { return }
+            session.setLayout(isList ? .grid : .list, for: directory)
+            viewPreferenceChanged(relayout: true)
+            refreshMoreMenu()
+        }
+    }
+
+    /// The same shape for hidden files: one switch, wording first, mark on the
+    /// state — it used to be Show/Hide inside a submenu called Hidden Files.
+    private func hiddenFilesToggleAction() -> UIAction {
+        let shows = session.showsHidden
+        return UIAction(
+            title: String(localized: "Show Hidden Files"),
+            image: UIImage(systemName: "eye"),
+            attributes: Self.staysOpenWhileToggling,
+            state: shows ? .on : .off,
+        ) { [weak self] _ in
+            guard let self else { return }
+            session.setShowsHidden(!shows)
+            viewPreferenceChanged(relayout: false)
+            refreshMoreMenu()
+        }
+    }
+
+    /// A switch that closed the menu would make a person open it again to see
+    /// what it did. iOS 16 knows the attribute; before it, a tap still closes
+    /// the menu and the marks are read on the next opening.
+    private static var staysOpenWhileToggling: UIMenuElement.Attributes {
+        if #available(iOS 16.0, *) {
+            return [.keepsMenuPresented]
+        }
+        return []
     }
 
     /// This folder into or out of the favourites, worded for its state when

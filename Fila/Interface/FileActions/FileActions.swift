@@ -120,6 +120,7 @@ final class FileActions {
         includesProperties: Bool = true,
         groupsFileOperations: Bool = false,
         offersExtraction: Bool = true,
+        select: (() -> Void)? = nil,
         preview: (() -> Void)? = nil,
         confirm: @escaping (@escaping () -> Void) -> Void = { $0() },
     ) -> [UIMenuElement] {
@@ -140,6 +141,14 @@ final class FileActions {
             },
         ] : []
         let install = installAction(path, node: node, confirm: confirm).map { [$0] } ?? []
+        // Selection from the row itself: the same act the ellipsis performs,
+        // started at the row the thumb is on instead of at nothing. A screen
+        // with no selection mode passes no closure and the entry is absent.
+        let selection: [UIMenuElement] = select.map { choose in
+            [UIAction(title: String(localized: "Select"), image: UIImage(systemName: "checkmark.circle")) { _ in
+                confirm(choose)
+            }]
+        } ?? []
         let previewActions: [UIMenuElement] = preview.map { open in
             [UIAction(title: String(localized: "Preview"), image: UIImage(systemName: "eye")) { _ in confirm(open) }]
         } ?? []
@@ -156,7 +165,7 @@ final class FileActions {
                 confirm { self.extract(path) }
             },
         ] : []
-        let inspection = additional + previewActions + extraction + properties
+        let inspection = additional + selection + previewActions + extraction + properties
         let copy = UIMenu(
             title: String(localized: "Copy"),
             image: UIImage(systemName: "doc.on.doc"),
