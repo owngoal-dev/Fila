@@ -58,10 +58,22 @@ extension FileBrowserViewController: RemovalTracking {
 
     /// A menu closing over a row that is being removed fades where it is
     /// instead of flying back into the cell it is about to leave.
+    ///
+    /// A row whose page has left its window gets no preview at all. A menu's
+    /// action runs before the menu dismisses, and an action can take the page
+    /// away with it: Open in New Tab hands this browser to the overview, which
+    /// removes it from the window in the same turn of the run loop. The cells
+    /// stay in the collection view with no window above them, and
+    /// `UITargetedPreview(view:)` raises for exactly that — "This initializer
+    /// requires that the view is in a window, but it is not" — rather than
+    /// build a preview nothing could be drawn from. No preview is the answer
+    /// UIKit itself gives: its own default logs the same thing and returns
+    /// nil, and the menu fades where it is.
     func removalDismissalPreview(for configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
         guard let name = configuration.identifier as? String,
               let index = visible.firstIndex(where: { $0.name == name }),
-              let cell = collectionView.cellForItem(at: IndexPath(item: index, section: 0))
+              let cell = collectionView.cellForItem(at: IndexPath(item: index, section: 0)),
+              cell.window != nil
         else { return nil }
         guard removingNames.contains(name) || removedNames[name] != nil else {
             // What UIKit shows when this method is not implemented.
