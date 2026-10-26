@@ -182,8 +182,8 @@ final class ArchiveBrowserViewController: TabContentViewController {
             elementKind: UICollectionView.elementKindSectionFooter,
         ) { [weak self] footer, _, _ in
             let count = self?.members?.count ?? 0
-            footer.label.text = count == ArchiveReader.maximumEntryCount
-                ? String(format: String(localized: "Showing the first %lld items."), Int64(count)) : nil
+            footer.parts = count == ArchiveReader.maximumEntryCount
+                ? [String(format: String(localized: "Showing the first %lld items."), Int64(count))] : []
         }
         dataSource.supplementaryViewProvider = { collection, _, indexPath in
             collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)

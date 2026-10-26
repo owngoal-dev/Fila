@@ -29,12 +29,16 @@ extension FileBrowserViewController {
         // tab" has no answer that is not a viewer with no way back. Not in the
         // trash, where `FileActions` hands back Put Back and little else.
         if node.isNavigable, !isTrash {
-            file.append(UIAction(
-                title: String(localized: "Open in New Tab"),
-                image: UIImage(systemName: "plus.square.on.square"),
-            ) { [weak self] _ in
-                self?.shell?.openInNewTab(path)
-            })
+            // Alone in its group: a folder's menu leads with where else the
+            // folder can go, then everything that acts on it here.
+            file.append(UIMenu(options: .displayInline, children: [
+                UIAction(
+                    title: String(localized: "Open in New Tab"),
+                    image: UIImage(systemName: "plus.square.on.square"),
+                ) { [weak self] _ in
+                    self?.shell?.openInNewTab(path)
+                },
+            ]))
         }
         // A link's row now draws its target's icon, so "where does this
         // actually go" is the question the row raises and this is the answer to
@@ -61,8 +65,8 @@ extension FileBrowserViewController {
             })
         }
 
+        // No title: the menu was opened on the row, and its name is the row.
         return UIMenu(
-            title: node.name,
             children: fileActions.menuElements(
                 for: path,
                 node: node,
@@ -152,17 +156,16 @@ extension FileBrowserViewController {
         return FilaMenu.groups(actions, display, [folderAction], navigation)
     }
 
-    /// The layout as one switch rather than a submenu of two rows. The label
-    /// names the mode the check mark describes and does not change under the
-    /// finger: tapping flips the mode with the menu still open, so the mark is
-    /// what moves.
+    /// The layout, worded as its opposite: the row says what tapping it will
+    /// do, and the picture beside it changes with the words, the way the
+    /// favourite row flips. A check mark would have said "you are here" on a
+    /// row whose label already says where you are not.
     private func layoutToggleAction() -> UIAction {
         let isList = session.layout(for: directory) == .list
         return UIAction(
-            title: String(localized: "Show as List"),
-            image: UIImage(systemName: "list.bullet"),
+            title: isList ? String(localized: "Show as Grid") : String(localized: "Show as List"),
+            image: UIImage(systemName: isList ? "square.grid.2x2" : "list.bullet"),
             attributes: Self.staysOpenWhileToggling,
-            state: isList ? .on : .off,
         ) { [weak self] _ in
             guard let self else { return }
             session.setLayout(isList ? .grid : .list, for: directory)

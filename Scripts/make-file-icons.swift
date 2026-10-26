@@ -61,6 +61,10 @@ let icons: [(name: String, source: Source, large: Bool)] = [
     ("special", .bundled("ToolbarAdvanced"), true),
     // A link whose target does not exist: "there is nothing there".
     ("broken-link", .bundled("GenericQuestionMarkIcon"), true),
+    // A file whose type nothing declares — no extension, or one the OS has no
+    // type for. The device's own generic icon is a blank tile on some systems,
+    // which reads as a missing picture.
+    ("document", .bundled("GenericDocumentIcon"), true),
     ("plist", .composed("com.apple.property-list"), true),
     ("image", .composed("public.image"), true),
     ("text", .composed("public.plain-text"), true),

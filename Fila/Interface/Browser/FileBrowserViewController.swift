@@ -69,7 +69,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     private weak var footerView: BrowserFooterView?
     /// What the footer says. Held here rather than read out of the footer view,
     /// because the view comes and goes with the layout and the text does not.
-    private var footerText: String?
+    private var footerParts: [String] = []
     /// The folder title remains stable when selection changes. The trash is
     /// named for what it is, not for its dot-directory.
     private var folderTitle: String {
@@ -160,7 +160,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         ) { [weak self] view, _, _ in
             guard let self else { return }
             footerView = view
-            view.label.text = footerText
+            view.parts = footerParts
         }
         dataSource.supplementaryViewProvider = { collection, _, indexPath in
             collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
@@ -726,7 +726,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         // middle of the screen; a line saying "0 items" under the header is the
         // same fact, worse placed.
         guard !visible.isEmpty else {
-            setFooter("")
+            setFooter([])
             return
         }
         var parts = [String(localized: "\(visible.count) items")]
@@ -734,25 +734,26 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             parts.append(String(localized: "Not all items shown"))
         }
         if let volume {
-            let free = FilePresentation.byteLabel(volume.availableByteCount)
-            let total = FilePresentation.byteLabel(volume.totalByteCount)
-            parts.append(String(localized: "\(free) free of \(total)"))
-            // Last, so it sits at the right end of the line: nothing in this
-            // folder can be changed, and the daemon's root does not help.
+            // The number alone: what is left on the volume, which is the only
+            // one of its two numbers anyone acts on. "free of 225.87 GB" said
+            // the same thing twice as long.
+            parts.append(FilePresentation.byteLabel(volume.availableByteCount))
+            // Last, so it is the rightmost of the line: nothing in this folder
+            // can be changed, and the daemon's root does not help.
             if volume.isReadOnly {
                 parts.append(String(localized: "Read Only"))
             }
         }
-        setFooter(parts.joined(separator: " · "))
+        setFooter(parts)
     }
 
     /// Straight onto the view when there is one, rather than through the
     /// snapshot. A listing lands here once per page and reloading a section to
     /// change one label would rebuild every visible row with it.
-    private func setFooter(_ text: String) {
-        guard footerText != text else { return }
-        footerText = text
-        footerView?.label.text = text
+    private func setFooter(_ parts: [String]) {
+        guard footerParts != parts else { return }
+        footerParts = parts
+        footerView?.parts = parts
         // The footer alone: it is self-sizing, so its text needs a
         // measure, and nothing else moved — invalidating the whole layout
         // for a count that changed by one re-laid every row.

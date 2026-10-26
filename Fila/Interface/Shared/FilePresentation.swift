@@ -98,12 +98,14 @@ enum FilePresentation {
         case .pdf: return .artwork("pdf")
         case .text: return .artwork("text")
         case .document, .sqlite, .binary, nil:
-            // No artwork matches, so the device draws the type. An
-            // extension the OS declares no type for draws what no
-            // extension draws, so `backup.1 … backup.99999` is one
-            // picture to make and keep, not a hundred thousand.
+            // A declared type the app has no artwork for — an office document
+            // — is drawn by the device. A type the OS declares nothing for,
+            // none included, gets the app's own page: the device's picture of
+            // it is a blank tile, which reads as a missing picture, and every
+            // undeclared extension sharing one picture keeps
+            // `backup.1 … backup.99999` from making a hundred thousand of them.
             let declared = UTType(filenameExtension: ext).map { !$0.isDynamic } ?? false
-            return .device(declared ? ext : "")
+            return declared ? .device(ext) : .artwork("document")
         }
     }
 

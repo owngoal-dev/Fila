@@ -151,16 +151,19 @@ final class ClipboardViewController: TabContentViewController {
             }
 
             let status = self?.statuses[entry.location] ?? .checking
-            let (detail, color) = Self.detail(for: status)
+            let note = Self.detail(for: status)
             var content = UIListContentConfiguration.subtitleCell()
             content.text = entry.location.path.name ?? Self.backendName(entry.location.backend)
             content.textProperties.lineBreakMode = .byTruncatingMiddle
-            // Where it came from, which is the whole answer to "which one of
-            // the four Info.plists is this". A share's entry names the share.
-            content.secondaryText = "\(Self.origin(of: entry.location))\n\(detail)"
-            content.secondaryTextProperties.numberOfLines = 0
+            // One line under the name: where it came from, which is the whole
+            // answer to "which one of the four Info.plists is this", or what
+            // is wrong with it. A share's entry names the share. Kind and size
+            // are the icon's job, and the size is Properties'.
+            content.secondaryText = note?.text ?? Self.origin(of: entry.location)
+            content.secondaryTextProperties.numberOfLines = 1
+            content.secondaryTextProperties.lineBreakMode = .byTruncatingMiddle
             content.secondaryTextProperties.font = .preferredFont(forTextStyle: .subheadline)
-            content.secondaryTextProperties.color = color
+            content.secondaryTextProperties.color = note?.color ?? .secondaryLabel
             content.image = Self.image(for: status)
             content.imageProperties.maximumSize = CGSize(width: FilaUI.IconSize.file, height: FilaUI.IconSize.file)
             content.imageProperties.reservedLayoutSize = content.imageProperties.maximumSize
@@ -311,19 +314,18 @@ final class ClipboardViewController: TabContentViewController {
 
     // MARK: - Text
 
-    /// "Move · 3 items · 2 minutes ago". The operation is the fact people come
-    /// here for: a cut that was forgotten about is a move waiting to happen
-    /// somewhere unexpected.
+    /// "Move 3 items". The operation is the fact people come here for: a cut
+    /// that was forgotten about is a move waiting to happen somewhere
+    /// unexpected. It reads as one phrase — no separators between the two
+    /// words — and the clock is gone: when they were taken says nothing about
+    /// what will happen when they are pasted.
     private var summary: String {
         guard !items.isEmpty else { return "" }
-        var parts = [clipboard.isCut ? String(localized: "Move") : String(localized: "Copy")]
-        parts.append(items.count == 1
+        let operation = clipboard.isCut ? String(localized: "Move") : String(localized: "Copy")
+        let count = items.count == 1
             ? String(localized: "1 item")
-            : String(format: String(localized: "%lld items"), Int64(items.count)))
-        if let takenAt = clipboard.takenAt {
-            parts.append(takenAt.formatted(.relative(presentation: .named)))
-        }
-        return parts.joined(separator: " · ")
+            : String(format: String(localized: "%lld items"), Int64(items.count))
+        return "\(operation) \(count)"
     }
 
     private func footer(for section: Section) -> String? {
@@ -358,14 +360,15 @@ final class ClipboardViewController: TabContentViewController {
         BackendComposition.backends.first { $0.id == id }?.root.displayName ?? id.rawValue
     }
 
-    private static func detail(for status: Status) -> (String, UIColor) {
+    /// What the row says under the name, when it has something to say that the
+    /// name does not: why it is not there. A present entry answers nil, and the
+    /// row says where it came from instead.
+    private static func detail(for status: Status) -> (text: String, color: UIColor)? {
         switch status {
         case .checking:
             return (String(localized: "Checking…"), .tertiaryLabel)
-        case let .present(entry):
-            let kind = entry.entersDirectory ? String(localized: "Folder") : String(localized: "File")
-            guard let size = entry.size, !entry.entersDirectory else { return (kind, .secondaryLabel) }
-            return ("\(kind) · \(FilePresentation.byteLabel(size))", .secondaryLabel)
+        case .present:
+            return nil
         case .missing:
             return (String(localized: "This item no longer exists."), .systemRed)
         case let .unknown(reason):
@@ -380,7 +383,7 @@ extension ClipboardViewController: UITableViewDelegate {
     private static func image(for status: Status) -> UIImage? {
         switch status {
         case .checking, .unknown:
-            FilePresentation.image(for: .device(""))
+            FilePresentation.image(for: .artwork("document"))
         case .missing:
             FilePresentation.image(for: .artwork("broken-link"))
         case let .present(entry):
