@@ -102,7 +102,9 @@ public final class ArchiveWriter: @unchecked Sendable {
         password: String? = nil,
     ) throws {
         var status = stat()
-        guard fstat(descriptor, &status) == 0 else { throw FormatFailure.system(errno: errno) }
+        guard fstat(descriptor, &status) == 0 else {
+            throw FormatFailure.damaged("fstat: errno \(errno)")
+        }
         let password = password.flatMap { $0.isEmpty ? nil : $0 }
         guard password == nil || format == .zip else {
             throw FormatFailure.unsupported("a password on a \(format.filenameExtension) archive")
@@ -110,17 +112,23 @@ public final class ArchiveWriter: @unchecked Sendable {
         guard let handle = archive_write_new() else { throw FormatFailure.system(errno: ENOMEM) }
         let output = ArchiveOutput(descriptor: descriptor)
         do {
-            let configuration = try withArchiveLocale {
-                format.configure(handle, zipCompression: zipCompression, encryption: password == nil ? nil : encryption)
+            let configuration: Int32
+            do {
+                configuration = try withArchiveLocale {
+                    format.configure(handle, zipCompression: zipCompression, encryption: password == nil ? nil : encryption)
+                }
+            } catch {
+                throw FormatFailure.damaged("locale: \(error)")
             }
             guard configuration == ARCHIVE_OK else {
                 throw FormatFailure.damaged(
-                    archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created",
+                    "format \(format.filenameExtension): "
+                        + (archive_error_string(handle).map { String(cString: $0) } ?? "this archive format cannot be created"),
                 )
             }
-            try Self.check(handle, archive_write_set_bytes_in_last_block(handle, 1))
+            try Self.check(handle, archive_write_set_bytes_in_last_block(handle, 1), step: "bytes in last block")
             if let password {
-                try Self.check(handle, archive_write_set_passphrase(handle, password))
+                try Self.check(handle, archive_write_set_passphrase(handle, password), step: "passphrase")
             }
             try Self.check(handle, archive_write_open(
                 handle,
@@ -132,7 +140,7 @@ public final class ArchiveWriter: @unchecked Sendable {
                         .write(buffer, count: count)
                 },
                 nil,
-            ), output: output)
+            ), output: output, step: "open")
         } catch {
             _ = withExtendedLifetime(output) { archive_write_free(handle) }
             throw error
@@ -230,7 +238,7 @@ public final class ArchiveWriter: @unchecked Sendable {
     public func finish() throws {
         guard !isFinished else { return }
         isFinished = true
-        try Self.check(handle, archive_write_close(handle), output: output)
+        try Self.check(handle, archive_write_close(handle), output: output, step: "close")
     }
 
     private func append(
@@ -271,7 +279,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         archive_entry_set_size(entry, filetype == S_IFREG ? byteCount : 0)
 
         try withArchiveLocale {
-            try Self.check(handle, archive_write_header(handle, entry), output: output)
+            try Self.check(handle, archive_write_header(handle, entry), output: output, step: "header")
         }
 
         var written: Int64 = 0
@@ -304,7 +312,7 @@ public final class ArchiveWriter: @unchecked Sendable {
         guard filetype != S_IFREG || written == byteCount else {
             throw FormatFailure.damaged("“\(path)” changed size while it was being archived")
         }
-        try Self.check(handle, archive_write_finish_entry(handle), output: output)
+        try Self.check(handle, archive_write_finish_entry(handle), output: output, step: "finish entry")
     }
 
     /// Seconds since 1970, clamped rather than trapped.
@@ -324,12 +332,36 @@ public final class ArchiveWriter: @unchecked Sendable {
         return time_t(seconds)
     }
 
-    private static func check(_ handle: OpaquePointer, _ status: Int32, output: ArchiveOutput? = nil) throws {
+    /// One libarchive call, named.
+    ///
+    /// A failure here used to carry the errno and nothing else — and libarchive
+    /// can fail with a number and no message at all, so "Inappropriate file
+    /// type or format" was the whole of what a compressed folder said on iOS 17
+    /// and there was no way to read which of the writer's calls produced it.
+    /// `step` is the part a reader of the log can act on.
+    ///
+    /// `ENOSPC` keeps its own case: the app turns it into "not enough free
+    /// space", and a label must not eat that.
+    private static func check(
+        _ handle: OpaquePointer,
+        _ status: Int32,
+        output: ArchiveOutput? = nil,
+        step: String,
+    ) throws {
         if let failure = output?.failure {
-            throw FormatFailure.system(errno: failure)
+            throw failure == ENOSPC
+                ? FormatFailure.system(errno: ENOSPC)
+                : FormatFailure.damaged("\(step): errno \(failure)")
         }
         guard status != ARCHIVE_OK, status != ARCHIVE_WARN else { return }
-        throw archiveFailure(handle)
+        switch archiveFailure(handle) {
+        case let .system(code) where code == ENOSPC:
+            throw FormatFailure.system(errno: ENOSPC)
+        case let .damaged(detail): throw FormatFailure.damaged("\(step): \(detail)")
+        case let .unsupported(detail): throw FormatFailure.unsupported("\(step): \(detail)")
+        case let .system(code): throw FormatFailure.damaged("\(step): errno \(code)")
+        case let other: throw other
+        }
     }
 }
 
