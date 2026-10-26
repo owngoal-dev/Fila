@@ -320,11 +320,17 @@ final class PropertiesViewController: TabContentViewController {
                 var content = UIListContentConfiguration.valueCell()
                 content.text = label
                 content.secondaryText = value
-                content.secondaryTextProperties.numberOfLines = 1
+                // A value is never cut to one line: a resolved path is the
+                // reason this section exists (`/var/mobile` reads back as
+                // `/private/var/mobile`), and a path put on one line with its
+                // middle removed answers nothing. Monospaced values — paths,
+                // inodes, digests — break anywhere rather than at spaces they
+                // do not have.
+                content.secondaryTextProperties.numberOfLines = 0
                 content.prefersSideBySideTextAndSecondaryText = true
                 if isMonospaced {
                     content.secondaryTextProperties.font = FilaUI.Font.monospacedValue
-                    content.secondaryTextProperties.lineBreakMode = .byTruncatingMiddle
+                    content.secondaryTextProperties.lineBreakMode = .byCharWrapping
                 }
                 cell.contentConfiguration = content
                 if item.section == .checksums {
@@ -358,7 +364,8 @@ final class PropertiesViewController: TabContentViewController {
             case let .note(text):
                 var content = UIListContentConfiguration.cell()
                 content.text = text
-                content.textProperties.font = .preferredFont(forTextStyle: .footnote)
+                // A note is a sentence, not a caption: it is read at body size
+                // like everything else on the page, only quieter.
                 content.textProperties.color = .secondaryLabel
                 content.textProperties.numberOfLines = 0
                 cell.contentConfiguration = content
