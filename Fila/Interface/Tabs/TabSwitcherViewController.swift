@@ -112,19 +112,29 @@ final class TabSwitcherViewController: UIViewController {
 
     /// Two buttons and no bottom bar. A card opens its tab, so the X is not
     /// a way back but the menu of what closes them all — a second tap, where
-    /// a lone button under the thumb used to ask first. The plus is the
-    /// sidebar's destinations, each in a new tab; Settings is in every
-    /// page's More.
+    /// a lone button under the thumb used to ask first.
+    ///
+    /// The plus opens the default folder in a new tab, which is what a new tab
+    /// is; the sidebar's destinations are one long press away for when the
+    /// answer is somewhere else. A menu on the tap made the common case — a
+    /// tab at the folder the app already opens at — a two-step question.
     private func buildBars() {
         let closeAll = UIAction(title: String(localized: "Close All"), attributes: .destructive) { [weak self] _ in
             self?.shell?.closeAllTabs()
         }
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), menu: UIMenu(children: [closeAll]))
         navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close All")
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "plus"), menu: UIMenu(children: [
-            UIDeferredMenuElement.uncached { [weak self] complete in complete(self?.newTabMenuElements() ?? []) },
-        ]))
-        navigationItem.rightBarButtonItem?.accessibilityLabel = String(localized: "New Tab")
+        let newTab = UIBarButtonItem(
+            image: UIImage(systemName: "plus"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.shell?.openInNewTab(AppPreferences.shared.launchDirectory)
+            },
+            menu: UIMenu(children: [
+                UIDeferredMenuElement.uncached { [weak self] complete in complete(self?.newTabMenuElements() ?? []) },
+            ]),
+        )
+        newTab.accessibilityLabel = String(localized: "New Tab")
+        navigationItem.rightBarButtonItem = newTab
     }
 
     private func newTabMenuElements() -> [UIMenuElement] {
