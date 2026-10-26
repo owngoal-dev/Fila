@@ -12,6 +12,9 @@ struct SidebarPlace: Hashable {
     let path: String
     let title: String
     let icon: FilePresentation.Icon
+    /// A volume that refuses writes. It is a state of the row, drawn as a mark
+    /// on its picture — never a word glued to its name.
+    var isReadOnly = false
 
     /// `besideBootstrapHome`: the bootstrap's own `mobile` is listed too, so
     /// the system's says which of the two it is.
@@ -51,8 +54,9 @@ struct SidebarPlace: Hashable {
             title = String(localized: "Trash")
             icon = .artwork("trash")
         case let .mount(readOnly):
-            title = (path as NSString).lastPathComponent + (readOnly ? " · " + String(localized: "Read Only") : "")
+            title = (path as NSString).lastPathComponent
             icon = .artwork("drive-internal")
+            isReadOnly = readOnly
         case .favorite:
             title = (path as NSString).lastPathComponent
             icon = .artwork("folder")

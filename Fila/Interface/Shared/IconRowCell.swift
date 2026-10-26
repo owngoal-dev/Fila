@@ -27,6 +27,10 @@ final class IconRowCell: UICollectionViewListCell {
     private let linkBadge = UIImageView()
     private let appBadge = UIImageView()
     private let favoriteBadge = UIImageView()
+    /// A read-only volume's mark. It shares the favourite's corner because a
+    /// mount row is never a favourite row — favourites are paths, a mount is a
+    /// volume — and a lock is what a person reads as "you cannot write here".
+    private let readOnlyBadge = UIImageView()
 
     private let nameLabel = UILabel()
     private let detailLabel = UILabel()
@@ -87,6 +91,12 @@ final class IconRowCell: UICollectionViewListCell {
         }
         iconView.addSubview(favoriteBadge)
 
+        readOnlyBadge.do {
+            $0.image = FilePresentation.image(for: .artwork("read-only"))
+            $0.contentMode = .scaleAspectFit
+        }
+        iconView.addSubview(readOnlyBadge)
+
         appBadge.do {
             $0.contentMode = .scaleAspectFit
             $0.backgroundColor = .systemBackground
@@ -95,7 +105,7 @@ final class IconRowCell: UICollectionViewListCell {
         }
         iconView.addSubview(appBadge)
 
-        for badge in [linkBadge, appBadge, favoriteBadge] {
+        for badge in [linkBadge, appBadge, favoriteBadge, readOnlyBadge] {
             badge.isAccessibilityElement = false
         }
 
@@ -156,6 +166,10 @@ final class IconRowCell: UICollectionViewListCell {
             make.leading.bottom.equalTo(iconView)
         }
         favoriteBadge.snp.makeConstraints { make in
+            make.size.equalTo(Self.badgeSize)
+            make.leading.bottom.equalTo(iconView)
+        }
+        readOnlyBadge.snp.makeConstraints { make in
             make.size.equalTo(Self.badgeSize)
             make.leading.bottom.equalTo(iconView)
         }
@@ -240,6 +254,7 @@ final class IconRowCell: UICollectionViewListCell {
         linkBadge.isHidden = true
         appBadge.isHidden = true
         favoriteBadge.isHidden = true
+        readOnlyBadge.isHidden = true
         thumbnailTask?.cancel()
         iconToken = UUID()
         accessories = [.disclosureIndicator()]
@@ -283,6 +298,10 @@ final class IconRowCell: UICollectionViewListCell {
 
     func showFavoriteBadge() {
         favoriteBadge.isHidden = false
+    }
+
+    func showReadOnlyBadge() {
+        readOnlyBadge.isHidden = false
     }
 
     /// Application artwork: the row's icon for a bundle, the corner badge for

@@ -54,7 +54,14 @@ enum FilaMenu {
         SidebarLocation.orderedDestinations.compactMap { destination in
             switch destination {
             case let .directory(place):
-                UIAction(title: place.title, image: preview(for: place), attributes: attributes) { _ in open(place.path) }
+                // A menu cannot wear a badge: the fact goes under the name,
+                // where every other explanation in a menu goes.
+                UIAction(
+                    title: place.title,
+                    subtitle: place.isReadOnly ? String(localized: "Read Only") : "",
+                    image: preview(for: place),
+                    attributes: attributes,
+                ) { _ in open(place.path) }
             case let .catalog(catalog):
                 root(catalog, attributes: attributes, openLocation: openLocation)
             }

@@ -37,6 +37,9 @@ let largeSize: (suffix: String, points: CGFloat) = ("-large", 192)
 
 enum Source {
     case bundled(String)
+    /// An `.icns` corner badge — Finder draws it inside a folder-sized canvas,
+    /// so it is cropped to the mark before it is drawn.
+    case badge(String)
     case composed(String)
     case imported(String)
 }
@@ -82,12 +85,50 @@ let icons: [(name: String, source: Source, large: Bool)] = [
     ("alias", .bundled("AliasBadgeIcon"), false),
     // The corner mark on a favourite folder in the sidebar.
     ("favorite", .bundled("FavoriteItemsIcon"), false),
+    // The corner mark on a volume that refuses writes — Finder's own
+    // read-only badge, so the sidebar keeps to artwork.
+    ("read-only", .badge("ReadOnlyFolderBadgeIcon"), false),
     // A saved server — an SMB share today, an FTP root later: the same
     // shared-folder picture Finder draws for a mounted share, so every
     // sidebar row is a picture and none is a symbol. macOS 27's CoreTypes no
     // longer has it, so the checked-in 40pt copy from macOS 26 stays.
     ("shared-folder", .bundled("GenericSharepoint"), false),
 ]
+
+/// An `.icns` badge is drawn inside a folder-sized canvas, because Finder puts
+/// it in a folder's corner at about a fifth of the icon. Used as a badge of its
+/// own that canvas is mostly emptiness — measured, `ReadOnlyFolderBadgeIcon`
+/// fills 21% of it — so the mark is cropped out and fills the frame instead.
+func trimmed(_ image: NSImage) -> NSImage {
+    guard let data = image.tiffRepresentation, let rep = NSBitmapImageRep(data: data),
+          let source = rep.cgImage
+    else { return image }
+    let width = source.width, height = source.height
+    var pixels = [UInt8](repeating: 0, count: width * height * 4)
+    guard let context = CGContext(
+        data: &pixels,
+        width: width,
+        height: height,
+        bitsPerComponent: 8,
+        bytesPerRow: width * 4,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue,
+    ) else { return image }
+    context.draw(source, in: CGRect(x: 0, y: 0, width: width, height: height))
+    var minX = width, minY = height, maxX = -1, maxY = -1
+    for y in 0 ..< height {
+        for x in 0 ..< width where pixels[(y * width + x) * 4 + 3] > 12 {
+            minX = min(minX, x)
+            maxX = max(maxX, x)
+            minY = min(minY, y)
+            maxY = max(maxY, y)
+        }
+    }
+    guard maxX >= minX, maxY >= minY else { return image }
+    let box = CGRect(x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1)
+    guard let mark = source.cropping(to: box) else { return image }
+    return NSImage(cgImage: mark, size: NSSize(width: box.width, height: box.height))
+}
 
 func render(_ image: NSImage, points: CGFloat, scale: Int) -> Data? {
     let pixels = Int(points) * scale
@@ -107,7 +148,15 @@ func render(_ image: NSImage, points: CGFloat, scale: Int) -> Data? {
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
     NSGraphicsContext.current?.imageInterpolation = .high
-    image.draw(in: NSRect(x: 0, y: 0, width: points, height: points))
+    let size = image.size
+    let side = min(points / max(size.width, 1), points / max(size.height, 1))
+    let drawn = NSSize(width: size.width * side, height: size.height * side)
+    image.draw(in: NSRect(
+        x: (points - drawn.width) / 2,
+        y: (points - drawn.height) / 2,
+        width: drawn.width,
+        height: drawn.height,
+    ))
     NSGraphicsContext.restoreGraphicsState()
     return bitmap.representation(using: .png, properties: [:])
 }
@@ -116,6 +165,7 @@ let requestedIcons = Set(CommandLine.arguments.dropFirst())
 for (name, source, large) in icons where requestedIcons.isEmpty || requestedIcons.contains(name) {
     let image: NSImage? = switch source {
     case let .bundled(file): NSImage(contentsOfFile: coreTypes + file + ".icns")
+    case let .badge(file): NSImage(contentsOfFile: coreTypes + file + ".icns").map(trimmed)
     case let .composed(identifier): UTType(identifier).map(NSWorkspace.shared.icon(for:))
     case let .imported(file): NSImage(contentsOf: repository.appendingPathComponent("Scripts/Artwork/\(file)"))
     }

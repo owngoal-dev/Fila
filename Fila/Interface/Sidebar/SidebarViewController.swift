@@ -102,8 +102,14 @@ final class SidebarViewController: UIViewController {
     private func updateBarButtons(animated: Bool = false) {
         let running = session.operations.operations.filter(\.isRunning).count
         tasksItem.accessibilityValue = running > 0 ? String(localized: "\(running) in progress") : nil
-        if navigationItem.leftBarButtonItem !== settingsItem {
-            navigationItem.leftBarButtonItem = settingsItem
+        // Presented, this is the page a phone's Places control opens — a list
+        // of where to go, so it says Go, and Settings stays in the ellipsis
+        // every page already carries rather than being offered twice here.
+        let presented = presentingViewController != nil
+        title = presented ? String(localized: "Go") : String(localized: "Places")
+        let leading = presented ? nil : settingsItem
+        if navigationItem.leftBarButtonItem !== leading {
+            navigationItem.leftBarButtonItem = leading
         }
         let dismissItem = presentingViewController != nil ? doneItem : nil
         let items = [columnToggle ?? dismissItem, running > 0 ? tasksItem : nil].compactMap(\.self)
@@ -117,6 +123,13 @@ final class SidebarViewController: UIViewController {
         openTask?.cancel()
         mountTask?.cancel()
         sidebarTask?.cancel()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Which of the two this page is — a column or a presented sheet — is
+        // only known once it has a presenter.
+        updateBarButtons()
     }
 
     override func viewDidLoad() {
@@ -316,9 +329,6 @@ final class SidebarViewController: UIViewController {
         case let .mount(path):
             guard let mount = mounts.first(where: { $0.path == path }) else { return }
             name = path == "/" ? String(localized: "Root") : (path as NSString).lastPathComponent
-            if mount.isReadOnly {
-                name += " · " + String(localized: "Read Only")
-            }
             image = UIImage(named: "FileIcons/drive-internal")?.withRenderingMode(.alwaysOriginal)
         case let .catalog(id):
             guard let root = BackendComposition.registry.backend(id)?.root else { return }
@@ -332,6 +342,13 @@ final class SidebarViewController: UIViewController {
         cell.configure(name: name, image: image, nameColor: color, tintColor: .tintColor)
         if case .favorite = item {
             cell.showFavoriteBadge()
+        }
+        // A mount is read-only or not; the row says so with a lock on its
+        // picture, and VoiceOver says it in words, because a mark is not read.
+        if case let .mount(path) = item, mounts.first(where: { $0.path == path })?.isReadOnly == true {
+            cell.showReadOnlyBadge()
+            cell.accessibilityLabel = [cell.accessibilityLabel, String(localized: "Read Only")]
+                .compactMap(\.self).joined(separator: ", ")
         }
     }
 
