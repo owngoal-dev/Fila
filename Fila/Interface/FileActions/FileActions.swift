@@ -184,14 +184,18 @@ final class FileActions {
             },
             compressAction(paths: { [path] }, confirm: confirm),
         ]
-        let opening: [UIMenuElement] = [
+        // Only something with bytes can go to a share sheet — see
+        // `FileNode.isShareable`, where the rule and the `EINVAL` a folder
+        // used to answer with are written down.
+        let shareSheet: [UIMenuElement] = node.isShareable ? [
             UIAction(
                 title: String(localized: "Open With…"),
                 image: UIImage(systemName: "square.and.arrow.up"),
             ) { [self] _ in
                 confirm { self.share([path]) }
             },
-        ] + run + install
+        ] : []
+        let opening: [UIMenuElement] = shareSheet + run + install
         let destructive: [UIMenuElement] = [
             UIAction(
                 title: Self.deleteTitle,

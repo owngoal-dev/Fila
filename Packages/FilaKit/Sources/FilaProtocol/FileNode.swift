@@ -124,6 +124,17 @@ public struct FileNode: Sendable, Hashable {
     public var isNavigable: Bool {
         kind == .directory || link?.resolvedKind == .directory
     }
+
+    /// A regular file, or a link that resolves to one: the only items with
+    /// bytes to hand over, and so the only ones a share sheet can carry.
+    /// Nothing else has any — a folder, a fifo, a socket, a device — and
+    /// reaching for them is `open(2)` followed by `read(2)`: the `fstat` in
+    /// `DescriptorIO.copyAndClose` refuses a path that is not `S_IFREG` with
+    /// `EINVAL`, and a socket or a dangling link cannot even be opened. A menu
+    /// that offered one said "Invalid argument" and nothing else.
+    public var isShareable: Bool {
+        kind == .regular || link?.resolvedKind == .regular
+    }
 }
 
 /// One extended attribute, named and sized. The value is fetched separately —
