@@ -980,9 +980,9 @@ directory the user was in; before that it put Music back at `iTunes_Control`.
 
 Each tab retains its full navigation subtree, including preview/editor content
 and unsaved work. The tab overview lives in the content area and captures the
-actual page. It has two buttons and no bottom bar: a card opens its tab, the X
-is a menu holding Close All, and the plus opens the sidebar's destinations in
-a new tab. Switching tabs does not close documents; closing or replacing
+actual page. It has two buttons and no bottom bar: a card opens its tab, the
+red trash is a menu holding Close All, and a tap on the plus opens the default
+folder in a new tab (the sidebar's destinations are its long press). Switching tabs does not close documents; closing or replacing
 them goes through the existing save guard. Hide the split view's outer
 navigation bars so only the active tab owns visible chrome. Hidden controllers
 must not update the visible navigation bar or toolbar on model notifications.

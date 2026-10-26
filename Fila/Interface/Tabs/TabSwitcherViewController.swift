@@ -110,9 +110,11 @@ final class TabSwitcherViewController: UIViewController {
         }
     }
 
-    /// Two buttons and no bottom bar. A card opens its tab, so the X is not
+    /// Two buttons and no bottom bar. A card opens its tab, so the trash is not
     /// a way back but the menu of what closes them all — a second tap, where
-    /// a lone button under the thumb used to ask first.
+    /// a lone button under the thumb used to ask first. It is the one
+    /// destructive control on the page, so it is drawn as one: the standard
+    /// trash, in red, rather than a blue cross that read as "dismiss".
     ///
     /// The plus opens the default folder in a new tab, which is what a new tab
     /// is; the sidebar's destinations are one long press away for when the
@@ -122,8 +124,10 @@ final class TabSwitcherViewController: UIViewController {
         let closeAll = UIAction(title: String(localized: "Close All"), attributes: .destructive) { [weak self] _ in
             self?.shell?.closeAllTabs()
         }
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), menu: UIMenu(children: [closeAll]))
-        navigationItem.leftBarButtonItem?.accessibilityLabel = String(localized: "Close All")
+        let closeAllButton = UIBarButtonItem(image: UIImage(systemName: "trash"), menu: UIMenu(children: [closeAll]))
+        closeAllButton.tintColor = .systemRed
+        closeAllButton.accessibilityLabel = String(localized: "Close All")
+        navigationItem.leftBarButtonItem = closeAllButton
         let newTab = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
             primaryAction: UIAction { [weak self] _ in
