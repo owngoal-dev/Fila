@@ -137,14 +137,18 @@ extension FileBrowserViewController {
                 children: sortMenuElements(),
             ),
         ]
+        // Collapsed, the leading bookmark opens the Places page, so this menu
+        // need not offer the same destinations a second time. A wide layout
+        // keeps Go: there the bookmark only brings the column back.
+        let narrow = traitCollection.horizontalSizeClass == .compact
         let navigation: [UIMenuElement] = [
-            UIMenu(
+            narrow ? nil : UIMenu(
                 title: String(localized: "Go"),
                 image: UIImage(systemName: "arrow.right.circle"),
                 children: goMenuElements(),
             ),
             settingsMenuElement,
-        ]
+        ].compactMap { $0 }
         return FilaMenu.groups(actions, display, [folderAction], navigation)
     }
 
@@ -225,6 +229,9 @@ extension FileBrowserViewController {
     func makeCurrentCrumbMenu() -> UIMenu {
         UIMenu(children: [
             UIMenu(options: .displayInline, children: [
+                UIAction(title: String(localized: "Go to Path…")) { [weak self] _ in
+                    self?.promptGoToPath()
+                },
                 UIDeferredMenuElement.uncached { [weak self] completion in
                     completion(self.map { [$0.favoriteToggleAction()] } ?? [])
                 },
@@ -447,19 +454,30 @@ extension FileBrowserViewController {
         }
     }
 
+    /// A long press on the navigation bar's title. The title is the app's own —
+    /// `navigationItem.title`, not a view of ours — so the gesture goes on the
+    /// bar and only answers between the leading and trailing controls, which is
+    /// where the title is. Nothing else on the bar is touched by it.
+    @objc private func handleTitleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began, navigationController?.topViewController === self,
+              let bar = gesture.view else { return }
+        let point = gesture.location(in: bar)
+        let titleZone = (bar.bounds.width / 4) ..< (bar.bounds.width * 3 / 4)
+        guard titleZone.contains(point.x), !(bar.hitTest(point, with: nil) is UIControl) else { return }
+        promptGoToPath()
+    }
+
+    /// Called once a page has a bar to hang it on.
+    func installTitleLongPress() {
+        guard titleLongPress == nil, let bar = navigationController?.navigationBar else { return }
+        let press = UILongPressGestureRecognizer(target: self, action: #selector(handleTitleLongPress(_:)))
+        bar.addGestureRecognizer(press)
+        titleLongPress = press
+    }
+
     func promptGoToPath() {
-        prompt(
-            title: String.LocalizationValue("Go to Path"),
-            message: String.LocalizationValue("Enter a path starting with a slash."),
-            placeholder: String.LocalizationValue("Absolute path"),
-            initial: directory,
-            confirm: String.LocalizationValue("Go"),
-        ) { [weak self] path in
-            // Canonical as a `fila://` link's path is: a trailing slash or a
-            // `.` left in would name every child so that it never reads as a
-            // child, and each tap below would re-root the tab.
-            guard let self, let path = FilaLink.canonical(path) else { return }
-            open(directory: path)
+        promptForPath(initial: directory) { [weak self] path in
+            self?.open(directory: path)
         }
     }
 

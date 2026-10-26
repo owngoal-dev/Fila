@@ -93,6 +93,9 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         placesMenu
     }
 
+    /// The long press on the bar's title, so it is added once.
+    var titleLongPress: UILongPressGestureRecognizer?
+
     /// An entry a `fila://reveal` link asked for, cleared the first time it is
     /// found. It survives across pages because the listing streams: the row it
     /// names may be on the fourth page, or on none of them.
@@ -196,6 +199,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         super.viewDidAppear(animated)
         restoreScrollOffsetIfArrived()
         session.setLastDirectory(directory)
+        installTitleLongPress()
     }
 
     override func viewWillDisappear(_ animated: Bool) {

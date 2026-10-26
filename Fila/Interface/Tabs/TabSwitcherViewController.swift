@@ -142,11 +142,18 @@ final class TabSwitcherViewController: UIViewController {
     }
 
     private func newTabMenuElements() -> [UIMenuElement] {
-        FilaMenu.sidebar(attributes: store.isFull ? .disabled : []) { [weak self] path in
+        let destinations = FilaMenu.sidebar(attributes: store.isFull ? .disabled : []) { [weak self] path in
             self?.shell?.openInNewTab(path)
         } openLocation: { [weak self] location in
             self?.shell?.openInNewTab(location: location)
         }
+        let path = UIAction(title: String(localized: "Go to Path…")) { [weak self] _ in
+            guard let self else { return }
+            promptForPath(initial: AppPreferences.shared.launchDirectory) { path in
+                self.shell?.openInNewTab(path)
+            }
+        }
+        return destinations + FilaMenu.groups([path])
     }
 
     static let cardCornerRadius = FilaUI.Spacing.large
