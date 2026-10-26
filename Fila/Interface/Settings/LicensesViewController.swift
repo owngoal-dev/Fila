@@ -5,15 +5,21 @@ import UIKit
 
 /// Build-generated notices, including the components inside binary packages.
 private struct LicenseEntry: Decodable {
-    let id: String
     let name: String
-    let version: String?
     let license: String
     let url: String
     let text: String
 
-    var summary: String {
-        [license, version].compactMap(\.self).joined(separator: " · ")
+    /// A notice usually names one licence; the two this app mostly ships are
+    /// spelled out, everything else stands as it is — a compound expression
+    /// ("MIT / BSD / 0BSD") has no shorter form, and a version beside it says
+    /// nothing a person reading a licence is looking for.
+    var licenseName: String {
+        switch license {
+        case "MIT": String(localized: "MIT License")
+        case "Apache-2.0": String(localized: "Apache 2.0")
+        default: license
+        }
     }
 }
 
@@ -67,12 +73,12 @@ final class LicensesViewController: UITableViewController {
             ?? UITableViewCell(style: .value1, reuseIdentifier: "license")
         let entry = entries[indexPath.row]
         var content = UIListContentConfiguration.valueCell()
+        // The licence is the row's explanation, not a value beside its name:
+        // it belongs on the line below, at the size of the name it explains.
+        content.prefersSideBySideTextAndSecondaryText = false
         content.text = entry.name
-        content.textProperties.numberOfLines = 1
-        content.secondaryText = entry.summary
-        content.secondaryTextProperties.numberOfLines = 1
+        content.secondaryText = entry.licenseName
         content.secondaryTextProperties.color = .secondaryLabel
-        content.secondaryTextProperties.font = .preferredFont(forTextStyle: .footnote)
         cell.contentConfiguration = content
         cell.accessoryType = .disclosureIndicator
         return cell
@@ -108,7 +114,7 @@ private final class LicenseTextViewController: UIViewController {
         let text = NSMutableAttributedString(string: entry.name + "\n", attributes: [
             .font: UIFont.preferredFont(forTextStyle: .title2), .foregroundColor: UIColor.label,
         ])
-        text.append(NSAttributedString(string: entry.summary + "\n\n", attributes: [
+        text.append(NSAttributedString(string: entry.licenseName + "\n\n", attributes: [
             .font: UIFont.preferredFont(forTextStyle: .footnote), .foregroundColor: UIColor.secondaryLabel,
         ]))
         if let url = URL(string: entry.url), ["https", "http"].contains(url.scheme) {
