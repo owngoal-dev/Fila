@@ -13,6 +13,7 @@
         static let available = "a"
         static let readOnly = "ro"
         static let identifier = "i"
+        static let owner = "o"
     }
 
     public extension MountPoint {
@@ -51,6 +52,7 @@
             xpc_dictionary_set_int64(dictionary, VolumeKey.available, availableByteCount)
             xpc_dictionary_set_bool(dictionary, VolumeKey.readOnly, isReadOnly)
             xpc_dictionary_set_uint64(dictionary, VolumeKey.identifier, deviceIdentifier)
+            xpc_dictionary_set_uint64(dictionary, VolumeKey.owner, UInt64(ownerUID))
             return dictionary
         }
 
@@ -67,6 +69,7 @@
                 availableByteCount: xpc_dictionary_get_int64(dictionary, VolumeKey.available),
                 isReadOnly: xpc_dictionary_get_bool(dictionary, VolumeKey.readOnly),
                 deviceIdentifier: xpc_dictionary_get_uint64(dictionary, VolumeKey.identifier),
+                ownerUID: UInt32(truncatingIfNeeded: xpc_dictionary_get_uint64(dictionary, VolumeKey.owner)),
             )
         }
     }

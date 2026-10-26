@@ -48,6 +48,7 @@ public extension FileOperations {
             availableByteCount: Int64(volume.f_bavail) * Int64(volume.f_bsize),
             isReadOnly: volume.f_flags & UInt32(MNT_RDONLY) != 0,
             deviceIdentifier: UInt64(UInt32(bitPattern: metadata.st_dev)),
+            ownerUID: volume.f_owner,
         )
     }
 

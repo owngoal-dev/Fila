@@ -192,6 +192,8 @@ public struct VolumeInfo: Sendable, Hashable {
     public var availableByteCount: Int64
     public var isReadOnly: Bool
     public var deviceIdentifier: UInt64
+    /// `statfs.f_owner`: the user the mounted filesystem belongs to.
+    public var ownerUID: UInt32
 
     public init(
         mountPoint: String,
@@ -201,6 +203,7 @@ public struct VolumeInfo: Sendable, Hashable {
         availableByteCount: Int64,
         isReadOnly: Bool,
         deviceIdentifier: UInt64,
+        ownerUID: UInt32,
     ) {
         self.mountPoint = mountPoint
         self.deviceName = deviceName
@@ -209,6 +212,7 @@ public struct VolumeInfo: Sendable, Hashable {
         self.availableByteCount = availableByteCount
         self.isReadOnly = isReadOnly
         self.deviceIdentifier = deviceIdentifier
+        self.ownerUID = ownerUID
     }
 }
 

@@ -69,7 +69,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     private weak var footerView: BrowserFooterView?
     /// What the footer says. Held here rather than read out of the footer view,
     /// because the view comes and goes with the layout and the text does not.
-    private var footerParts: [String] = []
+    private var footerFacts: [BrowserFooterView.Fact] = []
     /// The folder title remains stable when selection changes. The trash is
     /// named for what it is, not for its dot-directory.
     private var folderTitle: String {
@@ -160,7 +160,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         ) { [weak self] view, _, _ in
             guard let self else { return }
             footerView = view
-            view.parts = footerParts
+            view.facts = footerFacts
         }
         dataSource.supplementaryViewProvider = { collection, _, indexPath in
             collection.dequeueConfiguredReusableSupplementary(using: footer, for: indexPath)
@@ -738,31 +738,54 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             setFooter([])
             return
         }
-        var parts = [String(localized: "\(visible.count) items")]
+        // Each fact is a way into what it describes: the count into this
+        // folder's properties, the volume's numbers into the filesystem's.
+        let folder: BrowserFooterView.Fact = BrowserFooterView.Fact(
+            text: String(localized: "\(visible.count) items"),
+        ) { [weak self] in self?.showFolderProperties() }
+        var facts = [folder]
         if isTruncated {
-            parts.append(String(localized: "Not all items shown"))
+            facts.append(BrowserFooterView.Fact(text: String(localized: "Not all items shown")) {})
         }
         if let volume {
             // The number alone: what is left on the volume, which is the only
             // one of its two numbers anyone acts on. "free of 225.87 GB" said
             // the same thing twice as long.
-            parts.append(FilePresentation.byteLabel(volume.availableByteCount))
+            facts.append(BrowserFooterView.Fact(
+                text: FilePresentation.byteLabel(volume.availableByteCount),
+            ) { [weak self] in self?.showFileSystemProperties(volume) })
             // Last, so it is the rightmost of the line: nothing in this folder
             // can be changed, and the daemon's root does not help.
             if volume.isReadOnly {
-                parts.append(String(localized: "Read Only"))
+                facts.append(BrowserFooterView.Fact(text: String(localized: "Read Only")) { [weak self] in
+                    self?.showFileSystemProperties(volume)
+                })
             }
         }
-        setFooter(parts)
+        setFooter(facts)
+    }
+
+    /// This folder's own properties, the page every row already opens.
+    private func showFolderProperties() {
+        FileActions(presenter: self, directory: directory).showProperties(directory)
+    }
+
+    private func showFileSystemProperties(_ volume: VolumeInfo) {
+        presentAsSheet(UINavigationController(
+            rootViewController: FileSystemPropertiesViewController(volume: volume) { [weak self] mountPoint in
+                // The sheet is gone by now; the browser under it jumps.
+                self?.open(directory: mountPoint)
+            },
+        ))
     }
 
     /// Straight onto the view when there is one, rather than through the
     /// snapshot. A listing lands here once per page and reloading a section to
     /// change one label would rebuild every visible row with it.
-    private func setFooter(_ parts: [String]) {
-        guard footerParts != parts else { return }
-        footerParts = parts
-        footerView?.parts = parts
+    private func setFooter(_ facts: [BrowserFooterView.Fact]) {
+        guard footerFacts.map(\.text) != facts.map(\.text) else { return }
+        footerFacts = facts
+        footerView?.facts = facts
         // The footer alone: it is self-sizing, so its text needs a
         // measure, and nothing else moved — invalidating the whole layout
         // for a count that changed by one re-laid every row.

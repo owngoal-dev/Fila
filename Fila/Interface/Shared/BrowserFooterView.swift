@@ -11,26 +11,30 @@ import UIKit
 /// which read as a notification rather than as part of the list and covered the
 /// row it sat on.
 ///
-/// The facts sit side by side in a stack rather than in one string joined by
-/// separators: a separator between every pair is a character the reader has to
-/// decode, and the distance between two labels is what actually separates them.
-/// They are underlined and pushed to the trailing edge — the slack at the head
-/// of the stack takes the width the facts do not need — so the line reads as a
-/// footnote to the list rather than as another row of it.
+/// The facts are buttons side by side in a stack rather than one string joined
+/// by separators: a separator between every pair is a character the reader has
+/// to decode, the distance between two of them is what actually separates them,
+/// and each is a way into the thing it describes. They are underlined and
+/// pushed to the trailing edge — the slack at the head of the stack takes the
+/// width they do not need — so the line reads as a footnote to the list rather
+/// than as another row of it.
 final class BrowserFooterView: UICollectionReusableView {
+    /// One fact in the line, and what touching it opens.
+    struct Fact {
+        let text: String
+        let action: () -> Void
+    }
+
     private let stack = UIStackView()
     /// Absorbs the width the facts do not use: everything to its trailing side
     /// ends up against the margin.
     private let slack = UIView()
-    private var labels: [UILabel] = []
+    private var buttons: [UIButton] = []
 
     /// The facts, in the order they are read. Nothing is shown until there is
     /// something to say.
-    var parts: [String] = [] {
-        didSet {
-            guard parts != oldValue else { return }
-            render()
-        }
+    var facts: [Fact] = [] {
+        didSet { render() }
     }
 
     override init(frame: CGRect) {
@@ -50,7 +54,7 @@ final class BrowserFooterView: UICollectionReusableView {
             make.top.equalToSuperview().offset(FilaUI.Spacing.large)
             make.bottom.equalToSuperview().offset(-FilaUI.Spacing.large)
         }
-        isAccessibilityElement = true
+        isAccessibilityElement = false
         render()
     }
 
@@ -60,34 +64,38 @@ final class BrowserFooterView: UICollectionReusableView {
     }
 
     private func render() {
-        for label in labels {
-            stack.removeArrangedSubview(label)
-            label.removeFromSuperview()
+        for button in buttons {
+            stack.removeArrangedSubview(button)
+            button.removeFromSuperview()
         }
-        labels = parts.map { part in
-            UILabel().then {
-                $0.font = .preferredFont(forTextStyle: .footnote)
-                $0.adjustsFontForContentSizeCategory = true
-                $0.numberOfLines = 0
-                // A fact with content keeps its width; the slack is what gives.
-                $0.setContentHuggingPriority(.required, for: .horizontal)
-                $0.setContentCompressionResistancePriority(.required, for: .horizontal)
-                // Underlined, which a label does through attributed text.
-                $0.attributedText = NSAttributedString(
-                    string: part,
-                    attributes: [
-                        .font: UIFont.preferredFont(forTextStyle: .footnote),
-                        .foregroundColor: UIColor.secondaryLabel,
-                        .underlineStyle: NSUnderlineStyle.single.rawValue,
-                    ],
-                )
+        buttons = facts.map { fact in
+            // An attributed title on a plain button, not a `UIButton.Configuration`:
+            // a configuration rebuilds the title from its own attributes and
+            // drops the underline, which was measured on the device twice.
+            let button = UIButton(type: .system)
+            button.setAttributedTitle(NSAttributedString(
+                string: fact.text,
+                attributes: [
+                    .font: UIFont.preferredFont(forTextStyle: .footnote),
+                    .foregroundColor: UIColor.secondaryLabel,
+                    .underlineStyle: NSUnderlineStyle.single.rawValue,
+                ],
+            ), for: .normal)
+            button.addAction(UIAction { _ in fact.action() }, for: .touchUpInside)
+            // A fact is a control: it dims under the finger like one.
+            for event in [UIControl.Event.touchDown, .touchDragEnter] {
+                button.addAction(UIAction { [weak button] _ in button?.alpha = 0.5 }, for: event)
             }
+            for event in [UIControl.Event.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit] {
+                button.addAction(UIAction { [weak button] _ in button?.alpha = 1 }, for: event)
+            }
+            button.setContentHuggingPriority(.required, for: .horizontal)
+            button.setContentCompressionResistancePriority(.required, for: .horizontal)
+            return button
         }
-        for label in labels {
-            stack.addArrangedSubview(label)
+        for button in buttons {
+            stack.addArrangedSubview(button)
         }
-        // Read as one sentence, in the order the labels are in.
-        accessibilityLabel = parts.joined(separator: ", ")
     }
 
     /// The layout slides a new footer in from the top of the list with the
