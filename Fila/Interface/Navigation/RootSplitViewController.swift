@@ -186,6 +186,9 @@ final class RootSplitViewController: UISplitViewController {
         let toggle = self.item(in: sidebarToggles, for: controller, make: makeSidebarToggle)
         let back = self.item(in: navigationBacks, for: controller, make: makeNavigationBack)
         let inSidebar = !isCollapsed && (announcedDisplayMode ?? displayMode) != .secondaryOnly
+        // Collapsed, the toggle opens Places as a sheet, not a column: say so
+        // with the shape of an index rather than of a sidebar.
+        toggle.image = UIImage(systemName: isCollapsed ? "bookmark" : "sidebar.leading")
         var buttons = (leadingItems ?? item.leftBarButtonItems ?? [])
             .filter { $0 !== toggle && $0 !== back }
         // An editor or selection mode owns its Cancel/guarded Back. Keep that
@@ -210,10 +213,13 @@ final class RootSplitViewController: UISplitViewController {
             // Custom leading items suppress UIKit's default Back control.
             // Keep its native edge transition, subject to editor guards.
             navigation.interactivePopGestureRecognizer?.delegate = self
-            // On a phone, the sidebar's destinations are every page's Go menu
-            // and the tab overview's plus. Wide layouts keep the control that
-            // restores the sidebar column.
-            if !isCollapsed, !inSidebar {
+            // The Places page is the folder browser's own control, and on a
+            // phone it is the only way into it: the Go menu and the
+            // breadcrumb's long press are its destinations flattened into a
+            // menu, not the page. A viewer, an editor, a settings page or the
+            // tab overview is not a folder and has no places to jump to; they
+            // keep Back alone.
+            if !inSidebar, controller is FileBrowserViewController {
                 buttons.append(toggle)
             }
         }
