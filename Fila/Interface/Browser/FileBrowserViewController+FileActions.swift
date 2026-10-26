@@ -156,15 +156,15 @@ extension FileBrowserViewController {
         return FilaMenu.groups(actions, display, [folderAction], navigation)
     }
 
-    /// The layout, worded as its opposite: the row says what tapping it will
-    /// do, and the picture beside it changes with the words, the way the
-    /// favourite row flips. A check mark would have said "you are here" on a
-    /// row whose label already says where you are not.
+    /// The layout the list is in now, named and pictured: "Show as List" while
+    /// it is a list, "Show as Grid" once it is a grid. Tapping flips to the
+    /// other one and the row turns with it, so what it says is always the
+    /// state rather than a promise about the next tap.
     private func layoutToggleAction() -> UIAction {
         let isList = session.layout(for: directory) == .list
         return UIAction(
-            title: isList ? String(localized: "Show as Grid") : String(localized: "Show as List"),
-            image: UIImage(systemName: isList ? "square.grid.2x2" : "list.bullet"),
+            title: isList ? String(localized: "Show as List") : String(localized: "Show as Grid"),
+            image: UIImage(systemName: isList ? "list.bullet" : "square.grid.2x2"),
             attributes: Self.staysOpenWhileToggling,
         ) { [weak self] _ in
             guard let self else { return }

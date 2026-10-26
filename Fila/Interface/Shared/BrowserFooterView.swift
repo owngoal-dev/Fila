@@ -14,8 +14,15 @@ import UIKit
 /// The facts sit side by side in a stack rather than in one string joined by
 /// separators: a separator between every pair is a character the reader has to
 /// decode, and the distance between two labels is what actually separates them.
+/// They are underlined and pushed to the trailing edge — the slack at the head
+/// of the stack takes the width the facts do not need — so the line reads as a
+/// footnote to the list rather than as another row of it.
 final class BrowserFooterView: UICollectionReusableView {
     private let stack = UIStackView()
+    /// Absorbs the width the facts do not use: everything to its trailing side
+    /// ends up against the margin.
+    private let slack = UIView()
+    private var labels: [UILabel] = []
 
     /// The facts, in the order they are read. Nothing is shown until there is
     /// something to say.
@@ -28,19 +35,20 @@ final class BrowserFooterView: UICollectionReusableView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        slack.do {
+            $0.setContentHuggingPriority(.init(1), for: .horizontal)
+            $0.setContentCompressionResistancePriority(.init(1), for: .horizontal)
+        }
         stack.do {
             $0.axis = .horizontal
             $0.spacing = FilaUI.Spacing.small
+            $0.addArrangedSubview(slack)
         }
         addSubview(stack)
         stack.snp.makeConstraints { make in
-            // Centred, but free to wrap inside the margins on a narrow screen.
-            make.centerX.equalToSuperview()
-            make.leading.greaterThanOrEqualTo(layoutMarginsGuide.snp.leading)
-            make.trailing.lessThanOrEqualTo(layoutMarginsGuide.snp.trailing)
+            make.leading.trailing.equalTo(layoutMarginsGuide)
             make.top.equalToSuperview().offset(FilaUI.Spacing.large)
             make.bottom.equalToSuperview().offset(-FilaUI.Spacing.large)
-            make.height.equalToSuperview().offset(-FilaUI.Spacing.large * 2).priority(.high)
         }
         isAccessibilityElement = true
         render()
@@ -52,18 +60,31 @@ final class BrowserFooterView: UICollectionReusableView {
     }
 
     private func render() {
-        for view in stack.arrangedSubviews {
-            stack.removeArrangedSubview(view)
-            view.removeFromSuperview()
+        for label in labels {
+            stack.removeArrangedSubview(label)
+            label.removeFromSuperview()
         }
-        for part in parts {
-            stack.addArrangedSubview(UILabel().then {
+        labels = parts.map { part in
+            UILabel().then {
                 $0.font = .preferredFont(forTextStyle: .footnote)
                 $0.adjustsFontForContentSizeCategory = true
-                $0.textColor = .secondaryLabel
                 $0.numberOfLines = 0
-                $0.text = part
-            })
+                // A fact with content keeps its width; the slack is what gives.
+                $0.setContentHuggingPriority(.required, for: .horizontal)
+                $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+                // Underlined, which a label does through attributed text.
+                $0.attributedText = NSAttributedString(
+                    string: part,
+                    attributes: [
+                        .font: UIFont.preferredFont(forTextStyle: .footnote),
+                        .foregroundColor: UIColor.secondaryLabel,
+                        .underlineStyle: NSUnderlineStyle.single.rawValue,
+                    ],
+                )
+            }
+        }
+        for label in labels {
+            stack.addArrangedSubview(label)
         }
         // Read as one sentence, in the order the labels are in.
         accessibilityLabel = parts.joined(separator: ", ")
