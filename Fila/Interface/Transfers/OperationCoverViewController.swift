@@ -56,6 +56,7 @@ final class OperationCoverViewController: UIViewController {
     private let bar = UIProgressView(progressViewStyle: .default)
     private let spinner = UIActivityIndicatorView(style: .medium)
     private let separator = UIView()
+    private var separatorHeight: Constraint?
     private let countLabel = UILabel()
     private let cancelButton = UIButton(type: .system)
 
@@ -129,6 +130,15 @@ final class OperationCoverViewController: UIViewController {
         if previousTraitCollection?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
             cancelButton.setNeedsUpdateConfiguration()
         }
+        if previousTraitCollection?.displayScale != traitCollection.displayScale {
+            separatorHeight?.update(offset: Self.hairline(in: traitCollection))
+        }
+    }
+
+    /// One pixel of the display the card is on, read from its traits rather
+    /// than from a screen fixed in advance; a point until it has a display.
+    private static func hairline(in traits: UITraitCollection) -> CGFloat {
+        1 / max(traits.displayScale, 1)
     }
 
     private func build() {
@@ -174,7 +184,7 @@ final class OperationCoverViewController: UIViewController {
         bar.snp.makeConstraints { $0.leading.trailing.centerY.equalToSuperview() }
         spinner.snp.makeConstraints { $0.center.equalToSuperview() }
         separator.backgroundColor = AlertControllerConfiguration.separatorColor
-        separator.snp.makeConstraints { $0.height.equalTo(1 / UIScreen.main.scale) }
+        separator.snp.makeConstraints { separatorHeight = $0.height.equalTo(Self.hairline(in: traitCollection)).constraint }
 
         configure(cancelButton, title: String(localized: "Cancel"))
         cancelButton.addAction(UIAction { [weak self] _ in

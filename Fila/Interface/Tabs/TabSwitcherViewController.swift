@@ -127,6 +127,7 @@ final class TabSwitcherViewController: UIViewController {
         let closeAllButton = UIBarButtonItem(image: UIImage(systemName: "trash"), menu: UIMenu(children: [closeAll]))
         closeAllButton.tintColor = .systemRed
         closeAllButton.accessibilityLabel = String(localized: "Close All")
+        closeAllButton.title = String(localized: "Close All")
         navigationItem.leftBarButtonItem = closeAllButton
         let newTab = UIBarButtonItem(
             image: UIImage(systemName: "plus"),
@@ -138,6 +139,7 @@ final class TabSwitcherViewController: UIViewController {
             ]),
         )
         newTab.accessibilityLabel = String(localized: "New Tab")
+        newTab.title = String(localized: "New Tab")
         navigationItem.rightBarButtonItem = newTab
     }
 

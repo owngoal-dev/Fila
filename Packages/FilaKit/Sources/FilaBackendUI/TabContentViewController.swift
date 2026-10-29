@@ -151,6 +151,7 @@
         public static func actionsItem(menu: UIMenu?) -> UIBarButtonItem {
             UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: menu).then {
                 $0.accessibilityLabel = String(localized: "More", bundle: .module)
+                $0.title = String(localized: "More", bundle: .module)
             }
         }
 
@@ -188,6 +189,7 @@
             }])
             return UIBarButtonItem(image: UIImage(systemName: "doc.on.clipboard"), menu: menu).then {
                 $0.accessibilityLabel = String(localized: "Clipboard", bundle: .module)
+                $0.title = String(localized: "Clipboard", bundle: .module)
                 // Its own capsule, apart from the ellipsis: two glasses fused
                 // into one read as a single control. Identified so a push
                 // between two folders keeps it standing.
@@ -349,6 +351,23 @@
 
         // MARK: - The breadcrumb's width
 
+        /// Whether the system lays this screen's symbol bar items out on a
+        /// vertical bar beside the content rather than across the bottom: from
+        /// the iOS 27.1 SDK on, where the space is wider than it is tall (an
+        /// iPhone Duo's outer display, its inner display in landscape). An app
+        /// built against an earlier SDK is never given one, so there the answer
+        /// is always no. The trait reports the system's preferred edge whether
+        /// or not the bar is drawn, and is unspecified wherever the system
+        /// never places one; that is the question being asked.
+        private var barItemsStandVertically: Bool {
+            #if canImport(UIKit, _version: 9127.0.85)
+                if #available(iOS 27.1, *) {
+                    return traitCollection.verticalBarEdge != .unspecified
+                }
+            #endif
+            return false
+        }
+
         override open func viewDidLayoutSubviews() {
             super.viewDidLayoutSubviews()
             updateCenterWidth()
@@ -378,8 +397,13 @@
             // the breadcrumb a few points of a scroller that already scrolls. On
             // iOS 26 each item sits in its own capsule, with wider outer margins
             // and gaps than the flat bar, and the breadcrumb gets a capsule too.
-            let hasLeading = searchPlacementItem != nil || wantsSearchButton
-            let hasTrailing = bar != nil
+            // Beside a vertical bar the symbol items — Search and Tabs among
+            // them — move onto it, and the breadcrumb, a custom view with no
+            // vertical form, keeps the bottom bar to itself. Their slots are
+            // reserved only while they share its bar.
+            let symbolsShareBar = !barItemsStandVertically
+            let hasLeading = symbolsShareBar && (searchPlacementItem != nil || wantsSearchButton)
+            let hasTrailing = symbolsShareBar && bar != nil
             let reserved: CGFloat
             if #available(iOS 26.0, *) {
                 // The gap between capsules equals the bar's outer margin, so

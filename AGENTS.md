@@ -873,6 +873,17 @@ pages leave it standing. A sheet or a picker — which the shell never gave a
 bar — shows no Tabs and, with nothing else set, no bottom bar. A mode that
 owns the whole bottom bar (selection) uses `setToolbarOverride(_:animated:)`.
 
+Where the space is wider than it is tall on an iPhone Duo (the outer display,
+the inner one in landscape), the system moves the symbol items of both bars —
+Back, Places, the ellipsis, Search, Tabs, the selection actions — onto one
+vertical bar beside the content, and the breadcrumb, a custom view with no
+vertical form, keeps the bottom bar to itself. That is the same Tabs control
+placed by the system, not a second one; nothing in the app moves it. The
+breadcrumb's width reserves the Search and Tabs slots only while they share
+its bar (`verticalBarEdge`, iOS 27.1). Every symbol-only bar item carries a
+`title` beside its `accessibilityLabel`: a bar shows the symbol, and an
+overflow menu shows the title — without one it is a blank row.
+
 The breadcrumb is one `PathBarView` on every page, read through
 `TabContentDecorationSource`, the way a table reads its data source: a
 screen that knows where it is conforms itself (a folder, a share, a
