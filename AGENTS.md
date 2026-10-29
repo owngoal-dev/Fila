@@ -612,6 +612,16 @@ sentence. The same script fails on a missing or `""` message.
   set, so a `make check` can leave a diff.
 - `make compile` / `make compile-sandboxed` — build only, no packaging. This is
   what CI runs beside `harness` as three parallel jobs.
+- **Device builds need the iOS 27.1 SDK or later** (`MINIMUM_IPHONEOS_SDK`;
+  `make require-sdk`, which `compile` and both device recipes run first). The
+  SDK, not the floor, decides how the app is laid out on an iPhone Duo: built
+  against 27.0 or earlier it stops short of the inner display's status-bar
+  edge and keeps its bars horizontal; from 27.1 it fills the display and its
+  symbol bar items stand on a vertical bar beside the content. CI selects
+  `/Applications/Xcode_27.1.app` by name on the `xcode-27` image. Where only an
+  older Xcode is installed, point `DEVELOPER_DIR` at one that carries the
+  iPhoneOS 27.1 SDK. The simulator is exempt, so a simulator build always
+  shows the tier of the simulator SDK it was built with.
 - `make build` — unsigned `Fila.app` + `filad` + `fila-archive` for iPhoneOS
   (runs `check` and `harness` first). It, `make sim` and `make vphone` bump
   `CURRENT_PROJECT_VERSION` first, so `Version.xcconfig` comes out of a build

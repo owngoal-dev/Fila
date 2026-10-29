@@ -22,6 +22,13 @@ concurrency:
   group: fila-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: true
 
+# Every macOS job runs on the `xcode-27` image with Xcode 27.1 selected by
+# name, not the newest Xcode found: the image also carries a 27.2 release
+# candidate, and the packages are built against the iOS 27.1 SDK — the SDK
+# from which an iPhone Duo gives the app its whole display and vertical bars.
+# `make compile` refuses an older one (MINIMUM_IPHONEOS_SDK). The host tests
+# use the same toolchain, so the compiler that builds the package for the
+# tests is the one that builds it for the device.
 env:
   # `CURRENT_PROJECT_VERSION` has always been the publishing workflow's run
   # number, and 0.5.12 shipped build 48 from `release.yml`'s 48th run. This
@@ -31,19 +38,22 @@ env:
   # change that does not take". The floor carries the counter past the old
   # workflow's last run. Raise it, never lower it.
   BUILD_NUMBER_FLOOR: "100"
+  # The iOS simulator runtime fetched for the floor audit when the image has
+  # none that keeps its Swift libraries as files.
+  AUDIT_BASELINE_IOS: "18.6"
 
 jobs:
   test:
     name: Host tests
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Select newest Xcode
+      - name: Select Xcode 27.1
         run: |
-          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
-          sudo xcode-select -s "$latest/Contents/Developer"
+          sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
           xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
       - name: Test localization build checks
         run: python3 -m unittest discover -s Scripts/Tests -v
       - name: Run host tests
@@ -57,7 +67,7 @@ jobs:
   # runners, and no runner archives a product it did not compile.
   compile:
     name: compile (full composition)
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 120
     steps:
       # Keyed on the run and the attempt, and named apart from the sandboxed
@@ -70,13 +80,42 @@ jobs:
           set -euo pipefail
           echo "DERIVED_DATA=$RUNNER_TEMP/fila-full-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
-      - name: Select newest Xcode
+      - name: Select Xcode 27.1
         run: |
-          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
-          sudo xcode-select -s "$latest/Contents/Developer"
+          sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
           xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
       - name: Install packaging tools
         run: brew install ldid dpkg
+      # The floor audit in the packagers compares every Swift runtime import
+      # with the oldest iOS simulator runtime at or above the floor that keeps
+      # its libraries as files — 18.x does; 26 and later keep them only in a
+      # shared cache. Without one it checks only its own list of symbols, so
+      # one is fetched when the image has none, and the job stops if none can
+      # be had rather than publish what a weaker audit passed.
+      - name: Provide the floor audit's baseline runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          baselines() {
+            xcrun simctl runtime list -j | python3 -c '
+          import json, os, sys
+          for runtime in json.load(sys.stdin).values():
+              root = os.path.join(runtime.get("runtimeBundlePath", ""), "Contents/Resources/RuntimeRoot")
+              if runtime.get("platformIdentifier", "").endswith("iphonesimulator") \
+                      and os.path.isfile(os.path.join(root, "usr/lib/swift/libswiftCore.dylib")):
+                  print(runtime["version"])
+          '
+          }
+          if [[ -z "$(baselines)" ]]; then
+            xcodebuild -downloadPlatform iOS -buildVersion "$AUDIT_BASELINE_IOS"
+          fi
+          found="$(baselines | tr '\n' ' ')"
+          if [[ -z "${found// /}" ]]; then
+            echo "::error::No iOS simulator runtime keeps its Swift libraries as files, so the floor audit cannot compare runtime imports."
+            exit 1
+          fi
+          echo "Floor audit baseline runtimes: $found"
       # No tag reaches a compile any more, so the version is the commit's own,
       # out of Configuration/Version.xcconfig; only the build number is
       # pinned, and both compositions pin it to the same run, so the two still
@@ -124,7 +163,7 @@ jobs:
 
   compile-sandboxed:
     name: compile (sandboxed composition)
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 120
     steps:
       # The sandboxed composition builds into SANDBOX_DERIVED_DATA, which the
@@ -136,13 +175,42 @@ jobs:
           set -euo pipefail
           echo "SANDBOX_DERIVED_DATA=$RUNNER_TEMP/fila-sandboxed-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
-      - name: Select newest Xcode
+      - name: Select Xcode 27.1
         run: |
-          latest="$(find /Applications -maxdepth 1 -type d -name 'Xcode*.app' -print | sort -V | tail -n1)"
-          sudo xcode-select -s "$latest/Contents/Developer"
+          sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
           xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
       - name: Install packaging tools
         run: brew install ldid dpkg
+      # The floor audit in the packagers compares every Swift runtime import
+      # with the oldest iOS simulator runtime at or above the floor that keeps
+      # its libraries as files — 18.x does; 26 and later keep them only in a
+      # shared cache. Without one it checks only its own list of symbols, so
+      # one is fetched when the image has none, and the job stops if none can
+      # be had rather than publish what a weaker audit passed.
+      - name: Provide the floor audit's baseline runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          baselines() {
+            xcrun simctl runtime list -j | python3 -c '
+          import json, os, sys
+          for runtime in json.load(sys.stdin).values():
+              root = os.path.join(runtime.get("runtimeBundlePath", ""), "Contents/Resources/RuntimeRoot")
+              if runtime.get("platformIdentifier", "").endswith("iphonesimulator") \
+                      and os.path.isfile(os.path.join(root, "usr/lib/swift/libswiftCore.dylib")):
+                  print(runtime["version"])
+          '
+          }
+          if [[ -z "$(baselines)" ]]; then
+            xcodebuild -downloadPlatform iOS -buildVersion "$AUDIT_BASELINE_IOS"
+          fi
+          found="$(baselines | tr '\n' ' ')"
+          if [[ -z "${found// /}" ]]; then
+            echo "::error::No iOS simulator runtime keeps its Swift libraries as files, so the floor audit cannot compare runtime imports."
+            exit 1
+          fi
+          echo "Floor audit baseline runtimes: $found"
       - name: Pin the build number to this run
         shell: bash
         run: |
