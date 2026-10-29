@@ -3,7 +3,12 @@ import FilaBackendUI
 import Then
 import UIKit
 
-/// The shell: a tab, and — on an iPad — a sidebar beside it.
+/// The shell: a tab, and — wherever the width is regular — a sidebar beside it.
+///
+/// Regular is a width, not a device: an iPad, and an iPhone Duo's inner display
+/// in either orientation, both get the column; a phone, the Duo's outer display
+/// and a narrow window get the sheet. Nothing here asks which device it is on —
+/// `isCollapsed` is the whole of the decision, and UIKit makes it.
 ///
 /// The home screen is the tab's content. There is no third column any more:
 /// a viewer, an editor or a terminal fills the tab it was opened from rather
@@ -136,6 +141,7 @@ final class RootSplitViewController: UISplitViewController {
             },
         ).then {
             $0.accessibilityLabel = String(localized: "Places")
+            $0.title = String(localized: "Places")
             if #available(iOS 26.0, *) {
                 $0.identifier = "sidebar"
                 $0.sharesBackground = false
@@ -153,6 +159,7 @@ final class RootSplitViewController: UISplitViewController {
             },
         ).then {
             $0.accessibilityLabel = String(localized: "Back")
+            $0.title = String(localized: "Back")
             if #available(iOS 26.0, *) {
                 $0.identifier = "back"
                 $0.sharesBackground = false
@@ -534,7 +541,7 @@ final class RootSplitViewController: UISplitViewController {
 
     // MARK: - The sidebar
 
-    /// A column on an iPad, a sheet on a phone.
+    /// A column where the width is regular, a sheet where it is compact.
     ///
     /// The phone gets a *second* `SidebarViewController` rather than the one in
     /// the primary column, because that one is inside the split view's own

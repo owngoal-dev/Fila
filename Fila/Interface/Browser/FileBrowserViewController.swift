@@ -835,6 +835,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             self?.setEditing(false, animated: true)
         })
         cancel.accessibilityLabel = String(localized: "Cancel")
+        cancel.title = String(localized: "Cancel")
         navigationItem.leftBarButtonItems = [cancel]
         trailingNavigationItems = []
 
@@ -844,9 +845,11 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         items.selectAll.accessibilityLabel = allSelected
             ? String(localized: "Deselect All")
             : String(localized: "Select All")
+        items.selectAll.title = items.selectAll.accessibilityLabel
         items.selectAll.isEnabled = !visible.isEmpty
         items.delete.image = UIImage(systemName: "trash")
         items.delete.accessibilityLabel = isTrash ? String(localized: "Delete Permanently") : deleteTitle
+        items.delete.title = isTrash ? String(localized: "Delete Permanently") : deleteTitle
         for item in [items.copy, items.move, items.compress, items.putBack, items.delete] {
             item.isEnabled = count > 0
         }
@@ -913,11 +916,13 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: false) },
         )
         copy.accessibilityLabel = String(localized: "Copy")
+        copy.title = String(localized: "Copy")
         let move = UIBarButtonItem(
             image: UIImage(systemName: "scissors"),
             primaryAction: UIAction { [weak self] _ in self?.takeSelection(cut: true) },
         )
         move.accessibilityLabel = String(localized: "Move")
+        move.title = String(localized: "Move")
         let compress = UIBarButtonItem(
             image: UIImage(systemName: "doc.zipper"),
             primaryAction: UIAction { [weak self] _ in
@@ -926,6 +931,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             },
         )
         compress.accessibilityLabel = String(localized: "Compress")
+        compress.title = String(localized: "Compress")
         let putBack = UIBarButtonItem(
             image: UIImage(systemName: "arrow.uturn.backward"),
             primaryAction: UIAction { [weak self] _ in
@@ -934,6 +940,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
             },
         )
         putBack.accessibilityLabel = String(localized: "Put Back")
+        putBack.title = String(localized: "Put Back")
         let delete = UIBarButtonItem(image: UIImage(systemName: "trash"), primaryAction: UIAction { [weak self] _ in
             guard let self else { return }
             self.delete(selectedPaths())
@@ -963,6 +970,7 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
     private lazy var moreButton: UIBarButtonItem = {
         let more = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), menu: makeMoreMenu())
         more.accessibilityLabel = String(localized: "More")
+        more.title = String(localized: "More")
         return more
     }()
 

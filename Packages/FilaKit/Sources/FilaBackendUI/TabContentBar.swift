@@ -44,6 +44,7 @@
                 showTabs()
             }).then {
                 $0.accessibilityLabel = String(localized: "Tabs", bundle: .module)
+                $0.title = String(localized: "Tabs", bundle: .module)
                 $0.accessibilityIdentifier = "fila.tabs"
                 if #available(iOS 26.0, *) {
                     $0.identifier = "tabs"

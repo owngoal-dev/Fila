@@ -31,7 +31,7 @@ final class ApplicationArtworkCache: ApplicationArtwork {
         if let image = icons.object(forKey: identifier as NSString) {
             return image
         }
-        let scale = UIScreen.main.scale
+        let scale = Self.displayScale
         let image = await Task.detached(priority: .userInitiated) {
             ApplicationIconRenderer.image(for: identifier, scale: scale)
         }.value
@@ -39,5 +39,15 @@ final class ApplicationArtworkCache: ApplicationArtwork {
             icons.setObject(image, forKey: identifier as NSString)
         }
         return image ?? placeholder
+    }
+
+    /// The density of the display the app is on now, read from its scene when
+    /// artwork is drawn. `UIScreen.main` names one fixed screen, which on a
+    /// device with an inner and an outer display need not be the one in use.
+    private static var displayScale: CGFloat {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        let scale = scene?.traitCollection.displayScale ?? UITraitCollection.current.displayScale
+        return max(scale, 1)
     }
 }

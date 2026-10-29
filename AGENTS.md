@@ -612,6 +612,21 @@ sentence. The same script fails on a missing or `""` message.
   set, so a `make check` can leave a diff.
 - `make compile` / `make compile-sandboxed` — build only, no packaging. This is
   what CI runs beside `harness` as three parallel jobs.
+- **Device builds need the iOS 27.1 SDK or later** (`MINIMUM_IPHONEOS_SDK`;
+  `make require-sdk`, which `compile` and both device recipes run first). The
+  SDK, not the floor, decides how the app is laid out on an iPhone Duo: built
+  against 27.0 or earlier it stops short of the inner display's status-bar
+  edge and keeps its bars horizontal; from 27.1 it fills the display and its
+  symbol bar items stand on a vertical bar beside the content. CI selects
+  `/Applications/Xcode_27.1.app` by name on the `xcode-27` image. That image
+  has no iOS simulator runtime that keeps its Swift libraries as files, and
+  Xcode 27.1 will not download an older one, so the packagers' floor audit
+  runs only its own symbol list there; the `floor-audit` job repeats it on
+  `macos-26` over every packaged image, against the oldest such runtime that
+  image has, and nothing is collected until it passes. Where only an
+  older Xcode is installed, point `DEVELOPER_DIR` at one that carries the
+  iPhoneOS 27.1 SDK. The simulator is exempt, so a simulator build always
+  shows the tier of the simulator SDK it was built with.
 - `make build` — unsigned `Fila.app` + `filad` + `fila-archive` for iPhoneOS
   (runs `check` and `harness` first). It, `make sim` and `make vphone` bump
   `CURRENT_PROJECT_VERSION` first, so `Version.xcconfig` comes out of a build
@@ -872,6 +887,17 @@ whole bar out and in with the transition, and the same objects on both
 pages leave it standing. A sheet or a picker — which the shell never gave a
 bar — shows no Tabs and, with nothing else set, no bottom bar. A mode that
 owns the whole bottom bar (selection) uses `setToolbarOverride(_:animated:)`.
+
+Where the space is wider than it is tall on an iPhone Duo (the outer display,
+the inner one in landscape), the system moves the symbol items of both bars —
+Back, Places, the ellipsis, Search, Tabs, the selection actions — onto one
+vertical bar beside the content, and the breadcrumb, a custom view with no
+vertical form, keeps the bottom bar to itself. That is the same Tabs control
+placed by the system, not a second one; nothing in the app moves it. The
+breadcrumb's width reserves the Search and Tabs slots only while they share
+its bar (`verticalBarEdge`, iOS 27.1). Every symbol-only bar item carries a
+`title` beside its `accessibilityLabel`: a bar shows the symbol, and an
+overflow menu shows the title — without one it is a blank row.
 
 The breadcrumb is one `PathBarView` on every page, read through
 `TabContentDecorationSource`, the way a table reads its data source: a

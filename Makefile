@@ -55,6 +55,14 @@ base_xcconfig_setting = $(strip $(shell awk -F= '$$1 ~ /^[[:space:]]*$(1)[[:spac
 APP_VERSION         := $(call xcconfig_setting,MARKETING_VERSION)
 BUILD_NUMBER        := $(call xcconfig_setting,CURRENT_PROJECT_VERSION)
 MINIMUM_IOS_VERSION := $(call base_xcconfig_setting,IPHONEOS_DEPLOYMENT_TARGET)
+# The SDK a device build links against decides how the app is laid out on an
+# iPhone Duo, whatever the deployment target says. Built against the iOS 27.0
+# SDK or earlier, the app stops short of the inner display's status-bar edge
+# and its bars stay horizontal; from 27.1 it fills the display and its bar
+# items stand on a vertical bar beside the content. Every device build and
+# every package is made against at least this SDK; DEVELOPER_DIR picks the
+# Xcode that provides it. The simulator is not held to it.
+MINIMUM_IPHONEOS_SDK := 27.1
 DEB_OUTPUT          ?= $(ROOT_DIR)/build/Packages/$(PACKAGE_ID)_$(APP_VERSION)_$(PACKAGE_ARCHITECTURE).deb
 
 # The two archives that carry the app alone. The .tipa is the same Fila.app
@@ -130,7 +138,7 @@ endif
 
 .PHONY: all help print-version print-build-number print-deb-path print-tipa-path \
 	print-ipa-path print-flavor \
-	set-version bump-build check remove-stale harness build compile build-sandboxed compile-sandboxed sim vphone \
+	set-version bump-build require-sdk check remove-stale harness build compile build-sandboxed compile-sandboxed sim vphone \
 	_build-ios _build-ios-sandboxed _package-deb _packages _packages-full _packages-sandboxed \
 	deb deb-roothide deb-rootless deb-all tipa ipa packages install clean
 
@@ -140,6 +148,7 @@ help:
 	@echo "Fila:"
 	@echo "  harness     Run the FilaKit tests on macOS (no device, no simulator)"
 	@echo "  check       Validate the Xcode project and packaging inputs"
+	@echo "  require-sdk Refuse a device build against an iPhoneOS SDK older than $(MINIMUM_IPHONEOS_SDK)"
 	@echo "  remove-stale  Delete stale keys from every string catalogue (check does this too)"
 	@echo "  build       Build the unsigned Fila.app, filad and fila-archive for iPhoneOS"
 	@echo "  compile     Check and compile iPhoneOS products; CI runs harness separately"
@@ -187,6 +196,15 @@ bump-build:
 	@if [ -n "$${CI:-}" ]; then echo "==> CI: keeping build $(BUILD_NUMBER)"; else \
 		"$(VERSION_APPLIER)" "$(APP_VERSION)" $$(( $(BUILD_NUMBER) + 1 )) >/dev/null; \
 		echo "==> build $$(( $(BUILD_NUMBER) + 1 ))"; fi
+
+# Refuses a device build against an iPhoneOS SDK older than
+# MINIMUM_IPHONEOS_SDK, before anything is compiled: the package would install
+# and run, and only an iPhone Duo would show the difference.
+require-sdk:
+	@sdk="$$(xcrun --sdk iphoneos --show-sdk-version 2>/dev/null || true)"; \
+	python3 -c 'import sys; v = lambda s: tuple(int(p) for p in s.split(".")); sys.exit(0 if v(sys.argv[1]) >= v(sys.argv[2]) else 1)' \
+		"$${sdk:-0}" "$(MINIMUM_IPHONEOS_SDK)" 2>/dev/null \
+		|| { echo "error: device builds need the iOS $(MINIMUM_IPHONEOS_SDK) SDK or later; $$(xcode-select -p) provides '$${sdk:-none}'. Select a newer Xcode or set DEVELOPER_DIR." >&2; exit 69; }
 
 # A stale key is one Xcode can no longer find a call site for. `check` prunes
 # them here so the catalogue never carries the marker; under CI it reports and
@@ -267,7 +285,7 @@ build: harness compile
 
 # CI runs harness, this compilation and the sandboxed one as three jobs in
 # parallel; publication waits for all of them.
-compile: check
+compile: require-sdk check
 	@$(MAKE) --no-print-directory _build-ios
 
 # Two compositions, one set of sources. `Fila` links every backend module
@@ -287,7 +305,7 @@ compile: check
 # does nothing under CI for exactly this reason.
 build-sandboxed: harness compile-sandboxed
 
-compile-sandboxed: check
+compile-sandboxed: require-sdk check
 	@$(MAKE) --no-print-directory _build-ios-sandboxed
 
 # The browser frontend served by the WebDAV server: React + webpack in WebUI/,
@@ -297,7 +315,7 @@ webui:
 	$(WEBUI_BUILDER)
 
 # Shared recipes keep the UI iteration loop separate from the release gates.
-_build-ios: bump-build
+_build-ios: require-sdk bump-build
 	XCBUILD_LABEL=build-ios python3 Scripts/build-package-inputs.py build "$(dir $(APP_BUNDLE))" $(XCODEBUILD) \
 		-configuration "$(CONFIGURATION)" \
 		-scheme "$(SCHEME)" \
@@ -309,7 +327,7 @@ _build-ios: bump-build
 # directory: a copy-files phase never prunes, and the second build would
 # inherit the first one's frameworks and overwrite its receipt.
 _build-ios-sandboxed: XCODEBUILD_DERIVED_DATA = $(SANDBOX_DERIVED_DATA)
-_build-ios-sandboxed:
+_build-ios-sandboxed: require-sdk
 	@[ "$(abspath $(SANDBOX_DERIVED_DATA))" != "$(abspath $(DERIVED_DATA))" ] \
 		|| { echo "error: SANDBOX_DERIVED_DATA must differ from DERIVED_DATA; both compositions build Fila.app" >&2; exit 1; }
 	XCBUILD_LABEL=build-ios-sandboxed python3 Scripts/build-package-inputs.py --products Fila.app build "$(dir $(SANDBOX_APP_BUNDLE))" $(XCODEBUILD) \

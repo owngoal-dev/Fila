@@ -388,12 +388,32 @@ private final class QRCodeCell: UICollectionViewListCell {
         fatalError()
     }
 
+    private var address: String?
+
     func show(_ address: String) {
         label.text = address
-        imageView.image = Self.code(for: address)
+        self.address = address
+        drawCode()
     }
 
-    private static func code(for text: String) -> UIImage? {
+    /// Drawn again when the cell lands on a display of another density: the
+    /// code is rendered at the cell's own display scale rather than a screen
+    /// chosen up front, which on a device with two displays can be the other.
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if previousTraitCollection?.displayScale != traitCollection.displayScale {
+            drawCode()
+        }
+    }
+
+    /// A cell not yet on a display has no scale; it draws once it has one.
+    private func drawCode() {
+        let scale = traitCollection.displayScale
+        guard let address, scale > 0 else { return }
+        imageView.image = Self.code(for: address, scale: scale)
+    }
+
+    private static func code(for text: String, scale: CGFloat) -> UIImage? {
         let filter = CIFilter.qrCodeGenerator()
         filter.message = Data(text.utf8)
         filter.correctionLevel = "M"
@@ -401,12 +421,12 @@ private final class QRCodeCell: UICollectionViewListCell {
         // Quiet zone: the generator draws none, and a scanner needs one.
         let padded = output.extent.insetBy(dx: -4, dy: -4)
         let transform = CGAffineTransform(
-            scaleX: side * UIScreen.main.scale / padded.width,
-            y: side * UIScreen.main.scale / padded.height,
+            scaleX: side * scale / padded.width,
+            y: side * scale / padded.height,
         )
         // Nearest sampling keeps module edges hard at a fractional scale.
         let scaled = output.samplingNearest().transformed(by: transform)
         guard let rendered = CIContext().createCGImage(scaled, from: padded.applying(transform)) else { return nil }
-        return UIImage(cgImage: rendered, scale: UIScreen.main.scale, orientation: .up)
+        return UIImage(cgImage: rendered, scale: scale, orientation: .up)
     }
 }
