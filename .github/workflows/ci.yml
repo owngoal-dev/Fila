@@ -22,13 +22,15 @@ concurrency:
   group: fila-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: true
 
-# Every macOS job runs on the `xcode-27` image with Xcode 27.1 selected by
-# name, not the newest Xcode found: the image also carries a 27.2 release
-# candidate, and the packages are built against the iOS 27.1 SDK — the SDK
-# from which an iPhone Duo gives the app its whole display and vertical bars.
-# `make compile` refuses an older one (MINIMUM_IPHONEOS_SDK). The host tests
-# use the same toolchain, so the compiler that builds the package for the
-# tests is the one that builds it for the device.
+# The host tests and both compilations run on the `xcode-27` image with Xcode
+# 27.1 selected by name, not the newest Xcode found: the image also carries a
+# 27.2 release candidate, and the packages are built against the iOS 27.1
+# SDK — the SDK from which an iPhone Duo gives the app its whole display and
+# vertical bars. `make compile` refuses an older one (MINIMUM_IPHONEOS_SDK).
+# The host tests use the same toolchain, so the compiler that builds the
+# package for the tests is the one that builds it for the device. The floor
+# audit's runtime comparison runs on `macos-26`, which has the runtimes it needs;
+# see the `floor-audit` job.
 env:
   # `CURRENT_PROJECT_VERSION` has always been the publishing workflow's run
   # number, and 0.5.12 shipped build 48 from `release.yml`'s 48th run. This
@@ -38,9 +40,6 @@ env:
   # change that does not take". The floor carries the counter past the old
   # workflow's last run. Raise it, never lower it.
   BUILD_NUMBER_FLOOR: "100"
-  # The iOS simulator runtime fetched for the floor audit when the image has
-  # none that keeps its Swift libraries as files.
-  AUDIT_BASELINE_IOS: "18.6"
 
 jobs:
   test:
@@ -87,35 +86,6 @@ jobs:
           xcrun --sdk iphoneos --show-sdk-version
       - name: Install packaging tools
         run: brew install ldid dpkg
-      # The floor audit in the packagers compares every Swift runtime import
-      # with the oldest iOS simulator runtime at or above the floor that keeps
-      # its libraries as files — 18.x does; 26 and later keep them only in a
-      # shared cache. Without one it checks only its own list of symbols, so
-      # one is fetched when the image has none, and the job stops if none can
-      # be had rather than publish what a weaker audit passed.
-      - name: Provide the floor audit's baseline runtime
-        shell: bash
-        run: |
-          set -euo pipefail
-          baselines() {
-            xcrun simctl runtime list -j | python3 -c '
-          import json, os, sys
-          for runtime in json.load(sys.stdin).values():
-              root = os.path.join(runtime.get("runtimeBundlePath", ""), "Contents/Resources/RuntimeRoot")
-              if runtime.get("platformIdentifier", "").endswith("iphonesimulator") \
-                      and os.path.isfile(os.path.join(root, "usr/lib/swift/libswiftCore.dylib")):
-                  print(runtime["version"])
-          '
-          }
-          if [[ -z "$(baselines)" ]]; then
-            xcodebuild -downloadPlatform iOS -buildVersion "$AUDIT_BASELINE_IOS"
-          fi
-          found="$(baselines | tr '\n' ' ')"
-          if [[ -z "${found// /}" ]]; then
-            echo "::error::No iOS simulator runtime keeps its Swift libraries as files, so the floor audit cannot compare runtime imports."
-            exit 1
-          fi
-          echo "Floor audit baseline runtimes: $found"
       # No tag reaches a compile any more, so the version is the commit's own,
       # out of Configuration/Version.xcconfig; only the build number is
       # pinned, and both compositions pin it to the same run, so the two still
@@ -182,35 +152,6 @@ jobs:
           xcrun --sdk iphoneos --show-sdk-version
       - name: Install packaging tools
         run: brew install ldid dpkg
-      # The floor audit in the packagers compares every Swift runtime import
-      # with the oldest iOS simulator runtime at or above the floor that keeps
-      # its libraries as files — 18.x does; 26 and later keep them only in a
-      # shared cache. Without one it checks only its own list of symbols, so
-      # one is fetched when the image has none, and the job stops if none can
-      # be had rather than publish what a weaker audit passed.
-      - name: Provide the floor audit's baseline runtime
-        shell: bash
-        run: |
-          set -euo pipefail
-          baselines() {
-            xcrun simctl runtime list -j | python3 -c '
-          import json, os, sys
-          for runtime in json.load(sys.stdin).values():
-              root = os.path.join(runtime.get("runtimeBundlePath", ""), "Contents/Resources/RuntimeRoot")
-              if runtime.get("platformIdentifier", "").endswith("iphonesimulator") \
-                      and os.path.isfile(os.path.join(root, "usr/lib/swift/libswiftCore.dylib")):
-                  print(runtime["version"])
-          '
-          }
-          if [[ -z "$(baselines)" ]]; then
-            xcodebuild -downloadPlatform iOS -buildVersion "$AUDIT_BASELINE_IOS"
-          fi
-          found="$(baselines | tr '\n' ' ')"
-          if [[ -z "${found// /}" ]]; then
-            echo "::error::No iOS simulator runtime keeps its Swift libraries as files, so the floor audit cannot compare runtime imports."
-            exit 1
-          fi
-          echo "Floor audit baseline runtimes: $found"
       - name: Pin the build number to this run
         shell: bash
         run: |
@@ -245,6 +186,73 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # The packagers' floor audit compares every Swift runtime import with the
+  # oldest iOS simulator runtime that keeps its libraries as files. The
+  # `xcode-27` image has none, and Xcode 27.1 will not download an older one,
+  # so there it checks only its own list of late symbols. This job repeats it
+  # on `macos-26`, whose runtimes have the files, over every image in both
+  # .deb flavours, the .tipa and the .ipa this run packaged; it fails if no
+  # such runtime is there either, and nothing is collected until it passes.
+  floor-audit:
+    name: Floor audit against an older simulator runtime
+    needs: [compile, compile-sandboxed]
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fila-${{ github.sha }}-*
+          merge-multiple: true
+          path: build/Packages/
+      - name: Install dpkg
+        run: brew install dpkg
+      - name: Audit every packaged image at the floor
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline="$(xcrun simctl runtime list -j | python3 -c '
+          import json, os, sys
+          for runtime in json.load(sys.stdin).values():
+              root = os.path.join(runtime.get("runtimeBundlePath", ""), "Contents/Resources/RuntimeRoot")
+              if runtime.get("platformIdentifier", "").endswith("iphonesimulator") \
+                      and os.path.isfile(os.path.join(root, "usr/lib/swift/libswiftCore.dylib")):
+                  print(runtime["version"])
+          ')"
+          if [[ -z "$baseline" ]]; then
+            echo "::error::No iOS simulator runtime here keeps its Swift libraries as files; the audit would check only its own list."
+            exit 1
+          fi
+          echo "Baseline runtimes: $(tr '\n' ' ' <<<"$baseline")"
+          floor="$(awk -F= '$1 ~ /^[[:space:]]*IPHONEOS_DEPLOYMENT_TARGET[[:space:]]*$/ { gsub(/[[:space:]]/, "", $2); print $2; exit }' Configuration/Base.xcconfig)"
+          shopt -s nullglob
+          debs=(build/Packages/*.deb)
+          archives=(build/Packages/*.ipa build/Packages/*.tipa)
+          if (( ${#debs[@]} != 2 || ${#archives[@]} != 2 )); then
+            echo "::error::Expected both .deb flavours, the .tipa and the .ipa."
+            ls -l build/Packages
+            exit 1
+          fi
+          for deb in "${debs[@]}"; do
+            unpacked="$RUNNER_TEMP/floor-audit/$(basename "$deb")"
+            mkdir -p "$unpacked"
+            dpkg-deb -x "$deb" "$unpacked"
+            app="$(find "$unpacked" -maxdepth 5 -type d -name Fila.app -print -quit)"
+            daemon="$(find "$unpacked" -maxdepth 6 -type f -path '*/usr/libexec/filad' -print -quit)"
+            helper="$(find "$unpacked" -maxdepth 6 -type f -path '*/usr/libexec/fila-archive' -print -quit)"
+            if [[ -z "$app" || -z "$daemon" || -z "$helper" ]]; then
+              echo "::error::$(basename "$deb") is missing Fila.app, filad or fila-archive."
+              exit 1
+            fi
+            bash Scripts/audit-ios-floor.sh "$floor" "$app" "$daemon" "$helper"
+          done
+          for archive in "${archives[@]}"; do
+            unpacked="$RUNNER_TEMP/floor-audit/$(basename "$archive")"
+            mkdir -p "$unpacked"
+            unzip -q "$archive" -d "$unpacked"
+            bash Scripts/audit-ios-floor.sh "$floor" "$unpacked/Payload/Fila.app"
+          done
+
   # One commit, one artifact: a tag names `fila-<sha>` and finds everything
   # the release carries in it. Two jobs cannot write one artifact, so the two
   # halves are merged here, and each composition's own list is checked on the
@@ -252,7 +260,7 @@ jobs:
   # to this job.
   packages:
     name: Collect the run's packages
-    needs: [compile, compile-sandboxed]
+    needs: [compile, compile-sandboxed, floor-audit]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

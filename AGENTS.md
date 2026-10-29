@@ -618,7 +618,12 @@ sentence. The same script fails on a missing or `""` message.
   against 27.0 or earlier it stops short of the inner display's status-bar
   edge and keeps its bars horizontal; from 27.1 it fills the display and its
   symbol bar items stand on a vertical bar beside the content. CI selects
-  `/Applications/Xcode_27.1.app` by name on the `xcode-27` image. Where only an
+  `/Applications/Xcode_27.1.app` by name on the `xcode-27` image. That image
+  has no iOS simulator runtime that keeps its Swift libraries as files, and
+  Xcode 27.1 will not download an older one, so the packagers' floor audit
+  runs only its own symbol list there; the `floor-audit` job repeats it on
+  `macos-26` over every packaged image, against the oldest such runtime that
+  image has, and nothing is collected until it passes. Where only an
   older Xcode is installed, point `DEVELOPER_DIR` at one that carries the
   iPhoneOS 27.1 SDK. The simulator is exempt, so a simulator build always
   shows the tier of the simulator SDK it was built with.
