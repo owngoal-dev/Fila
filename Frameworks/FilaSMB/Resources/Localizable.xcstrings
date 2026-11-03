@@ -66,13 +66,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@\n\n仍要保存该共享吗？服务器可访问后可以稍后打开。"
+            "value" : "%@\n\n仍要存储该共享吗？服务器可访问后即可打开。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@\n\n仍要儲存該共享嗎？伺服器可連線時可稍後開啟。"
+            "value" : "%@\n\n仍要儲存該共享嗎？伺服器可連線後即可開啟。"
           }
         },
         "en" : {
@@ -394,7 +394,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已存在同名项目。选择其他名称。"
+            "value" : "已存在同名项目。请选择其他名称。"
           }
         },
         "zh-Hant" : {
@@ -558,13 +558,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改服务器或共享会创建拥有独立收藏的新边栏项目。"
+            "value" : "更改服务器或共享会创建一个新的边栏项目，它有自己的个人收藏。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改伺服器或共享會在側邊欄建立擁有獨立喜好項目的新項目。"
+            "value" : "變更伺服器或共享會在側邊欄建立一個新項目，它有自己的喜好項目。"
           }
         },
         "en" : {
@@ -1220,13 +1220,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "访客访问不使用用户名和密码。要求账户的服务器会拒绝该访问。"
+            "value" : "访客访问不使用用户名和密码。需要账户的服务器会拒绝访客访问。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "訪客存取不使用使用者名稱和密碼。要求帳號的伺服器會拒絕該存取。"
+            "value" : "訪客存取不使用使用者名稱和密碼。需要帳號的伺服器會拒絕訪客存取。"
           }
         }
       }
@@ -1466,7 +1466,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在查找 %@ 上的共享。"
+            "value" : "正在尋找 %@ 上的共享。"
           }
         },
         "en" : {
@@ -1624,7 +1624,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可选"
+            "value" : "选填"
           }
         },
         "zh-Hant" : {
@@ -1952,7 +1952,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存"
+            "value" : "存储"
           }
         },
         "zh-Hant" : {
@@ -2034,7 +2034,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仍要保存"
+            "value" : "仍要存储"
           }
         },
         "zh-Hant" : {
@@ -2286,7 +2286,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "共享資料夾"
+            "value" : "共享檔案夾"
           }
         },
         "en" : {
@@ -2368,7 +2368,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此帳號可使用的共享資料夾。"
+            "value" : "此帳號可使用的共享檔案夾。"
           }
         },
         "en" : {
@@ -2690,7 +2690,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "与服务器的连接已关闭。重试。"
+            "value" : "与服务器的连接已关闭。请重试。"
           }
         },
         "zh-Hant" : {
@@ -2772,7 +2772,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法读取要上传的文件。重试。"
+            "value" : "无法读取要上传的文件。请重试。"
           }
         },
         "zh-Hant" : {
@@ -2854,7 +2854,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法将文件保存到此设备。重试。"
+            "value" : "无法将文件存储到此设备。请重试。"
           }
         },
         "zh-Hant" : {
@@ -2936,13 +2936,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器上的文件夹不为空。先移除其中的内容。"
+            "value" : "服务器上的文件夹不为空。请先移除其中的内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "伺服器上的資料夾不是空的。請先移除其中的內容。"
+            "value" : "伺服器上的檔案夾不是空的。請先移除其中的內容。"
           }
         },
         "en" : {
@@ -3182,7 +3182,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法连接到服务器。检查地址后重试。"
+            "value" : "无法连接到服务器。请检查地址后重试。"
           }
         },
         "zh-Hant" : {
@@ -3264,7 +3264,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器未及时响应。重试。"
+            "value" : "服务器未及时响应。请重试。"
           }
         },
         "zh-Hant" : {
@@ -3510,7 +3510,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器拒绝了此请求。重试。"
+            "value" : "服务器拒绝了此请求。请重试。"
           }
         },
         "zh-Hant" : {
@@ -3592,7 +3592,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此账户没有可列出的共享。改为输入共享名。"
+            "value" : "此账户没有可列出的共享。请改为输入共享名称。"
           }
         },
         "zh-Hant" : {
@@ -3920,7 +3920,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存共享"
+            "value" : "无法存储共享"
           }
         },
         "zh-Hant" : {

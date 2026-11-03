@@ -176,7 +176,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存 %1$lld / %2$lld 个文件到 Fila 收件箱。"
+            "value" : "已将 %2$lld 个文件中的 %1$lld 个存储到 Fila 收件箱。"
           }
         },
         "ar" : {
@@ -242,7 +242,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已儲存 %1$lld / %2$lld 個檔案到 Fila 收件匣。"
+            "value" : "已將 %2$lld 個檔案中的 %1$lld 個儲存到 Fila 收件匣。"
           }
         }
       }
@@ -258,7 +258,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存到 Fila 收件箱。打开 Fila 即可查看或移动文件。"
+            "value" : "已存储到 Fila 收件箱。打开 Fila 即可查看或移动文件。"
           }
         },
         "ar" : {
@@ -340,7 +340,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在保存到 Fila…"
+            "value" : "正在存储到 Fila…"
           }
         },
         "ar" : {
@@ -422,7 +422,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存所有文件。打开 Fila 即可查看已保存的文件。"
+            "value" : "未能存储全部文件。请打开 Fila 查看已存储的文件。"
           }
         },
         "ar" : {
@@ -488,7 +488,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法儲存所有檔案。開啟 Fila 即可查看已儲存的檔案。"
+            "value" : "未能儲存全部檔案。請開啟 Fila 查看已儲存的檔案。"
           }
         }
       }

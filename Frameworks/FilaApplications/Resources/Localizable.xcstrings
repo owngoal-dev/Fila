@@ -67,7 +67,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部应用"
+            "value" : "全部 App"
           }
         },
         "zh-Hant" : {
@@ -231,7 +231,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "应用数据"
+            "value" : "App 数据"
           }
         },
         "zh-Hant" : {
@@ -1055,7 +1055,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 无法读取已安装应用的列表。下拉可刷新。"
+            "value" : "Fila 无法读取已安装 App 的列表。请下拉以刷新。"
           }
         },
         "zh-Hant" : {
@@ -1220,7 +1220,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在加载已安装的应用…"
+            "value" : "正在载入已安装的 App…"
           }
         },
         "zh-Hant" : {
@@ -1303,7 +1303,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目录"
+            "value" : "位置"
           }
         },
         "zh-Hant" : {
@@ -1550,7 +1550,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有应用符合此筛选条件。选择“全部应用”、“用户应用”或“系统应用”。"
+            "value" : "没有 App 符合此筛选条件。请选择“全部 App”、“用户 App”或“系统 App”。"
           }
         },
         "zh-Hant" : {
@@ -1632,7 +1632,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有应用符合“%@”。尝试其他搜索词。"
+            "value" : "没有符合“%@”的 App。请尝试其他搜索词。"
           }
         },
         "zh-Hant" : {
@@ -2046,7 +2046,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统应用"
+            "value" : "系统 App"
           }
         },
         "zh-Hant" : {
@@ -2294,7 +2294,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法列出应用"
+            "value" : "无法列出 App"
           }
         },
         "zh-Hant" : {
@@ -2376,7 +2376,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法打开应用"
+            "value" : "无法打开 App"
           }
         },
         "zh-Hant" : {
@@ -2459,7 +2459,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用户应用"
+            "value" : "用户 App"
           }
         },
         "zh-Hant" : {
@@ -2623,7 +2623,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS 无法打开此应用。它可能不可用，或没有可显示的界面。"
+            "value" : "iOS 无法打开此 App。它可能不可用，或没有可显示的界面。"
           }
         },
         "zh-Hant" : {
@@ -2706,7 +2706,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是应用包。请选择包含单个应用的 .ipa 文件。"
+            "value" : "“%@”不是 App 安装包。请选择包含单个 App 的 .ipa 文件。"
           }
         },
         "zh-Hant" : {

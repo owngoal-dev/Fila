@@ -285,7 +285,7 @@ struct IntentFailure: LocalizedError {
     /// is permanent, not a hiccup, and the user needs to know which Fila they
     /// are holding.
     static let noDaemon = IntentFailure(errorDescription: String(
-        localized: "Fila could not get root access. Install the Fila package on a jailbroken device.",
+        localized: "Fila could not get root access. Install the Fila package on a device running custom firmware.",
     ))
 
     static func notAFile(_ path: String) -> IntentFailure {

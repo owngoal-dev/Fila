@@ -72,7 +72,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "如此大或嵌套如此深的属性列表"
+            "value" : "过大或嵌套过深的属性列表"
           }
         },
         "zh-Hant" : {

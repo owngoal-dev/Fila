@@ -78,7 +78,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”已加入音樂資料庫，但不完整。請先從列表中刪除，再重新匯入。"
+            "value" : "「%@」已加入音樂資料庫，但不完整。請先從列表中刪除，再重新匯入。"
           }
         }
       }
@@ -160,7 +160,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將從此裝置的音樂資料庫刪除“%@”。"
+            "value" : "將從此裝置的音樂資料庫刪除「%@」。"
           }
         }
       }
@@ -312,7 +312,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "专辑艺术家"
+            "value" : "专辑艺人"
           }
         },
         "zh-Hant" : {
@@ -394,7 +394,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "艺术家"
+            "value" : "艺人"
           }
         },
         "zh-Hant" : {
@@ -898,7 +898,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從資料庫刪除"
+            "value" : "從音樂資料庫刪除"
           }
         }
       }
@@ -1050,7 +1050,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "碟片编号"
+            "value" : "光盘编号"
           }
         },
         "zh-Hant" : {
@@ -2117,7 +2117,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保持 Fila 打开，直到资料库更新完成。"
+            "value" : "请保持 Fila 打开，直到资料库更新完成。"
           }
         },
         "zh-Hant" : {
@@ -2364,13 +2364,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音乐已导入"
+            "value" : "已导入音乐"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音樂已匯入"
+            "value" : "已匯入音樂"
           }
         },
         "en" : {
@@ -2858,7 +2858,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存"
+            "value" : "已存储"
           }
         },
         "zh-Hant" : {
@@ -2940,7 +2940,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在保存…"
+            "value" : "正在存储…"
           }
         },
         "zh-Hant" : {
@@ -3028,7 +3028,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "顯示資源庫檔案夾"
+            "value" : "顯示資料庫檔案夾"
           }
         },
         "en" : {
@@ -3438,7 +3438,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音乐资料库无法保存此更改。请重新打开歌曲详情后重试。"
+            "value" : "音乐资料库无法存储此更改。请重新打开歌曲详情后重试。"
           }
         },
         "zh-Hant" : {
@@ -3514,13 +3514,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音乐资料库尚未更新完成，请刷新列表确认结果。"
+            "value" : "音乐资料库尚未更新完成。请刷新列表查看结果。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音樂資料庫尚未更新完成，請重新整理列表確認結果。"
+            "value" : "音樂資料庫尚未更新完成。請重新整理列表查看結果。"
           }
         },
         "en" : {
@@ -3608,7 +3608,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音樂資料庫中現在可能有“%@”的不完整項目，列表中可能不會顯示。再次匯入此檔案可能會將這首歌曲加入兩次。"
+            "value" : "音樂資料庫中現在可能有「%@」的不完整項目，列表中可能不會顯示。再次匯入此檔案可能會將這首歌曲加入兩次。"
           }
         }
       }
@@ -3684,7 +3684,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法从音乐资料库删除这首歌曲，请重试。"
+            "value" : "无法从音乐资料库删除这首歌曲。请重试。"
           }
         },
         "zh-Hant" : {
@@ -3842,13 +3842,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此歌曲在打开后已被修改。请重新打开歌曲详情再编辑。"
+            "value" : "这首歌曲在打开期间已更改。请重新打开歌曲详情后再编辑。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "這首歌曲在開啟期間已變更。請重新打開其詳細資訊後再編輯。"
+            "value" : "這首歌曲在開啟期間已變更。請重新開啟其詳細資訊後再編輯。"
           }
         },
         "en" : {
@@ -3924,7 +3924,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此值过长，或包含无法保存的字符。修改后重试。"
+            "value" : "此值过长，或包含无法存储的字符。请修改后重试。"
           }
         },
         "zh-Hant" : {
@@ -4580,7 +4580,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存"
+            "value" : "无法存储"
           }
         },
         "zh-Hant" : {
