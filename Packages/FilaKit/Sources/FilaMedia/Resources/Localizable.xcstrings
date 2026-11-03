@@ -78,7 +78,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此影像太大，無法預覽（%lld × %lld 像素）。請以「十六進位」打開來查看其內容。"
+            "value" : "此影像太大，無法預覽（%lld × %lld 像素）。請以「十六進位」開啟來查看其內容。"
           }
         }
       }

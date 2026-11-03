@@ -242,7 +242,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS 無法顯示此文件。如需查看其中的內容，請在「打開方式」中選擇其他格式。"
+            "value" : "iOS 無法顯示此文件。如需查看其中的內容，請在「依格式開啟」中選擇其他格式。"
           }
         }
       }
@@ -4760,7 +4760,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AES-256 提供高強度加密，但部分較舊的工具無法打開這類壓縮檔。"
+            "value" : "AES-256 提供高強度加密，但部分較舊的工具無法開啟這類壓縮檔。"
           }
         }
       }
@@ -16233,7 +16233,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清空废纸篓"
+            "value" : "清倒废纸篓"
           }
         },
         "zh-Hant" : {
@@ -19288,7 +19288,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 無法打開此連結。請檢查位址後再試一次。"
+            "value" : "Fila 無法開啟此連結。請檢查位址後再試一次。"
           }
         }
       }
@@ -19452,7 +19452,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 無法使用系統安裝程式。請用其他安裝程式打開「%@」。"
+            "value" : "Fila 無法使用系統安裝程式。請用其他安裝程式開啟「%@」。"
           }
         }
       }
@@ -19863,7 +19863,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 未能及時打開。請再試一次。"
+            "value" : "Fila 未能及時開啟。請再試一次。"
           }
         }
       }
@@ -20192,7 +20192,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 目前沒有 root 權限。iOS 將它限制在自身的檔案，以及你在其中打開的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
+            "value" : "Fila 目前沒有 root 權限。iOS 將它限制在自身的檔案，以及你在其中開啟的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
           }
         }
       }
@@ -32491,7 +32491,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新標籤頁"
+            "value" : "新增標籤頁"
           }
         }
       }
@@ -35626,7 +35626,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開"
+            "value" : "開啟"
           }
         }
       }
@@ -35709,7 +35709,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Fila 中打開 ${path}"
+            "value" : "在 Fila 中開啟 ${path}"
           }
         }
       }
@@ -35791,7 +35791,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在同一個網路上的瀏覽器中打開位址。任何知道密碼的人都能取用共享檔案夾中的所有內容。連線並未加密，請只在你信任的網路上使用。"
+            "value" : "在同一個網路上的瀏覽器中開啟位址。任何知道密碼的人都能取用共享檔案夾中的所有內容。連線並未加密，請只在你信任的網路上使用。"
           }
         }
       }
@@ -35874,7 +35874,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 App 容器"
+            "value" : "開啟 App 容器"
           }
         }
       }
@@ -35957,7 +35957,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "依格式打開"
+            "value" : "依格式開啟"
           }
         }
       }
@@ -36039,7 +36039,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "啟動時打開"
+            "value" : "啟動時開啟"
           }
         }
       }
@@ -36122,7 +36122,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Fila 中打開"
+            "value" : "在 Fila 中開啟"
           }
         }
       }
@@ -36204,7 +36204,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在新標籤頁中打開"
+            "value" : "在新標籤頁中開啟"
           }
         }
       }
@@ -36287,7 +36287,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要在 TrollStore 中打開嗎？"
+            "value" : "要在 TrollStore 中開啟嗎？"
           }
         }
       }
@@ -36452,7 +36452,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 ${bundleIdentifier} 的 ${container} 容器"
+            "value" : "開啟 ${bundleIdentifier} 的 ${container} 容器"
           }
         }
       }
@@ -36534,7 +36534,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以其他 App 打開…"
+            "value" : "以其他 App 開啟…"
           }
         }
       }
@@ -36617,7 +36617,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在打開…"
+            "value" : "正在開啟…"
           }
         }
       }
@@ -36700,7 +36700,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Fila 中打開檔案夾，或打開包含某個檔案的檔案夾。"
+            "value" : "在 Fila 中開啟檔案夾，或開啟包含某個檔案的檔案夾。"
           }
         }
       }
@@ -36783,7 +36783,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "依 Bundle 識別碼，在 Fila 中打開已安裝 App 的套件或資料容器。"
+            "value" : "依 Bundle 識別碼，在 Fila 中開啟已安裝 App 的套件或資料容器。"
           }
         }
       }
@@ -36865,7 +36865,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開包含此項目的檔案夾並選取它。"
+            "value" : "開啟包含此項目的檔案夾並選取該項目。"
           }
         }
       }
@@ -38518,7 +38518,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用另一部裝置的相機對準此 QR 碼，即可在其瀏覽器中打開 Fila。"
+            "value" : "用另一部裝置的相機對準此 QR 碼，即可在其瀏覽器中開啟 Fila。"
           }
         }
       }
@@ -45858,7 +45858,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案中有一行太長，無法編輯。請以「十六進位」打開來查看其餘內容。"
+            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案中有一行太長，無法編輯。請以「十六進位」開啟來查看其餘內容。"
           }
         }
       }
@@ -45941,7 +45941,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案太大，無法編輯。請以「十六進位」打開來查看其餘內容。"
+            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案太大，無法編輯。請以「十六進位」開啟來查看其餘內容。"
           }
         }
       }
@@ -49079,7 +49079,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "壓縮檔在開啟期間已變更。請重新打開它。"
+            "value" : "壓縮檔在開啟期間已變更。請重新開啟。"
           }
         }
       }
@@ -50723,7 +50723,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「%@」的簽章遭到拒絕。請在此裝置上安裝 AppSync Unified，或在 TrollStore 中打開此檔案。"
+            "value" : "「%@」的簽章遭到拒絕。請在此裝置上安裝 AppSync Unified，或在 TrollStore 中開啟此檔案。"
           }
         }
       }
@@ -51628,7 +51628,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法打開此檔案。請以「十六進位」打開來查看其內容。"
+            "value" : "無法開啟此檔案。請以「十六進位」開啟來查看其內容。"
           }
         }
       }
@@ -51957,7 +51957,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此檔案在你打開後已被變更。儲存會以你的變更覆蓋這些變更。"
+            "value" : "此檔案在你開啟後已被變更。儲存會以你的變更覆蓋這些變更。"
           }
         }
       }
@@ -52203,7 +52203,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此檔案夾已在目前的標籤頁中打開。要打開新標籤頁，請先關閉一個標籤頁。"
+            "value" : "此檔案夾已在目前的標籤頁中開啟。要開啟新標籤頁，請先關閉一個標籤頁。"
           }
         }
       }
@@ -52285,7 +52285,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不支援此影像格式。請以「十六進位」打開來查看其內容。"
+            "value" : "不支援此影像格式。請以「十六進位」開啟來查看其內容。"
           }
         }
       }
@@ -52367,7 +52367,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前仍是舊版本。請結束 Fila 並重新打開以使用新版本。"
+            "value" : "目前仍是舊版本。請結束 Fila 並重新開啟以使用新版本。"
           }
         }
       }
@@ -52696,7 +52696,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此項目已不在壓縮檔中。請重新打開。"
+            "value" : "此項目已不在壓縮檔中。請重新開啟。"
           }
         }
       }
@@ -54669,7 +54669,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法打開此檔案"
+            "value" : "無法開啟此檔案"
           }
         }
       }
@@ -54751,7 +54751,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法打開此 PDF。請以「十六進位」打開來查看其內容。"
+            "value" : "無法開啟此 PDF。請以「十六進位」開啟來查看其內容。"
           }
         }
       }
@@ -55162,7 +55162,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法讀取此檔案。請重新打開。"
+            "value" : "無法讀取此檔案。請重新開啟。"
           }
         }
       }
