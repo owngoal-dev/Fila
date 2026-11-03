@@ -72,13 +72,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此图片过大，无法预览（%lld × %lld 像素）。以十六进制打开可查看其中的内容。"
+            "value" : "此图片过大，无法预览（%lld × %lld 像素）。请用“十六进制”打开以查看其内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此影像太大，無法預覽（%lld × %lld 像素）。請以「十六進位」打開來查看其內容。"
+            "value" : "此影像太大，無法預覽（%lld × %lld 像素）。請以「十六進位」開啟來查看其內容。"
           }
         }
       }

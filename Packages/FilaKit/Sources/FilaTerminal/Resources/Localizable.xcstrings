@@ -72,13 +72,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请认证以 root 身份启动终端会话。"
+            "value" : "请验证身份，以 root 身份运行终端会话。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請認證以 root 身分啟動終端機工作階段。"
+            "value" : "請驗證身分，以 root 身分執行終端機工作階段。"
           }
         }
       }
@@ -325,7 +325,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正以 mobile 執行"
+            "value" : "以 mobile 身分執行"
           }
         }
       }
@@ -407,7 +407,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正以 root 執行"
+            "value" : "以 root 身分執行"
           }
         }
       }

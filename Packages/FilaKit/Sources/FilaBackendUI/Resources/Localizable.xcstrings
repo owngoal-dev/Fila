@@ -72,7 +72,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%1$@”大小为 %2$@，超过 %3$@ 的预览上限。请改为保存到 Fila。"
+            "value" : "“%1$@”大小为 %2$@，超过 %3$@ 的预览上限。请改为存储到 Fila。"
           }
         },
         "zh-Hant" : {
@@ -312,7 +312,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "添加到收藏"
+            "value" : "添加到个人收藏"
           }
         },
         "zh-Hant" : {
@@ -476,7 +476,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "复制"
+            "value" : "拷贝"
           }
         },
         "zh-Hant" : {
@@ -570,7 +570,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "拷貝到此處"
+            "value" : "拷貝到這裡"
           }
         }
       }
@@ -804,7 +804,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存"
+            "value" : "无法存储"
           }
         },
         "zh-Hant" : {
@@ -886,7 +886,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存收藏"
+            "value" : "无法存储个人收藏"
           }
         },
         "zh-Hant" : {
@@ -1138,7 +1138,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "空資料夾"
+            "value" : "空檔案夾"
           }
         },
         "en" : {
@@ -1466,13 +1466,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移动到此处"
+            "value" : "移到此处"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移動到此處"
+            "value" : "移到這裡"
           }
         }
       }
@@ -1706,13 +1706,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从收藏中移除"
+            "value" : "从个人收藏中移除"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從喜好項目移除"
+            "value" : "從喜好項目中移除"
           }
         },
         "en" : {
@@ -1788,7 +1788,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存到 Fila…"
+            "value" : "存储到 Fila…"
           }
         },
         "zh-Hant" : {
@@ -1870,7 +1870,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存“%@”"
+            "value" : "已存储“%@”"
           }
         },
         "zh-Hant" : {
@@ -2116,7 +2116,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法将文件保存到此设备。重试。"
+            "value" : "无法将文件存储到此设备。请重试。"
           }
         },
         "zh-Hant" : {
@@ -2286,7 +2286,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重試"
+            "value" : "再試一次"
           }
         },
         "en" : {
@@ -2368,7 +2368,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法列出資料夾"
+            "value" : "無法列出檔案夾"
           }
         },
         "en" : {

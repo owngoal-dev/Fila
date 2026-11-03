@@ -72,13 +72,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@\n\n仍要保存此服务器吗？之后可在其可访问时打开。"
+            "value" : "%@\n\n仍要存储此服务器吗？服务器可访问后即可打开。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@\n\n仍要儲存此伺服器嗎？之後可在其可連線時開啟。"
+            "value" : "%@\n\n仍要儲存此伺服器嗎？伺服器可連線後即可開啟。"
           }
         }
       }
@@ -400,7 +400,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法使用局域网以外的 http 地址。请改用服务器的 https 地址。"
+            "value" : "无法使用本地网络以外的 http 地址。请改用服务器的 https 地址。"
           }
         },
         "zh-Hant" : {
@@ -482,7 +482,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已存在同名项目。选择其他名称。"
+            "value" : "已存在同名项目。请选择其他名称。"
           }
         },
         "zh-Hant" : {
@@ -646,13 +646,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改地址会创建拥有独立收藏的新边栏项目。"
+            "value" : "更改地址会创建一个新的边栏项目，它有自己的个人收藏。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改位址會在側邊欄建立擁有獨立喜好項目的新項目。"
+            "value" : "變更位址會在側邊欄建立一個新項目，它有自己的喜好項目。"
           }
         }
       }
@@ -1138,7 +1138,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可选"
+            "value" : "选填"
           }
         },
         "zh-Hant" : {
@@ -1302,7 +1302,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存"
+            "value" : "存储"
           }
         },
         "zh-Hant" : {
@@ -1384,7 +1384,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仍要保存"
+            "value" : "仍要存储"
           }
         },
         "zh-Hant" : {
@@ -1630,7 +1630,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "与服务器的连接已关闭。重试。"
+            "value" : "与服务器的连接已关闭。请重试。"
           }
         },
         "zh-Hant" : {
@@ -1712,7 +1712,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法读取要上传的文件。重试。"
+            "value" : "无法读取要上传的文件。请重试。"
           }
         },
         "zh-Hant" : {
@@ -1794,7 +1794,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法将文件保存到此设备。重试。"
+            "value" : "无法将文件存储到此设备。请重试。"
           }
         },
         "zh-Hant" : {
@@ -2122,7 +2122,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法连接到服务器。检查地址后重试。"
+            "value" : "无法连接到服务器。请检查地址后重试。"
           }
         },
         "zh-Hant" : {
@@ -2204,7 +2204,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器未及时响应。重试。"
+            "value" : "服务器未及时响应。请重试。"
           }
         },
         "zh-Hant" : {
@@ -2450,7 +2450,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器拒绝了此请求。重试。"
+            "value" : "服务器拒绝了此请求。请重试。"
           }
         },
         "zh-Hant" : {
@@ -3024,7 +3024,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存服务器"
+            "value" : "无法存储服务器"
           }
         },
         "zh-Hant" : {

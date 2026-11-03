@@ -78,7 +78,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更改權限…"
+            "value" : "變更權限…"
           }
         }
       }
@@ -160,7 +160,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請在「簡介」中更改檔案的權限，然後重新打開。"
+            "value" : "請在「屬性」中變更檔案的權限，然後重新開啟。"
           }
         }
       }
@@ -242,7 +242,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS 無法顯示此文件。如需查看其中的內容，請在「打開方式」中選擇其他格式。"
+            "value" : "iOS 無法顯示此文件。如需查看其中的內容，請在「依格式開啟」中選擇其他格式。"
           }
         }
       }
@@ -400,7 +400,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”在目标位置已存在。重命名或选择其他文件夹。"
+            "value" : "“%@”在目标位置已存在。请重新命名，或选择其他文件夹。"
           }
         },
         "zh-Hant" : {
@@ -482,7 +482,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法将“%@”读取为文本，选择文本文件。"
+            "value" : "无法将“%@”读取为文本。请选择文本文件。"
           }
         },
         "zh-Hant" : {
@@ -730,13 +730,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”是 Fila 自身，无法从这里安装。请使用系统软件包管理器安装。"
+            "value" : "“%@”是 Fila 自身，无法从这里安装。请使用软件包管理器安装。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「%@」是 Fila 本身，無法從這裡安裝。請使用系統套件管理器安裝。"
+            "value" : "「%@」是 Fila 本身，無法從這裡安裝。請使用套件管理器安裝。"
           }
         }
       }
@@ -812,7 +812,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是文件，请选择文件。"
+            "value" : "“%@”不是文件。请选择文件。"
           }
         },
         "zh-Hant" : {
@@ -894,7 +894,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是文件夹，请选择文件夹。"
+            "value" : "“%@”不是文件夹。请选择文件夹。"
           }
         },
         "zh-Hant" : {
@@ -976,7 +976,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是有效的包标识符。输入其他标识符。"
+            "value" : "“%@”不是有效的包标识符。请输入其他标识符。"
           }
         },
         "zh-Hant" : {
@@ -1140,7 +1140,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是有效名称。名称不能包含斜杠，也不能是“.”或“..”。"
+            "value" : "“%@”不是有效的名称。请输入不含斜杠的名称，且不要使用“.”或“..”。"
           }
         },
         "zh-Hant" : {
@@ -1222,7 +1222,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是有效的搜索内容，请输入要查找的文本。"
+            "value" : "“%@”不是有效的搜索内容。请输入要查找的文本。"
           }
         },
         "zh-Hant" : {
@@ -1304,7 +1304,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”不是绝对路径，请输入以 / 开头的路径。"
+            "value" : "“%@”不是绝对路径。请输入以 / 开头的路径。"
           }
         },
         "zh-Hant" : {
@@ -1468,7 +1468,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“%@”过大，无法读取为文本，请选择较小的文件。"
+            "value" : "“%@”过大，无法读取为文本。请选择较小的文件。"
           }
         },
         "zh-Hant" : {
@@ -1969,7 +1969,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@／%2$@"
+            "value" : "%1$@ / %2$@"
           }
         }
       }
@@ -2864,7 +2864,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将在此处解压 %lld 个项目，不会替换已有项目。"
+            "value" : "将在此处解压缩 %lld 个项目，不会替换已有项目。"
           }
         },
         "zh-Hant" : {
@@ -3191,7 +3191,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有 %1$lld 个链接或特殊文件无法跨位置复制，已跳过：%2$@。"
+            "value" : "有 %1$lld 个链接或特殊文件无法跨位置拷贝，已跳过：%2$@。"
           }
         },
         "zh-Hant" : {
@@ -3279,7 +3279,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$lld／%2$lld"
+            "value" : "%1$lld / %2$lld"
           }
         }
       }
@@ -3361,7 +3361,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "其中 %lld 個項目已不存在。請先將它們從剪貼板移除，再進行貼上。"
+            "value" : "其中 %lld 個項目已不存在。請先將它們從剪貼板移除，再貼上。"
           }
         }
       }
@@ -3602,13 +3602,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标位置存在同名的文件或文件夹，类型不同，无法替换。请先重命名或选择其他文件夹。"
+            "value" : "目标位置已有同名项目，但一个是文件、一个是文件夹。请重新命名其中一个，或选择其他文件夹。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目標位置存在同名的檔案或檔案夾，類型不同，無法取代。請先重新命名或選擇其他檔案夾。"
+            "value" : "目標位置已有同名項目，但一個是檔案、一個是檔案夾。請重新命名其中一個，或選擇其他檔案夾。"
           }
         }
       }
@@ -3690,7 +3690,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法將檔案夾拷貝或搬移至自身或其子檔案夾中。請選擇此檔案夾以外的位置。"
+            "value" : "無法將檔案夾拷貝或移動到自身或其子檔案夾中。請選擇此檔案夾以外的位置。"
           }
         }
       }
@@ -3930,7 +3930,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法跟随此路径中的符号链接。选择项目的实际位置。"
+            "value" : "无法跟随此路径中的符号链接。请选择项目的实际位置。"
           }
         },
         "zh-Hant" : {
@@ -4425,13 +4425,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "添加%@…"
+            "value" : "添加 %@…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加入%@…"
+            "value" : "加入 %@…"
           }
         }
       }
@@ -4590,7 +4590,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加入收藏"
+            "value" : "添加到个人收藏"
           }
         },
         "zh-Hant" : {
@@ -4760,7 +4760,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "AES-256 提供高強度加密，但部分較舊的工具無法打開這類壓縮檔。"
+            "value" : "AES-256 提供高強度加密，但部分較舊的工具無法開啟這類壓縮檔。"
           }
         }
       }
@@ -5001,7 +5001,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接时必须输入此用户名。"
+            "value" : "任何人连接时都必须输入此名称。"
           }
         },
         "zh-Hant" : {
@@ -5083,7 +5083,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接时必须输入此密码。留空将重新生成一个。"
+            "value" : "任何人连接时都必须输入此密码。留空则会生成新密码。"
           }
         },
         "zh-Hant" : {
@@ -5331,7 +5331,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "应用已安装"
+            "value" : "已安装 App"
           }
         },
         "zh-Hant" : {
@@ -5414,7 +5414,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未找到应用"
+            "value" : "未找到 App"
           }
         },
         "zh-Hant" : {
@@ -6407,13 +6407,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "属性已更改"
+            "value" : "已更改属性"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "屬性已更改"
+            "value" : "已變更屬性"
           }
         }
       }
@@ -6826,7 +6826,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "背景分享"
+            "value" : "背景共享"
           }
         }
       }
@@ -7316,7 +7316,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部"
+            "value" : "两者"
           }
         },
         "zh-Hant" : {
@@ -7646,13 +7646,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "计算校验值"
+            "value" : "计算校验和"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "計算校驗值"
+            "value" : "計算總和檢查碼"
           }
         }
       }
@@ -7728,13 +7728,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "计算校验值以比较文件。"
+            "value" : "计算校验和以比较文件。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "計算校驗值以比較檔案。"
+            "value" : "計算總和檢查碼以比較檔案。"
           }
         }
       }
@@ -8471,7 +8471,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法移入废纸篓"
+            "value" : "无法移到废纸篓"
           }
         },
         "zh-Hant" : {
@@ -8642,7 +8642,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更動會在你下次開始分享時生效。"
+            "value" : "變更會在你下次開始共享時生效。"
           }
         }
       }
@@ -8724,7 +8724,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在更改屬性…"
+            "value" : "正在變更屬性…"
           }
         }
       }
@@ -9048,13 +9048,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "校验值"
+            "value" : "校验和"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "校驗值"
+            "value" : "總和檢查碼"
           }
         }
       }
@@ -9377,7 +9377,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择 TrollStore 安装“%@”，无需使用系统安装器。"
+            "value" : "选择 TrollStore 即可安装“%@”，无需使用系统安装器。"
           }
         },
         "zh-Hant" : {
@@ -9542,7 +9542,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清空剪贴板？"
+            "value" : "要清空剪贴板吗？"
           }
         },
         "zh-Hant" : {
@@ -9624,7 +9624,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除历史"
+            "value" : "清除历史记录"
           }
         },
         "zh-Hant" : {
@@ -11112,13 +11112,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "互联"
+            "value" : "连接"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "互聯"
+            "value" : "連線"
           }
         }
       }
@@ -11360,7 +11360,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已复制，但有 %1$lld 个项目无法从来源移除并保留在原处：%2$@。"
+            "value" : "已拷贝，但有 %1$lld 个项目无法从来源移除并保留在原处：%2$@。"
           }
         },
         "zh-Hant" : {
@@ -11443,13 +11443,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 身份将文件或文件夹拷贝到另一个文件夹，不会覆盖其中已有的内容。"
+            "value" : "以 root 身份将文件或文件夹拷贝到另一个文件夹，不会替换其中已有的项目。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 權限將檔案或檔案夾拷貝到另一個檔案夾，不會取代其中既有的項目。"
+            "value" : "以 root 身分將檔案或檔案夾拷貝到另一個檔案夾，不會取代其中既有的項目。"
           }
         }
       }
@@ -11608,7 +11608,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将 %@ 拷贝到 %@？"
+            "value" : "要将 %1$@ 拷贝到 %2$@ 吗？"
           }
         },
         "zh-Hant" : {
@@ -12432,7 +12432,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以此文本创建 %@？"
+            "value" : "要以此文本创建 %@ 吗？"
           }
         },
         "zh-Hant" : {
@@ -12515,7 +12515,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新建文件夹"
+            "value" : "创建文件夹"
           }
         },
         "zh-Hant" : {
@@ -12598,7 +12598,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 ${parent} 中新建文件夹 ${name}"
+            "value" : "在 ${parent} 中创建文件夹 ${name}"
           }
         },
         "zh-Hant" : {
@@ -12847,13 +12847,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 身份在另一个文件夹中新建文件夹。"
+            "value" : "以 root 身份在另一个文件夹中创建文件夹。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 權限在另一個檔案夾中建立檔案夾。"
+            "value" : "以 root 身分在另一個檔案夾中建立檔案夾。"
           }
         }
       }
@@ -14086,7 +14086,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "永久删除？"
+            "value" : "要永久删除吗？"
           }
         },
         "zh-Hant" : {
@@ -15331,7 +15331,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從 URL 下載"
+            "value" : "從網址下載"
           }
         }
       }
@@ -15414,7 +15414,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從 URL 下載…"
+            "value" : "從網址下載…"
           }
         }
       }
@@ -15744,7 +15744,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "時長"
+            "value" : "長度"
           }
         }
       }
@@ -16233,7 +16233,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清空废纸篓"
+            "value" : "清倒废纸篓"
           }
         },
         "zh-Hant" : {
@@ -16562,7 +16562,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文件夹名称不能包含斜杠，也不能使用“.”或“..”。"
+            "value" : "请输入不含斜杠的文件夹名称。不能使用“.”或“..”。"
           }
         },
         "zh-Hant" : {
@@ -16644,7 +16644,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为所选项目的链接输入名称。"
+            "value" : "请为所选项目的链接输入名称。"
           }
         },
         "zh-Hant" : {
@@ -16726,7 +16726,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为此文件夹中的新项目输入名称。"
+            "value" : "请为此文件夹中的新项目输入名称。"
           }
         },
         "zh-Hant" : {
@@ -16808,13 +16808,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入名称，然后轻点“搜索”以包含子文件夹。"
+            "value" : "请输入名称，然后轻点“搜索”以包含子文件夹。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "輸入名稱，然後點一下「搜尋」以包含子檔案夾。"
+            "value" : "請輸入名稱，然後點一下「搜尋」以包含子檔案夾。"
           }
         }
       }
@@ -16890,7 +16890,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入新名称。项目仍留在原文件夹中。"
+            "value" : "请输入新名称。项目会留在原文件夹中。"
           }
         },
         "zh-Hant" : {
@@ -17055,7 +17055,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入数字 ID。0 为 root，501 为 mobile。"
+            "value" : "请输入数字 ID。0 为 root，501 为 mobile。"
           }
         },
         "zh-Hant" : {
@@ -17137,13 +17137,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入压缩包的密码。留空即为不设密码。"
+            "value" : "请输入压缩包的密码。留空则不设密码。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請為壓縮檔輸入密碼。留空即為不設密碼。"
+            "value" : "請為壓縮檔輸入密碼。留空則不設密碼。"
           }
         }
       }
@@ -17219,13 +17219,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入以斜杠开头的路径。"
+            "value" : "请输入以斜杠开头的路径。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請輸入以 / 開頭的路徑。"
+            "value" : "請輸入以斜線開頭的路徑。"
           }
         }
       }
@@ -17301,13 +17301,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入 1024 至 65535 之间的端口号。"
+            "value" : "请输入 1024 到 65535 之间的端口号。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請輸入 1024 到 65535 之間的埠號。"
+            "value" : "請輸入 1024 到 65535 之間的連接埠號碼。"
           }
         }
       }
@@ -17383,7 +17383,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入有效数字。"
+            "value" : "请为此值输入有效的数字。"
           }
         },
         "zh-Hant" : {
@@ -17466,7 +17466,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入绝对路径，以斜杠开头。"
+            "value" : "请输入以斜杠开头的绝对路径。"
           }
         },
         "zh-Hant" : {
@@ -17548,7 +17548,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请输入不含斜杠的压缩包名称，不能使用“.”或“..”。"
+            "value" : "请输入不含斜杠的压缩包名称。不能使用“.”或“..”。"
           }
         },
         "zh-Hant" : {
@@ -17630,13 +17630,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入 http 或 https 网址。文件将保存到此文件夹。"
+            "value" : "请输入 http 或 https 网址。文件会存储到此文件夹。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請輸入 http 或 https URL。檔案會儲存到此檔案夾。"
+            "value" : "請輸入 http 或 https 網址。檔案會儲存到此檔案夾。"
           }
         }
       }
@@ -17877,13 +17877,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "输入三位或四位八进制数字（0–7）。"
+            "value" : "请输入三位或四位八进制数字（0–7）。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請輸入三或四位八進位數字（0–7）。"
+            "value" : "請輸入三位或四位八進位數字（0–7）。"
           }
         }
       }
@@ -18042,7 +18042,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "入口偏移"
+            "value" : "入口点偏移"
           }
         },
         "zh-Hant" : {
@@ -18546,7 +18546,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "延伸屬性"
+            "value" : "擴充屬性"
           }
         }
       }
@@ -18623,7 +18623,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解压"
+            "value" : "解压缩"
           }
         },
         "zh-Hant" : {
@@ -18705,7 +18705,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全部解压"
+            "value" : "全部解压缩"
           }
         },
         "zh-Hant" : {
@@ -18787,7 +18787,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解压已列出的项目"
+            "value" : "解压缩已列出的项目"
           }
         },
         "zh-Hant" : {
@@ -18869,7 +18869,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解压所选项目"
+            "value" : "解压缩所选项目"
           }
         },
         "zh-Hant" : {
@@ -18951,7 +18951,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "解压到…"
+            "value" : "解压缩到…"
           }
         },
         "zh-Hant" : {
@@ -19034,7 +19034,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已解压"
+            "value" : "已解压缩"
           }
         },
         "zh-Hant" : {
@@ -19117,7 +19117,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在解压…"
+            "value" : "正在解压缩…"
           }
         },
         "zh-Hant" : {
@@ -19199,7 +19199,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "收藏"
+            "value" : "个人收藏"
           }
         },
         "zh-Hant" : {
@@ -19282,13 +19282,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 无法打开此链接。检查地址后重试。"
+            "value" : "Fila 无法打开此链接。请检查地址后重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 無法打開此連結。請檢查位址後再試一次。"
+            "value" : "Fila 無法開啟此連結。請檢查位址後再試一次。"
           }
         }
       }
@@ -19446,13 +19446,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 无法使用系统安装器。用其他安装器打开“%@”。"
+            "value" : "Fila 无法使用系统安装器。请用其他安装器打开“%@”。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 無法使用系統安裝程式。請用其他安裝程式打開「%@」。"
+            "value" : "Fila 無法使用系統安裝程式。請用其他安裝程式開啟「%@」。"
           }
         }
       }
@@ -19528,7 +19528,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "任务尚未完成时 Fila 已关闭，请重新开始任务。"
+            "value" : "Fila 在任务完成前已关闭。请重新开始该任务。"
           }
         },
         "zh-Hant" : {
@@ -19693,7 +19693,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 无法找到 %@ 的应用数据。"
+            "value" : "Fila 找不到 %@ 的 App 数据。"
           }
         },
         "zh-Hant" : {
@@ -19704,84 +19704,84 @@
         }
       }
     },
-    "Fila could not get root access. Install the Fila package on a jailbroken device." : {
+    "Fila could not get root access. Install the Fila package on a device running custom firmware." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تعذّر على Fila الحصول على صلاحية الجذر. ثبّت حزمة Fila على جهاز عليه جيلبريك."
+            "value" : "تعذّر على Fila الحصول على صلاحية الجذر. ثبّت حزمة Fila على جهاز يعمل ببرنامج ثابت مخصص."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila konnte keinen Root-Zugriff erhalten. Installiere das Fila-Paket auf einem Gerät mit Jailbreak."
+            "value" : "Fila konnte keinen Root-Zugriff erhalten. Installiere das Fila-Paket auf einem Gerät mit angepasster Firmware."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila could not get root access. Install the Fila package on a jailbroken device."
+            "value" : "Fila could not get root access. Install the Fila package on a device running custom firmware."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila no ha podido obtener acceso root. Instala el paquete de Fila en un dispositivo con jailbreak."
+            "value" : "Fila no ha podido obtener acceso root. Instala el paquete de Fila en un dispositivo con firmware personalizado."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila n’a pas pu obtenir l’accès root. Installez le paquet Fila sur un appareil jailbreaké."
+            "value" : "Fila n’a pas pu obtenir l’accès root. Installez le paquet Fila sur un appareil doté d’un firmware personnalisé."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila non ha ottenuto l’accesso root. Installa il pacchetto Fila su un dispositivo con jailbreak."
+            "value" : "Fila non ha ottenuto l’accesso root. Installa il pacchetto Fila su un dispositivo con firmware personalizzato."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Filaはroot権限を取得できませんでした。脱獄済みのデバイスにFilaパッケージをインストールしてください。"
+            "value" : "Filaはroot権限を取得できませんでした。カスタムファームウェアを実行しているデバイスにFilaパッケージをインストールしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila가 루트 권한을 얻지 못했습니다. 탈옥된 기기에 Fila 패키지를 설치하십시오."
+            "value" : "Fila가 루트 권한을 얻지 못했습니다. 사용자 지정 펌웨어를 실행하는 기기에 Fila 패키지를 설치하십시오."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Fila não conseguiu obter acesso root. Instale o pacote do Fila em um dispositivo com jailbreak."
+            "value" : "O Fila não conseguiu obter acesso root. Instale o pacote do Fila em um dispositivo com firmware personalizado."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila не удалось получить root-доступ. Установите пакет Fila на устройство с джейлбрейком."
+            "value" : "Fila не удалось получить root-доступ. Установите пакет Fila на устройство с пользовательской прошивкой."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila không lấy được quyền root. Hãy cài gói Fila trên thiết bị jailbreak."
+            "value" : "Fila không lấy được quyền root. Hãy cài gói Fila trên thiết bị chạy firmware tùy chỉnh."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 无法获得 root 权限。在越狱设备上安装 Fila 软件包。"
+            "value" : "Fila 无法获得 root 权限。请在运行自定义固件的设备上安装 Fila 软件包。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 無法取得 root 權限。請在越獄裝置上安裝 Fila 套件。"
+            "value" : "Fila 無法取得 root 權限。請在執行自訂韌體的裝置上安裝 Fila 套件。"
           }
         }
       }
@@ -19863,7 +19863,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 未能及時打開。請再試一次。"
+            "value" : "Fila 未能及時開啟。請再試一次。"
           }
         }
       }
@@ -20186,13 +20186,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 正在以非 root 权限运行。iOS 只允许它访问自身文件以及你在其中打开的文件。要获得完整访问权限，在受支持的设备上安装 Fila .deb。"
+            "value" : "Fila 正在以非 root 权限运行。iOS 只允许它访问自身文件以及你在其中打开的文件。请在受支持的设备上安装 Fila .deb 以获得完整访问权限。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 目前沒有 root 權限。iOS 將它限制在自身的檔案，以及你在其中打開的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
+            "value" : "Fila 目前沒有 root 權限。iOS 將它限制在自身的檔案，以及你在其中開啟的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
           }
         }
       }
@@ -20269,13 +20269,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 正在以非 root 权限运行。它可以读取设备上的大部分文件，但只能修改属于它自己的文件。要获得完整访问权限，在受支持的设备上安装 Fila .deb。"
+            "value" : "Fila 正在以非 root 权限运行。它可以读取设备上的大部分文件，但只能修改属于它自己的文件。请在受支持的设备上安装 Fila .deb 以获得完整访问权限。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fila 目前沒有 root 權限。它可以讀取裝置上大部分的內容，但只能更改屬於自己的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
+            "value" : "Fila 目前沒有 root 權限。它可以讀取裝置上大部分的內容，但只能變更屬於自己的檔案。請在受支援的裝置上安裝 Fila 的 .deb 以取得完整權限。"
           }
         }
       }
@@ -20603,7 +20603,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "磁碟上的檔案已更動"
+            "value" : "磁碟上的檔案已變更"
           }
         }
       }
@@ -21097,7 +21097,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "File Set"
+            "value" : "檔案集"
           }
         }
       }
@@ -21180,7 +21180,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檔案分享"
+            "value" : "檔案共享"
           }
         }
       }
@@ -21429,7 +21429,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有多個名稱的檔案未更改：%lld 個。它們的其他名稱可能在此資料夾之外。"
+            "value" : "有多個名稱的檔案未變更：%lld 個。它們的其他名稱可能在此檔案夾之外。"
           }
         }
       }
@@ -21511,7 +21511,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同名檔案將被取代，且無法復原。同名資料夾將被合併，其既有內容會保留。"
+            "value" : "同名檔案將被取代，且無法復原。同名檔案夾將被合併，其既有內容會保留。"
           }
         }
       }
@@ -21926,7 +21926,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "找下一個"
+            "value" : "尋找下一個"
           }
         }
       }
@@ -22009,7 +22009,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "找上一個"
+            "value" : "尋找上一個"
           }
         }
       }
@@ -22174,7 +22174,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fixed VM 程式庫"
+            "value" : "固定 VM 程式庫"
           }
         }
       }
@@ -22339,7 +22339,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "旗標、延伸屬性與識別"
+            "value" : "旗標、擴充屬性與識別資訊"
           }
         }
       }
@@ -22833,7 +22833,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "幀率"
+            "value" : "影格速率"
           }
         }
       }
@@ -23242,7 +23242,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "获取 ${path} 的文本"
+            "value" : "从 ${path} 获取文本"
           }
         },
         "zh-Hant" : {
@@ -23325,7 +23325,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "获取文件文本"
+            "value" : "从文件获取文本"
           }
         },
         "zh-Hant" : {
@@ -23902,7 +23902,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "硬链接"
+            "value" : "硬链接数"
           }
         },
         "zh-Hant" : {
@@ -25143,7 +25143,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "父文件夹"
+            "value" : "所在文件夹"
           }
         },
         "zh-Hant" : {
@@ -25309,7 +25309,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安装应用？"
+            "value" : "要安装此 App 吗？"
           }
         },
         "zh-Hant" : {
@@ -25474,7 +25474,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安装软件包？"
+            "value" : "要安装此软件包吗？"
           }
         },
         "zh-Hant" : {
@@ -25804,7 +25804,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在安装应用…"
+            "value" : "正在安装 App…"
           }
         },
         "zh-Hant" : {
@@ -25893,7 +25893,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "將以 root 權限使用 dpkg 安裝「%@」。有問題的套件可能損壞系統環境，或導致裝置無法啟動。此操作無法復原。"
+            "value" : "將以 root 身分使用 dpkg 安裝「%@」。有問題的套件可能損壞系統環境，或導致裝置無法啟動。此操作無法復原。"
           }
         }
       }
@@ -26223,7 +26223,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無效偏移"
+            "value" : "偏移值無效"
           }
         }
       }
@@ -26388,7 +26388,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "離開 Fila 後，iOS 只允許很短的時間來完成傳輸。之後分享會停止，已連線的裝置也會中斷連線。"
+            "value" : "離開 Fila 後，iOS 只允許很短的時間來完成傳輸。之後共享會停止，已連線的裝置也會中斷連線。"
           }
         }
       }
@@ -26465,7 +26465,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "是文件夹"
+            "value" : "是否为文件夹"
           }
         },
         "zh-Hant" : {
@@ -26795,7 +26795,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未解压的项目：%lld 个。“设置 › 日志”中列出了每一项及原因。"
+            "value" : "未解压缩的项目：%lld 个。“设置 › 日志”中列出了每一项及原因。"
           }
         },
         "zh-Hant" : {
@@ -26877,13 +26877,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此服务器上的项目可以复制但不能移动。无法从此位置删除。"
+            "value" : "此服务器上的项目可以拷贝，但无法移动，也无法从此位置删除。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此伺服器上的項目可以拷貝，但無法搬移。無法從此位置刪除。"
+            "value" : "此伺服器上的項目可以拷貝，但無法移動，也無法從此位置刪除。"
           }
         }
       }
@@ -26959,7 +26959,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同名项目将被替换，不会移入废纸篓。此操作无法撤销。无法替换非空文件夹。"
+            "value" : "同名项目将被替换，不会移到废纸篓。此操作无法撤销。无法替换非空文件夹。"
           }
         },
         "zh-Hant" : {
@@ -27123,13 +27123,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的密码和收藏将被清除。服务器上的内容不受影响。"
+            "value" : "已存储的密码和个人收藏将被清除。服务器上的内容不会更改。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已儲存的密碼和收藏將被忘記。伺服器上的內容不會變更。"
+            "value" : "已儲存的密碼和喜好項目將被清除。伺服器上的內容不會變更。"
           }
         }
       }
@@ -27370,13 +27370,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "后台保持共享"
+            "value" : "在后台继续共享"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在背景繼續分享"
+            "value" : "在背景繼續共享"
           }
         }
       }
@@ -28034,7 +28034,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "現在離開會捨棄你的更動。磁碟上的檔案不會更動。"
+            "value" : "現在離開會捨棄你的變更。磁碟上的檔案保持不變。"
           }
         }
       }
@@ -29102,7 +29102,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在加载…"
+            "value" : "正在载入…"
           }
         },
         "zh-Hant" : {
@@ -29681,7 +29681,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最多结果"
+            "value" : "结果数量上限"
           }
         },
         "zh-Hant" : {
@@ -29852,7 +29852,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最低 OS 版本"
+            "value" : "最低系統版本"
           }
         }
       }
@@ -29935,7 +29935,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MIT 許可證"
+            "value" : "MIT 授權條款"
           }
         }
       }
@@ -30011,7 +30011,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mobile"
+            "value" : "Mobile"
           }
         },
         "zh-Hant" : {
@@ -30093,7 +30093,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mobile（引导目录）"
+            "value" : "Mobile（引导目录）"
           }
         },
         "zh-Hant" : {
@@ -30175,7 +30175,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "mobile（系统）"
+            "value" : "Mobile（系统）"
           }
         },
         "zh-Hant" : {
@@ -30753,7 +30753,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将 %@ 移动到 %@？"
+            "value" : "要将 %1$@ 移到 %2$@ 吗？"
           }
         },
         "zh-Hant" : {
@@ -30836,7 +30836,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将 %@ 移到废纸篓？"
+            "value" : "要将 %@ 移到废纸篓吗？"
           }
         },
         "zh-Hant" : {
@@ -30919,7 +30919,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将 ${path} 移动到 ${destination}"
+            "value" : "将 ${path} 移到 ${destination}"
           }
         },
         "zh-Hant" : {
@@ -31001,7 +31001,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "将删除的项目移到废纸篓，以便恢复。"
+            "value" : "将删除的项目移到废纸篓，以便放回原处。"
           }
         },
         "zh-Hant" : {
@@ -31497,13 +31497,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 身份将文件或文件夹移动到另一个文件夹，不会覆盖其中已有的内容。"
+            "value" : "以 root 身份将文件或文件夹移到另一个文件夹，不会替换其中已有的项目。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 權限將檔案或檔案夾移到另一個檔案夾，不會取代其中既有的項目。"
+            "value" : "以 root 身分將檔案或檔案夾移到另一個檔案夾，不會取代其中既有的項目。"
           }
         }
       }
@@ -32491,7 +32491,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "新標籤頁"
+            "value" : "新增標籤頁"
           }
         }
       }
@@ -32733,7 +32733,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有应用数据"
+            "value" : "没有 App 数据"
           }
         },
         "zh-Hant" : {
@@ -32815,7 +32815,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有音频文件。选择其他文件夹。"
+            "value" : "没有音频文件。请选择其他文件夹。"
           }
         },
         "zh-Hant" : {
@@ -33392,7 +33392,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有匹配的日志"
+            "value" : "没有匹配的日志行"
           }
         },
         "zh-Hant" : {
@@ -33474,7 +33474,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有网络地址。连接到本地网络后重试。"
+            "value" : "没有网络地址。请连接到本地网络后重试。"
           }
         },
         "zh-Hant" : {
@@ -33638,7 +33638,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有子文件夹。仍可保存到此处。"
+            "value" : "没有子文件夹。你仍可存储到此处。"
           }
         },
         "zh-Hant" : {
@@ -35626,7 +35626,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開"
+            "value" : "開啟"
           }
         }
       }
@@ -35709,7 +35709,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Fila 中打開 ${path}"
+            "value" : "在 Fila 中開啟 ${path}"
           }
         }
       }
@@ -35785,13 +35785,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在同一网络的网页浏览器中打开地址。任何知道密码的人都能访问共享文件夹内的所有内容。连接未经加密，仅在受信任的网络中使用。"
+            "value" : "在同一网络的网页浏览器中打开地址。任何知道密码的人都能访问共享文件夹内的所有内容。连接未经加密，请仅在你信任的网络中使用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在同一個網路上的瀏覽器中打開位址。任何知道密碼的人都能取用分享檔案夾中的所有內容。連線並未加密，請只在你信任的網路上使用。"
+            "value" : "在同一個網路上的瀏覽器中開啟位址。任何知道密碼的人都能取用共享檔案夾中的所有內容。連線並未加密，請只在你信任的網路上使用。"
           }
         }
       }
@@ -35868,13 +35868,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开应用容器"
+            "value" : "打开 App 容器"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 App 容器"
+            "value" : "開啟 App 容器"
           }
         }
       }
@@ -35957,7 +35957,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開方式"
+            "value" : "依格式開啟"
           }
         }
       }
@@ -36039,7 +36039,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "啟動時打開"
+            "value" : "啟動時開啟"
           }
         }
       }
@@ -36122,7 +36122,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Fila 中打開"
+            "value" : "在 Fila 中開啟"
           }
         }
       }
@@ -36204,7 +36204,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在新標籤頁中打開"
+            "value" : "在新標籤頁中開啟"
           }
         }
       }
@@ -36281,13 +36281,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 TrollStore 中打开？"
+            "value" : "要在 TrollStore 中打开吗？"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要在 TrollStore 中打開嗎？"
+            "value" : "要在 TrollStore 中開啟嗎？"
           }
         }
       }
@@ -36363,13 +36363,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "许可证"
+            "value" : "开源许可证"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "許可證"
+            "value" : "開放原始碼許可證"
           }
         }
       }
@@ -36452,7 +36452,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開 ${bundleIdentifier} 的 ${container} 容器"
+            "value" : "開啟 ${bundleIdentifier} 的 ${container} 容器"
           }
         }
       }
@@ -36534,7 +36534,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以其他 App 打開…"
+            "value" : "以其他 App 開啟…"
           }
         }
       }
@@ -36617,7 +36617,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在打開…"
+            "value" : "正在開啟…"
           }
         }
       }
@@ -36700,7 +36700,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在 Fila 中打開檔案夾，或打開包含某個檔案的檔案夾。"
+            "value" : "在 Fila 中開啟檔案夾，或開啟包含某個檔案的檔案夾。"
           }
         }
       }
@@ -36777,13 +36777,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按包标识符在 Fila 中打开已安装应用的程序包容器或数据容器。"
+            "value" : "按包标识符在 Fila 中打开已安装 App 的程序包容器或数据容器。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "依 Bundle 識別碼，在 Fila 中打開已安裝 App 的套件或資料容器。"
+            "value" : "依 Bundle 識別碼，在 Fila 中開啟已安裝 App 的套件或資料容器。"
           }
         }
       }
@@ -36865,7 +36865,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打開包含此項目的檔案夾並選取它。"
+            "value" : "開啟包含此項目的檔案夾並選取該項目。"
           }
         }
       }
@@ -38098,7 +38098,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "永久删除 %@？此操作无法撤销。"
+            "value" : "要永久删除 %@ 吗？此操作无法撤销。"
           }
         },
         "zh-Hant" : {
@@ -38270,7 +38270,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "照片"
+            "value" : "圖片"
           }
         }
       }
@@ -38518,7 +38518,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用另一部裝置的相機對準此條碼，即可在其瀏覽器中打開 Fila。"
+            "value" : "用另一部裝置的相機對準此 QR 碼，即可在其瀏覽器中開啟 Fila。"
           }
         }
       }
@@ -38601,7 +38601,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "埠號"
+            "value" : "連接埠"
           }
         }
       }
@@ -38678,7 +38678,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预加载文件"
+            "value" : "预先载入文件"
           }
         },
         "zh-Hant" : {
@@ -39180,7 +39180,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "簡介"
+            "value" : "屬性"
           }
         }
       }
@@ -40005,7 +40005,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "唯讀的值"
+            "value" : "唯讀值"
           }
         }
       }
@@ -40082,7 +40082,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在读取应用…"
+            "value" : "正在读取 App…"
           }
         },
         "zh-Hant" : {
@@ -40253,7 +40253,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 權限讀取文字檔案並傳回其內容。"
+            "value" : "以 root 身分讀取文字檔案並傳回其內容。"
           }
         }
       }
@@ -40336,7 +40336,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 權限讀取項目的大小、日期、權限和擁有者。"
+            "value" : "以 root 身分讀取項目的大小、日期、權限和擁有者。"
           }
         }
       }
@@ -40418,7 +40418,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已準備好與你網路上的裝置分享。"
+            "value" : "已準備好與你網路上的裝置共享。"
           }
         }
       }
@@ -40987,7 +40987,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从收藏中移除"
+            "value" : "从个人收藏中移除"
           }
         },
         "zh-Hant" : {
@@ -41070,7 +41070,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移除已丢失的项目"
+            "value" : "移除已不存在的项目"
           }
         },
         "zh-Hant" : {
@@ -41152,7 +41152,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已从最近访问中移除"
+            "value" : "已从最近使用中移除"
           }
         },
         "zh-Hant" : {
@@ -41234,7 +41234,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重命名"
+            "value" : "重新命名"
           }
         },
         "zh-Hant" : {
@@ -41317,7 +41317,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重命名键"
+            "value" : "重新命名键"
           }
         },
         "zh-Hant" : {
@@ -41399,7 +41399,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重命名…"
+            "value" : "重新命名…"
           }
         },
         "zh-Hant" : {
@@ -41482,7 +41482,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已重命名"
+            "value" : "已重新命名"
           }
         },
         "zh-Hant" : {
@@ -41564,7 +41564,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在重命名…"
+            "value" : "正在重新命名…"
           }
         },
         "zh-Hant" : {
@@ -41729,7 +41729,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "替换现有项目？"
+            "value" : "要替换现有项目吗？"
           }
         },
         "zh-Hant" : {
@@ -41812,7 +41812,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "替换 %@ 的内容？此操作无法撤销。"
+            "value" : "要替换 %@ 的内容吗？此操作无法撤销。"
           }
         },
         "zh-Hant" : {
@@ -42555,13 +42555,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 mobile 运行"
+            "value" : "以 mobile 身份运行"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 mobile 執行"
+            "value" : "以 mobile 身分執行"
           }
         }
       }
@@ -42638,13 +42638,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 运行"
+            "value" : "以 root 身份运行"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 執行"
+            "value" : "以 root 身分執行"
           }
         }
       }
@@ -42804,13 +42804,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "沙盒版本"
+            "value" : "在沙盒中运行"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "沙盒版本"
+            "value" : "在沙盒中執行"
           }
         }
       }
@@ -43299,13 +43299,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已保存的服务器会显示在边栏的“服务器”下。移除后会忘记其已保存的密码和收藏；服务器上的内容不会被改动。"
+            "value" : "已存储的服务器会显示在边栏的“服务器”下。移除后会忘记其已存储的密码和个人收藏；服务器上的内容不会被改动。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已儲存的伺服器列於側邊欄的「伺服器」中。移除後會忘記其已儲存的密碼和收藏；伺服器上的內容不會變更。"
+            "value" : "已儲存的伺服器列於側邊欄的「伺服器」中。移除後會忘記其已儲存的密碼和喜好項目；伺服器上的內容不會變更。"
           }
         }
       }
@@ -44120,7 +44120,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在文件夹及其子文件夹中查找名称包含所输入文本的项目。"
+            "value" : "在文件夹及其子文件夹中搜索名称包含所输入文本的项目。"
           }
         },
         "zh-Hant" : {
@@ -44861,13 +44861,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "群组 ID 位"
+            "value" : "设置群组 ID 位"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定群組 ID"
+            "value" : "設定群組 ID 位元"
           }
         }
       }
@@ -45027,13 +45027,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用户 ID 位"
+            "value" : "设置用户 ID 位"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定使用者 ID"
+            "value" : "設定使用者 ID 位元"
           }
         }
       }
@@ -45280,7 +45280,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分享的檔案夾"
+            "value" : "共享檔案夾"
           }
         }
       }
@@ -45362,7 +45362,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分享已關閉"
+            "value" : "共享已關閉"
           }
         }
       }
@@ -45444,7 +45444,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分享已開啟"
+            "value" : "共享已開啟"
           }
         }
       }
@@ -45769,7 +45769,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "显示原项目"
+            "value" : "显示原身"
           }
         },
         "zh-Hant" : {
@@ -45852,13 +45852,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅显示前 %1$@，文件共 %2$@。此文件中有一行太长，无法编辑。以十六进制打开可查看其余部分。"
+            "value" : "仅显示前 %1$@，文件共 %2$@。此文件中有一行太长，无法编辑。请用“十六进制”打开以查看其余部分。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案中有一行太長，無法編輯。請以「十六進位」打開來查看其餘內容。"
+            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案中有一行太長，無法編輯。請以「十六進位」開啟來查看其餘內容。"
           }
         }
       }
@@ -45935,13 +45935,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅显示前 %1$@，文件共 %2$@。此文件太大，无法编辑。以十六进制打开可查看其余部分。"
+            "value" : "仅显示前 %1$@，文件共 %2$@。此文件太大，无法编辑。请用“十六进制”打开以查看其余部分。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案太大，無法編輯。請以「十六進位」打開來查看其餘內容。"
+            "value" : "僅顯示前 %1$@，檔案共 %2$@。此檔案太大，無法編輯。請以「十六進位」開啟來查看其餘內容。"
           }
         }
       }
@@ -46023,7 +46023,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在顯示前 %lld 個項目。"
+            "value" : "僅顯示前 %lld 個項目。"
           }
         }
       }
@@ -46100,7 +46100,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "仅显示前 %lld 个匹配项。尝试更具体的名称。"
+            "value" : "仅显示前 %lld 个匹配项。请尝试更具体的名称。"
           }
         },
         "zh-Hant" : {
@@ -46851,7 +46851,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分檔案未更改"
+            "value" : "部分檔案未變更"
           }
         }
       }
@@ -46927,7 +46927,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分项目未解压"
+            "value" : "部分项目未解压缩"
           }
         },
         "zh-Hant" : {
@@ -47009,13 +47009,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分内部文件夹无法读取，因此这些总计不包含其中的内容。"
+            "value" : "其中部分文件夹无法读取，因此这些总计未包含其中的内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部分內部檔案夾無法讀取，因此這些總計不包含其中的內容。"
+            "value" : "其中部分檔案夾無法讀取，因此這些總計未包含其中的內容。"
           }
         }
       }
@@ -47173,7 +47173,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "源版本"
+            "value" : "源代码版本"
           }
         },
         "zh-Hant" : {
@@ -47262,7 +47262,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "特殊"
+            "value" : "特殊權限"
           }
         }
       }
@@ -47427,7 +47427,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sticky"
+            "value" : "黏著位元"
           }
         }
       }
@@ -48328,13 +48328,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "点按校验值可查看完整内容，长按可复制。"
+            "value" : "轻点校验和可查看完整内容，按住可拷贝。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "點一下校驗值即可查看完整內容。觸碰並按住即可拷貝。"
+            "value" : "點一下總和檢查碼即可查看完整內容，按住即可拷貝。"
           }
         }
       }
@@ -48996,7 +48996,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "偏移值無效。請輸入十進位偏移值，或以 0x 開頭的十六進位偏移值。"
+            "value" : "偏移量無效。請輸入十進位偏移量，或以 0x 開頭的十六進位偏移量。"
           }
         }
       }
@@ -49079,7 +49079,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "壓縮檔在開啟期間已變更，因此未寫入任何內容。請重新打開它。"
+            "value" : "壓縮檔在開啟期間已變更。請重新開啟。"
           }
         }
       }
@@ -49319,7 +49319,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目标文件夹不为空，无法替换。请重命名项目或选择其他文件夹。"
+            "value" : "目标文件夹不为空，无法替换。请重新命名项目或选择其他文件夹。"
           }
         },
         "zh-Hant" : {
@@ -49648,7 +49648,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文件在计算过程中发生了变化，请重试。"
+            "value" : "文件在计算过程中发生了变化。请重试。"
           }
         },
         "zh-Hant" : {
@@ -49730,7 +49730,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文件夹“%@”不为空，无法替换。重命名或选择其他文件夹。"
+            "value" : "文件夹“%@”不为空，无法替换。请重新命名或选择其他文件夹。"
           }
         },
         "zh-Hant" : {
@@ -49894,13 +49894,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安装器仍在工作。先检查“应用程序”，再重试。"
+            "value" : "安装器仍在工作。请先检查“应用程序”，再重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "安裝程式仍在執行中。請先查看「應用程式」，再重新嘗試。"
+            "value" : "安裝程式仍在執行中。請先查看「應用程式」，再試一次。"
           }
         }
       }
@@ -50388,13 +50388,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所选包含重复项目，或同时包含文件夹及其内部项目。更改选择后重试。"
+            "value" : "所选内容包含重复的项目，或同时包含文件夹及其中的项目。请更改所选内容后重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選取內容包含重複的項目，或同時包含檔案夾及其內部項目。請更改選取內容後再試一次。"
+            "value" : "選取內容包含重複的項目，或同時包含檔案夾及其內部項目。請變更選取內容後再試一次。"
           }
         }
       }
@@ -50470,13 +50470,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器未确认已保存“%@”。重试前先查看目标文件夹。"
+            "value" : "服务器未确认已存储“%@”。请先查看目标文件夹再重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "伺服器未確認已儲存「%@」。請先查看目標檔案夾再重試。"
+            "value" : "伺服器未確認已儲存「%@」。請先查看目標檔案夾再試一次。"
           }
         }
       }
@@ -50552,13 +50552,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "服务器未确认已保存 %@。重试前先查看目标文件夹；原件已保留。"
+            "value" : "服务器未确认已存储 %@。请先查看目标文件夹再重试；原件已保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "伺服器未確認已儲存 %@。請先查看目標檔案夾再重試；原件已保留。"
+            "value" : "伺服器未確認已儲存 %@。請先查看目標檔案夾再試一次；原件已保留。"
           }
         }
       }
@@ -50640,7 +50640,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "分享的檔案夾無法使用。請選擇其他檔案夾，然後重新開始分享。"
+            "value" : "共享檔案夾無法使用。請選擇其他檔案夾，然後重新開始共享。"
           }
         }
       }
@@ -50723,7 +50723,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「%@」的簽章遭到拒絕。請在此裝置上安裝 AppSync Unified，或在 TrollStore 中打開此檔案。"
+            "value" : "「%@」的簽章遭到拒絕。請在此裝置上安裝 AppSync Unified，或在 TrollStore 中開啟此檔案。"
           }
         }
       }
@@ -50882,13 +50882,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系统安装器将安装“%1$@”（%2$@），并替换相同标识符的应用。未为本设备签名的应用需要 AppSync Unified。"
+            "value" : "系统安装器将安装“%1$@”（%2$@），并替换标识符相同的任何 App。未为本设备签名的 App 需要 AppSync Unified。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "系統安裝程式將會安裝「%@」（%@），並取代任何識別碼相同的 App。未針對此裝置簽署的 App 需要 AppSync Unified。"
+            "value" : "系統安裝程式將會安裝「%1$@」（%2$@），並取代任何識別碼相同的 App。未針對此裝置簽署的 App 需要 AppSync Unified。"
           }
         }
       }
@@ -51375,7 +51375,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此压缩包未列出每个项目的大小。解压前检查可用空间。"
+            "value" : "此压缩包未列出每个项目的大小。解压缩前请检查可用空间。"
           }
         },
         "zh-Hant" : {
@@ -51458,7 +51458,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此压缩包已加密。输入密码以解压。"
+            "value" : "此压缩包已加密。请输入密码以解压缩。"
           }
         },
         "zh-Hant" : {
@@ -51540,13 +51540,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此文件无法作为文本编辑而不改动你未编辑的字节。将以只读方式显示。"
+            "value" : "以文本方式编辑此文件会改动你未编辑的字节，因此将以只读方式显示。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此檔案無法作為文字編輯而不更動你未編輯的位元組。將以唯讀方式顯示。"
+            "value" : "以文字方式編輯此檔案會變更你未編輯的位元組，因此將以唯讀方式顯示。"
           }
         }
       }
@@ -51622,13 +51622,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法打开此文件。以十六进制打开可查看其中的内容。"
+            "value" : "无法打开此文件。请用“十六进制”打开以查看其内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法打開此檔案。請以「十六進位」打開以查看內容。"
+            "value" : "無法開啟此檔案。請以「十六進位」開啟來查看其內容。"
           }
         }
       }
@@ -51787,7 +51787,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此文件不是有效的 UTF-8。将按原样显示和保存，不会转换为 UTF-8。"
+            "value" : "此文件不是有效的 UTF-8。将按原样显示和存储，不会转换为 UTF-8。"
           }
         },
         "zh-Hant" : {
@@ -51951,13 +51951,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此文件在你打开后已被更改。保存会用你的更改替换那些更改。"
+            "value" : "此文件在你打开后已被更改。存储会用你的更改覆盖这些更改。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此檔案在你打開後已被更動。儲存會以你的更動取代那些更動。"
+            "value" : "此檔案在你開啟後已被變更。儲存會以你的變更覆蓋這些變更。"
           }
         }
       }
@@ -52197,13 +52197,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此文件夹已在当前标签页中打开。关闭一个标签页即可打开新标签页。"
+            "value" : "此文件夹已在当前标签页中打开。要打开新标签页，请先关闭一个标签页。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此檔案夾已在目前的標籤頁中打開。關閉一個標籤頁後才能打開新的。"
+            "value" : "此檔案夾已在目前的標籤頁中開啟。要開啟新標籤頁，請先關閉一個標籤頁。"
           }
         }
       }
@@ -52279,13 +52279,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不支持此图片格式。以十六进制打开可查看其中的内容。"
+            "value" : "不支持此图片格式。请用“十六进制”打开以查看其内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不支援此影像格式。請以「十六進位」打開來查看其內容。"
+            "value" : "不支援此影像格式。請以「十六進位」開啟來查看其內容。"
           }
         }
       }
@@ -52367,7 +52367,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目前仍是舊版本。請結束 Fila 並重新打開以使用新版本。"
+            "value" : "目前仍是舊版本。請結束 Fila 並重新開啟以使用新版本。"
           }
         }
       }
@@ -52450,7 +52450,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此項目沒有延伸屬性。"
+            "value" : "此項目沒有擴充屬性。"
           }
         }
       }
@@ -52614,7 +52614,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此項目已鎖定。請在「進階資訊」的「旗標」中解鎖，才能更改或刪除它。"
+            "value" : "此項目已鎖定。請在「進階資訊」的「旗標」中解鎖，才能變更或刪除它。"
           }
         }
       }
@@ -52690,13 +52690,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此项目已不在压缩包中。重新打开。"
+            "value" : "此项目已不在压缩包中。请重新打开。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此項目已不在壓縮檔中。請重新打開。"
+            "value" : "此項目已不在壓縮檔中。請重新開啟。"
           }
         }
       }
@@ -52854,7 +52854,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此位置不接受文件。选择其他文件夹。"
+            "value" : "此位置不接受文件。请选择其他文件夹。"
           }
         },
         "zh-Hant" : {
@@ -52936,7 +52936,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此偏移超出文件末尾，请输入不超过 0x%llx 的值。"
+            "value" : "此偏移量超出文件末尾。请输入 0x%llx 或更小的值。"
           }
         },
         "zh-Hant" : {
@@ -53595,7 +53595,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "换用其他筛选。"
+            "value" : "请尝试其他筛选条件。"
           }
         },
         "zh-Hant" : {
@@ -53759,13 +53759,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关闭“记录最近使用”也会删除已经记录的历史。"
+            "value" : "关闭“记录最近使用”也会删除已记录的历史记录。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "關閉「記住最近項目」也會刪除已經記錄的歷史。"
+            "value" : "關閉「記住最近項目」也會刪除已記錄的歷史記錄。"
           }
         }
       }
@@ -53841,13 +53841,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有两个所选项目都名为“%@”，会使用同一目标。请重命名其中一个或分别传输。"
+            "value" : "有两个所选项目都名为“%@”，会使用同一个目标位置。请重新命名其中一个，或分别传输。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有兩個所選項目都名為「%@」，會使用同一目標。請重新命名其中一個或分別傳輸。"
+            "value" : "有兩個所選項目都名為「%@」，會使用同一個目標位置。請重新命名其中一個，或分別傳輸。"
           }
         }
       }
@@ -53923,13 +53923,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所选项目中有同名项目，会使用相同的目标路径。请先重命名，或分别传输。"
+            "value" : "所选项目中有同名项目，会使用相同的目标位置。请重新命名其中一个，或分别传输。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所選項目中有同名項目，會使用相同的目標路徑。請先重新命名，或分別傳輸。"
+            "value" : "所選項目中有同名項目，會使用相同的目標位置。請重新命名其中一個，或分別傳輸。"
           }
         }
       }
@@ -54088,13 +54088,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法计算校验值"
+            "value" : "无法计算校验和"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法計算校驗值"
+            "value" : "無法計算總和檢查碼"
           }
         }
       }
@@ -54176,7 +54176,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法更改項目"
+            "value" : "無法變更項目"
           }
         }
       }
@@ -54587,7 +54587,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法搬移項目"
+            "value" : "無法移動項目"
           }
         }
       }
@@ -54669,7 +54669,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法打開此檔案"
+            "value" : "無法開啟此檔案"
           }
         }
       }
@@ -54745,13 +54745,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法打开此 PDF。以十六进制打开可查看其中的内容。"
+            "value" : "无法打开此 PDF。请用“十六进制”打开以查看其内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法打開此 PDF。請以「十六進位」打開來查看其內容。"
+            "value" : "無法開啟此 PDF。請以「十六進位」開啟來查看其內容。"
           }
         }
       }
@@ -54910,7 +54910,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法读取此文件夹"
+            "value" : "无法读取文件夹"
           }
         },
         "zh-Hant" : {
@@ -55162,7 +55162,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法讀取此檔案。請再試著打開一次。"
+            "value" : "無法讀取此檔案。請重新開啟。"
           }
         }
       }
@@ -55320,7 +55320,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存"
+            "value" : "无法存储"
           }
         },
         "zh-Hant" : {
@@ -55402,7 +55402,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法保存此文件。请重试。"
+            "value" : "无法存储此文件。请重试。"
           }
         },
         "zh-Hant" : {
@@ -55484,13 +55484,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法开启共享，检查端口号后重试。"
+            "value" : "无法开启共享。请检查端口号后重试。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "無法開始分享。請檢查埠號後再試一次。"
+            "value" : "無法開始共享。請檢查連接埠號碼後再試一次。"
           }
         }
       }
@@ -55566,7 +55566,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法使用已保存的密码。重新输入。"
+            "value" : "无法使用已存储的密码。请重新输入。"
           }
         },
         "zh-Hant" : {
@@ -55979,13 +55979,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未保存的更改"
+            "value" : "未存储的更改"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未儲存的更動"
+            "value" : "未儲存的變更"
           }
         }
       }
@@ -57134,7 +57134,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "等待当前安装完成后再试。"
+            "value" : "请等待当前安装完成，然后重试。"
           }
         },
         "zh-Hant" : {
@@ -57638,7 +57638,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以 root 權限將文字寫入檔案，取代其內容並保留權限、擁有者和日期。"
+            "value" : "以 root 身分將文字寫入檔案，取代其內容，並保留權限、擁有者和日期。"
           }
         }
       }
@@ -57879,13 +57879,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ZipCrypto 兼容性广，但密码保护较弱。"
+            "value" : "ZipCrypto 兼容性好，但密码保护较弱。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ZipCrypto 相容性廣泛，但密碼保護強度很弱。"
+            "value" : "ZipCrypto 相容性廣泛，但密碼保護較弱。"
           }
         }
       }
