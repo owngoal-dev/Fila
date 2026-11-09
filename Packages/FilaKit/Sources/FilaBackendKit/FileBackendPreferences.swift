@@ -35,6 +35,13 @@ public struct FileBackendPreferences: Codable, Equatable, Sendable {
     }
 
     public var favorites: [ServicePath]?
+    /// The name the user gave a favourite in the sidebar, keyed by that
+    /// favourite's own path — written as `ServicePath.description` writes it,
+    /// relative to this backend's root, like every other path here. Absent or
+    /// empty means nothing was renamed and each row shows its own name. It
+    /// rides beside `favorites` rather than inside it so a name can never
+    /// reorder the list, and so a build that knows no names ignores the key.
+    public var favoriteNames: [String: String]?
     /// Newest first.
     public var recents: [Visit]
     public var lastDirectory: ServicePath?
@@ -47,6 +54,7 @@ public struct FileBackendPreferences: Codable, Equatable, Sendable {
 
     public init(
         favorites: [ServicePath]? = nil,
+        favoriteNames: [String: String]? = nil,
         recents: [Visit] = [],
         lastDirectory: ServicePath? = nil,
         sortKey: FileSortKey = .name,
@@ -56,6 +64,7 @@ public struct FileBackendPreferences: Codable, Equatable, Sendable {
         folderLayouts: [ServicePath: BrowserLayout] = [:],
     ) {
         self.favorites = favorites
+        self.favoriteNames = favoriteNames
         self.recents = recents
         self.lastDirectory = lastDirectory
         self.sortKey = sortKey

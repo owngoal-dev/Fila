@@ -1,6 +1,146 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "This package is declared as %@, and packing keeps that label." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This package is declared as %@, and packing keeps that label." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此包声明为 %@，打包会沿用这个架构。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "此套件宣告為 %@，封裝會沿用這個架構。" } }
+      }
+    },
+    "Edit Plugin Information" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit Plugin Information" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑插件信息" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "編輯外掛資訊" } }
+      }
+    },
+    "This package is %@, which is not supported." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This package is %@, which is not supported." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此包是 %@ 架构，不支持。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "此套件是 %@ 架構，不支援。" } }
+      }
+    },
+    "Pack Debian Package" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pack Debian Package" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打包 deb" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "封裝 deb" } }
+      }
+    },
+    "Packing the Package" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Packing the Package" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在打包" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在封裝" } }
+      }
+    },
+    "Packed “%@”" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Packed “%@”" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已打包“%@”" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已封裝「%@」" } }
+      }
+    },
+    "The Package Was Not Built" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The Package Was Not Built" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未能生成软件包" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "未能產生套件" } }
+      }
+    },
+    "The Package Was Not Opened" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The Package Was Not Opened" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未能打开软件包" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "未能開啟套件" } }
+      }
+    },
+    "The Control File Was Not Saved" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The Control File Was Not Saved" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "control 文件未保存" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "control 檔案未儲存" } }
+      }
+    },
+    "Saved" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saved" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已保存" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已儲存" } }
+      }
+    },
+    "Control" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Control" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "control" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "control" } }
+      }
+    },
+    "Reading the package metadata" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reading the package metadata" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在读取包元数据" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在讀取套件中繼資料" } }
+      }
+    },
+    "Writing the package" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Writing the package" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在写入软件包" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在寫入套件" } }
+      }
+    },
+    "Copying the payload" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copying the payload" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在复制载荷" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在複製內容" } }
+      }
+    },
+    "This folder has %lld “%@” members. A package needs exactly one." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This folder has %lld “%@” members. A package needs exactly one." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "这个文件夹里有 %1$lld 个“%2$@”成员。一个包只能有一个。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這個檔案夾裡有 %1$lld 個「%2$@」成員。一個套件只能有一個。" } }
+      }
+    },
+    "“debian-binary” does not say 2.0, so this is not a package layout." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "“debian-binary” does not say 2.0, so this is not a package layout." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "“debian-binary” 不是 2.0，这不是一个包布局。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "「debian-binary」不是 2.0，這不是套件佈局。" } }
+      }
+    },
+    "The control archive holds too many members." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The control archive holds too many members." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "control 归档的成员过多。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "control 封存的成員過多。" } }
+      }
+    },
+    "The control archive has no “control” file." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The control archive has no “control” file." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "control 归档里没有“control”文件。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "control 封存裡沒有「control」檔案。" } }
+      }
+    },
+    "The control file has no “Package” field." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The control file has no “Package” field." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "control 文件里没有“Package”字段。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "control 檔案裡沒有「Package」欄位。" } }
+      }
+    },
+    "The control file needs a %@ field." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The control file needs a %@ field." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "control 文件缺少 %@ 字段。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "control 檔案缺少 %@ 欄位。" } }
+      }
+    },
     "Change Permissions…" : {
       "localizations" : {
         "ar" : {
@@ -161,6 +301,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請在「屬性」中變更檔案的權限，然後重新開啟。"
+          }
+        }
+      }
+    },
+    "Enter the name this folder shows in this list. Clear the field to show the folder's own name." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أدخل الاسم الذي يظهر به هذا المجلد في هذه القائمة. امسح الحقل لعرض اسم المجلد نفسه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib den Namen ein, den dieser Ordner in dieser Liste zeigt. Leere das Feld, um den eigenen Namen des Ordners anzuzeigen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the name this folder shows in this list. Clear the field to show the folder's own name."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce el nombre que esta carpeta muestra en esta lista. Vacía el campo para mostrar el nombre de la carpeta."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez le nom que ce dossier affiche dans cette liste. Videz le champ pour afficher le nom du dossier."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inserisci il nome che questa cartella mostra in questo elenco. Svuota il campo per mostrare il nome della cartella."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このフォルダーがこのリストに表示する名前を入力します。空欄にするとフォルダー自身の名前が表示されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 폴더가 이 목록에 표시할 이름을 입력하십시오. 비우면 폴더 자체의 이름이 표시됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Digite o nome que esta pasta mostra nesta lista. Esvazie o campo para mostrar o nome da pasta."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите имя, под которым эта папка отображается в этом списке. Очистите поле, чтобы вернуть имя самой папки."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nhập tên thư mục này hiển thị trong danh sách. Xóa trống để hiển thị tên gốc của thư mục."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入该文件夹在此列表中显示的名称。清空则显示文件夹本身的名称。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入此資料夾在此清單中顯示的名稱。清空則顯示資料夾本身的名稱。"
           }
         }
       }
@@ -40912,88 +41134,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要移除「%@」嗎？"
-          }
-        }
-      }
-    },
-    "Remove from Favorites" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "إزالة من المفضلة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aus Favoriten entfernen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove from Favorites"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitar de Favoritos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retirer des favoris"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rimuovi dai preferiti"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "よく使う項目から削除"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "즐겨찾기에서 제거"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remover dos Favoritos"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалить из Избранного"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Xóa khỏi Yêu thích"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从个人收藏中移除"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "從喜好項目中移除"
           }
         }
       }

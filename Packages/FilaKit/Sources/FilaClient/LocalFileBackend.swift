@@ -193,6 +193,11 @@ public class LocalFileBackend: FileBackend {
         favorites.contains(path)
     }
 
+    /// The name the user gave this favourite, or nil while it shows its own.
+    public func favoriteName(for path: ServicePath) -> String? {
+        preferences.files.favoriteNames?[path.description]
+    }
+
     public func setFavorite(_ path: ServicePath, included: Bool) throws {
         var list = favorites
         if included {
@@ -202,7 +207,47 @@ public class LocalFileBackend: FileBackend {
             guard list.contains(path) else { return }
             list.removeAll { $0 == path }
         }
-        try update { $0.files.favorites = list }
+        try update {
+            $0.files.favorites = list
+            // A name belongs to the favourite, not to the path: one that
+            // comes back after a removal is a new favourite and must not
+            // carry the name of the one that was deleted.
+            if !included {
+                _ = $0.files.favoriteNames?.removeValue(forKey: path.description)
+            }
+        }
+    }
+
+    /// Sets or, with nil or a blank name, clears the name this favourite shows.
+    /// The name is stored apart from `favorites`, so naming a row never moves
+    /// it and a favourite with no name keeps showing its own.
+    public func renameFavorite(_ path: ServicePath, to name: String?) {
+        let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        var names = preferences.files.favoriteNames ?? [:]
+        if trimmed.isEmpty {
+            guard names.removeValue(forKey: path.description) != nil else { return }
+        } else {
+            guard names[path.description] != trimmed else { return }
+            names[path.description] = trimmed
+        }
+        let next = names.isEmpty ? nil : names
+        do { try update { $0.files.favoriteNames = next } }
+        catch { FilaLog.error("favourite name not saved: \(error)") }
+    }
+
+    /// The user's own order. Only a permutation of what is stored is accepted:
+    /// adding or removing a favourite is `setFavorite`, and a list that
+    /// disagrees with the record is a reorder that raced a removal, which must
+    /// not bring the removed entry back.
+    public func setFavoriteOrder(_ paths: [ServicePath]) {
+        let current = favorites
+        guard paths.count == current.count, Set(paths) == Set(current) else {
+            FilaLog.error("favourite order ignored: \(paths.count) paths for \(current.count) favourites")
+            return
+        }
+        guard paths != current else { return }
+        do { try update { $0.files.favorites = paths } }
+        catch { FilaLog.error("favourite order not saved: \(error)") }
     }
 
     /// roothide and rootless both put the bootstrap in a new random directory
@@ -233,6 +278,20 @@ public class LocalFileBackend: FileBackend {
                 next.files.favorites = saved
                     .map { Self.favorite($0, movedFrom: oldRoot, to: newRoot) }
                     .filter { seen.insert($0).inserted }
+                // A name is filed under the favourite's path, so it moves
+                // with it and the old key goes: a stale one would sit in the
+                // record forever, waiting for a path that no longer exists.
+                // Sorted, so two old spellings that land on one path resolve
+                // the same way on every launch.
+                if let names = next.files.favoriteNames {
+                    var moved: [String: String] = [:]
+                    for key in names.keys.sorted() {
+                        guard let name = names[key],
+                              let path = try? ServicePath(key) else { continue }
+                        moved[Self.favorite(path, movedFrom: oldRoot, to: newRoot).description] = name
+                    }
+                    next.files.favoriteNames = moved.isEmpty ? nil : moved
+                }
             }
         } catch {
             FilaLog.error("favourites not moved to the new install root: \(error)")

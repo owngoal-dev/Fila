@@ -72,6 +72,7 @@
         func adopt(_ page: TabContentViewController) {
             current = page
             pathBar.currentMenu = page.currentCrumbMenu
+            pathBar.currentTap = page.currentCrumbTap
             pathBar.currentLongPressMenu = page.currentCrumbLongPressMenu
             pathBar.setCrumbs(page.crumbs)
         }

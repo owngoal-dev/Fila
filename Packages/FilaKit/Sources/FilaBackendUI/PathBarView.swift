@@ -28,9 +28,14 @@
             return touch.phase == .began || touch.phase == .moved || touch.phase == .stationary
         }
 
+        /// Told on every touch-down: a press that ends as a tap is not the
+        /// press that raised the long-press menu.
+        var onTouchDown: (() -> Void)?
+
         override func touchesBegan(_ touches: Set<UITouch>, with _: UIEvent) {
             touch = touches.first
             lifted = false
+            onTouchDown?()
         }
 
         override func touchesMoved(_: Set<UITouch>, with _: UIEvent) {}
@@ -47,6 +52,9 @@
     private final class CurrentCrumbButton: UIButton {
         var longPressMenu: UIMenu?
         weak var heldTouch: HeldTouch?
+        /// Told when the hold menu is the one being built, so a tap that comes
+        /// with it does not also open the panel.
+        var onLongPressShown: (() -> Void)?
 
         override func contextMenuInteraction(
             _ interaction: UIContextMenuInteraction,
@@ -55,6 +63,7 @@
             guard heldTouch?.isHeld == true, let longPressMenu else {
                 return super.contextMenuInteraction(interaction, configurationForMenuAtLocation: location)
             }
+            onLongPressShown?()
             return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in longPressMenu }
         }
     }
@@ -99,11 +108,79 @@
         /// The current crumb's tap menu. The crumb is drawn the same with or
         /// without one.
         var currentMenu: UIMenu? {
-            didSet { currentButton.menu = currentMenu }
+            didSet { applyCurrentTarget() }
+        }
+
+        /// A tap on the current crumb that opens the caller's own panel
+        /// instead of a menu: a menu's rows take a tap and nothing else, and
+        /// a list that is edited by a long press and a drag is not a menu.
+        /// Nil leaves the crumb opening `currentMenu`.
+        var currentTap: (() -> Void)? {
+            didSet { applyCurrentTarget() }
+        }
+
+        /// Where the current crumb's tap target is, in this bar's space, so a
+        /// panel the tap opens can be anchored to the crumb it came from.
+        public var currentTargetFrame: CGRect? {
+            currentButton.isHidden ? nil : currentButton.frame
+        }
+
+        private var currentTapGesture: UITapGestureRecognizer?
+        private var longPressInteraction: UIContextMenuInteraction?
+        private var longPressShown = false
+
+        private var hasCurrentTarget: Bool {
+            currentMenu != nil || currentTap != nil
+        }
+
+        /// One target at a time: the menu opens on touch-down, the panel on
+        /// the tap, and a crumb that does neither has nothing to open.
+        ///
+        /// The long press that opens Places is the interaction UIKit gives a
+        /// button with a menu. Taking the menu away takes that with it, so the
+        /// interaction is added here by hand for as long as a panel owns the
+        /// tap, and a tap that also raised it is not a tap.
+        private func applyCurrentTarget() {
+            if let currentTapGesture {
+                currentButton.removeGestureRecognizer(currentTapGesture)
+                self.currentTapGesture = nil
+            }
+            if currentTap == nil {
+                if let longPressInteraction {
+                    currentButton.removeInteraction(longPressInteraction)
+                    self.longPressInteraction = nil
+                }
+                currentButton.menu = currentMenu
+                currentButton.showsMenuAsPrimaryAction = currentMenu != nil
+                setNeedsLayout()
+                return
+            }
+            currentButton.menu = nil
+            currentButton.showsMenuAsPrimaryAction = false
+            if longPressInteraction == nil, currentButton.longPressMenu != nil {
+                let interaction = UIContextMenuInteraction(delegate: currentButton)
+                currentButton.addInteraction(interaction)
+                longPressInteraction = interaction
+            }
+            let gesture = UITapGestureRecognizer(target: self, action: #selector(currentTapped))
+            currentButton.addGestureRecognizer(gesture)
+            currentTapGesture = gesture
+            setNeedsLayout()
+        }
+
+        @objc private func currentTapped() {
+            guard !longPressShown else {
+                longPressShown = false
+                return
+            }
+            currentTap?()
         }
 
         var currentLongPressMenu: UIMenu? {
-            didSet { currentButton.longPressMenu = currentLongPressMenu }
+            didSet {
+                currentButton.longPressMenu = currentLongPressMenu
+                applyCurrentTarget()
+            }
         }
 
         private let text = UITextView()
@@ -166,6 +243,8 @@
             }
             currentButton.addGestureRecognizer(held)
             currentButton.heldTouch = held
+            held.onTouchDown = { [weak self] in self?.longPressShown = false }
+            currentButton.onLongPressShown = { [weak self] in self?.longPressShown = true }
             addSubview(currentButton)
             text.snp.makeConstraints { make in
                 make.leading.equalTo(contentLayoutGuide).offset(FilaUI.Spacing.large)
@@ -240,7 +319,7 @@
             text.accessibilityLabel = crumbs.map(\.title).joined(separator: " › ")
             text.accessibilityCustomActions = actions
             currentButton.accessibilityLabel = crumbs.last?.title
-            currentButton.isHidden = currentMenu == nil || crumbs.isEmpty
+            currentButton.isHidden = !hasCurrentTarget || crumbs.isEmpty
             textWidth?.update(offset: ceil(text.sizeThatFits(CGSize(
                 width: CGFloat.greatestFiniteMagnitude,
                 height: CGFloat.greatestFiniteMagnitude,
@@ -314,7 +393,7 @@
                 )
             }
             marker.isHidden = marker.frame.isEmpty || marker.frame.isInfinite
-            if currentMenu != nil,
+            if hasCurrentTarget,
                let start = text.position(from: text.beginningOfDocument, offset: currentTapRange.location),
                let end = text.position(from: start, offset: currentTapRange.length),
                let range = text.textRange(from: start, to: end)

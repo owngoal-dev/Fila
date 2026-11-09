@@ -21,7 +21,11 @@ else
     cat "$log"
 fi
 
-error_pattern='(^|[[:space:]])error:|^\*\* (BUILD|TEST|ARCHIVE|CLEAN|ANALYZE) FAILED \*\*|^Testing failed:|^Failing tests:'
+# What counts as an error is what a compiler, a linker or the build itself
+# says, not any line of text that happens to carry the word: a bare
+# ` error:` matched git's "skipping cache due to an error:" and failed a
+# build that had printed ** BUILD SUCCEEDED **.
+error_pattern='^[^[:space:]].*:[0-9]+(:[0-9]+)?: (fatal )?error:|^([[:alnum:]_.-]+): (fatal )?error:|^error: |^\*\* (BUILD|TEST|ARCHIVE|CLEAN|ANALYZE) FAILED \*\*|^Testing failed:|^Failing tests:'
 errors_in_log=0
 if grep -En "$error_pattern" "$log" >/dev/null 2>&1; then
     errors_in_log=1

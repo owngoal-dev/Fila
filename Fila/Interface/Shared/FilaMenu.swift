@@ -169,7 +169,12 @@ enum FilaMenu {
                     {
                         image = await artwork.icon(for: identifier) ?? image
                     }
-                    let name = presentation?.name ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
+                    // The name the user gave it outranks the one the app
+                    // decorates the folder with: every list of favourites
+                    // shows the same words, in the same order.
+                    let name = session.favoriteName(for: path)
+                        ?? presentation?.name
+                        ?? (path == "/" ? "/" : (path as NSString).lastPathComponent)
                     actions.append(UIAction(
                         title: name,
                         subtitle: path,

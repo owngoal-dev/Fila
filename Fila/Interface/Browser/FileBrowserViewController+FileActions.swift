@@ -123,7 +123,6 @@ extension FileBrowserViewController {
     func browserMenuElements(folderAction: UIMenuElement, selectAction: UIAction) -> [UIMenuElement] {
         let actions: [UIMenuElement] = [
             selectAction,
-            favoriteToggleAction(keepsMenuOpen: true),
             UIAction(
                 title: String(localized: "Open in New Tab"),
                 image: UIImage(systemName: "plus.square.on.square"),
@@ -132,7 +131,7 @@ extension FileBrowserViewController {
                 shell?.openInNewTab(directory)
             },
         ]
-        let display: [UIMenuElement] = [
+        var display: [UIMenuElement] = [
             layoutToggleAction(),
             hiddenFilesToggleAction(),
             UIMenu(
@@ -141,6 +140,14 @@ extension FileBrowserViewController {
                 children: sortMenuElements(),
             ),
         ]
+        // Only in a folder that holds a package's three members, which the
+        // listing already in hand answers without asking the daemon: elsewhere
+        // the row would open a submenu whose only answer is an error.
+        if (try? DebianPackageBuilder.layout(in: directory, names: items.map(\.name))) != nil {
+            // The folder this menu belongs to is the one that would be packed,
+            // so the entry sits with the folder's own settings, under the sort.
+            display.append(fileActions.packDebElement(for: directory, confirm: { $0() }))
+        }
         // Collapsed, the leading bookmark opens the Places page, so this menu
         // need not offer the same destinations a second time. A wide layout
         // keeps Go: there the bookmark only brings the column back.
@@ -199,50 +206,6 @@ extension FileBrowserViewController {
             return [.keepsMenuPresented]
         }
         return []
-    }
-
-    /// This folder into or out of the favourites, worded for its state when
-    /// the menu is built.
-    ///
-    /// `keepsMenuOpen` is for the ellipsis, a bar button item: handing its item
-    /// a rebuilt menu repaints the presented menu where it stands, so the row
-    /// flips under the finger. The breadcrumb's current crumb is a `UIButton`,
-    /// and its menu is presented again when it is handed a new one — there the
-    /// row would blink closed and open, so that menu closes as it always has.
-    private func favoriteToggleAction(keepsMenuOpen: Bool = false) -> UIAction {
-        let favorite = session.isFavorite(directory)
-        return UIAction(
-            title: favorite
-                ? String(localized: "Remove from Favorites")
-                : String(localized: "Add to Favorites"),
-            image: UIImage(systemName: favorite ? "star.slash" : "star"),
-            attributes: keepsMenuOpen ? Self.staysOpenWhileToggling : [],
-        ) { [weak self] _ in
-            guard let self else { return }
-            session.toggleFavorite(directory)
-            if keepsMenuOpen {
-                refreshMoreMenu()
-            }
-        }
-    }
-
-    /// A tap on the current breadcrumb: this folder in or out of the
-    /// favourites, then the favourites to jump to. The toggle means the menu
-    /// is never empty, and it is what the star beside the crumb promises.
-    func makeCurrentCrumbMenu() -> UIMenu {
-        UIMenu(children: [
-            UIMenu(options: .displayInline, children: [
-                UIAction(title: String(localized: "Go to Path…")) { [weak self] _ in
-                    self?.promptGoToPath()
-                },
-                UIDeferredMenuElement.uncached { [weak self] completion in
-                    completion(self.map { [$0.favoriteToggleAction()] } ?? [])
-                },
-            ]),
-            UIMenu(options: .displayInline, children: [
-                FilaMenu.favoriteItems { [weak self] path in self?.open(directory: path) },
-            ]),
-        ])
     }
 
     /// A long press on the current breadcrumb: the rows of Go › Places,

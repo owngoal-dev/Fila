@@ -183,8 +183,12 @@ final class FileActions {
                 },
             ],
         )
-        let operations: [UIMenuElement] = [
-            copy,
+        // Under Copy, where the actions on the folder itself live: a folder
+        // holding a package's three members can be put back together into one.
+        let packing: [UIMenuElement] = node.isNavigable
+            ? [packDebElement(for: path, confirm: confirm)]
+            : []
+        let operations: [UIMenuElement] = [copy] + packing + [
             UIAction(title: String(localized: "Move"), image: UIImage(systemName: "scissors")) { _ in
                 confirm { FileClipboard.shared.take([path], cut: true) }
             },
@@ -441,6 +445,148 @@ final class FileActions {
                     message: String(localized: "An item with this name already exists. Replacing it cannot be undone — the replaced item does not go to the trash."),
                     confirm: String(localized: "Replace"),
                 ) { self.rename(source, to: destination, replacingExisting: true) }
+            } catch { report(error) }
+        }
+    }
+
+    /// *Pack Debian Package*: the two layouts as a submenu, where only the one
+    /// the package is built for can be chosen. Reading the `control` costs one
+    /// small member, so it happens when the submenu opens rather than on every
+    /// long press; a package whose `control` cannot be read offers both and
+    /// lets the payload check refuse a wrong one.
+    ///
+    /// Nothing here draws anything: the chevron, the rotation and the
+    /// open/close animation are `UIMenu`'s own.
+    func packDebElement(
+        for directory: String,
+        confirm: @escaping (@escaping () -> Void) -> Void,
+    ) -> UIMenuElement {
+        UIDeferredMenuElement.uncached { [self] completion in
+            Task { @MainActor in
+                guard let names = try? await DirectoryReader.entries(in: directory, session: session).map(\.name),
+                      (try? DebianPackageBuilder.layout(in: directory, names: names)) != nil
+                else {
+                    // Nothing at all: a row that says "not a package" is noise
+                    // on every folder that is not one, and the menu closing on
+                    // itself says it without a sentence.
+                    completion([])
+                    return
+                }
+                // Both are offered and both are tappable: the payload decides at
+                // pack time, and a wrong choice fails with one line rather than
+                // a greyed row that has to explain itself.
+                let architectures = DebianPackageBuilder.Architecture.allCases.map { architecture -> UIMenuElement in
+                    UIAction(title: architecture.title) { [self] _ in
+                        confirm { self.packDeb(directory, architecture: architecture) }
+                    }
+                }
+                // Two groups, so the menu draws its own separator: the choices
+                // above, editing below.
+                let editing: [UIMenuElement] = [UIAction(
+                    title: String(localized: "Edit Plugin Information"),
+                    image: UIImage(systemName: "square.and.pencil"),
+                ) { [self] _ in
+                    confirm { self.editControl(directory) }
+                }]
+                // One titled submenu, not inline groups: inline children are
+                // flattened into the parent and the row that opens them never
+                // exists. A `UIMenu` gets the chevron, its rotation and the
+                // expand animation from UIKit itself.
+                completion([UIMenu(
+                    title: String(localized: "Pack Debian Package"),
+                    image: UIImage(systemName: "shippingbox"),
+                    children: [
+                        UIMenu(options: .displayInline, children: architectures),
+                        UIMenu(options: .displayInline, children: editing),
+                    ],
+                )])
+            }
+        }
+    }
+
+    /// Opens the package's `control` as text and writes it back into its own
+    /// `control.tar.*` on save — the archive the next pack reads.
+    func editControl(_ directory: String) {
+        Task {
+            do {
+                let names = try await DirectoryReader.entries(in: directory, session: session).map(\.name)
+                let layout = try DebianPackageBuilder.layout(in: directory, names: names)
+                let text = try await DebianPackageBuilder.controlText(in: layout, session: session)
+                let declared = (try? await DebianPackageBuilder.declaredArchitecture(of: layout, session: session)) ?? nil
+                guard let presenter = activePresenter else { return }
+                ControlEditorViewController.present(
+                    from: presenter,
+                    text: text,
+                    declared: declared?.rawValue ?? "—",
+                ) { [self] edited in
+                    Task {
+                        do {
+                            try await DebianPackageBuilder.saveControl(edited, in: layout, session: session)
+                            Toast.show(String(localized: "Saved"))
+                            NotificationCenter.default.post(name: .filaJobFinished, object: [directory])
+                        } catch let failure as DebianPackageBuilder.Failure {
+                            activePresenter?.presentMessage(
+                                String(localized: "The Control File Was Not Saved"),
+                                message: failure.message,
+                            )
+                        } catch { report(error) }
+                    }
+                }
+            } catch let failure as DebianPackageBuilder.Failure {
+                activePresenter?.presentMessage(
+                    String(localized: "The Package Was Not Opened"),
+                    message: failure.message,
+                )
+            } catch { report(error) }
+        }
+    }
+
+    /// Writes the package next to the folder it came from, under the folder's
+    /// own name, and never over an existing file: `freePath` finds a name that
+    /// is free and `rename(2)` with `exclusive` is what claims it.
+    func packDeb(_ directory: String, architecture: DebianPackageBuilder.Architecture) {
+        presenter?.setEditing(false, animated: true)
+        Task {
+            do {
+                let names = try await DirectoryReader.entries(in: directory, session: session).map(\.name)
+                let layout = try DebianPackageBuilder.layout(in: directory, names: names)
+                let name = (directory as NSString).lastPathComponent
+                let stem = name.hasSuffix(".deb") ? String(name.dropLast(4)) : name
+                let parent = (directory as NSString).deletingLastPathComponent
+                let destination = try await freePath(base: stem, extension: "deb", in: parent)
+                guard let presenter = activePresenter else { return }
+                try await ProgressCard.run(
+                    title: String(localized: "Packing the Package"),
+                    message: name,
+                    // Every step writes its own file and renames it into place,
+                    // so a cancel would leave a complete package or none.
+                    cancellable: false,
+                    from: presenter,
+                ) { update in
+                    // The card's updater is main-actor bound; the work is not,
+                    // so each line hops back rather than holding the build on
+                    // the main thread.
+                    let report: @Sendable (String) -> Void = { message in
+                        Task { @MainActor in update(message) }
+                    }
+                    try await DebianPackageBuilder.build(
+                        .init(
+                            layout: layout,
+                            architecture: architecture,
+                            version: "",
+                            destination: destination,
+                        ),
+                        session: self.session,
+                        progress: report,
+                    )
+                }
+                Toast.show(String(localized: "Packed “\((destination as NSString).lastPathComponent)”"))
+                NotificationCenter.default.post(name: .filaJobFinished, object: [parent])
+            } catch let failure as DebianPackageBuilder.Failure {
+                activePresenter?.presentMessage(
+                    String(localized: "The Package Was Not Built"),
+                    message: failure.message,
+                )
             } catch { report(error) }
         }
     }

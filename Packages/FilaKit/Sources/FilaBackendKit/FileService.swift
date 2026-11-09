@@ -331,6 +331,15 @@ public protocol FileBackend: Backend {
     /// background enumeration; it does nothing while visits are not being
     /// recorded.
     func setFavorite(_ path: ServicePath, included: Bool) throws
+    /// The name a favourite shows in the sidebar instead of its own, or nil
+    /// when it was never renamed. A name is display only: the row still
+    /// opens `path`, and nothing on disk changes.
+    func renameFavorite(_ path: ServicePath, to name: String?)
+    /// Rewrites the stored favourites in `paths`' order. The set has to be the
+    /// one already stored — this reorders, and never adds or removes — so a
+    /// reorder that raced a removal is dropped rather than resurrecting an
+    /// entry the user deleted.
+    func setFavoriteOrder(_ paths: [ServicePath])
     func recordVisit(_ path: ServicePath) throws
     func forgetVisit(_ path: ServicePath) throws
 
@@ -347,4 +356,16 @@ public protocol FileBackend: Backend {
     /// lists again. What a finished transfer says to both of its ends,
     /// whatever the outcome was.
     func invalidate(_ directories: [ServicePath])
+}
+
+/// A backend that keeps no names of its own accepts both and changes
+/// nothing. A share's rows are the folders the user saved on that server, in
+/// the order its profile lists them, and they have no local record to
+/// rewrite — so editing them lives with the share in Settings › Servers, not
+/// in the sidebar. Only the local root, whose favourites are its own record,
+/// implements either method.
+@MainActor
+public extension FileBackend {
+    func renameFavorite(_ path: ServicePath, to name: String?) {}
+    func setFavoriteOrder(_ paths: [ServicePath]) {}
 }

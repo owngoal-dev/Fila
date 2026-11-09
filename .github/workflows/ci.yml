@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - main
+      # The branch features are proven on before they reach `main`: a push
+      # there builds the same packages, so an install test needs no merge.
+      - test
   pull_request:
   workflow_dispatch:
 
@@ -39,7 +42,7 @@ env:
   # higher one, which is the failure the packaging notes describe as "a plist
   # change that does not take". The floor carries the counter past the old
   # workflow's last run. Raise it, never lower it.
-  BUILD_NUMBER_FLOOR: "100"
+  BUILD_NUMBER_FLOOR: "300"
 
 jobs:
   test:

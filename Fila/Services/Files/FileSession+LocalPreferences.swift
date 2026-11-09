@@ -47,6 +47,25 @@ extension FileSession {
         record("favorite") { try local.setFavorite(location, included: !local.isFavorite(location)) }
     }
 
+    /// The name this favourite shows in the sidebar, or nil while it shows its
+    /// own — the folder's name, or the app name that decorates a container.
+    func favoriteName(for path: String) -> String? {
+        local.servicePath(forAbsolute: path).flatMap(local.favoriteName(for:))
+    }
+
+    /// A display name only: the favourite keeps its path and opens the same
+    /// folder. Nil or a blank name puts the folder's own name back.
+    func renameFavorite(_ path: String, to name: String?) {
+        guard let location = local.servicePath(forAbsolute: path) else { return }
+        local.renameFavorite(location, to: name)
+    }
+
+    /// The order the user dragged the sidebar into. A list that is not the
+    /// stored set is refused by the backend, which logs why.
+    func setFavoriteOrder(_ paths: [String]) {
+        local.setFavoriteOrder(paths.compactMap(local.servicePath(forAbsolute:)))
+    }
+
     var showsHidden: Bool {
         local.showsHidden
     }

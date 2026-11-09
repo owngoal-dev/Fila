@@ -339,6 +339,12 @@ final class SidebarViewController: UIViewController {
             name = root.displayName
             image = SidebarLocation.image(for: root)
         }
+        // A favourite the user named shows that name. The picture, the badge
+        // and the brown app decoration stay the folder's; only the words are
+        // the user's, and the row itself is not edited here.
+        if case let .favorite(path) = item, let named = session.favoriteName(for: path) {
+            name = named
+        }
         cell.configure(name: name, image: image, nameColor: color, tintColor: .tintColor)
         if case .favorite = item {
             cell.showFavoriteBadge()

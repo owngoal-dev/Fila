@@ -82,15 +82,32 @@ final class FileBrowserViewController: BackendListViewController<FileNode>, TabC
         return FilePresentation.visibleName((directory as NSString).lastPathComponent)
     }
 
-    private lazy var favoritesMenu = makeCurrentCrumbMenu()
     private lazy var placesMenu = makeCurrentCrumbPlacesMenu()
 
-    override var currentCrumbMenu: UIMenu? {
-        favoritesMenu
+    /// The favourites panel takes the place of the menu a tap on the current
+    /// crumb used to open: a menu's rows take a tap and nothing else, and the
+    /// list is renamed and put in the user's own order right there.
+    override var currentCrumbTap: (() -> Void)? {
+        return { [weak self] in self?.presentFavoritesPanel() }
     }
 
     override var currentCrumbLongPressMenu: UIMenu? {
         placesMenu
+    }
+
+    /// Anchored to the crumb that was tapped, in window space: the panel is
+    /// told where it grew from, and the presentation controller converts it
+    /// into the container it lands in.
+    private func presentFavoritesPanel() {
+        let bar = pathBar
+        let anchor = bar.currentTargetFrame.map { bar.convert($0, to: nil) }
+        let panel = PathFavoritesPanelViewController(
+            directory: directory,
+            sourceRect: anchor,
+            goToPath: { [weak self] in self?.promptGoToPath() },
+            open: { [weak self] path in self?.open(directory: path) },
+        )
+        present(panel, animated: true)
     }
 
     /// The long press on the bar's title, so it is added once.

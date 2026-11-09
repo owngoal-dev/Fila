@@ -13,7 +13,9 @@ import Foundation
 /// place of it: an older build reading these defaults still finds its list.
 /// `favoritesInstallRoot` is added the same way: the favourites stay real
 /// absolute paths, and the install root they were saved under sits beside
-/// them.
+/// them. `favoriteNames` is a second such companion — the name each
+/// favourite shows, keyed by that absolute path — so a build that knows no
+/// names still reads the list, in the order the user left it.
 ///
 /// Only the full root uses this. The sandboxed backend is a different
 /// namespace and stores its own record under its own key, so an old absolute
@@ -47,6 +49,18 @@ public final class LocalPreferencesDefaults: DefaultStorage {
         if let favorites = defaults.stringArray(forKey: "favorites") {
             files.favorites = favorites.compactMap(Self.path)
         }
+        // Keyed by the favourite's path, written absolute like the favourites
+        // themselves and loaded relative, like every path in this record. Two
+        // spellings of one path — `/a/b` and `/a/b/` — are one entry, and the
+        // first in sorted order wins, as `folderLayouts` does.
+        let names = defaults.dictionary(forKey: "favoriteNames") as? [String: String] ?? [:]
+        let loadedNames: [String: String] = Dictionary(
+            names.sorted { $0.key < $1.key }.compactMap { absolute, name in
+                Self.path(absolute).map { ($0.description, name) }
+            },
+            uniquingKeysWith: { first, _ in first },
+        )
+        files.favoriteNames = loadedNames.isEmpty ? nil : loadedNames
         // The legacy filter: an older build recorded opened files too, under
         // a second key, and hid them from the directory list by subtraction.
         let filesOnly = Set(defaults.stringArray(forKey: "recentFiles") ?? [])
@@ -97,6 +111,19 @@ public final class LocalPreferencesDefaults: DefaultStorage {
                 defaults.set(favorites.map(Self.absolute), forKey: "favorites")
             } else {
                 defaults.removeObject(forKey: "favorites")
+            }
+        }
+        if changed(\.files.favoriteNames) {
+            if let names = files.favoriteNames, !names.isEmpty {
+                // Absolute, as `favorites` stores its own paths — `"/" + key`
+                // is what `Self.absolute` writes for the key's path, and an
+                // empty key (the root) is `/`, as it should be.
+                defaults.set(
+                    Dictionary(uniqueKeysWithValues: names.map { ("/" + $0.key, $0.value) }),
+                    forKey: "favoriteNames",
+                )
+            } else {
+                defaults.removeObject(forKey: "favoriteNames")
             }
         }
         if changed(\.files.recents) {
